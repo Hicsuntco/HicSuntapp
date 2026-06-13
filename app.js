@@ -216,22 +216,19 @@ async function loadSavedItinerary(id){
 
 /* ── boot ───────────────────────────────────────────────────────────── */
 function handleAuthCallback(){
-  const hash = window.location.hash;
-  if (!hash) return false;
-  const params = new URLSearchParams(hash.replace('#', '?'));
-  const token = params.get('access_token');
-  if (!token) return false;
-  localStorage.setItem('sb_token', token);
-  const name = params.get('user_metadata') || '';
-  window.history.replaceState({}, '', window.location.pathname);
-  return true;
+  try {
+    const hash = window.location.hash;
+    if (!hash || !hash.includes('access_token')) return false;
+    const params = new URLSearchParams(hash.substring(1));
+    const token = params.get('access_token');
+    if (!token) return false;
+    localStorage.setItem('sb_token', token);
+    window.history.replaceState({}, '', window.location.pathname);
+    return true;
+  } catch(e) { return false; }
 }
+
 function buildApp(){
-  const loggedIn = handleAuthCallback();
-  // ... reste du code
-  setTab('discover');
-  if (!loggedIn) openOverlay('onboarding', onboardingView(), { modal:true });
-}
   const s = screenEl();
   s.innerHTML = '<div class="tabs">'
     + '<div class="tabview" data-tab="discover"></div>'
@@ -239,7 +236,8 @@ function buildApp(){
     + '<div class="tabview" data-tab="voyages"></div>'
     + '<div class="tabview" data-tab="profile"></div>'
     + '</div>' + tabbarHTML();
+  const loggedIn = handleAuthCallback();
   setTab('discover');
-  openOverlay('onboarding', onboardingView(), { modal:true });
+  if (!loggedIn) openOverlay('onboarding', onboardingView(), { modal:true });
 }
 document.addEventListener('DOMContentLoaded', buildApp);
