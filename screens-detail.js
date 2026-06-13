@@ -31,6 +31,18 @@ function loginView(){
     +   '<p class="login-link">Première fois ici ? <b>Créer un compte</b></p>'
     + '</div>';
 }
+function welcomeView(){
+  return statusBar() + navbar('')
+    + '<div class="ov-scroll px">'
+    +   '<h1 class="login-h">Bienvenue.</h1>'
+    +   '<p class="login-s">Quelques informations pour personnaliser votre expérience.</p>'
+    +   '<div class="field"><label>Prénom</label><input class="input" type="text" id="wFirst" placeholder="Charlotte"></div>'
+    +   '<div class="field"><label>Nom</label><input class="input" type="text" id="wLast" placeholder="Leroux"></div>'
+    +   '<div class="field"><label>Date de naissance</label><input class="input" type="date" id="wBirth"></div>'
+    +   '<div class="field"><label>Adresse</label><input class="input" type="text" id="wAddress" placeholder="12 rue de Rivoli, Paris"></div>'
+    +   '<button class="btn" style="margin-top:6px" onclick="saveWelcomeProfile()">Continuer</button>'
+    + '</div>';
+}
 function loginDone(){ closeAllOverlays(); setTab('discover'); }
 
 /* ── 8 · Destination détail ─────────────────────────────────────────── */
