@@ -182,3 +182,22 @@ function buildApp(){
   openOverlay('onboarding', onboardingView(), { modal:true });
 }
 document.addEventListener('DOMContentLoaded', buildApp);
+async function signupEmail(){
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  if (!email || !password) { toast('Email et mot de passe requis'); return; }
+  try {
+    const res = await fetch(SUPABASE_URL + '/auth/v1/signup', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'apikey': SUPABASE_ANON },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message || data.error);
+    toast('Vérifiez vos emails pour confirmer votre compte');
+    closeAllOverlays();
+    setTab('discover');
+  } catch(e) {
+    toast(e.message || 'Erreur lors de la création du compte');
+  }
+}
