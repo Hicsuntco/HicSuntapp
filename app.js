@@ -97,7 +97,7 @@ function setTab(name){
     if (on){
       if (name === 'discover') v.innerHTML = discoverView();
       if (name === 'create')   v.innerHTML = createView();
-      if (name === 'voyages')  v.innerHTML = voyagesView();
+      if (name === 'voyages') { v.innerHTML = voyagesView(); loadVoyagesTab(); }
       if (name === 'profile')  v.innerHTML = profileView();
       v.scrollTop = 0;
     }
