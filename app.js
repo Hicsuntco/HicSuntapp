@@ -283,11 +283,6 @@ function buildApp(){
     openOverlay('onboarding', onboardingView(), { modal:true });
   }
 
-  if (!loggedIn && !token){
-    openOverlay('onboarding', onboardingView(), { modal:true });
-  }
-}
-
 document.addEventListener('DOMContentLoaded', buildApp);
 async function saveWelcomeProfile(){
   const first = document.getElementById('wFirst').value.trim();
