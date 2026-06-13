@@ -10,43 +10,25 @@ function onboardingView(){
     +     '<p class="onb-s">Des itinéraires composés pour vous, au-delà des sentiers connus. Cartographie, conciergerie, et un assistant qui ajuste tout en direct.</p>'
     +   '</div>'
     +   '<div class="onb-acts">'
-    +     '<button class="btn" onclick="openOverlay(\'signup\', signupView())">Commencer</button>'
+    +     '<button class="btn" onclick="openOverlay(\'login\', loginView())">Commencer</button>'
     +     '<button class="btn-ghost" onclick="openOverlay(\'login\', loginView())">J\'ai déjà un compte</button>'
     +     '<div class="dots"><i class="on"></i><i></i><i></i></div>'
     +   '</div>'
     + '</div>';
 }
-function signupView(){
-  return statusBar() + navbar('')
-    + '<div class="ov-scroll px">'
-    +   '<h1 class="login-h">Créer un compte.</h1>'
-    +   '<p class="login-s">Rejoignez Hic Sunt pour composer vos voyages.</p>'
-    +   '<button class="apple-btn" onclick="loginGoogle()" style="background:#fff;color:#1b1610;border:1px solid var(--line);gap:12px">'
-    +     '<svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z"/></svg>'
-    +     'Continuer avec Google'
-    +   '</button>'
-    +   '<div class="sep">ou</div>'
-    +   '<div class="field"><label>Email</label><input class="input" type="email" id="authEmail" placeholder="charlotte@exemple.fr"></div>'
-    +   '<div class="field"><label>Mot de passe</label><input class="input" type="password" id="authPassword" placeholder="8 caractères minimum"></div>'
-    +   '<button class="btn" style="margin-top:6px" onclick="signupEmail()">Créer mon compte</button>'
-    +   '<p class="login-link">Déjà un compte ? <b onclick="closeOverlay();openOverlay(\'login\', loginView())">Se connecter</b></p>'
-    + '</div>';
-}
+
 /* ── 2 · Login ──────────────────────────────────────────────────────── */
 function loginView(){
   return statusBar() + navbar('')
     + '<div class="ov-scroll px">'
     +   '<h1 class="login-h">Bon retour.</h1>'
-    +   '<p class="login-s">Connectez-vous pour accéder à vos itinéraires.</p>'
-    +   '<button class="apple-btn" onclick="loginGoogle()" style="background:#fff;color:#1b1610;border:1px solid var(--line);gap:12px">'
-    +     '<svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z"/></svg>'
-    +     'Continuer avec Google'
-    +   '</button>'
+    +   '<p class="login-s">Retrouvez vos itinéraires, vos documents et votre conciergerie.</p>'
+    +   '<div class="field"><label>Adresse e-mail</label><input class="input" type="email" placeholder="charlotte@exemple.fr"></div>'
+    +   '<div class="field"><label>Mot de passe</label><input class="input" type="password" placeholder="••••••••"></div>'
+    +   '<button class="btn" style="margin-top:6px" onclick="loginDone()">Se connecter</button>'
     +   '<div class="sep">ou</div>'
-    +   '<div class="field"><label>Email</label><input class="input" type="email" id="authEmail" placeholder="charlotte@exemple.fr"></div>'
-    +   '<div class="field"><label>Mot de passe</label><input class="input" type="password" id="authPassword" placeholder="••••••••"></div>'
-    +   '<button class="btn" style="margin-top:6px" onclick="loginEmail()">Se connecter</button>'
-    +   '<p class="login-link">Première fois ? <b onclick="loginEmail()">Créer un compte</b></p>'
+    +   '<button class="apple-btn" onclick="loginDone()">' + ico('apple', 19, 1.4) + 'Continuer avec Apple</button>'
+    +   '<p class="login-link">Première fois ici ? <b>Créer un compte</b></p>'
     + '</div>';
 }
 function loginDone(){ closeAllOverlays(); setTab('discover'); }
@@ -141,10 +123,13 @@ function itineraryView(){
     +   '<div class="minimap" onclick="openMapOv()">' + mapSVG(345, 188, null) + wxChip(wx1[0], wx1[1])
     +     '<span class="mm-cap">' + esc(it.coords || it.dest) + ' · ' + esc(it.distance || '') + '</span></div>'
     +   '<div class="tools">'
-    +     '<button class="tool" onclick="openOverlay(\'budget\', budgetView())">' + ico('wallet',20,1.5) + '<div class="tl-t">Budget</div><div class="tl-s">' + eur(it.budgetTotal) + ' · suivi</div></button>'
+    +     '<button class="tool" onclick="openOverlay(\'budget\', budgetView())">' + ico('wallet',20,1.5) + '<div class="tl-t">Budget</div><div class="tl-s">' + eur(it.budgetTotal) + ' · estimation</div></button>'
     +     '<button class="tool" onclick="openActivities()">' + ico('ticket',20,1.5) + '<div class="tl-t">Activités</div><div class="tl-s">' + ACTIVITIES.length + ' expériences</div></button>'
-    +     '<button class="tool" onclick="openOverlay(\'reviews\', reviewsView())">' + ico('star',18,1.5) + '<div class="tl-t">Avis</div><div class="tl-s">' + RATING.score + ' · ' + RATING.count + ' voyageurs</div></button>'
-    +     '<button class="tool" onclick="openOverlay(\'share\', shareView())">' + ico('share',19,1.5) + '<div class="tl-t">Partager</div><div class="tl-s">' + CONTRIBUTORS.length + ' co-voyageurs</div></button>'
+    +     (it.generated
+        ? '<button class="tool" onclick="openOverlay(\'gems\', gemsView())">' + ico('star',18,1.5) + '<div class="tl-t">Pépites</div><div class="tl-s">' + ((it.gems||[]).length) + ' adresses secrètes</div></button>'
+          + '<button class="tool" onclick="openOverlay(\'share\', shareView())">' + ico('share',19,1.5) + '<div class="tl-t">Partager</div><div class="tl-s">Copier le lien</div></button>'
+        : '<button class="tool" onclick="openOverlay(\'reviews\', reviewsView())">' + ico('star',18,1.5) + '<div class="tl-t">Avis</div><div class="tl-s">' + RATING.score + ' · ' + RATING.count + ' voyageurs</div></button>'
+          + '<button class="tool" onclick="openOverlay(\'share\', shareView())">' + ico('share',19,1.5) + '<div class="tl-t">Partager</div><div class="tl-s">' + CONTRIBUTORS.length + ' co-voyageurs</div></button>')
     +   '</div>'
     +   '<div class="ai-banner" onclick="openAI()">'
     +     '<span class="ai-av">' + ico('sparkle',22,1.6) + '</span>'

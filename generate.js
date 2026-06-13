@@ -74,8 +74,8 @@ function buildSkeletonPrompt(){
     '',
     '═══ CONSIGNES STRICTES ═══',
     '- Étapes RÉELLES dans un ordre logique géographiquement (ne pas sauter d\'un bout à l\'autre du pays).',
-    '- Entre 3 et 6 étapes selon la durée ('+dc+' jours). Pas plus de 5 hébergements différents.',
-    '- Hébergements avec VRAIS noms d\'hôtels, lodges, guesthouses — adaptés au confort demandé.',
+    '- "plan" doit avoir EXACTEMENT '+Math.min(dc,10)+' entrées (une par jour'+(dc>10?', le voyage dure '+dc+' jours mais regroupe les jours similaires en étapes':'')+').',
+    '- Hébergements VRAIS et plausibles ; gamme et budget adaptés au confort demandé. Pas plus de 5 hébergements différents.',
     '- "budget" = fourchette totale réaliste en euros pour TOUS les voyageurs (hébergements+repas+activités+transport local, hors vols).',
     '  · Éco: 60-100€/pers/j · Confort: 120-220€/pers/j · Luxe: 250-500€/pers/j · Ultra: 500€+/pers/j',
     '- "night" de chaque plan = "name" EXACT d\'un "stays".',
@@ -206,6 +206,8 @@ function applyGenerated(skel, daysDetail, hilites){
   const dc=_clampInt(skel.days_count, 1, 60, buildBrief().daysCount);
 
   /* hébergements */
+  const ACC_PRICE_RANGE={'Éco':[30,90],'Confort':[80,200],'Luxe':[180,450],'Ultra':[400,1200]};
+  const accRange=ACC_PRICE_RANGE[level]||ACC_PRICE_RANGE['Confort'];
   const stayTags=['Coup de cœur','Adresse rare','Signature Hic Sunt','Pépite locale','Écrin de sérénité'];
   const stayRates=['4,96','4,89','4,92','4,88','4,94'];
   const stays=(Array.isArray(skel.stays)?skel.stays:[]).slice(0,5).map(function(s,i){
@@ -213,11 +215,11 @@ function applyGenerated(skel, daysDetail, hilites){
       id:'a'+(i+1), n:s.name||('Hébergement '+(i+1)), i:_stayIcon(s.type),
       type:s.type||'Hôtel-boutique', loc:s.loc||dest,
       tag:stayTags[i]||'Sélection', rate:stayRates[i]||'4,9',
-      nights:_clampInt(s.nights,1,14,2), price:_clampInt(s.price,40,4000,200),
+      nights:_clampInt(s.nights,1,14,2), price:_clampInt(s.price,accRange[0],accRange[1],Math.round((accRange[0]+accRange[1])/2)),
       am:['bed','wifi',i%2?'fork':'pool'], blurb:s.blurb||'Une adresse d\'exception.',
     };
   });
-  while(stays.length<1) stays.push({id:'a1',n:'Hébergement local',i:'bed',type:'Hôtel-boutique',loc:dest,tag:'Sélection',rate:'4,9',nights:2,price:180,am:['bed','wifi','pool'],blurb:''});
+  while(stays.length<1) stays.push({id:'a1',n:'Hébergement local',i:'bed',type:'Hôtel-boutique',loc:dest,tag:'Sélection',rate:'4,9',nights:2,price:accRange[0],am:['bed','wifi','pool'],blurb:''});
 
   const findStay=function(name){
     if(!name) return null;
@@ -249,19 +251,25 @@ function applyGenerated(skel, daysDetail, hilites){
   });
   if(!plan.length) return false;
 
-  /* budget */
+  /* budget — calibré sur le niveau de confort, la durée et le nb de voyageurs */
+  const PPD_RANGE={'Éco':[60,100],'Confort':[120,220],'Luxe':[250,500],'Ultra':[500,900]};
+  const ppd=PPD_RANGE[level]||PPD_RANGE['Confort'];
+  const travelers=_clampInt(state.travelers,1,12,2);
+  const minBudget=Math.round(ppd[0]*travelers*dc);
+  const maxBudget=Math.round(ppd[1]*travelers*dc);
   const stayCost=stays.reduce(function(s,a){return s+a.price*a.nights;},0);
-  let budgetTotal=_clampInt(skel.budget,stayCost*0.8,200000,Math.round(stayCost*2.4));
-  if(budgetTotal<stayCost) budgetTotal=Math.round(stayCost*2.2);
+  let budgetTotal=_clampInt(skel.budget, minBudget, maxBudget*1.15, Math.round((minBudget+maxBudget)/2));
+  /* le budget doit au moins couvrir l'hébergement */
+  if(budgetTotal<stayCost) budgetTotal=Math.min(Math.round(stayCost*1.5), maxBudget*1.15);
 
   /* application */
   ITINERARY.plan.length=0; plan.forEach(function(p){ITINERARY.plan.push(p);});
   ITINERARY.accommodations.length=0; stays.forEach(function(s){ITINERARY.accommodations.push(s);});
   Object.assign(ITINERARY,{
     dest:dest, country:skel.country||'', tag:skel.tagline||'Itinéraire composé pour vous',
-    dates:skel.dates||'Sur-mesure', days:dc, level:level,
-    budgetTotal:budgetTotal, coords:skel.coords||dest, distance:dc+' jours',
-    region:skel.region||'', season:skel.season||'',
+    dates:skel.dates||'Sur-mesure', days:plan.length, level:level,
+    budgetTotal:budgetTotal, coords:skel.coords||dest, distance:plan.length+' jours',
+    region:skel.region||'', season:skel.season||'', generated:true,
   });
 
   /* highlights */
@@ -301,10 +309,10 @@ function deriveBudget(stays, total){
   let transfers=total-stayCost-actCost-flights-food;
   if(transfers<0) transfers=Math.round(total*0.06);
   const nights=stays.reduce(function(s,a){return s+a.nights;},0);
-  BUDGET.total=total; BUDGET.spent=Math.round(total*0.55);
+  BUDGET.total=total; BUDGET.spent=0;
   BUDGET.lines=[
-    {i:'bed',n:'Hébergements',sub:nights+' nuit'+(nights>1?'s':'')+' · '+stays.length+' adresse'+(stays.length>1?'s':''),amount:stayCost,paid:true},
-    {i:'plane',n:'Vols',sub:(state.origin||'Paris')+' · aller-retour · '+travelerLabel(),amount:flights,paid:true},
+    {i:'bed',n:'Hébergements',sub:nights+' nuit'+(nights>1?'s':'')+' · '+stays.length+' adresse'+(stays.length>1?'s':''),amount:stayCost,paid:false},
+    {i:'plane',n:'Vols',sub:(state.origin||'Paris')+' · aller-retour · '+travelerLabel(),amount:flights,paid:false},
     {i:'ticket',n:'Activités & expériences',sub:(typeof ACTIVITIES!=='undefined'?ACTIVITIES.length:0)+' sélectionnées',amount:actCost,paid:false},
     {i:'fork',n:'Restauration',sub:'Estimation · demi-pension',amount:food,paid:false},
     {i:'compass',n:'Transferts & transport local',sub:'Selon votre circuit',amount:Math.max(0,transfers),paid:false},
@@ -316,7 +324,7 @@ async function callCartographe(){
   /* Passe 1 — ossature */
   const skel=await _completeJSON(buildSkeletonPrompt());
   if(!skel||!Array.isArray(skel.plan)||!skel.plan.length) return null;
-  skel.plan=skel.plan.slice(0,6);
+  skel.plan=skel.plan.slice(0, Math.min(skel.plan.length, 10));
 
   /* Passe 2 — détail éditorial des jours */
   const daysDetail=await _completeJSON(buildDaysPrompt(skel));

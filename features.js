@@ -63,27 +63,33 @@ function budgetView(){
   const b = BUDGET;
   const pct = Math.round(b.spent / b.total * 100);
   const rest = b.total - b.spent;
+  const isGen = !!ITINERARY.generated;
   return statusBar() + navbar('Budget du voyage')
     + '<div class="ov-scroll has-foot px">'
     +   '<div class="bud-card">' + contour()
     +     '<div class="bud-l">Total estimé · ' + esc(ITINERARY.dest) + '</div>'
     +     '<div class="bud-v">' + eur(b.total) + '</div>'
-    +     '<div class="bud-s">' + travelerLabel() + ' · ' + ITINERARY.days + ' jours · tout compris</div>'
-    +     '<div class="bud-prog"><i style="width:' + pct + '%"></i></div>'
-    +     '<div class="bud-leg"><span>Réglé · <b>' + eur(b.spent) + '</b></span><span>Restant · ' + eur(rest) + '</span></div>'
+    +     '<div class="bud-s">' + travelerLabel() + ' · ' + ITINERARY.days + ' jours · estimation</div>'
+    +     (isGen ? '' : '<div class="bud-prog"><i style="width:' + pct + '%"></i></div>'
+        + '<div class="bud-leg"><span>Réglé · <b>' + eur(b.spent) + '</b></span><span>Restant · ' + eur(rest) + '</span></div>')
     +   '</div>'
-    +   '<div class="section-h"><h2>Répartition</h2><span class="meta">' + pct + ' % réglé</span></div>'
+    +   '<div class="section-h"><h2>Répartition</h2><span class="meta">' + (isGen ? 'estimation' : pct + ' % réglé') + '</span></div>'
     +   b.lines.map(function(l){
         return '<div class="bline">' + ico(l.i, 20, 1.5)
           + '<div class="bl-m"><div class="bl-n">' + esc(l.n) + '</div><div class="bl-s">' + esc(l.sub) + '</div></div>'
           + '<div class="bl-r"><div class="bl-v">' + eur(l.amount) + '</div>'
-          + '<span class="status ' + (l.paid ? 'ok' : 'prep') + '">' + (l.paid ? 'Réglé' : 'À régler') + '</span></div></div>';
+          + (isGen ? '' : '<span class="status ' + (l.paid ? 'ok' : 'prep') + '">' + (l.paid ? 'Réglé' : 'À régler') + '</span>') + '</div></div>';
       }).join('')
     + '</div>'
-    + '<div class="ov-foot"><div class="foot-price">'
-    +   '<div><div class="fp-v">' + eur(rest) + '</div><div class="fp-l">solde restant</div></div>'
-    +   '<button class="btn" onclick="toast(\'Solde réglé — merci\')">Régler le solde</button>'
-    + '</div></div>';
+    + (isGen
+      ? '<div class="ov-foot"><div class="foot-price">'
+        + '<div><div class="fp-v">' + eur(b.total) + '</div><div class="fp-l">estimation totale</div></div>'
+        + '<button class="btn" onclick="openBooking(\'' + (ITINERARY.accommodations[0]?ITINERARY.accommodations[0].id:'') + '\')">Réserver les étapes</button>'
+        + '</div></div>'
+      : '<div class="ov-foot"><div class="foot-price">'
+        + '<div><div class="fp-v">' + eur(rest) + '</div><div class="fp-l">solde restant</div></div>'
+        + '<button class="btn" onclick="toast(\'Solde réglé — merci\')">Régler le solde</button>'
+        + '</div></div>');
 }
 
 /* ── 14 · Activités ─────────────────────────────────────────────────── */
@@ -104,11 +110,11 @@ function activitiesView(){
         return '<div class="act-day">Jour ' + String(d).padStart(2,'0') + '</div>'
           + byDay[d].map(function(a){
             const on = !!actSel[a.id];
-            return '<div class="act"><span class="a-th">' + ico(a.i, 26, 1.3) + '</span>'
+            return '<div class="act" onclick="openActivityDetail(\'' + a.id + '\')" style="cursor:pointer">' + '<span class="a-th">' + ico(a.i, 26, 1.3) + '</span>'
               + '<div class="ac-m"><div class="ac-tag">' + esc(a.tag) + '</div><div class="ac-n">' + esc(a.n) + '</div>'
               + '<div class="ac-s">' + esc(a.loc) + ' · ' + esc(a.dur) + ' · ' + ico('star',10) + a.rate + '</div></div>'
               + '<div class="ac-r"><span class="ac-p">' + eur(a.price) + '</span>'
-              + '<button class="act-add' + (on ? ' on' : '') + '" onclick="toggleAct(\'' + a.id + '\')" aria-label="Ajouter">' + ico(on ? 'check' : 'plus', 17, 1.8) + '</button></div></div>';
+              + '<button class="act-add' + (on ? ' on' : '') + '" onclick="event.stopPropagation();toggleAct(\'' + a.id + '\')" aria-label="Ajouter">' + ico(on ? 'check' : 'plus', 17, 1.8) + '</button></div></div>';
           }).join('');
       }).join('')
     + '</div>'
@@ -127,6 +133,25 @@ function addActs(){
   ACTIVITIES.forEach(function(a){ if (actSel[a.id]) count++; });
   toast(count ? count + ' expérience' + (count>1?'s':'') + ' ajoutée' + (count>1?'s':'') + ' à l\'itinéraire' : 'Sélectionnez au moins une expérience');
   if (count) closeOverlay();
+}
+function _actById(id){ return ACTIVITIES.find(function(a){ return a.id === id; }); }
+function openActivityDetail(id){
+  const a = _actById(id);
+  if (!a) return;
+  const on = !!actSel[a.id];
+  const html = statusBar() + navbar('Activité')
+    + '<div class="ov-scroll has-foot px">'
+    +   '<div style="display:flex;align-items:center;justify-content:center;height:140px;background:var(--tile-bg);border-radius:14px;margin-top:14px;color:var(--gold)">' + ico(a.i, 48, 1.2) + '</div>'
+    +   '<span class="eyebrow" style="display:block;margin-top:18px">' + esc(a.tag) + ' · Jour ' + a.day + '</span>'
+    +   '<h1 style="font-family:var(--serif);font-weight:600;font-size:26px;letter-spacing:-0.4px;margin-top:6px">' + esc(a.n) + '</h1>'
+    +   '<div class="book-meta" style="margin-top:4px">' + esc(a.loc) + ' · ' + esc(a.dur) + ' · ' + ico('star',12) + ' ' + a.rate + '</div>'
+    +   '<p class="book-desc" style="margin-top:14px">Une expérience sélectionnée par votre cartographe pour s\'intégrer naturellement à votre journée à ' + esc(a.loc) + '. Réservation flexible, annulation possible jusqu\'à 24h avant.</p>'
+    + '</div>'
+    + '<div class="ov-foot"><div class="foot-price">'
+    +   '<div><div class="fp-v">' + eur(a.price) + '</div><div class="fp-l">par personne</div></div>'
+    +   '<button class="btn' + (on?' gold':'') + '" onclick="toggleAct(\'' + a.id + '\');closeOverlay()">' + (on ? 'Retirer' : 'Ajouter à l\'itinéraire') + '</button>'
+    + '</div></div>';
+  openOverlay('activity-detail', html);
 }
 
 /* ── 15 · Avis ──────────────────────────────────────────────────────── */
@@ -201,8 +226,37 @@ function cercleView(){
     + '</div>';
 }
 
+/* ── Pépites cachées (itinéraires générés) ──────────────────────────── */
+function gemsView(){
+  const gems = ITINERARY.gems || [];
+  return statusBar() + navbar('Pépites cachées')
+    + '<div class="ov-scroll px">'
+    +   '<span class="eyebrow" style="display:block;margin-top:10px">' + esc(ITINERARY.dest) + '</span>'
+    +   '<h1 style="font-family:var(--serif);font-weight:600;font-size:28px;letter-spacing:-0.4px;margin-top:8px">Adresses secrètes</h1>'
+    +   '<p class="lede" style="margin-top:10px">Sélectionnées par votre cartographe — loin des sentiers battus.</p>'
+    +   (gems.length === 0
+        ? '<p style="color:var(--sub);font-size:14px;margin-top:24px;font-style:italic">Aucune pépite pour cette destination.</p>'
+        : gems.map(function(g){
+            return '<div class="review"><div class="rv-top"><div><div class="rv-n">' + esc(g.name) + '</div><div class="rv-d">' + esc(g.loc||'') + '</div></div></div>'
+              + '<p>' + esc(g.desc||'') + '</p>'
+              + (g.tip ? '<p style="color:var(--gold);font-size:13px;margin-top:4px;font-style:italic">' + esc(g.tip) + '</p>' : '')
+              + '</div>';
+          }).join(''))
+    + '</div>';
+}
+
 /* ── 24 · Partage ───────────────────────────────────────────────────── */
 function shareView(){
+  const it = ITINERARY;
+  if (it.generated) {
+    return statusBar() + navbar('Partager le voyage')
+      + '<div class="ov-scroll px">'
+      +   '<span class="eyebrow" style="display:block;margin-top:10px">' + esc(it.dest) + ' · ' + it.days + ' jours</span>'
+      +   '<h1 style="font-family:var(--serif);font-weight:600;font-size:28px;letter-spacing:-0.4px;margin-top:8px">Partager ce voyage</h1>'
+      +   '<div class="row" onclick="toast(\'Lien copié\')"><span class="r-ico">' + ico('link',19,1.5) + '</span><div class="r-main"><div class="r-t">Copier le lien</div><div class="r-s">Lecture seule</div></div><span class="r-chev">' + ico('chevron',17,1.6) + '</span></div>'
+      +   '<div class="row" onclick="toast(\'Ouverture de Messages\')"><span class="r-ico">' + ico('share',18,1.5) + '</span><div class="r-main"><div class="r-t">Envoyer par message</div><div class="r-s">iMessage · WhatsApp</div></div><span class="r-chev">' + ico('chevron',17,1.6) + '</span></div>'
+      + '</div>';
+  }
   return statusBar() + navbar('Partager le voyage')
     + '<div class="ov-scroll px">'
     +   '<span class="eyebrow" style="display:block;margin-top:10px">' + esc(ITINERARY.dest) + ' · ' + ITINERARY.days + ' jours</span>'
