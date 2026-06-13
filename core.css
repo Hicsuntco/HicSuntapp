@@ -148,3 +148,7 @@ textarea.input{height:auto;min-height:110px;padding:14px 16px;resize:none;line-h
   .phone::after { display: none !important; }
   .screen { border-radius: 0 !important; }
 }
+button, a {
+  color: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
