@@ -275,6 +275,13 @@ function buildApp(){
   const token = localStorage.getItem('sb_token');
 
   setTab('discover');
+  if (loggedIn || token) {
+    checkProfile().then(function(done){
+      if (!done) openOverlay('welcome', welcomeView(), { modal:true });
+    });
+  } else if (!loggedIn && !token) {
+    openOverlay('onboarding', onboardingView(), { modal:true });
+  }
 
   if (!loggedIn && !token){
     openOverlay('onboarding', onboardingView(), { modal:true });
