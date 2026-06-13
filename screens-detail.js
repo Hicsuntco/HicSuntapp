@@ -1,0 +1,272 @@
+/* ── HIC SUNT · Sillage — écrans détail ─────────────────────────────── */
+
+/* ── 1 · Onboarding ─────────────────────────────────────────────────── */
+function onboardingView(){
+  return statusBar()
+    + '<div class="onb"><div class="onb-rule"></div>'
+    +   '<div class="onb-main">'
+    +     '<span class="onb-kw">Hic Sunt</span>'
+    +     '<h1 class="onb-h">Le monde,<br><em>sur-mesure</em></h1>'
+    +     '<p class="onb-s">Des itinéraires composés pour vous, au-delà des sentiers connus. Cartographie, conciergerie, et un assistant qui ajuste tout en direct.</p>'
+    +   '</div>'
+    +   '<div class="onb-acts">'
+    +     '<button class="btn" onclick="openOverlay(\'login\', loginView())">Commencer</button>'
+    +     '<button class="btn-ghost" onclick="openOverlay(\'login\', loginView())">J\'ai déjà un compte</button>'
+    +     '<div class="dots"><i class="on"></i><i></i><i></i></div>'
+    +   '</div>'
+    + '</div>';
+}
+
+/* ── 2 · Login ──────────────────────────────────────────────────────── */
+function loginView(){
+  return statusBar() + navbar('')
+    + '<div class="ov-scroll px">'
+    +   '<h1 class="login-h">Bon retour.</h1>'
+    +   '<p class="login-s">Retrouvez vos itinéraires, vos documents et votre conciergerie.</p>'
+    +   '<div class="field"><label>Adresse e-mail</label><input class="input" type="email" placeholder="charlotte@exemple.fr"></div>'
+    +   '<div class="field"><label>Mot de passe</label><input class="input" type="password" placeholder="••••••••"></div>'
+    +   '<button class="btn" style="margin-top:6px" onclick="loginDone()">Se connecter</button>'
+    +   '<div class="sep">ou</div>'
+    +   '<button class="apple-btn" onclick="loginDone()">' + ico('apple', 19, 1.4) + 'Continuer avec Apple</button>'
+    +   '<p class="login-link">Première fois ici ? <b>Créer un compte</b></p>'
+    + '</div>';
+}
+function loginDone(){ closeAllOverlays(); setTab('discover'); }
+
+/* ── 8 · Destination détail ─────────────────────────────────────────── */
+/* rubans de saison par destination (score 0–3 par mois) */
+const SEASONS_BY_DEST = {
+  'Sri Lanka': [3,3,2,2,1,0,0,0,1,1,2,3],
+  'Japon':     [1,1,3,3,3,1,0,0,2,3,3,1],
+  'Maroc':     [2,2,3,3,2,1,0,0,2,3,3,2],
+  'Portugal':  [0,1,1,2,3,3,3,3,3,2,1,0],
+  'Islande':   [0,0,0,1,2,3,3,3,2,1,0,0],
+  'Pérou':     [0,0,1,2,3,3,3,3,3,2,1,0],
+  'Thaïlande': [3,3,2,1,0,0,0,0,0,1,3,3],
+  'Kenya':     [2,2,1,0,0,1,3,3,3,3,1,2],
+};
+const MONTHS_FR = ['J','F','M','A','M','J','J','A','S','O','N','D'];
+
+function destinationView(key){
+  const d = DESTS[key];
+  const scores = SEASONS_BY_DEST[key] || [1,1,1,2,2,2,2,2,2,1,1,1];
+  const k = key.replace(/'/g, "\\'");
+  return '<div class="dest-hero">'
+    +   '<div class="wash" style="background:' + d.bg + '"></div>' + contour()
+    +   '<div class="wm">' + ico(d.i, 132, 1) + '</div>'
+    +   '<div class="veil"></div>'
+    +   '<div class="navbar on-dark"><button class="nav-btn ghost" onclick="closeOverlay()" aria-label="Retour">' + ico('back',20,1.7) + '</button>'
+    +     '<button class="nav-btn ghost" onclick="toast(\'Lien copié\')" aria-label="Partager">' + ico('share',18,1.5) + '</button></div>'
+    +   '<div class="dest-cap"><span class="eyebrow">' + esc(d.r) + '</span><h1>' + esc(key) + '</h1>'
+    +     '<div class="dest-pills"><span class="pill">' + esc(d.best) + '</span><span class="pill">Vol ' + esc(d.flight) + '</span></div></div>'
+    + '</div>'
+    + '<div class="ov-scroll has-foot px">'
+    +   '<p class="lede">' + esc(d.lede) + '</p>'
+    +   '<div class="info-grid">'
+    +     '<div class="info-card"><div class="ic-l">Meilleure saison</div><div class="ic-v">' + esc(d.best) + '</div></div>'
+    +     '<div class="info-card"><div class="ic-l">Vol direct</div><div class="ic-v">' + esc(d.flight) + '</div></div>'
+    +   '</div>'
+    +   '<div class="section-h"><h2>Points forts</h2></div>'
+    +   d.highlights.map(function(h){
+        return '<div class="hl">' + ico(h[0],20,1.5) + '<div><div class="h-t">' + esc(h[1]) + '</div><div class="h-d">' + esc(h[2]) + '</div></div></div>';
+      }).join('')
+    +   '<div class="section-h"><h2>Quand partir</h2><span class="meta">' + esc(d.best) + '</span></div>'
+    +   '<div class="season">' + scores.map(function(s, i){
+        return '<div class="m' + (s === 3 ? ' best' : '') + '"><i style="height:' + (10 + s * 14) + 'px"></i><span>' + MONTHS_FR[i] + '</span></div>';
+      }).join('') + '</div>'
+    +   '<p class="season-note">' + esc(d.tag) + ' — les meilleurs mois sont indiqués en or.</p>'
+    + '</div>'
+    + '<div class="ov-foot"><button class="btn" onclick="composeFromDest(\'' + k + '\')">' + ico('sparkle',18,1.7) + 'Composer un <em>voyage</em> ici</button></div>';
+}
+
+/* ── 5 · Génération (modal sombre) ──────────────────────────────────── */
+function generationView(){
+  const route = '<svg class="gen-route" viewBox="0 0 220 220" fill="none">'
+    + '<path d="M34 176 Q66 120 96 132 T148 84 Q170 64 188 42"/>'
+    + '<circle cx="34" cy="176" r="4"/><circle cx="96" cy="132" r="4"/><circle cx="148" cy="84" r="4"/><circle cx="188" cy="42" r="4"/></svg>';
+  return '<div class="gen">' + statusBar(true)
+    + '<div class="gen-body">'
+    +   '<div class="gen-logo">Hic <em>Sunt</em></div>'
+    +   '<div class="gen-map">' + graticule(220, 220, 40) + route + '</div>'
+    +   '<p class="gen-status" data-gen-status>Lecture de vos envies…</p>'
+    +   '<div class="gen-bar"><i></i></div>'
+    + '</div></div>';
+}
+
+/* ── composant accCard ──────────────────────────────────────────────── */
+function accCard(a){
+  return '<div class="acc" onclick="openBooking(\'' + a.id + '\')">'
+    + '<div class="a-img">' + ico(a.i, 64, 1) 
+    +   '<span class="a-tag">' + esc(a.tag) + '</span>'
+    +   '<button class="a-fav" onclick="event.stopPropagation();this.classList.toggle(\'on\')" aria-label="Favori">' + ico('heart', 17, 1.6) + '</button>'
+    + '</div>'
+    + '<div class="a-body">'
+    +   '<div class="a-top"><span class="a-n">' + esc(a.n) + '</span><span class="a-rate">' + ico('star', 11) + a.rate + '</span></div>'
+    +   '<div class="a-meta">' + esc(a.type) + ' · ' + esc(a.loc) + '</div>'
+    +   '<div class="a-price"><b>' + eur(a.price) + '</b> / nuit · ' + a.nights + ' nuit' + (a.nights > 1 ? 's' : '') + '</div>'
+    + '</div></div>';
+}
+
+/* ── 6 · Itinéraire ─────────────────────────────────────────────────── */
+function itineraryView(){
+  const it = ITINERARY;
+  const wx1 = it.plan[0] ? it.plan[0].wx : ['sun','30°'];
+  return statusBar()
+    + navbar(it.dest, { right:'<button class="nav-btn" onclick="openOverlay(\'share\', shareView())" aria-label="Partager">' + ico('share',18,1.5) + '</button>' })
+    + '<div class="ov-scroll has-foot px">'
+    +   '<div class="itin-hero">'
+    +     '<span class="eyebrow">Itinéraire composé</span>'
+    +     '<h1>' + esc(it.dest) + '</h1>'
+    +     '<div class="itin-tag">' + esc(it.tag) + '</div>'
+    +     '<div class="itin-pills"><span class="pill">' + esc(it.dates) + '</span><span class="pill">' + it.days + ' jours</span><span class="pill">' + esc(it.level) + '</span></div>'
+    +   '</div>'
+    +   '<div class="minimap" onclick="openMapOv()">' + mapSVG(345, 188, null) + wxChip(wx1[0], wx1[1])
+    +     '<span class="mm-cap">' + esc(it.coords || it.dest) + ' · ' + esc(it.distance || '') + '</span></div>'
+    +   '<div class="tools">'
+    +     '<button class="tool" onclick="openOverlay(\'budget\', budgetView())">' + ico('wallet',20,1.5) + '<div class="tl-t">Budget</div><div class="tl-s">' + eur(it.budgetTotal) + ' · suivi</div></button>'
+    +     '<button class="tool" onclick="openActivities()">' + ico('ticket',20,1.5) + '<div class="tl-t">Activités</div><div class="tl-s">' + ACTIVITIES.length + ' expériences</div></button>'
+    +     '<button class="tool" onclick="openOverlay(\'reviews\', reviewsView())">' + ico('star',18,1.5) + '<div class="tl-t">Avis</div><div class="tl-s">' + RATING.score + ' · ' + RATING.count + ' voyageurs</div></button>'
+    +     '<button class="tool" onclick="openOverlay(\'share\', shareView())">' + ico('share',19,1.5) + '<div class="tl-t">Partager</div><div class="tl-s">' + CONTRIBUTORS.length + ' co-voyageurs</div></button>'
+    +   '</div>'
+    +   '<div class="ai-banner" onclick="openAI()">'
+    +     '<span class="ai-av">' + ico('sparkle',22,1.6) + '</span>'
+    +     '<span><span class="ab-k">Cartographe · assistant</span><br><span class="ab-t">Modifier l\'itinéraire</span></span>'
+    +     '<span class="ico chev">' + ico('chevron',20,1.7) + '</span>'
+    +   '</div>'
+    +   '<div class="section-h"><h2>Jour par jour</h2><span class="meta">' + it.days + ' jours</span></div>'
+    +   it.plan.map(function(p, i){
+        return '<div class="dayrow" onclick="openDay(' + i + ')">'
+          + '<div class="dr-rail"><span class="dr-pin">' + p.n + '</span><span class="dr-line"></span></div>'
+          + '<div class="dr-main"><div class="dr-top"><div><div class="dr-t">' + esc(p.title) + '</div><div class="dr-l">' + esc(p.loc) + '</div></div>'
+          + wxChip(p.wx[0], p.wx[1]) + '</div>'
+          + '<div class="dr-d">' + esc(p.desc) + '</div>'
+          + '<div class="dr-tags">' + p.tags.map(function(t){ return '<span class="mini-tag">' + ico(t[0],12,1.7) + t[1] + '</span>'; }).join('') + '</div>'
+          + '</div></div>';
+      }).join('')
+    +   '<div class="section-h"><h2>Hébergements</h2><span class="meta">' + it.accommodations.length + ' étapes</span></div>'
+    +   it.accommodations.map(accCard).join('')
+    + '</div>'
+    + '<div class="ov-foot"><div class="foot-price">'
+    +   '<div><div class="fp-v">' + eur(it.budgetTotal) + '</div><div class="fp-l">tout compris · ' + travelerLabel() + '</div></div>'
+    +   '<button class="btn" onclick="openBooking(\'' + it.accommodations[0].id + '\')">Réserver les étapes</button>'
+    + '</div></div>';
+}
+
+/* ── 7 · Détail d'un jour ───────────────────────────────────────────── */
+function dayDetailView(idx){
+  const it = ITINERARY;
+  const p = it.plan[idx];
+  if (!p) return statusBar() + navbar('Jour');
+  const num = 'Jour ' + String(p.n).padStart(2,'0');
+  let nightHTML = '';
+  if (p.night && p.night.acc){
+    const a = null;
+    let found = null;
+    for (let i = 0; i < it.accommodations.length; i++) if (it.accommodations[i].id === p.night.acc) found = it.accommodations[i];
+    nightHTML = found ? accCard(found)
+      : '<div class="row"><span class="r-ico">' + ico('bed',20,1.5) + '</span><div class="r-main"><div class="r-t">Nuit sur place</div></div></div>';
+  } else if (p.night){
+    nightHTML = '<div class="row" style="cursor:default"><span class="r-ico">' + ico('bed',20,1.5) + '</span>'
+      + '<div class="r-main"><div class="r-t">' + esc(p.night.n) + '</div><div class="r-s">' + esc(p.night.loc) + '</div></div></div>';
+  }
+  const prev = idx > 0
+    ? '<button class="btn-ghost" onclick="swapDay(' + (idx-1) + ')">' + ico('back',16,1.8) + 'Jour ' + idx + '</button>' : '';
+  const next = idx < it.plan.length - 1
+    ? '<button class="btn" onclick="swapDay(' + (idx+1) + ')">Jour ' + (idx+2) + ico('chevron',16,1.8) + '</button>'
+    : '<button class="btn" onclick="closeOverlay()">Retour à l\'itinéraire</button>';
+  return statusBar() + navbar(num)
+    + '<div class="ov-scroll has-foot px">'
+    +   '<span class="eyebrow">' + num + ' · ' + esc(p.loc) + '</span>'
+    +   '<h1 class="dayd-h">' + esc(p.title) + '</h1>'
+    +   '<p class="dayd-s">' + esc(p.desc) + '</p>'
+    +   '<div class="section-h"><h2>Le programme</h2><span class="meta">' + p.moments.length + ' moments</span></div>'
+    +   p.moments.map(function(m){
+        return '<div class="moment"><span class="mo-t">' + esc(m[0]) + '</span><span class="mo-i">' + ico(m[1],15,1.6) + '</span>'
+          + '<div><div class="mo-ti">' + esc(m[2]) + '</div>' + (m[3] ? '<div class="mo-d">' + esc(m[3]) + '</div>' : '') + '</div></div>';
+      }).join('')
+    +   '<div class="section-h"><h2>La nuit</h2></div>' + nightHTML
+    + '</div>'
+    + '<div class="ov-foot"><div class="day-nav">' + prev + next + '</div></div>';
+}
+function swapDay(idx){
+  const el = ovStack[ovStack.length - 1];
+  if (el && el.dataset.ov === 'day'){ el.innerHTML = dayDetailView(idx); }
+  else openDay(idx);
+}
+
+/* ── 9 · Réservation ────────────────────────────────────────────────── */
+let _bookId = null;
+function _accById(id){
+  for (let i = 0; i < ITINERARY.accommodations.length; i++)
+    if (ITINERARY.accommodations[i].id === id) return ITINERARY.accommodations[i];
+  return ITINERARY.accommodations[0];
+}
+function bookingView(accId){
+  _bookId = accId;
+  const a = _accById(accId);
+  const sub = a.price * a.nights, fee = Math.round(sub * 0.08), total = sub + fee;
+  return '<div class="book-hero">' + ico(a.i, 96, 1)
+    +   '<div class="navbar"><button class="nav-btn" onclick="closeOverlay()" aria-label="Retour">' + ico('back',20,1.7) + '</button>'
+    +   '<button class="nav-btn" onclick="this.classList.toggle(\'on\');" aria-label="Favori">' + ico('heart',18,1.6) + '</button></div>'
+    + '</div>'
+    + '<div class="ov-scroll has-foot px">'
+    +   '<span class="eyebrow" style="display:block;margin-top:16px">' + esc(a.tag) + '</span>'
+    +   '<div class="book-h"><span>' + esc(a.n) + '</span><span class="a-rate" style="font-family:var(--mono);font-size:11px;display:inline-flex;align-items:center;gap:4px">' + ico('star',12) + a.rate + '</span></div>'
+    +   '<div class="book-meta">' + esc(a.type) + ' · ' + esc(a.loc) + '</div>'
+    +   '<p class="book-desc">' + esc(a.blurb) + '</p>'
+    +   '<div class="chips" style="margin-top:16px">' + a.am.map(function(k){
+        return '<span class="chip" style="cursor:default">' + ico(k,14,1.6) + (AM_LABEL[k] || k) + '</span>';
+      }).join('') + '</div>'
+    +   '<div class="host"><span class="avatar" style="width:40px;height:40px;font-size:15px">H</span>'
+    +     '<div><div class="h-n">Hansa · Conciergerie</div><div class="h-s">Réponse en moins d\'une heure</div></div></div>'
+    +   '<div class="section-h"><h2>Votre séjour</h2></div>'
+    +   '<div class="stay-row">' + ico('cal',18,1.5) + '<span class="sr-l">' + esc(ITINERARY.dates) + '</span><span class="sr-v">' + a.nights + ' nuit' + (a.nights>1?'s':'') + '</span></div>'
+    +   '<div class="stay-row">' + ico('users',18,1.5) + '<span class="sr-l">Voyageurs</span><span class="sr-v">' + travelerLabel() + '</span></div>'
+    +   '<div class="section-h"><h2>Détail du prix</h2></div>'
+    +   '<div class="price-l"><span>' + eur(a.price) + ' × ' + a.nights + ' nuit' + (a.nights>1?'s':'') + '</span><span>' + eur(sub) + '</span></div>'
+    +   '<div class="price-l"><span>Service Hic Sunt · 8 %</span><span>' + eur(fee) + '</span></div>'
+    +   '<div class="price-l total"><span>Total</span><span>' + eur(total) + '</span></div>'
+    + '</div>'
+    + '<div class="ov-foot"><div class="foot-price">'
+    +   '<div><div class="fp-v">' + eur(total) + '</div><div class="fp-l">' + a.nights + ' nuit' + (a.nights>1?'s':'') + ' · taxes incluses</div></div>'
+    +   '<button class="btn" onclick="openOverlay(\'payment\', paymentView())">Réserver</button>'
+    + '</div></div>';
+}
+
+/* ── 10 · Paiement ──────────────────────────────────────────────────── */
+function paymentView(){
+  const a = _accById(_bookId);
+  const total = Math.round(a.price * a.nights * 1.08);
+  return statusBar() + navbar('Paiement')
+    + '<div class="ov-scroll has-foot px">'
+    +   '<div class="pay-sum"><span class="th">' + ico(a.i, 28, 1.3) + '</span>'
+    +     '<div><div class="ps-n">' + esc(a.n) + '</div><div class="ps-s">' + esc(a.loc) + ' · ' + a.nights + ' nuit' + (a.nights>1?'s':'') + '</div></div>'
+    +     '<span class="ps-v">' + eur(total) + '</span></div>'
+    +   '<button class="apple-btn" style="margin-top:18px" onclick="payFlow()">' + ico('apple',19,1.4) + 'Pay</button>'
+    +   '<div class="sep">ou payer par carte</div>'
+    +   '<div class="cardform">'
+    +     '<div class="cf full"><label>Numéro de carte</label><input inputmode="numeric" placeholder="4242 4242 4242 4242"></div>'
+    +     '<div class="cf"><label>Expiration</label><input inputmode="numeric" placeholder="08 / 27"></div>'
+    +     '<div class="cf"><label>CVC</label><input inputmode="numeric" placeholder="•••"></div>'
+    +     '<div class="cf full"><label>Nom sur la carte</label><input placeholder="Charlotte L."></div>'
+    +   '</div>'
+    +   '<div class="secure">' + ico('lock',13,1.7) + 'Paiement chiffré · 3-D Secure</div>'
+    + '</div>'
+    + '<div class="ov-foot"><button class="btn gold" onclick="payFlow()">Payer ' + eur(total) + '</button></div>';
+}
+
+/* ── 11 · Confirmation ──────────────────────────────────────────────── */
+function confirmationView(){
+  const a = _accById(_bookId);
+  return statusBar()
+    + '<div class="conf">'
+    +   '<div class="c-badge">' + ico('checkbig', 46, 1.8) + '</div>'
+    +   '<h1>Réservation confirmée</h1>'
+    +   '<p class="c-s">' + esc(a.n) + ' · ' + esc(a.loc) + '<br>Votre conciergerie prend le relais — tout est dans vos documents.</p>'
+    +   '<div class="c-ref">HS-4827-LK</div>'
+    + '</div>'
+    + '<div class="conf-acts">'
+    +   '<button class="btn" onclick="closeAllOverlays();setTab(\'voyages\')">Voir mon voyage</button>'
+    +   '<button class="btn-ghost" onclick="closeAllOverlays();setTab(\'discover\')">Revenir à l\'accueil</button>'
+    + '</div>';
+}
