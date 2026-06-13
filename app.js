@@ -3,7 +3,7 @@
 const USER = { name:'Charlotte', full:'Charlotte L.', initials:'CL', since:'Membre depuis 2023' };
 
 const state = {
-  createTab:'known',          // 'known' | 'surprise'
+  createTab:'known',
   destination:'', origin:'',
   dateFrom:'', dateTo:'',
   travelers:2,
@@ -16,17 +16,12 @@ const state = {
   tab:'discover',
 };
 
-function travelerLabel(){
-  return state.travelers + ' voyageur' + (state.travelers > 1 ? 's' : '');
-}
+function travelerLabel(){ return state.travelers + ' voyageur' + (state.travelers > 1 ? 's' : ''); }
 function screenEl(){ return document.querySelector('.screen'); }
-function esc(s){
-  return String(s == null ? '' : s)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
+function esc(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function eur(n){ return Math.round(n).toLocaleString('fr-FR') + ' €'; }
 
-/* ── overlays ───────────────────────────────────────────────────────── */
+/* ── overlays ── */
 const ovStack = [];
 function openOverlay(name, html, opts){
   opts = opts || {};
@@ -53,7 +48,7 @@ function closeAllOverlays(){
   }
 }
 
-/* ── toast ──────────────────────────────────────────────────────────── */
+/* ── toast ── */
 let _toastTimer = null;
 function toast(msg){
   let t = screenEl().querySelector('.toast');
@@ -64,7 +59,7 @@ function toast(msg){
   _toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 2400);
 }
 
-/* ── navbar helper ──────────────────────────────────────────────────── */
+/* ── navbar ── */
 function navbar(title, opts){
   opts = opts || {};
   const back = opts.noBack ? '<span class="nav-spacer"></span>'
@@ -75,7 +70,7 @@ function navbar(title, opts){
     + right + '</div>';
 }
 
-/* ── tabs ───────────────────────────────────────────────────────────── */
+/* ── tabs ── */
 const TAB_DEFS = [
   ['discover','compass','Découvrir'],
   ['create','sparkle','Créer'],
@@ -109,7 +104,7 @@ function setTab(name){
   if (typeof museControl === 'function') museControl(name === 'discover');
 }
 
-/* ── shared openers ─────────────────────────────────────────────────── */
+/* ── openers ── */
 function openItinerary(){ openOverlay('itinerary', itineraryView()); }
 function openDest(key){ openOverlay('destination', destinationView(key)); }
 function openDay(i){ openOverlay('day', dayDetailView(i)); }
@@ -137,11 +132,13 @@ function composeFree(){
   setTab('create');
 }
 function logout(){
+  localStorage.removeItem('sb_token');
+  USER.name = 'Voyageur'; USER.full = ''; USER.initials = '??';
   closeAllOverlays();
   setTimeout(function(){ openOverlay('onboarding', onboardingView(), { modal:true }); }, 80);
 }
 
-/* ── Supabase auth + persistance ────────────────────────────────────── */
+/* ── Supabase ── */
 const SUPABASE_URL  = 'https://lucbxwxcismnvcdnctau.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1Y2J4d3hjaXNtbnZjZG5jdGF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc3NzAsImV4cCI6MjA5NDU5Mzc3MH0.G17LlW8K-5UDg_QbkJprkZX-oqlTL_RWUTrwIh408yQ';
 
@@ -158,7 +155,7 @@ async function loginEmail(){
     const data = await res.json();
     if(data.error_description) throw new Error(data.error_description);
     localStorage.setItem('sb_token', data.access_token);
-    if(data.user) USER.name = (data.user.user_metadata && data.user.user_metadata.full_name) || data.user.email.split('@')[0];
+    _applyUser(data.user);
     closeAllOverlays(); setTab('discover');
   }catch(e){ toast(e.message||'Erreur de connexion'); }
 }
@@ -174,12 +171,27 @@ async function signupEmail(){
     closeAllOverlays(); setTab('discover');
   }catch(e){ toast(e.message||'Erreur lors de la création du compte'); }
 }
+function _applyUser(user){
+  if (!user) return;
+  const meta = user.user_metadata || {};
+  const name = meta.full_name || meta.name || user.email.split('@')[0];
+  const parts = name.split(' ');
+  USER.name = parts[0];
+  USER.full = name;
+  USER.initials = parts.map(function(p){ return p[0]; }).join('').toUpperCase().slice(0,2);
+  USER.since = 'Membre depuis ' + new Date().getFullYear();
+}
 
+/* ── Supabase itinéraires ── */
 async function saveItinerary(){
   const token = localStorage.getItem('sb_token');
   if(!token) return;
   try{
-    await fetch(SUPABASE_URL+'/rest/v1/itineraries',{method:'POST',headers:{'content-type':'application/json','apikey':SUPABASE_ANON,'Authorization':'Bearer '+token,'Prefer':'return=minimal'},body:JSON.stringify({destination:ITINERARY.dest,dates:ITINERARY.dates,days:ITINERARY.days,budget:ITINERARY.budgetTotal,data:ITINERARY})});
+    await fetch(SUPABASE_URL+'/rest/v1/itineraries',{
+      method:'POST',
+      headers:{'content-type':'application/json','apikey':SUPABASE_ANON,'Authorization':'Bearer '+token,'Prefer':'return=minimal'},
+      body:JSON.stringify({destination:ITINERARY.dest,dates:ITINERARY.dates,days:ITINERARY.days,budget:ITINERARY.budgetTotal,data:ITINERARY})
+    });
     toast('Voyage sauvegardé');
   }catch(e){ toast('Erreur de sauvegarde'); }
 }
@@ -187,8 +199,11 @@ async function loadItineraries(){
   const token = localStorage.getItem('sb_token');
   if(!token) return [];
   try{
-    const res = await fetch(SUPABASE_URL+'/rest/v1/itineraries?select=*&order=created_at.desc',{headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+token}});
-    return await res.json();
+    const res = await fetch(SUPABASE_URL+'/rest/v1/itineraries?select=*&order=created_at.desc',{
+      headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+token}
+    });
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
   }catch(e){ return []; }
 }
 async function loadVoyagesTab(){
@@ -205,29 +220,38 @@ async function loadSavedItinerary(id){
   const token = localStorage.getItem('sb_token');
   if(!token) return;
   try{
-    const res = await fetch(SUPABASE_URL+'/rest/v1/itineraries?id=eq.'+id,{headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+token}});
+    const res = await fetch(SUPABASE_URL+'/rest/v1/itineraries?id=eq.'+id,{
+      headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+token}
+    });
     const rows = await res.json();
     if(!rows||!rows.length) return;
-    const d = rows[0].data;
-    Object.assign(ITINERARY, d);
+    Object.assign(ITINERARY, rows[0].data);
     openItinerary();
   }catch(e){ toast('Erreur de chargement'); }
 }
 
-/* ── boot ───────────────────────────────────────────────────────────── */
+/* ── callback Google OAuth ── */
 function handleAuthCallback(){
-  try {
+  try{
     const hash = window.location.hash;
     if (!hash || !hash.includes('access_token')) return false;
     const params = new URLSearchParams(hash.substring(1));
     const token = params.get('access_token');
     if (!token) return false;
     localStorage.setItem('sb_token', token);
+    /* récupère les infos utilisateur depuis le token JWT */
+    try{
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      if (payload && payload.user_metadata){
+        _applyUser({ user_metadata: payload.user_metadata, email: payload.email || '' });
+      }
+    }catch(e){}
     window.history.replaceState({}, '', window.location.pathname);
     return true;
-  } catch(e) { return false; }
+  }catch(e){ return false; }
 }
 
+/* ── boot ── */
 function buildApp(){
   const s = screenEl();
   s.innerHTML = '<div class="tabs">'
@@ -236,8 +260,15 @@ function buildApp(){
     + '<div class="tabview" data-tab="voyages"></div>'
     + '<div class="tabview" data-tab="profile"></div>'
     + '</div>' + tabbarHTML();
+
   const loggedIn = handleAuthCallback();
+  const token = localStorage.getItem('sb_token');
+
   setTab('discover');
-  if (!loggedIn) openOverlay('onboarding', onboardingView(), { modal:true });
+
+  if (!loggedIn && !token){
+    openOverlay('onboarding', onboardingView(), { modal:true });
+  }
 }
+
 document.addEventListener('DOMContentLoaded', buildApp);
