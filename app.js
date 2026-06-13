@@ -146,7 +146,7 @@ const SUPABASE_URL  = 'https://lucbxwxcismnvcdnctau.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1Y2J4d3hjaXNtbnZjZG5jdGF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc3NzAsImV4cCI6MjA5NDU5Mzc3MH0.G17LlW8K-5UDg_QbkJprkZX-oqlTL_RWUTrwIh408yQ';
 
 function loginGoogle(){
-  const redirectTo = window.location.origin + window.location.pathname;
+  const redirectTo = 'https://hic-suntapp.vercel.app/';
   window.location.href = SUPABASE_URL + '/auth/v1/authorize?provider=google&redirect_to=' + encodeURIComponent(redirectTo);
 }
 async function loginEmail(){
