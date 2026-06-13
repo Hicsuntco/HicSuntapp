@@ -383,6 +383,7 @@ async function runGeneration() {
 
   setTimeout(function() {
     openItinerary();
+    saveItinerary();
     state.deckIndex = 0;
     if (typeof initDeck === 'function') initDeck();
     setTimeout(function() {
