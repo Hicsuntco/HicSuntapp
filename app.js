@@ -215,7 +215,23 @@ async function loadSavedItinerary(id){
 }
 
 /* ── boot ───────────────────────────────────────────────────────────── */
+function handleAuthCallback(){
+  const hash = window.location.hash;
+  if (!hash) return false;
+  const params = new URLSearchParams(hash.replace('#', '?'));
+  const token = params.get('access_token');
+  if (!token) return false;
+  localStorage.setItem('sb_token', token);
+  const name = params.get('user_metadata') || '';
+  window.history.replaceState({}, '', window.location.pathname);
+  return true;
+}
 function buildApp(){
+  const loggedIn = handleAuthCallback();
+  // ... reste du code
+  setTab('discover');
+  if (!loggedIn) openOverlay('onboarding', onboardingView(), { modal:true });
+}
   const s = screenEl();
   s.innerHTML = '<div class="tabs">'
     + '<div class="tabview" data-tab="discover"></div>'
