@@ -171,17 +171,9 @@ const ITINERARY = {
 
 /* trips (Voyages) */
 const TRIPS = {
-  upcoming:[
-    { n:'Sri Lanka', i:'leaf', bg:'linear-gradient(160deg,#dfe9df,#cfdccb)', d:'12 – 22 mai 2026', s:['ok','Confirmé'], days:'10 jours', itin:true },
-    { n:'Maroc', i:'arch', bg:'linear-gradient(160deg,#f0e4d2,#e6d3b8)', d:'Mars 2026', s:['prep','En préparation'], days:'8 jours' },
-  ],
-  past:[
-    { n:'Japon', i:'torii', bg:'linear-gradient(160deg,#ece2da,#ddd0c6)', d:'Avril 2024', s:['ok','Terminé'], days:'14 jours' },
-    { n:'Portugal', i:'wave', bg:'linear-gradient(160deg,#dce6ec,#cbdae4)', d:'Sept. 2023', s:['ok','Terminé'], days:'7 jours' },
-  ],
-  draft:[
-    { n:'Islande', i:'droplet', bg:'linear-gradient(160deg,#dfe4e8,#cdd6dc)', d:'Sans date', s:['draft','Brouillon'], days:'6 jours' },
-  ],
+  upcoming: [],
+  past: [],
+  draft: [],
 };
 
 const AM_LABEL = { bed:'Chambres', wifi:'Wi-Fi', pool:'Piscine', fork:'Table' };
