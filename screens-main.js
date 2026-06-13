@@ -100,8 +100,42 @@ function voyagesView(){
     +   '<div class="seg voy-seg">' + labels.map(function(l){
           return '<button class="' + (seg === l[0] ? 'on' : '') + '" onclick="voySeg(\'' + l[0] + '\')">' + l[1] + '</button>';
         }).join('') + '</div>'
-    +   '<div class="list" data-trips>' + (TRIPS[seg] || []).map(tripCard).join('') + '</div>'
+    +   '<div class="list" data-trips><div style="text-align:center;padding:40px 0"><div class="notif-load"><i></i></div></div></div>'
     + '</div>';
+}
+async function loadVoyagesTab() {
+  const items = await loadItineraries();
+  const host = document.querySelector('[data-trips]');
+  if (!host) return;
+  if (!items || !items.length) {
+    host.innerHTML = '<p style="text-align:center;padding:40px 0;color:var(--sub);font-size:14px">Aucun voyage sauvegardé.</p>';
+    return;
+  }
+  host.innerHTML = items.map(function(it) {
+    const d = it.data || {};
+    return '<div class="trip" onclick="loadSavedItinerary(\'' + it.id + '\')">'
+      + '<div class="th"><div class="wash" style="position:absolute;inset:0;background:var(--tile-bg)"></div></div>'
+      + '<div><div class="ti-n">' + esc(it.destination) + '</div>'
+      + '<div class="ti-d">' + esc(it.dates) + '</div>'
+      + '<div class="ti-days">' + it.days + ' jours</div>'
+      + '<div class="ti-st"><span class="status ok">Sauvegardé</span></div>'
+      + '</div></div>';
+  }).join('');
+}
+
+async function loadSavedItinerary(id) {
+  const token = localStorage.getItem('sb_token');
+  if (!token) return;
+  try {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/itineraries?id=eq.' + id, {
+      headers: { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + token }
+    });
+    const rows = await res.json();
+    if (!rows || !rows.length) return;
+    const d = rows[0].data;
+    Object.assign(ITINERARY, d);
+    openItinerary();
+  } catch(e) { toast('Erreur de chargement'); }
 }
 function voySeg(k){
   state._voySeg = k;
