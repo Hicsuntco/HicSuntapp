@@ -142,6 +142,34 @@ function logout(){
 }
 
 /* ── boot ───────────────────────────────────────────────────────────── */
+const SUPABASE_URL  = 'https://lucbxwxcismnvcdnctau.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1Y2J4d3hjaXNtbnZjZG5jdGF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc3NzAsImV4cCI6MjA5NDU5Mzc3MH0.G17LlW8K-5UDg_QbkJprkZX-oqlTL_RWUTrwIh408yQ';
+
+function loginGoogle(){
+  const redirectTo = window.location.origin + window.location.pathname;
+  window.location.href = SUPABASE_URL + '/auth/v1/authorize?provider=google&redirect_to=' + encodeURIComponent(redirectTo);
+}
+
+async function loginEmail(){
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  if (!email || !password) { toast('Email et mot de passe requis'); return; }
+  try {
+    const res = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=password', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'apikey': SUPABASE_ANON },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    if (data.error_description) throw new Error(data.error_description);
+    localStorage.setItem('sb_token', data.access_token);
+    USER.name = data.user.email.split('@')[0];
+    closeAllOverlays();
+    setTab('discover');
+  } catch(e) {
+    toast(e.message || 'Erreur de connexion');
+  }
+}
 function buildApp(){
   const s = screenEl();
   s.innerHTML = '<div class="tabs">'
