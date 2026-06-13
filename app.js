@@ -181,7 +181,49 @@ function _applyUser(user){
   USER.initials = parts.map(function(p){ return p[0]; }).join('').toUpperCase().slice(0,2);
   USER.since = 'Membre depuis ' + new Date().getFullYear();
 }
+async function saveWelcomeProfile(){
+  const first = document.getElementById('wFirst').value.trim();
+  const last = document.getElementById('wLast').value.trim();
+  const birth = document.getElementById('wBirth').value;
+  const address = document.getElementById('wAddress').value.trim();
+  if(!first || !last){ toast('Prénom et nom requis'); return; }
+  const token = localStorage.getItem('sb_token');
+  const userId = _getUserId();
+  if(!token || !userId) return;
+  try{
+    await fetch(SUPABASE_URL+'/rest/v1/profiles',{
+      method:'POST',
+      headers:{'content-type':'application/json','apikey':SUPABASE_ANON,'Authorization':'Bearer '+token,'Prefer':'resolution=merge-duplicates'},
+      body:JSON.stringify({id:userId,first_name:first,last_name:last,birth_date:birth||null,address:address||null})
+    });
+    USER.name = first;
+    USER.full = first+' '+last;
+    USER.initials = (first[0]+last[0]).toUpperCase();
+    localStorage.setItem('hs_profile_done','1');
+    closeAllOverlays(); setTab('discover');
+  }catch(e){ toast('Erreur de sauvegarde'); }
+}
 
+async function checkProfile(){
+  const token = localStorage.getItem('sb_token');
+  const userId = _getUserId();
+  if(!token || !userId) return true;
+  if(localStorage.getItem('hs_profile_done')) return true;
+  try{
+    const res = await fetch(SUPABASE_URL+'/rest/v1/profiles?id=eq.'+userId+'&select=first_name,last_name',{
+      headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+token}
+    });
+    const rows = await res.json();
+    if(rows&&rows.length&&rows[0].first_name){
+      localStorage.setItem('hs_profile_done','1');
+      USER.name = rows[0].first_name;
+      USER.full = rows[0].first_name+' '+rows[0].last_name;
+      USER.initials = (rows[0].first_name[0]+rows[0].last_name[0]).toUpperCase();
+      return true;
+    }
+    return false;
+  }catch(e){ return true; }
+}
 /* ── Supabase itinéraires ── */
 function _getUserId(){
   const token = localStorage.getItem('sb_token');
