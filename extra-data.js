@@ -101,18 +101,14 @@ const CONTRIBUTORS = [
 
 /* Cercle Hic Sunt — loyalty programme */
 const CERCLE = {
-  tier:'Cartographe', next:'Explorateur', progress: 0.68, points: 2740, toNext: 1260,
+  tier:'Cartographe', next:'Explorateur', progress: 0, points: 0, toNext: 1260,
   perks: [
     { i:'bell', n:'Conciergerie dédiée', d:'Un interlocuteur unique, réponse en moins d’une heure.' },
     { i:'clock', n:'Accès anticipé', d:'Les nouvelles destinations 30 jours avant tout le monde.' },
     { i:'gift', n:'Surclassements offerts', d:'Selon disponibilités, sur vos hébergements partenaires.' },
     { i:'shield', n:'Assurance voyage incluse', d:'Couverture annulation et soins à l’étranger.' },
   ],
-  history: [
-    { n:'Voyage au Japon', pts:'+820', when:'Avril 2024' },
-    { n:'Parrainage · Marc', pts:'+500', when:'Janv. 2024' },
-    { n:'Voyage au Portugal', pts:'+410', when:'Sept. 2023' },
-  ],
+  history: [],
 };
 
 /* AI assistant — quick prompts + canned restructure replies */
