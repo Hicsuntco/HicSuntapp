@@ -133,6 +133,7 @@ function composeFree(){
 }
 function logout(){
   localStorage.removeItem('sb_token');
+  localStorage.removeItem('hs_profile_done');
   USER.name = 'Voyageur'; USER.full = ''; USER.initials = '??';
   closeAllOverlays();
   setTimeout(function(){ openOverlay('onboarding', onboardingView(), { modal:true }); }, 80);
@@ -141,6 +142,15 @@ function logout(){
 /* ── Supabase ── */
 const SUPABASE_URL  = 'https://lucbxwxcismnvcdnctau.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1Y2J4d3hjaXNtbnZjZG5jdGF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc3NzAsImV4cCI6MjA5NDU5Mzc3MH0.G17LlW8K-5UDg_QbkJprkZX-oqlTL_RWUTrwIh408yQ';
+
+function _getUserId(){
+  const token = localStorage.getItem('sb_token');
+  if (!token) return null;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.sub || null;
+  } catch(e) { return null; }
+}
 
 function loginGoogle(){
   const redirectTo = 'https://hic-suntapp.vercel.app/';
@@ -157,6 +167,7 @@ async function loginEmail(){
     localStorage.setItem('sb_token', data.access_token);
     _applyUser(data.user);
     closeAllOverlays(); setTab('discover');
+    checkProfile().then(function(done){ if(!done) openOverlay('welcome', welcomeView(), { modal:true }); });
   }catch(e){ toast(e.message||'Erreur de connexion'); }
 }
 async function signupEmail(){
@@ -167,20 +178,29 @@ async function signupEmail(){
     const res = await fetch(SUPABASE_URL+'/auth/v1/signup',{method:'POST',headers:{'content-type':'application/json','apikey':SUPABASE_ANON},body:JSON.stringify({email,password})});
     const data = await res.json();
     if(data.error) throw new Error(data.error.message||data.error);
-    toast('Vérifiez vos emails pour confirmer votre compte');
-    closeAllOverlays(); setTab('discover');
+    if(data.access_token){
+      localStorage.setItem('sb_token', data.access_token);
+      _applyUser(data.user);
+      closeAllOverlays(); setTab('discover');
+      openOverlay('welcome', welcomeView(), { modal:true });
+    } else {
+      toast('Vérifiez vos emails pour confirmer votre compte');
+      closeAllOverlays(); setTab('discover');
+    }
   }catch(e){ toast(e.message||'Erreur lors de la création du compte'); }
 }
 function _applyUser(user){
   if (!user) return;
   const meta = user.user_metadata || {};
-  const name = meta.full_name || meta.name || user.email.split('@')[0];
+  const name = meta.full_name || meta.name || (user.email ? user.email.split('@')[0] : 'Voyageur');
   const parts = name.split(' ');
   USER.name = parts[0];
   USER.full = name;
-  USER.initials = parts.map(function(p){ return p[0]; }).join('').toUpperCase().slice(0,2);
+  USER.initials = parts.map(function(p){ return p[0] || ''; }).join('').toUpperCase().slice(0,2) || '??';
   USER.since = 'Membre depuis ' + new Date().getFullYear();
 }
+
+/* ── profil voyageur (nom, naissance, adresse) ──────────────────────── */
 async function saveWelcomeProfile(){
   const first = document.getElementById('wFirst').value.trim();
   const last = document.getElementById('wLast').value.trim();
@@ -189,7 +209,7 @@ async function saveWelcomeProfile(){
   if(!first || !last){ toast('Prénom et nom requis'); return; }
   const token = localStorage.getItem('sb_token');
   const userId = _getUserId();
-  if(!token || !userId) return;
+  if(!token || !userId){ toast('Erreur de session'); return; }
   try{
     await fetch(SUPABASE_URL+'/rest/v1/profiles',{
       method:'POST',
@@ -224,15 +244,8 @@ async function checkProfile(){
     return false;
   }catch(e){ return true; }
 }
+
 /* ── Supabase itinéraires ── */
-function _getUserId(){
-  const token = localStorage.getItem('sb_token');
-  if (!token) return null;
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    return payload.sub || null;
-  } catch(e) { return null; }
-}
 async function saveItinerary(){
   const token = localStorage.getItem('sb_token');
   const userId = _getUserId();
@@ -290,7 +303,6 @@ function handleAuthCallback(){
     const token = params.get('access_token');
     if (!token) return false;
     localStorage.setItem('sb_token', token);
-    /* récupère les infos utilisateur depuis le token JWT */
     try{
       const payload = JSON.parse(atob(token.split('.')[1]));
       if (payload && payload.user_metadata){
@@ -324,48 +336,6 @@ function buildApp(){
   } else {
     openOverlay('onboarding', onboardingView(), { modal:true });
   }
+}
 
 document.addEventListener('DOMContentLoaded', buildApp);
-async function saveWelcomeProfile(){
-  const first = document.getElementById('wFirst').value.trim();
-  const last = document.getElementById('wLast').value.trim();
-  const birth = document.getElementById('wBirth').value;
-  const address = document.getElementById('wAddress').value.trim();
-  if(!first || !last){ toast('Prénom et nom requis'); return; }
-  const token = localStorage.getItem('sb_token');
-  const userId = _getUserId();
-  if(!token || !userId) return;
-  try{
-    await fetch(SUPABASE_URL+'/rest/v1/profiles',{
-      method:'POST',
-      headers:{'content-type':'application/json','apikey':SUPABASE_ANON,'Authorization':'Bearer '+token,'Prefer':'resolution=merge-duplicates'},
-      body:JSON.stringify({id:userId,first_name:first,last_name:last,birth_date:birth||null,address:address||null})
-    });
-    USER.name = first;
-    USER.full = first+' '+last;
-    USER.initials = (first[0]+last[0]).toUpperCase();
-    localStorage.setItem('hs_profile_done','1');
-    closeAllOverlays(); setTab('discover');
-  }catch(e){ toast('Erreur de sauvegarde'); }
-}
-
-async function checkProfile(){
-  const token = localStorage.getItem('sb_token');
-  const userId = _getUserId();
-  if(!token || !userId) return true;
-  if(localStorage.getItem('hs_profile_done')) return true;
-  try{
-    const res = await fetch(SUPABASE_URL+'/rest/v1/profiles?id=eq.'+userId+'&select=first_name,last_name',{
-      headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+token}
-    });
-    const rows = await res.json();
-    if(rows&&rows.length&&rows[0].first_name){
-      localStorage.setItem('hs_profile_done','1');
-      USER.name = rows[0].first_name;
-      USER.full = rows[0].first_name+' '+rows[0].last_name;
-      USER.initials = (rows[0].first_name[0]+rows[0].last_name[0]).toUpperCase();
-      return true;
-    }
-    return false;
-  }catch(e){ return true; }
-}
