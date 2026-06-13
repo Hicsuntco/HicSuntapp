@@ -233,7 +233,6 @@ function _getUserId(){
     return payload.sub || null;
   } catch(e) { return null; }
 }
-
 async function saveItinerary(){
   const token = localStorage.getItem('sb_token');
   const userId = _getUserId();
