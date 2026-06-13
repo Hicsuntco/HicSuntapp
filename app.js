@@ -97,7 +97,7 @@ function setTab(name){
     if (on){
       if (name === 'discover') v.innerHTML = discoverView();
       if (name === 'create')   v.innerHTML = createView();
-      if (name === 'voyages') { v.innerHTML = voyagesView(); loadVoyagesTab(); }
+      if (name === 'voyages')  { v.innerHTML = voyagesView(); loadVoyagesTab(); }
       if (name === 'profile')  v.innerHTML = profileView();
       v.scrollTop = 0;
     }
@@ -141,7 +141,7 @@ function logout(){
   setTimeout(function(){ openOverlay('onboarding', onboardingView(), { modal:true }); }, 80);
 }
 
-/* ── boot ───────────────────────────────────────────────────────────── */
+/* ── Supabase auth + persistance ────────────────────────────────────── */
 const SUPABASE_URL  = 'https://lucbxwxcismnvcdnctau.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1Y2J4d3hjaXNtbnZjZG5jdGF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc3NzAsImV4cCI6MjA5NDU5Mzc3MH0.G17LlW8K-5UDg_QbkJprkZX-oqlTL_RWUTrwIh408yQ';
 
@@ -149,66 +149,72 @@ function loginGoogle(){
   const redirectTo = window.location.origin + window.location.pathname;
   window.location.href = SUPABASE_URL + '/auth/v1/authorize?provider=google&redirect_to=' + encodeURIComponent(redirectTo);
 }
-
 async function loginEmail(){
   const email = document.getElementById('authEmail').value.trim();
   const password = document.getElementById('authPassword').value;
-  if (!email || !password) { toast('Email et mot de passe requis'); return; }
-  try {
-    const res = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=password', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', 'apikey': SUPABASE_ANON },
-      body: JSON.stringify({ email, password })
-    });
+  if (!email || !password){ toast('Email et mot de passe requis'); return; }
+  try{
+    const res = await fetch(SUPABASE_URL+'/auth/v1/token?grant_type=password',{method:'POST',headers:{'content-type':'application/json','apikey':SUPABASE_ANON},body:JSON.stringify({email,password})});
     const data = await res.json();
-    if (data.error_description) throw new Error(data.error_description);
+    if(data.error_description) throw new Error(data.error_description);
     localStorage.setItem('sb_token', data.access_token);
-    USER.name = data.user.email.split('@')[0];
-    closeAllOverlays();
-    setTab('discover');
-  } catch(e) {
-    toast(e.message || 'Erreur de connexion');
-  }
+    if(data.user) USER.name = (data.user.user_metadata && data.user.user_metadata.full_name) || data.user.email.split('@')[0];
+    closeAllOverlays(); setTab('discover');
+  }catch(e){ toast(e.message||'Erreur de connexion'); }
 }
-async function saveItinerary() {
-  const token = localStorage.getItem('sb_token');
-  if (!token) return;
-  try {
-    await fetch(SUPABASE_URL + '/rest/v1/itineraries', {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        'apikey': SUPABASE_ANON,
-        'Authorization': 'Bearer ' + token,
-        'Prefer': 'return=minimal'
-      },
-      body: JSON.stringify({
-        destination: ITINERARY.dest,
-        dates: ITINERARY.dates,
-        days: ITINERARY.days,
-        budget: ITINERARY.budgetTotal,
-        data: ITINERARY
-      })
-    });
-    toast('Voyage sauvegardé');
-  } catch(e) {
-    toast('Erreur de sauvegarde');
-  }
+async function signupEmail(){
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  if (!email || !password){ toast('Email et mot de passe requis'); return; }
+  try{
+    const res = await fetch(SUPABASE_URL+'/auth/v1/signup',{method:'POST',headers:{'content-type':'application/json','apikey':SUPABASE_ANON},body:JSON.stringify({email,password})});
+    const data = await res.json();
+    if(data.error) throw new Error(data.error.message||data.error);
+    toast('Vérifiez vos emails pour confirmer votre compte');
+    closeAllOverlays(); setTab('discover');
+  }catch(e){ toast(e.message||'Erreur lors de la création du compte'); }
 }
 
-async function loadItineraries() {
+async function saveItinerary(){
   const token = localStorage.getItem('sb_token');
-  if (!token) return [];
-  try {
-    const res = await fetch(SUPABASE_URL + '/rest/v1/itineraries?select=*&order=created_at.desc', {
-      headers: {
-        'apikey': SUPABASE_ANON,
-        'Authorization': 'Bearer ' + token,
-      }
-    });
-    return await res.json();
-  } catch(e) { return []; }
+  if(!token) return;
+  try{
+    await fetch(SUPABASE_URL+'/rest/v1/itineraries',{method:'POST',headers:{'content-type':'application/json','apikey':SUPABASE_ANON,'Authorization':'Bearer '+token,'Prefer':'return=minimal'},body:JSON.stringify({destination:ITINERARY.dest,dates:ITINERARY.dates,days:ITINERARY.days,budget:ITINERARY.budgetTotal,data:ITINERARY})});
+    toast('Voyage sauvegardé');
+  }catch(e){ toast('Erreur de sauvegarde'); }
 }
+async function loadItineraries(){
+  const token = localStorage.getItem('sb_token');
+  if(!token) return [];
+  try{
+    const res = await fetch(SUPABASE_URL+'/rest/v1/itineraries?select=*&order=created_at.desc',{headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+token}});
+    return await res.json();
+  }catch(e){ return []; }
+}
+async function loadVoyagesTab(){
+  const items = await loadItineraries();
+  const host = document.querySelector('[data-trips]');
+  if(!host) return;
+  if(!items||!items.length){
+    host.innerHTML = '<p style="text-align:center;padding:40px 0;color:var(--sub);font-size:14px;font-style:italic">Aucun voyage sauvegardé.<br>Composez votre premier itinéraire.</p>';
+    return;
+  }
+  host.innerHTML = items.map(savedTripCard).join('');
+}
+async function loadSavedItinerary(id){
+  const token = localStorage.getItem('sb_token');
+  if(!token) return;
+  try{
+    const res = await fetch(SUPABASE_URL+'/rest/v1/itineraries?id=eq.'+id,{headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+token}});
+    const rows = await res.json();
+    if(!rows||!rows.length) return;
+    const d = rows[0].data;
+    Object.assign(ITINERARY, d);
+    openItinerary();
+  }catch(e){ toast('Erreur de chargement'); }
+}
+
+/* ── boot ───────────────────────────────────────────────────────────── */
 function buildApp(){
   const s = screenEl();
   s.innerHTML = '<div class="tabs">'
@@ -221,22 +227,3 @@ function buildApp(){
   openOverlay('onboarding', onboardingView(), { modal:true });
 }
 document.addEventListener('DOMContentLoaded', buildApp);
-async function signupEmail(){
-  const email = document.getElementById('authEmail').value.trim();
-  const password = document.getElementById('authPassword').value;
-  if (!email || !password) { toast('Email et mot de passe requis'); return; }
-  try {
-    const res = await fetch(SUPABASE_URL + '/auth/v1/signup', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', 'apikey': SUPABASE_ANON },
-      body: JSON.stringify({ email, password })
-    });
-    const data = await res.json();
-    if (data.error) throw new Error(data.error.message || data.error);
-    toast('Vérifiez vos emails pour confirmer votre compte');
-    closeAllOverlays();
-    setTab('discover');
-  } catch(e) {
-    toast(e.message || 'Erreur lors de la création du compte');
-  }
-}

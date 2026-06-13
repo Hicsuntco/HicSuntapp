@@ -91,6 +91,30 @@ function createView(){
 }
 
 /* ── Mes voyages ────────────────────────────────────────────────────── */
+const DEST_BG_MAP = {
+  'sri lanka':'linear-gradient(135deg,#0C160E,#1A3020)','japon':'linear-gradient(135deg,#0F0F14,#1a1025)',
+  'maroc':'linear-gradient(135deg,#140C05,#2a180a)','portugal':'linear-gradient(135deg,#0A0C14,#0d1520)',
+  'islande':'linear-gradient(135deg,#080C14,#101828)','pérou':'linear-gradient(135deg,#0A0D08,#111a0e)',
+  'thaïlande':'linear-gradient(135deg,#150F05,#221505)','kenya':'linear-gradient(135deg,#110D05,#1e1508)',
+  'indonesie':'linear-gradient(135deg,#0D1F0F,#162B18)','bali':'linear-gradient(135deg,#0D1F0F,#162B18)',
+  'philippines':'linear-gradient(135deg,#080C14,#0d1a28)','vietnam':'linear-gradient(135deg,#0F1A0D,#172514)',
+};
+function destBg(name){ const k=(name||'').toLowerCase(); for(const pat in DEST_BG_MAP){ if(k.includes(pat)) return DEST_BG_MAP[pat]; } return 'linear-gradient(135deg,#1a1610,#2a2018)'; }
+function destIcon(name){ const k=(name||'').toLowerCase(); if(/japon|tokyo|kyoto/.test(k)) return 'arch'; if(/maroc|marrakech/.test(k)) return 'compass'; if(/islande/.test(k)) return 'peaks'; if(/safari|kenya|afrique/.test(k)) return 'leaf'; if(/bali|indonesie|philippines|thaïlande|vietnam/.test(k)) return 'leaf'; if(/pérou|andes/.test(k)) return 'peaks'; return 'compass'; }
+function savedTripCard(it){
+  const bg=destBg(it.destination), icon=destIcon(it.destination);
+  return '<div class="trip" onclick="loadSavedItinerary(\''+it.id+'\')">'
+    +'<div class="th" style="position:relative;overflow:hidden">'
+    +'<div style="position:absolute;inset:0;background:'+bg+'"></div>'
+    +contour()
+    +'<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:rgba(246,240,228,0.18)">'+ico(icon,38,1.2)+'</span>'
+    +'</div>'
+    +'<div><div class="ti-n">'+esc(it.destination)+'</div>'
+    +'<div class="ti-d">'+esc(it.dates)+'</div>'
+    +'<div class="ti-days">'+it.days+' jour'+(it.days>1?'s':'')+'</div>'
+    +'<div class="ti-st"><span class="status ok">Sauvegardé</span></div>'
+    +'</div></div>';
+}
 function voyagesView(){
   const seg = state._voySeg || 'upcoming';
   const labels = [['upcoming','À venir'],['past','Passés'],['draft','Brouillons']];
@@ -103,44 +127,10 @@ function voyagesView(){
     +   '<div class="list" data-trips><div style="text-align:center;padding:40px 0"><div class="notif-load"><i></i></div></div></div>'
     + '</div>';
 }
-async function loadVoyagesTab() {
-  const items = await loadItineraries();
-  const host = document.querySelector('[data-trips]');
-  if (!host) return;
-  if (!items || !items.length) {
-    host.innerHTML = '<p style="text-align:center;padding:40px 0;color:var(--sub);font-size:14px">Aucun voyage sauvegardé.</p>';
-    return;
-  }
-  host.innerHTML = items.map(function(it) {
-    const d = it.data || {};
-    return '<div class="trip" onclick="loadSavedItinerary(\'' + it.id + '\')">'
-      + '<div class="th"><div class="wash" style="position:absolute;inset:0;background:var(--tile-bg)"></div></div>'
-      + '<div><div class="ti-n">' + esc(it.destination) + '</div>'
-      + '<div class="ti-d">' + esc(it.dates) + '</div>'
-      + '<div class="ti-days">' + it.days + ' jours</div>'
-      + '<div class="ti-st"><span class="status ok">Sauvegardé</span></div>'
-      + '</div></div>';
-  }).join('');
-}
-
-async function loadSavedItinerary(id) {
-  const token = localStorage.getItem('sb_token');
-  if (!token) return;
-  try {
-    const res = await fetch(SUPABASE_URL + '/rest/v1/itineraries?id=eq.' + id, {
-      headers: { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + token }
-    });
-    const rows = await res.json();
-    if (!rows || !rows.length) return;
-    const d = rows[0].data;
-    Object.assign(ITINERARY, d);
-    openItinerary();
-  } catch(e) { toast('Erreur de chargement'); }
-}
 function voySeg(k){
   state._voySeg = k;
   const v = screenEl().querySelector('.tabview[data-tab="voyages"]');
-  if (v) v.innerHTML = voyagesView();
+  if (v){ v.innerHTML = voyagesView(); loadVoyagesTab(); }
 }
 
 /* ── Profil ─────────────────────────────────────────────────────────── */
