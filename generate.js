@@ -100,6 +100,8 @@ function buildSkeletonPrompt() {
     '- Hébergements VRAIS et plausibles ; gamme et budget adaptés au confort et au nombre de voyageurs.',
     "- Français sobre d'agence de luxe. Aucun emoji. Style télégraphique.",
     '- "budget" = coût total en euros, tout le voyage, tous les voyageurs.',
+    '- Fourchettes budget RÉALISTES par personne par jour : Éco 80-150€, Confort 150-300€, Luxe 300-600€, Ultra 600€+.',
+    '- Pour ' + travelerLabel() + ' en mode ' + (state.budget || 'Confort') + ' sur ' + daysCount + ' jours, le budget total doit être cohérent avec ces fourchettes.',
     '- "night" de chaque étape = "name" EXACT d\'un "stays".',
     '- Réponds UNIQUEMENT en JSON valide compact, sans texte ni balises autour.',
     '',
