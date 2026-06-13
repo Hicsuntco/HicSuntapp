@@ -170,6 +170,45 @@ async function loginEmail(){
     toast(e.message || 'Erreur de connexion');
   }
 }
+async function saveItinerary() {
+  const token = localStorage.getItem('sb_token');
+  if (!token) return;
+  try {
+    await fetch(SUPABASE_URL + '/rest/v1/itineraries', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'apikey': SUPABASE_ANON,
+        'Authorization': 'Bearer ' + token,
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        destination: ITINERARY.dest,
+        dates: ITINERARY.dates,
+        days: ITINERARY.days,
+        budget: ITINERARY.budgetTotal,
+        data: ITINERARY
+      })
+    });
+    toast('Voyage sauvegardé');
+  } catch(e) {
+    toast('Erreur de sauvegarde');
+  }
+}
+
+async function loadItineraries() {
+  const token = localStorage.getItem('sb_token');
+  if (!token) return [];
+  try {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/itineraries?select=*&order=created_at.desc', {
+      headers: {
+        'apikey': SUPABASE_ANON,
+        'Authorization': 'Bearer ' + token,
+      }
+    });
+    return await res.json();
+  } catch(e) { return []; }
+}
 function buildApp(){
   const s = screenEl();
   s.innerHTML = '<div class="tabs">'
