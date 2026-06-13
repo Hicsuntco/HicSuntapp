@@ -140,12 +140,11 @@ textarea.input{height:auto;min-height:110px;padding:14px 16px;resize:none;line-h
 .toast.show{opacity:1;transform:translate(-50%,0)}
 
 .ico{display:block;flex:none}
-@media (display-mode: standalone) {
-  .statusbar { display: none; }
-  .phone::after { display: none; }
-  .studio-head { display: none; }
-  .stage { padding: 0; }
-  .phone { width: 100vw; height: 100vh; height: 100dvh; border-radius: 0; padding: 0; box-shadow: none; background: var(--bg); }
-  .phone::after { display: none; }
-  .screen { border-radius: 0; }
+@media (max-width: 480px) {
+  .statusbar { display: none !important; }
+  .studio-head { display: none !important; }
+  .stage { padding: 0 !important; }
+  .phone { width: 100vw !important; height: 100dvh !important; border-radius: 0 !important; padding: 0 !important; box-shadow: none !important; }
+  .phone::after { display: none !important; }
+  .screen { border-radius: 0 !important; }
 }
