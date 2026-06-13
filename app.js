@@ -183,14 +183,24 @@ function _applyUser(user){
 }
 
 /* ── Supabase itinéraires ── */
+function _getUserId(){
+  const token = localStorage.getItem('sb_token');
+  if (!token) return null;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.sub || null;
+  } catch(e) { return null; }
+}
+
 async function saveItinerary(){
   const token = localStorage.getItem('sb_token');
-  if(!token) return;
+  const userId = _getUserId();
+  if(!token || !userId) return;
   try{
     await fetch(SUPABASE_URL+'/rest/v1/itineraries',{
       method:'POST',
       headers:{'content-type':'application/json','apikey':SUPABASE_ANON,'Authorization':'Bearer '+token,'Prefer':'return=minimal'},
-      body:JSON.stringify({destination:ITINERARY.dest,dates:ITINERARY.dates,days:ITINERARY.days,budget:ITINERARY.budgetTotal,data:ITINERARY})
+      body:JSON.stringify({user_id:userId,destination:ITINERARY.dest,dates:ITINERARY.dates,days:ITINERARY.days,budget:ITINERARY.budgetTotal,data:ITINERARY})
     });
     toast('Voyage sauvegardé');
   }catch(e){ toast('Erreur de sauvegarde'); }
