@@ -12,7 +12,6 @@ function onboardingView(){
     +   '<div class="onb-acts">'
     +     '<button class="btn" onclick="openOverlay(\'signup\', signupView())">Commencer</button>'
     +     '<button class="btn-ghost" onclick="openOverlay(\'login\', loginView())">J\'ai déjà un compte</button>'
-    +     '<button class="btn-ghost" onclick="openOverlay(\'login\', loginView())">J\'ai déjà un compte</button>'
     +     '<div class="dots"><i class="on"></i><i></i><i></i></div>'
     +   '</div>'
     + '</div>';
