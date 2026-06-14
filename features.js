@@ -206,13 +206,23 @@ function aiScroll(){
 }
 
 /* ── 22 · Cercle Hic Sunt ───────────────────────────────────────────── */
+function openCercle(){
+  const el = openOverlay('cercle', cercleView());
+  requestAnimationFrame(function(){
+    requestAnimationFrame(function(){
+      const bar = el.querySelector('[data-cc-prog]');
+      if(bar) bar.style.width = bar.dataset.target + '%';
+    });
+  });
+}
 function cercleView(){
+  const pct = Math.round(CERCLE.progress * 100);
   return statusBar() + navbar('Cercle Hic Sunt')
     + '<div class="ov-scroll px">'
     +   '<div class="cercle-card">' + contour()
     +     '<div class="cc-tier">' + esc(CERCLE.tier) + '</div>'
     +     '<div class="cc-pts">' + CERCLE.points + ' points</div>'
-    +     '<div class="cc-prog"><i style="width:' + Math.round(CERCLE.progress * 100) + '%"></i></div>'
+    +     '<div class="cc-prog"><i data-cc-prog style="width:0%" data-target="' + pct + '"></i></div>'
     +     '<div class="cc-next">' + CERCLE.toNext + ' pts avant ' + esc(CERCLE.next) + '</div>'
     +   '</div>'
     +   '<div class="section-h"><h2>Vos avantages</h2></div>'

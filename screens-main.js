@@ -103,7 +103,8 @@ function destBg(name){ const k=(name||'').toLowerCase(); for(const pat in DEST_B
 function destIcon(name){ const k=(name||'').toLowerCase(); if(/japon|tokyo|kyoto/.test(k)) return 'arch'; if(/maroc|marrakech/.test(k)) return 'compass'; if(/islande/.test(k)) return 'peaks'; if(/safari|kenya|afrique/.test(k)) return 'leaf'; if(/bali|indonesie|philippines|thaïlande|vietnam/.test(k)) return 'leaf'; if(/pérou|andes/.test(k)) return 'peaks'; return 'compass'; }
 function savedTripCard(it){
   const bg=destBg(it.destination), icon=destIcon(it.destination);
-  return '<div class="trip" onclick="loadSavedItinerary(\''+it.id+'\')">'
+  return '<div class="trip" style="position:relative" onclick="loadSavedItinerary(\''+it.id+'\')">'
+    +'<button class="trip-del" onclick="event.stopPropagation();deleteSavedItinerary(\''+it.id+'\')" aria-label="Supprimer">'+ico('close',14,2)+'</button>'
     +'<div class="th" style="position:relative;overflow:hidden">'
     +'<div style="position:absolute;inset:0;background:'+bg+'"></div>'
     +contour()
@@ -138,7 +139,7 @@ function profileView(){
   const rows = [
     ['sliders','Préférences de voyage','Styles · budget · rythme', "openOverlay('prefs', prefsView())"],
     ['doc','Passeport & documents','1 action requise', "openOverlay('documents', documentsView())"],
-    ['compass','Cercle Hic Sunt', CERCLE.tier + ' · ' + CERCLE.points + ' pts', "openOverlay('cercle', cercleView())"],
+    ['compass','Cercle Hic Sunt', CERCLE.tier + ' · ' + CERCLE.points + ' pts', "openCercle()"],
     ['bell','Conciergerie','Hansa · en ligne', "openOverlay('concierge', conciergeView())"],
     ['help','Notifications','2 non lues', "openOverlay('notifications', notificationsView())"],
     ['logout','Déconnexion','', 'logout()'],

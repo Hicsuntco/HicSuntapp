@@ -98,7 +98,11 @@ function setTab(name){
     const v = views[i];
     const on = v.dataset.tab === name;
     if (on){
-      if (name === 'discover') v.innerHTML = discoverView();
+      if (name === 'discover') {
+        v.innerHTML = discoverView();
+        const tiles = v.querySelectorAll('.dest-grid > *');
+        tiles.forEach(function(t, i){ t.style.animationDelay = (i * 55) + 'ms'; t.classList.add('tile-in'); });
+      }
       if (name === 'create')   v.innerHTML = createView();
       if (name === 'voyages')  { v.innerHTML = voyagesView(); loadVoyagesTab(); }
       if (name === 'profile')  v.innerHTML = profileView();
@@ -113,7 +117,25 @@ function setTab(name){
 }
 
 /* ── openers ── */
-function openItinerary(){ openOverlay('itinerary', itineraryView()); }
+function openItinerary(){
+  const el = openOverlay('itinerary', itineraryView());
+  requestAnimationFrame(function(){ revealOnScroll(el); });
+}
+function revealOnScroll(container){
+  const rows = container.querySelectorAll('.dayrow');
+  if(!rows.length) return;
+  rows.forEach(function(r){ r.classList.add('reveal'); });
+  const scroller = container.querySelector('.ov-scroll') || container;
+  const io = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      if(entry.isIntersecting){
+        entry.target.classList.add('in');
+        io.unobserve(entry.target);
+      }
+    });
+  }, { root: scroller, threshold: 0.12 });
+  rows.forEach(function(r){ io.observe(r); });
+}
 function openDest(key){ openOverlay('destination', destinationView(key)); }
 function openDay(i){ openOverlay('day', dayDetailView(i)); }
 function openBooking(id){ openOverlay('booking', bookingView(id)); }
@@ -287,6 +309,11 @@ async function loadVoyagesTab(){
     return;
   }
   host.innerHTML = items.map(savedTripCard).join('');
+  const cards = host.querySelectorAll('.trip');
+  cards.forEach(function(c, i){
+    c.style.animationDelay = (i * 70) + 'ms';
+    c.classList.add('trip-in');
+  });
 }
 async function loadSavedItinerary(id){
   const token = localStorage.getItem('sb_token');
@@ -334,6 +361,29 @@ function handleAuthCallback(){
   }catch(e){ return false; }
 }
 
+/* ── splash de lancement ─────────────────────────────────────────────── */
+function splashHTML(){
+  return '<div class="splash" data-splash>'
+    +   '<div class="splash-mark">'
+    +     '<span class="splash-word">Hic</span><span class="splash-word splash-em"><em>Sunt</em></span>'
+    +   '</div>'
+    +   '<div class="splash-rule"></div>'
+    +   '<div class="splash-tag">Beyond the Known</div>'
+    + '</div>';
+}
+function playSplash(next){
+  const s = screenEl();
+  const el = document.createElement('div');
+  el.innerHTML = splashHTML();
+  const splash = el.firstElementChild;
+  s.appendChild(splash);
+  requestAnimationFrame(function(){ requestAnimationFrame(function(){ splash.classList.add('run'); }); });
+  setTimeout(function(){
+    splash.classList.add('out');
+    setTimeout(function(){ next(); }, 480);
+  }, 1500);
+}
+
 /* ── boot ── */
 function buildApp(){
   const s = screenEl();
@@ -358,4 +408,6 @@ function buildApp(){
   }
 }
 
-document.addEventListener('DOMContentLoaded', buildApp);
+document.addEventListener('DOMContentLoaded', function(){
+  playSplash(buildApp);
+});

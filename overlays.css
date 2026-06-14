@@ -163,7 +163,13 @@
 /* ── confirmation ── */
 .conf{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 36px;opacity:0;transform:translateY(28px);transition:all 0.5s cubic-bezier(0.22,1,0.36,1)}
 .conf.show{opacity:1;transform:none}
-.conf .c-badge{width:72px;height:72px;border-radius:50%;background:var(--ink);color:var(--gold-soft);display:flex;align-items:center;justify-content:center;margin-bottom:24px}
+.conf .c-badge{width:72px;height:72px;border-radius:50%;background:var(--ink);color:var(--gold-soft);display:flex;align-items:center;justify-content:center;margin-bottom:24px;position:relative}
+.conf .c-badge::before{content:'';position:absolute;inset:-6px;border-radius:50%;border:1px solid var(--gold-soft);opacity:0;transform:scale(0.7)}
+.conf.show .c-badge::before{animation:cbadgePulse 0.9s cubic-bezier(.22,.68,.2,1) 0.25s forwards}
+.conf .c-badge .ico path{stroke-dasharray:48;stroke-dashoffset:48}
+.conf.show .c-badge .ico path{animation:cbadgeCheck 0.5s ease-out 0.3s forwards}
+@keyframes cbadgePulse{0%{opacity:0.6;transform:scale(0.7)}100%{opacity:0;transform:scale(1.35)}}
+@keyframes cbadgeCheck{to{stroke-dashoffset:0}}
 .conf h1{font-family:var(--serif);font-weight:600;font-size:26px;letter-spacing:-0.4px}
 .conf .c-s{font-size:13.5px;font-weight:300;color:var(--sub);line-height:1.6;margin-top:11px}
 .conf .c-ref{font-family:var(--mono);font-size:10px;letter-spacing:1.4px;color:var(--sub);margin-top:16px}
