@@ -163,7 +163,7 @@ function itineraryView(){
         ? '<button class="tool" onclick="openOverlay(\'gems\', gemsView())">' + ico('star',18,1.5) + '<div class="tl-t">Pépites</div><div class="tl-s">' + ((it.gems||[]).length) + ' adresses secrètes</div></button>'
           + '<button class="tool" onclick="openOverlay(\'share\', shareView())">' + ico('share',19,1.5) + '<div class="tl-t">Partager</div><div class="tl-s">Copier le lien</div></button>'
         : '<button class="tool" onclick="openOverlay(\'reviews\', reviewsView())">' + ico('star',18,1.5) + '<div class="tl-t">Avis</div><div class="tl-s">' + RATING.score + ' · ' + RATING.count + ' voyageurs</div></button>'
-          + '<button class="tool" onclick="openOverlay(\'share\', shareView())">' + ico('share',19,1.5) + '<div class="tl-t">Partager</div><div class="tl-s">' + CONTRIBUTORS.length + ' co-voyageurs</div></button>')
+          + '<button class="tool" onclick="openOverlay(\'share\', shareView())">' + ico('share',19,1.5) + '<div class="tl-t">Partager</div><div class="tl-s">Copier le lien</div></button>')
     +   '</div>'
     +   '<div class="ai-banner" onclick="openAI()">'
     +     '<span class="ai-av">' + ico('sparkle',22,1.6) + '</span>'
@@ -172,12 +172,13 @@ function itineraryView(){
     +   '</div>'
     +   '<div class="section-h"><h2>Jour par jour</h2><span class="meta">' + it.days + ' jours</span></div>'
     +   it.plan.map(function(p, i){
+        const catColor = (it.palette && it.palette[p.category]) || null;
         return '<div class="dayrow" onclick="openDay(' + i + ')">'
-          + '<div class="dr-rail"><span class="dr-pin">' + p.n + '</span><span class="dr-line"></span></div>'
+          + '<div class="dr-rail"><span class="dr-pin"' + (catColor ? ' style="background:'+catColor+';border-color:'+catColor+'"' : '') + '>' + p.n + '</span><span class="dr-line"></span></div>'
           + '<div class="dr-main"><div class="dr-top"><div><div class="dr-t">' + esc(p.title) + '</div><div class="dr-l">' + esc(p.loc) + '</div></div>'
           + wxChip(p.wx[0], p.wx[1]) + '</div>'
           + '<div class="dr-d">' + esc(p.desc) + '</div>'
-          + '<div class="dr-tags">' + p.tags.map(function(t){ return '<span class="mini-tag">' + ico(t[0],12,1.7) + t[1] + '</span>'; }).join('') + '</div>'
+          + '<div class="dr-tags">' + p.tags.map(function(t){ return '<span class="mini-tag"' + (catColor ? ' style="color:'+catColor+';border-color:'+hexA(catColor,0.3)+';background:'+hexA(catColor,0.08)+'"' : '') + '>' + ico(t[0],12,1.7) + t[1] + '</span>'; }).join('') + '</div>'
           + '</div></div>';
       }).join('')
     +   '<div class="section-h"><h2>Hébergements</h2><span class="meta">' + it.accommodations.length + ' étapes</span></div>'
@@ -195,9 +196,11 @@ function dayDetailView(idx){
   const p = it.plan[idx];
   if (!p) return statusBar() + navbar('Jour');
   const num = 'Jour ' + String(p.n).padStart(2,'0');
+  const palette = it.palette || {};
+  const catColor = palette[p.category] || 'var(--gold)';
+  const catLabel = (typeof CATEGORY_LABELS !== 'undefined' && CATEGORY_LABELS[p.category]) || '';
   let nightHTML = '';
   if (p.night && p.night.acc){
-    const a = null;
     let found = null;
     for (let i = 0; i < it.accommodations.length; i++) if (it.accommodations[i].id === p.night.acc) found = it.accommodations[i];
     nightHTML = found ? accCard(found)
@@ -211,16 +214,38 @@ function dayDetailView(idx){
   const next = idx < it.plan.length - 1
     ? '<button class="btn" onclick="swapDay(' + (idx+1) + ')">Jour ' + (idx+2) + ico('chevron',16,1.8) + '</button>'
     : '<button class="btn" onclick="closeOverlay()">Retour à l\'itinéraire</button>';
+
+  const restaurantHTML = p.restaurant ? '<div class="section-h"><h2>À table</h2></div>'
+    + '<div class="row" style="cursor:default"><span class="r-ico">' + ico('fork',19,1.5) + '</span>'
+    + '<div class="r-main"><div class="r-t">' + esc(p.restaurant.name) + '</div>'
+    + '<div class="r-s">' + esc(p.restaurant.type||'') + (p.restaurant.price ? ' · ' + esc(p.restaurant.price) : '') + '</div>'
+    + (p.restaurant.note ? '<div class="r-s" style="margin-top:2px;font-style:italic">' + esc(p.restaurant.note) + '</div>' : '')
+    + '</div></div>' : '';
+
+  const wellnessHTML = p.wellness ? '<div class="section-h"><h2>Bien-être</h2></div>'
+    + '<div class="row" style="cursor:default"><span class="r-ico">' + ico('droplet',19,1.5) + '</span>'
+    + '<div class="r-main"><div class="r-t">' + esc(p.wellness.name) + '</div>'
+    + '<div class="r-s">' + esc(p.wellness.type||'') + (p.wellness.price ? ' · ' + esc(p.wellness.price) : '') + '</div>'
+    + (p.wellness.note ? '<div class="r-s" style="margin-top:2px;font-style:italic">' + esc(p.wellness.note) + '</div>' : '')
+    + '</div></div>' : '';
+
+  const tipHTML = p.tip ? '<div class="day-tip" style="border-left:3px solid '+catColor+';background:'+hexA(catColor,0.08)+';border-radius:0 8px 8px 0;padding:12px 14px;margin-top:14px;font-size:13.5px;font-style:italic;color:var(--ink)">'
+    + '<span style="color:'+catColor+';font-weight:600;font-style:normal;text-transform:uppercase;letter-spacing:.08em;font-size:10px;display:block;margin-bottom:4px">Conseil d\'initié</span>'
+    + esc(p.tip) + '</div>' : '';
+
   return statusBar() + navbar(num)
     + '<div class="ov-scroll has-foot px">'
-    +   '<span class="eyebrow">' + num + ' · ' + esc(p.loc) + '</span>'
+    +   '<span class="eyebrow" style="color:'+catColor+'">' + num + ' · ' + esc(p.loc) + (catLabel ? ' · ' + catLabel : '') + '</span>'
     +   '<h1 class="dayd-h">' + esc(p.title) + '</h1>'
     +   '<p class="dayd-s">' + esc(p.desc) + '</p>'
+    +   tipHTML
     +   '<div class="section-h"><h2>Le programme</h2><span class="meta">' + p.moments.length + ' moments</span></div>'
     +   p.moments.map(function(m){
-        return '<div class="moment"><span class="mo-t">' + esc(m[0]) + '</span><span class="mo-i">' + ico(m[1],15,1.6) + '</span>'
+        return '<div class="moment"><span class="mo-t">' + esc(m[0]) + '</span><span class="mo-i" style="color:'+catColor+'">' + ico(m[1],15,1.6) + '</span>'
           + '<div><div class="mo-ti">' + esc(m[2]) + '</div>' + (m[3] ? '<div class="mo-d">' + esc(m[3]) + '</div>' : '') + '</div></div>';
       }).join('')
+    +   restaurantHTML
+    +   wellnessHTML
     +   '<div class="section-h"><h2>La nuit</h2></div>' + nightHTML
     + '</div>'
     + '<div class="ov-foot"><div class="day-nav">' + prev + next + '</div></div>';

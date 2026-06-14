@@ -251,46 +251,245 @@ async function exportPDF(){
   const it = ITINERARY;
   const win = window.open('', '_blank');
   if (!win){ toast('Autorisez les pop-ups pour exporter'); return; }
+
+  const palette = it.palette || {hike:'#7BAE6E',beach:'#5B9FBE',spa:'#E8A0A0',food:'#C98A52',culture:'#B07EB0',outdoor:'#C9A853',transit:'#8A9E88'};
+  const CAT_LABEL = {hike:'Rando & nature',beach:'Plage & océan',spa:'Bien-être',food:'Table & saveurs',culture:'Patrimoine',outdoor:'Plein air',transit:'Transfert'};
+  const CAT_EMOJI = {hike:'\u{1F95E}',beach:'\u{1F30A}',spa:'\u{1F9D8}',food:'\u{1F37D}',culture:'\u{1F3DB}',outdoor:'\u2600',transit:'\u2708'};
+
   const stayById = {};
   it.accommodations.forEach(function(a){ stayById[a.id] = a; });
-  const daysHTML = it.plan.map(function(p){
-    const nightLabel = (p.night && p.night.acc && stayById[p.night.acc]) ? stayById[p.night.acc].n : (p.night ? p.night.n : '');
+
+  const dayMomentIcon = {plane:'\u2708',fork:'\u25CB',droplet:'\u2740',wave:'\u223C',peaks:'\u25B2',arch:'\u25A0',leaf:'\u2741',sun:'\u2600',moon:'\u263D',bed:'\u25A1',star:'\u2605',camera:'\u25C9',ticket:'\u25C8',pin:'\u25CF',compass:'\u25C7'};
+
+  /* ── timeline du circuit (étapes consécutives regroupées par lieu) ── */
+  const stops = [];
+  it.plan.forEach(function(p, i){
+    const last = stops[stops.length-1];
+    if (last && last.loc === p.loc) { last.nights++; last.endDay = p.n; }
+    else { stops.push({ loc:p.loc, nights:1, startDay:p.n, endDay:p.n, category:p.category }); }
+  });
+  const timelineHTML = stops.map(function(s, i){
+    const color = palette[s.category] || '#9c7c44';
+    const cls = i===0 ? 'start' : (i===stops.length-1 ? 'end' : '');
+    return '<div class="tl-stop '+cls+'" style="--c:'+color+'">'
+      + '<div class="tl-dot"></div>'
+      + '<div class="tl-city">'+esc(s.loc)+'</div>'
+      + '<div class="tl-dates">Jour '+s.startDay+(s.endDay>s.startDay?'\u2013'+s.endDay:'')+'</div>'
+      + '<div class="tl-nights">'+s.nights+' nuit'+(s.nights>1?'s':'')+'</div>'
+      + '</div>';
+  }).join('');
+
+  /* ── légende des catégories présentes ── */
+  const usedCats = {};
+  it.plan.forEach(function(p){ usedCats[p.category] = true; });
+  (it.gems||[]).length && (usedCats.culture = true);
+  const legendHTML = Object.keys(usedCats).map(function(c){
+    return '<div class="legend-item"><div class="legend-dot" style="background:'+(palette[c]||'#9c7c44')+'"></div><span style="color:'+(palette[c]||'#9c7c44')+'">'+(CAT_LABEL[c]||c)+'</span></div>';
+  }).join('');
+
+  /* ── jours regroupés par étape (comme le hero Sri Lanka) ── */
+  let sectionHTML = '';
+  let stopIdx = 0, dayInStop = 0;
+  let curStop = stops[0];
+  it.plan.forEach(function(p, i){
+    const color = palette[p.category] || '#9c7c44';
+    const rgbaBg = hexA(color, 0.07), rgbaB = hexA(color, 0.22);
+
+    /* nouvelle section si on entre dans une nouvelle étape */
+    if (dayInStop === 0) {
+      const s = stops[stopIdx];
+      sectionHTML += '<section class="leg-section">'
+        + '<div class="leg-head" style="--c:'+color+'">'
+        + '<div class="leg-num">'+String(stopIdx+1).padStart(2,'0')+'</div>'
+        + '<div><div class="leg-tag">Jour '+s.startDay+(s.endDay>s.startDay?'\u2013'+s.endDay:'')+' \u00B7 '+s.nights+' nuit'+(s.nights>1?'s':'')+'</div>'
+        + '<div class="leg-name">'+esc(s.loc)+'</div>'
+        + (p.desc ? '<div class="leg-hook">'+esc(p.desc)+'</div>' : '')
+        + '</div></div>';
+
+      /* cartes hébergement + restaurant/wellness si présents sur le premier jour de l'étape */
+      let cards = '';
+      if (p.night && p.night.acc && stayById[p.night.acc]) {
+        const a = stayById[p.night.acc];
+        cards += '<div class="card" style="--bg:'+rgbaBg+';--b:'+rgbaB+';--c:'+color+'">'
+          + '<div class="card-label">\u{1F3E1} H\u00E9bergement</div>'
+          + '<div class="card-name">'+esc(a.n)+'</div>'
+          + '<div class="card-desc">'+esc(a.type)+' \u00B7 '+esc(a.loc)+(a.blurb?' \u2014 '+esc(a.blurb):'')+'</div>'
+          + '<div class="card-price" style="color:'+color+'">'+eur(a.price)+' / nuit \u00B7 '+a.nights+' nuit'+(a.nights>1?'s':'')+'</div>'
+          + '</div>';
+      }
+      if (p.restaurant) {
+        cards += '<div class="card" style="--bg:'+hexA(palette.food||'#C98A52',0.07)+';--b:'+hexA(palette.food||'#C98A52',0.22)+';--c:'+(palette.food||'#C98A52')+'">'
+          + '<div class="card-label">'+CAT_EMOJI.food+' Table</div>'
+          + '<div class="card-name">'+esc(p.restaurant.name)+'</div>'
+          + '<div class="card-desc">'+esc(p.restaurant.type||'')+(p.restaurant.note?' \u2014 '+esc(p.restaurant.note):'')+'</div>'
+          + (p.restaurant.price ? '<div class="card-note">'+esc(p.restaurant.price)+'</div>' : '')
+          + '</div>';
+      }
+      if (p.wellness) {
+        cards += '<div class="card" style="--bg:'+hexA(palette.spa||'#E8A0A0',0.07)+';--b:'+hexA(palette.spa||'#E8A0A0',0.22)+';--c:'+(palette.spa||'#E8A0A0')+'">'
+          + '<div class="card-label">'+CAT_EMOJI.spa+' Bien-\u00EAtre</div>'
+          + '<div class="card-name">'+esc(p.wellness.name)+'</div>'
+          + '<div class="card-desc">'+esc(p.wellness.type||'')+(p.wellness.note?' \u2014 '+esc(p.wellness.note):'')+'</div>'
+          + (p.wellness.price ? '<div class="card-note">'+esc(p.wellness.price)+'</div>' : '')
+          + '</div>';
+      }
+      if (cards) sectionHTML += '<div class="cards">'+cards+'</div>';
+    }
+
+    /* jour individuel */
     const moments = p.moments.map(function(m){
-      return '<li><b>'+esc(m[0])+'</b> — '+esc(m[2])+(m[3]?' · '+esc(m[3]):'')+'</li>';
+      const glyph = dayMomentIcon[m[1]] || '\u2022';
+      return '<div class="moment"><span class="mo-time">'+esc(m[0])+'</span><span class="mo-glyph" style="color:'+color+'">'+glyph+'</span>'
+        + '<div class="mo-text"><span class="mo-title">'+esc(m[2])+'</span>'+(m[3]?'<span class="mo-detail">'+esc(m[3])+'</span>':'')+'</div></div>';
     }).join('');
-    return '<div style="margin-bottom:22px;page-break-inside:avoid">'
-      + '<h3 style="font-family:Georgia,serif;margin:0 0 4px">Jour '+p.n+' — '+esc(p.title)+'</h3>'
-      + '<p style="margin:0 0 6px;color:#666;font-size:13px">'+esc(p.loc)+'</p>'
-      + '<p style="margin:0 0 8px;font-style:italic">'+esc(p.desc)+'</p>'
-      + '<ul style="margin:0 0 8px;padding-left:18px;font-size:14px">'+moments+'</ul>'
-      + (nightLabel ? '<p style="margin:0;font-size:13px;color:#666">Nuit : '+esc(nightLabel)+'</p>' : '')
-      + (p.tip ? '<p style="margin:4px 0 0;font-size:13px;color:#9c7c44"><i>Conseil : '+esc(p.tip)+'</i></p>' : '')
+    sectionHTML += '<div class="day">'
+      + '<div class="day-head"><span class="day-num" style="color:'+color+'">'+String(p.n).padStart(2,'0')+'</span>'
+      + '<div><h3>'+esc(p.title)+'</h3><p class="day-loc">'+esc(p.loc)+'</p></div></div>'
+      + '<div class="moments">'+moments+'</div>'
+      + (p.tip ? '<p class="day-tip" style="color:'+color+'">'+esc(p.tip)+'</p>' : '')
       + '</div>';
+
+    /* fin d'étape ? */
+    dayInStop++;
+    if (dayInStop >= stops[stopIdx].nights) { dayInStop = 0; stopIdx++; sectionHTML += '</section>'; }
+  });
+
+  /* ── pépites cachées ── */
+  const gemsHTML = (it.gems && it.gems.length) ? '<section class="leg-section"><div class="leg-head" style="--c:'+(palette.culture||'#B07EB0')+'">'
+    + '<div class="leg-num">\u2726</div><div><div class="leg-tag">R\u00E9capitulatif</div><div class="leg-name">Adresses secr\u00E8tes</div></div></div>'
+    + '<div class="cards">' + it.gems.map(function(g){
+        const color = palette.culture || '#B07EB0';
+        return '<div class="card" style="--bg:'+hexA(color,0.07)+';--b:'+hexA(color,0.22)+';--c:'+color+'">'
+          + '<div class="card-label">\u2726 Pépite</div>'
+          + '<div class="card-name">'+esc(g.name)+'</div>'
+          + (g.loc ? '<div class="card-note" style="margin-top:0">'+esc(g.loc)+'</div>' : '')
+          + (g.desc ? '<div class="card-desc">'+esc(g.desc)+'</div>' : '')
+          + (g.tip ? '<div class="card-note">'+esc(g.tip)+'</div>' : '')
+          + '</div>';
+      }).join('') + '</div></section>' : '';
+
+  /* ── informations pratiques ── */
+  const essentials = it.essentials || {};
+  const essentialsHTML = (essentials.toKnow || essentials.bestTime || essentials.visa) ? '<section class="leg-section"><div class="leg-head" style="--c:#9c7c44">'
+    + '<div class="leg-num">\u2139</div><div><div class="leg-tag">Pratique</div><div class="leg-name">Informations essentielles</div></div></div>'
+    + '<div class="essentials">'
+    + (essentials.bestTime ? '<p><span>P\u00E9riode</span>'+esc(essentials.bestTime)+'</p>' : '')
+    + (essentials.visa ? '<p><span>Visa</span>'+esc(essentials.visa)+'</p>' : '')
+    + (essentials.toKnow ? essentials.toKnow.map(function(t){ return '<p><span>\u2022</span>'+esc(t)+'</p>'; }).join('') : '')
+    + '</div></section>' : '';
+
+  /* ── budget ── */
+  const stayRows = it.accommodations.map(function(a){
+    return '<tr><td class="city">'+esc(a.loc)+'</td><td>'+a.nights+'</td><td>'+esc(a.type)+'</td><td class="price">'+eur(a.price)+' / nuit</td><td class="price">'+eur(a.price*a.nights)+'</td></tr>';
   }).join('');
-  const accHTML = it.accommodations.map(function(a){
-    return '<div style="margin-bottom:14px;page-break-inside:avoid">'
-      + '<h4 style="font-family:Georgia,serif;margin:0 0 2px">'+esc(a.n)+'</h4>'
-      + '<p style="margin:0;font-size:13px;color:#666">'+esc(a.type)+' · '+esc(a.loc)+'</p>'
-      + '<p style="margin:2px 0 0;font-size:13px">'+eur(a.price)+' / nuit · '+a.nights+' nuit'+(a.nights>1?'s':'')+'</p>'
-      + (a.blurb ? '<p style="margin:4px 0 0;font-size:13px;font-style:italic">'+esc(a.blurb)+'</p>' : '')
-      + '</div>';
-  }).join('');
-  const html = '<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>'+esc(it.dest)+' — Itinéraire Hic Sunt</title>'
-    + '<style>body{font-family:-apple-system,Helvetica,Arial,sans-serif;color:#1b1610;max-width:680px;margin:40px auto;padding:0 24px;line-height:1.5}'
-    + 'h1{font-family:Georgia,serif;font-size:32px;margin:0 0 4px}'
-    + '.tag{font-style:italic;color:#9c7c44;margin:0 0 18px}'
-    + '.meta{font-size:13px;color:#666;margin:0 0 28px;letter-spacing:.05em;text-transform:uppercase}'
-    + 'h2{font-family:Georgia,serif;font-size:20px;border-bottom:1px solid #ddd;padding-bottom:6px;margin:32px 0 16px}'
-    + '@media print{body{margin:0;padding:24px}}</style></head><body>'
+  const stayTotal = it.accommodations.reduce(function(s,a){return s+a.price*a.nights;},0);
+  const budgetHTML = '<section class="leg-section" style="border-bottom:none"><div class="leg-head" style="--c:#C9965A">'
+    + '<div class="leg-num" style="font-size:2.4rem">\u20AC</div><div><div class="leg-tag">Estimation</div><div class="leg-name">Budget du voyage</div></div></div>'
+    + '<table><tr><th>\u00C9tape</th><th>Nuits</th><th>Type</th><th>Prix/nuit</th><th>Total</th></tr>'
+    + stayRows
+    + '<tr class="total-row"><td colspan="4">H\u00E9bergement ('+travelerLabel()+')</td><td class="price" style="color:#C9965A">'+eur(stayTotal)+'</td></tr>'
+    + '<tr class="total-row" style="border-top-color:#C9965A"><td colspan="4"><strong>Total voyage estim\u00E9 (tout compris)</strong></td><td class="price" style="color:#C9965A;font-size:1.05rem"><strong>'+eur(it.budgetTotal)+'</strong></td></tr>'
+    + '</table></section>';
+
+  const html = '<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">'
+    + '<title>'+esc(it.dest)+' \u2014 Hic Sunt</title>'
+    + '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
+    + '<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,500;1,300;1,500&family=Epilogue:wght@200;300;400;500&display=swap" rel="stylesheet">'
+    + '<style>'
+    + '*{margin:0;padding:0;box-sizing:border-box}'
+    + 'html{scroll-behavior:smooth}'
+    + 'body{background:#0C160E;color:#EEE8D8;font-family:Epilogue,sans-serif;font-weight:300;line-height:1.7;-webkit-font-smoothing:antialiased}'
+    + '.close-btn{position:fixed;top:18px;right:18px;width:38px;height:38px;border-radius:50%;background:#EEE8D8;color:#0C160E;border:none;font-size:18px;font-family:Epilogue,sans-serif;cursor:pointer;z-index:99;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,0.3)}'
+    + '.hero{padding:4.5rem 2.5rem 3rem;position:relative;overflow:hidden}'
+    + '.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 55% at 20% 15%, '+hexA(palette.hike||'#7BAE6E',0.14)+' 0%, transparent 60%),radial-gradient(ellipse 55% 75% at 80% 65%, '+hexA(palette.beach||'#5B9FBE',0.1)+' 0%, transparent 55%)}'
+    + '.hero-eyebrow{font-size:.6rem;letter-spacing:.4em;text-transform:uppercase;color:'+(palette.hike||'#7BAE6E')+';margin-bottom:1.2rem;position:relative;z-index:2}'
+    + '.hero h1{font-family:Fraunces,serif;font-weight:300;font-size:clamp(2.6rem,9vw,4.2rem);line-height:1;margin-bottom:1.4rem;position:relative;z-index:2}'
+    + '.hero h1 em{font-style:italic;color:'+(palette.hike||'#7BAE6E')+'}'
+    + '.hero-pills{display:flex;flex-wrap:wrap;gap:.5rem;position:relative;z-index:2;margin-bottom:1.2rem}'
+    + '.pill{font-size:.62rem;letter-spacing:.08em;padding:.3rem .85rem;border-radius:20px;border:1px solid;font-weight:400}'
+    + '.hero-meta{font-size:.62rem;letter-spacing:.25em;text-transform:uppercase;color:#8A9E88;position:relative;z-index:2}'
+    + '.hero-tag{font-family:Fraunces,serif;font-style:italic;font-size:1rem;color:'+(palette.hike||'#7BAE6E')+';margin-bottom:1rem;position:relative;z-index:2}'
+    + '.timeline-wrap{background:#1A2419;border-top:1px solid rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.04);padding:1.6rem 2.5rem;overflow-x:auto}'
+    + '.tl-label{font-size:.55rem;letter-spacing:.4em;text-transform:uppercase;color:#8A9E88;margin-bottom:1.2rem}'
+    + '.timeline{display:flex;gap:0;min-width:600px}'
+    + '.tl-stop{flex:1;position:relative;padding-top:18px}'
+    + '.tl-stop::before{content:"";position:absolute;top:6px;left:0;right:0;height:1px;background:rgba(255,255,255,.08)}'
+    + '.tl-stop.start::before{left:6px}.tl-stop.end::before{right:6px}'
+    + '.tl-dot{width:12px;height:12px;border-radius:50%;border:2px solid var(--c);background:#0C160E;position:absolute;top:0;left:0}'
+    + '.tl-city{font-family:Fraunces,serif;font-size:.78rem;color:#EEE8D8;white-space:nowrap;margin-bottom:.1rem}'
+    + '.tl-dates{font-size:.54rem;color:var(--c);letter-spacing:.06em;white-space:nowrap}'
+    + '.tl-nights{font-size:.5rem;color:#8A9E88;white-space:nowrap}'
+    + '.legend-bar{background:#1A2419;border-bottom:1px solid rgba(255,255,255,.04);padding:1rem 2.5rem;display:flex;flex-wrap:wrap;gap:1.1rem}'
+    + '.legend-item{display:flex;align-items:center;gap:.4rem;font-size:.6rem;letter-spacing:.08em;text-transform:uppercase}'
+    + '.legend-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}'
+    + '.leg-section{padding:2.6rem 2.5rem;border-bottom:1px solid rgba(255,255,255,.05)}'
+    + '.leg-head{display:flex;gap:1.2rem;align-items:flex-start;margin-bottom:1.6rem}'
+    + '.leg-num{font-family:Fraunces,serif;font-size:2.6rem;font-weight:300;color:var(--c);opacity:.35;line-height:1;flex-shrink:0}'
+    + '.leg-tag{font-size:.55rem;letter-spacing:.3em;text-transform:uppercase;color:var(--c);margin-bottom:.25rem}'
+    + '.leg-name{font-family:Fraunces,serif;font-size:1.5rem;font-weight:300;color:#EEE8D8;line-height:1.15;margin-bottom:.25rem}'
+    + '.leg-hook{font-family:Fraunces,serif;font-style:italic;font-size:.82rem;color:#8A9E88}'
+    + '.cards{display:grid;gap:.7rem;margin-bottom:1.6rem}'
+    + '@media(min-width:640px){.cards{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}}'
+    + '.card{border-radius:8px;padding:1rem 1.1rem;border:1px solid var(--b);background:var(--bg)}'
+    + '.card-label{font-size:.55rem;letter-spacing:.25em;text-transform:uppercase;font-weight:500;color:var(--c);margin-bottom:.5rem}'
+    + '.card-name{font-family:Fraunces,serif;font-size:.95rem;font-weight:300;color:#EEE8D8;margin-bottom:.3rem;line-height:1.3}'
+    + '.card-desc{font-size:.74rem;color:#8A9E88;line-height:1.6}'
+    + '.card-note{margin-top:.4rem;font-size:.68rem;color:#D4C9A8;opacity:.75;font-style:italic}'
+    + '.card-price{margin-top:.4rem;font-size:.68rem;font-weight:500}'
+    + '.day{margin-bottom:1.1rem;page-break-inside:avoid;background:rgba(255,255,255,.015);border:1px solid rgba(255,255,255,.04);border-radius:6px;padding:1rem 1.2rem}'
+    + '.day:last-child{margin-bottom:0}'
+    + '.day-head{display:flex;gap:.9rem;align-items:flex-start;margin-bottom:.5rem}'
+    + '.day-num{font-family:Fraunces,serif;font-size:1.5rem;font-weight:300;line-height:1;min-width:38px}'
+    + '.day-head h3{font-family:Fraunces,serif;font-weight:300;font-size:1rem;color:#EEE8D8;margin-bottom:.1rem}'
+    + '.day-loc{font-size:.6rem;letter-spacing:.25em;text-transform:uppercase;color:#8A9E88}'
+    + '.moments{margin-left:50px;border-left:1px solid rgba(255,255,255,.06);padding-left:16px}'
+    + '.moment{display:flex;align-items:flex-start;gap:10px;padding:5px 0;font-size:.78rem}'
+    + '.mo-time{font-size:.62rem;letter-spacing:.06em;color:#8A9E88;min-width:38px;padding-top:1px}'
+    + '.mo-glyph{font-size:.78rem;line-height:1.5;min-width:12px}'
+    + '.mo-text{display:flex;flex-direction:column;gap:1px}'
+    + '.mo-title{color:#EEE8D8}'
+    + '.mo-detail{color:#8A9E88;font-size:.68rem}'
+    + '.day-tip{margin:.6rem 0 0 50px;font-size:.7rem;font-style:italic;opacity:.85}'
+    + '.essentials p{font-size:.78rem;margin-bottom:.5rem;display:flex;gap:.5rem;color:#D4C9A8}'
+    + '.essentials p span{color:#9c7c44;font-weight:500;text-transform:uppercase;letter-spacing:.08em;font-size:.62rem;min-width:90px;flex-shrink:0}'
+    + 'table{width:100%;border-collapse:collapse}'
+    + 'th{text-align:left;font-size:.55rem;letter-spacing:.25em;text-transform:uppercase;color:#9c7c44;font-weight:400;padding:.5rem .6rem;border-bottom:1px solid rgba(255,255,255,.06)}'
+    + 'td{padding:.6rem .6rem;font-size:.74rem;color:#8A9E88;border-bottom:1px solid rgba(255,255,255,.03)}'
+    + 'td.city{color:#EEE8D8}'
+    + 'td.price{color:#EEE8D8;font-weight:500}'
+    + '.total-row td{border-top:1px solid rgba(201,150,90,.3);color:#EEE8D8;font-weight:500;padding-top:1rem}'
+    + '.foot{padding:2.6rem 2.5rem;text-align:center;border-top:1px solid rgba(255,255,255,.04)}'
+    + '.foot h3{font-family:Fraunces,serif;font-style:italic;font-weight:300;font-size:1.5rem;color:'+(palette.hike||'#7BAE6E')+';margin-bottom:.4rem}'
+    + '.foot p{font-size:.6rem;color:#8A9E88;letter-spacing:.2em;text-transform:uppercase}'
+    + '.foot-line{width:32px;height:1px;background:'+(palette.hike||'#7BAE6E')+';opacity:.3;margin:.8rem auto}'
+    + '@media print{.close-btn{display:none}}'
+    + '@media(min-width:640px){.hero,.timeline-wrap,.legend-bar,.leg-section,.foot{padding-left:4rem;padding-right:4rem}}'
+    + '</style></head><body>'
+    + '<button class="close-btn" onclick="window.close()" aria-label="Fermer">\u2715</button>'
+    + '<section class="hero"><div class="hero-bg"></div>'
+    + '<div class="hero-eyebrow">Itin\u00E9raire compos\u00E9 \u00B7 Hic Sunt \u00B7 '+esc(it.country||it.dest)+'</div>'
     + '<h1>'+esc(it.dest)+'</h1>'
-    + '<p class="tag">'+esc(it.tag)+'</p>'
-    + '<p class="meta">'+esc(it.dates)+' · '+it.days+' jours · '+esc(it.level)+' · '+eur(it.budgetTotal)+' tout compris</p>'
-    + '<h2>Jour par jour</h2>' + daysHTML
-    + '<h2>Hébergements</h2>' + accHTML
+    + '<div class="hero-tag">'+esc(it.tag)+'</div>'
+    + '<div class="hero-pills">'
+    + '<span class="pill" style="color:'+(palette.hike||'#7BAE6E')+';border-color:'+hexA(palette.hike||'#7BAE6E',0.25)+'">'+esc(it.dates)+'</span>'
+    + '<span class="pill" style="color:'+(palette.beach||'#5B9FBE')+';border-color:'+hexA(palette.beach||'#5B9FBE',0.25)+'">'+it.days+' jours</span>'
+    + '<span class="pill" style="color:'+(palette.food||'#C98A52')+';border-color:'+hexA(palette.food||'#C98A52',0.25)+'">'+esc(it.level)+'</span>'
+    + '<span class="pill" style="color:#D4C9A8;border-color:rgba(212,201,168,.25)">'+travelerLabel()+'</span>'
+    + '</div>'
+    + '<div class="hero-meta">'+esc(it.coords||'')+(it.season?' \u00B7 '+esc(it.season):'')+'</div>'
+    + '</section>'
+    + '<div class="timeline-wrap"><div class="tl-label">Circuit complet</div><div class="timeline">'+timelineHTML+'</div></div>'
+    + '<div class="legend-bar">'+legendHTML+'</div>'
+    + sectionHTML
+    + gemsHTML
+    + essentialsHTML
+    + budgetHTML
+    + '<div class="foot"><h3>Beau voyage \u2728</h3><div class="foot-line"></div>'
+    + '<p>'+esc(it.dest)+' \u00B7 '+esc(it.dates)+' \u00B7 Hic Sunt \u00B7 Beyond the Known</p></div>'
     + '</body></html>';
+
   win.document.write(html);
   win.document.close();
-  setTimeout(function(){ win.print(); }, 300);
 }
 
 /* ── 24 · Partage ───────────────────────────────────────────────────── */
@@ -317,28 +516,10 @@ async function sendShareLink(){
 }
 function shareView(){
   const it = ITINERARY;
-  if (it.generated) {
-    return statusBar() + navbar('Partager le voyage')
-      + '<div class="ov-scroll px">'
-      +   '<span class="eyebrow" style="display:block;margin-top:10px">' + esc(it.dest) + ' · ' + it.days + ' jours</span>'
-      +   '<h1 style="font-family:var(--serif);font-weight:600;font-size:28px;letter-spacing:-0.4px;margin-top:8px">Partager ce voyage</h1>'
-      +   '<div class="row" onclick="copyShareLink()"><span class="r-ico">' + ico('link',19,1.5) + '</span><div class="r-main"><div class="r-t">Copier le lien</div><div class="r-s">Lecture seule</div></div><span class="r-chev">' + ico('chevron',17,1.6) + '</span></div>'
-      +   '<div class="row" onclick="sendShareLink()"><span class="r-ico">' + ico('share',18,1.5) + '</span><div class="r-main"><div class="r-t">Envoyer par message</div><div class="r-s">iMessage · WhatsApp</div></div><span class="r-chev">' + ico('chevron',17,1.6) + '</span></div>'
-      +   '<div class="row" onclick="exportPDF()"><span class="r-ico">' + ico('doc',19,1.5) + '</span><div class="r-main"><div class="r-t">Exporter en PDF</div><div class="r-s">Itinéraire complet</div></div><span class="r-chev">' + ico('chevron',17,1.6) + '</span></div>'
-      + '</div>';
-  }
   return statusBar() + navbar('Partager le voyage')
     + '<div class="ov-scroll px">'
-    +   '<span class="eyebrow" style="display:block;margin-top:10px">' + esc(ITINERARY.dest) + ' · ' + ITINERARY.days + ' jours</span>'
-    +   '<h1 style="font-family:var(--serif);font-weight:600;font-size:28px;letter-spacing:-0.4px;margin-top:8px">Voyager à plusieurs</h1>'
-    +   '<div class="section-h"><h2>Co-voyageurs</h2><span class="meta">' + CONTRIBUTORS.length + '</span></div>'
-    +   CONTRIBUTORS.map(function(c){
-        return '<div class="contrib"><span class="avatar" style="width:40px;height:40px;font-size:13px;background:' + c.color + '">' + esc(c.av) + '</span>'
-          + '<div><div class="c-n">' + esc(c.n) + '</div><div class="c-r">' + esc(c.role) + '</div></div>'
-          + (c.you ? '<span class="c-you">Vous</span>' : '') + '</div>';
-      }).join('')
-    +   '<button class="btn-ghost sm" style="margin-top:16px" onclick="sendShareLink()">' + ico('plus',16,1.8) + 'Inviter un voyageur</button>'
-    +   '<div class="section-h"><h2>Partager</h2></div>'
+    +   '<span class="eyebrow" style="display:block;margin-top:10px">' + esc(it.dest) + ' · ' + it.days + ' jours</span>'
+    +   '<h1 style="font-family:var(--serif);font-weight:600;font-size:28px;letter-spacing:-0.4px;margin-top:8px">Partager ce voyage</h1>'
     +   '<div class="row" onclick="copyShareLink()"><span class="r-ico">' + ico('link',19,1.5) + '</span><div class="r-main"><div class="r-t">Copier le lien</div><div class="r-s">Lecture seule</div></div><span class="r-chev">' + ico('chevron',17,1.6) + '</span></div>'
     +   '<div class="row" onclick="sendShareLink()"><span class="r-ico">' + ico('share',18,1.5) + '</span><div class="r-main"><div class="r-t">Envoyer par message</div><div class="r-s">iMessage · WhatsApp</div></div><span class="r-chev">' + ico('chevron',17,1.6) + '</span></div>'
     +   '<div class="row" onclick="exportPDF()"><span class="r-ico">' + ico('doc',19,1.5) + '</span><div class="r-main"><div class="r-t">Exporter en PDF</div><div class="r-s">Itinéraire complet</div></div><span class="r-chev">' + ico('chevron',17,1.6) + '</span></div>'

@@ -30,6 +30,39 @@ function _occasionLabel(id){
   return o?o.label:null;
 }
 
+/* ── catégories thématiques & palettes adaptatives ───────────────────── */
+/* chaque "kind" de moment appartient à une catégorie thématique */
+const KIND_CATEGORY={
+  peaks:'hike', leaf:'hike', compass:'hike',
+  wave:'beach',
+  droplet:'spa',
+  fork:'food', moon:'food',
+  arch:'culture', camera:'culture', star:'culture', ticket:'culture',
+  sun:'outdoor',
+  plane:'transit', bed:'transit', pin:'culture',
+};
+const CATEGORY_LABELS={
+  hike:'Rando & nature', beach:'Plage & océan', spa:'Bien-être',
+  food:'Table & saveurs', culture:'Patrimoine', outdoor:'Plein air', transit:'Transfert',
+};
+
+/* palettes par "climat visuel" — choisies selon mots-clés de la destination/région */
+const THEME_PALETTES={
+  tropical:{ hike:'#7BAE6E', beach:'#5B9FBE', spa:'#E8A0A0', food:'#C98A52', culture:'#B07EB0', outdoor:'#C9A853', transit:'#8A9E88' },
+  desert:  { hike:'#C9A853', beach:'#E0C28A', spa:'#E8B7A0', food:'#C9784F', culture:'#B5895A', outdoor:'#D9B26A', transit:'#A99572' },
+  alpine:  { hike:'#6FA888', beach:'#6FA0C9', spa:'#C9B6E8', food:'#C98A52', culture:'#9BA7B5', outdoor:'#7BAEBE', transit:'#94A3A8' },
+  urban:   { hike:'#7BAE6E', beach:'#5B9FBE', spa:'#D9A0C9', food:'#C9965A', culture:'#9B85CC', outdoor:'#C9A853', transit:'#8A9E88' },
+  mediterranean:{ hike:'#8BAE6E', beach:'#5BA8C9', spa:'#E8C0A0', food:'#C9784F', culture:'#C9A85A', outdoor:'#7BC4B0', transit:'#A99880' },
+};
+function _themeForDestination(dest, region, country){
+  const s=((dest||'')+' '+(region||'')+' '+(country||'')).toLowerCase();
+  if(/maroc|sahara|désert|jordanie|égypte|namibie|dubai|émirats|oman/.test(s)) return 'desert';
+  if(/islande|alpes|pérou|andes|nepal|himalaya|patagonie|norvège|suisse|montagne/.test(s)) return 'alpine';
+  if(/japon|tokyo|new york|londres|paris|corée|singapour|hong kong/.test(s)) return 'urban';
+  if(/italie|grèce|espagne|portugal|croatie|sardaigne|sicile|provence|méditerran/.test(s)) return 'mediterranean';
+  return 'tropical';
+}
+
 /* ── brief ───────────────────────────────────────────────────────────── */
 function buildBrief(){
   const surprise=state.createTab==='surprise';
@@ -74,7 +107,7 @@ function buildSkeletonPrompt(){
     '',
     '═══ CONSIGNES STRICTES ═══',
     '- Étapes RÉELLES dans un ordre logique géographiquement (ne pas sauter d\'un bout à l\'autre du pays).',
-    '- "plan" doit avoir EXACTEMENT '+Math.min(dc,10)+' entrées (une par jour'+(dc>10?', le voyage dure '+dc+' jours mais regroupe les jours similaires en étapes':'')+').',
+    '- "plan" doit avoir EXACTEMENT '+dc+' entrées (une par jour).',
     '- Hébergements VRAIS et plausibles ; gamme et budget adaptés au confort demandé. Pas plus de 5 hébergements différents.',
     '- "budget" = fourchette totale réaliste en euros pour TOUS les voyageurs (hébergements+repas+activités+transport local, hors vols).',
     '  · Éco: 60-100€/pers/j · Confort: 120-220€/pers/j · Luxe: 250-500€/pers/j · Ultra: 500€+/pers/j',
@@ -87,14 +120,13 @@ function buildSkeletonPrompt(){
   ].join('\n');
 }
 
-/* ── Passe 2 : détail éditorial des jours ───────────────────────────── */
-function buildDaysPrompt(skel){
-  const b=buildBrief();
-  const steps=(skel.plan||[]).map(function(p,i){return (i+1)+'. '+p.title+' — '+p.loc+(p.hook?' ('+p.hook+')':'');}).join('\n');
+/* ── Passe 2 : détail éditorial des jours (par lots) ─────────────────── */
+function buildDaysPrompt(skel, planSteps, offset){
   const interests=(state.interests||[]).join(', ')||'découverte';
   const budget=state.budget||'Confort';
+  const steps=planSteps.map(function(p,i){return (offset+i+1)+'. '+p.title+' — '+p.loc+(p.hook?' ('+p.hook+')':'');}).join('\n');
   return [
-    'Tu es le cartographe de Hic Sunt. Tu rédiges les détails éditoriaux de chaque étape de cet itinéraire.',
+    'Tu es le cartographe de Hic Sunt. Tu rédiges les détails éditoriaux de ces étapes (jours '+(offset+1)+' à '+(offset+planSteps.length)+' du voyage).',
     'Destination : '+skel.dest+' · Pays : '+(skel.country||'')+' · Confort : '+budget+' · Intérêts : '+interests,
     '',
     'ÉTAPES (dans l\'ordre, même ordre dans ta réponse) :',
@@ -111,7 +143,7 @@ function buildDaysPrompt(skel){
     '- "restaurant" : {"name":"vrai nom","type":"ex: Rice & curry local","price":"ex: €€","note":"1 phrase"}',
     '- "wellness" : si intérêts incluent spa/bien-être, un vrai spa/massage local avec nom et prix. Sinon null.',
     '',
-    'Réponds UNIQUEMENT en JSON compact valide :',
+    'Réponds UNIQUEMENT en JSON compact valide, EXACTEMENT '+planSteps.length+' entrées dans "days" :',
     '{"days":[{"desc":"","tip":"","restaurant":{"name":"","type":"","price":"","note":""},"wellness":null,"moments":[{"t":"07:30","k":"peaks","ti":"nom lieu","d":"détail court"}]}]}',
   ].join('\n');
 }
@@ -228,7 +260,7 @@ function applyGenerated(skel, daysDetail, hilites){
         ||stays.find(function(s){return s.n.toLowerCase().includes(k)||k.includes(s.n.toLowerCase());});
   };
 
-  /* jours enrichis avec le détail éditorial */
+  /* jours enrichis avec le détail éditorial + catégorie thématique */
   const detailDays=(daysDetail&&Array.isArray(daysDetail.days))?daysDetail.days:[];
   const plan=(Array.isArray(skel.plan)?skel.plan:[]).map(function(p,i){
     const dd=detailDays[i]||{};
@@ -238,10 +270,19 @@ function applyGenerated(skel, daysDetail, hilites){
     moments.forEach(function(m){if(tags.length<2&&!tags.some(function(t){return t[0]===m[1];}))tags.push(TAG_MAP[m[1]]||TAG_MAP.pin);});
     while(tags.length<2) tags.push(TAG_MAP.pin);
     const stay=findStay(p.night);
+    /* catégorie dominante du jour (hors transit) pour la coloration thématique */
+    const catCounts={};
+    moments.forEach(function(m){
+      const cat=KIND_CATEGORY[m[1]]||'culture';
+      if(cat==='transit') return;
+      catCounts[cat]=(catCounts[cat]||0)+1;
+    });
+    let category='culture', best=0;
+    Object.keys(catCounts).forEach(function(c){ if(catCounts[c]>best){ best=catCounts[c]; category=c; } });
     return {
       n:i+1, title:p.title||('Étape '+(i+1)), loc:p.loc||dest,
       desc:dd.desc||p.hook||'', tip:dd.tip||'',
-      tags:tags,
+      tags:tags, category:category,
       wx:[GEN_SKY.includes(p.sky)?p.sky:'sun', p.temp||'28°'],
       night:stay?{acc:stay.id}:{n:p.night||'Nuit sur place',loc:p.loc||dest},
       moments:moments,
@@ -265,11 +306,13 @@ function applyGenerated(skel, daysDetail, hilites){
   /* application */
   ITINERARY.plan.length=0; plan.forEach(function(p){ITINERARY.plan.push(p);});
   ITINERARY.accommodations.length=0; stays.forEach(function(s){ITINERARY.accommodations.push(s);});
+  const themeName=_themeForDestination(dest, skel.region, skel.country);
   Object.assign(ITINERARY,{
     dest:dest, country:skel.country||'', tag:skel.tagline||'Itinéraire composé pour vous',
     dates:skel.dates||'Sur-mesure', days:plan.length, level:level,
     budgetTotal:budgetTotal, coords:skel.coords||dest, distance:plan.length+' jours',
     region:skel.region||'', season:skel.season||'', generated:true,
+    theme:themeName, palette:THEME_PALETTES[themeName],
   });
 
   /* highlights */
@@ -320,14 +363,21 @@ function deriveBudget(stays, total){
 }
 
 /* ── 3 passes de génération ─────────────────────────────────────────── */
+const DAYS_BATCH_SIZE = 7;
 async function callCartographe(){
   /* Passe 1 — ossature */
   const skel=await _completeJSON(buildSkeletonPrompt());
   if(!skel||!Array.isArray(skel.plan)||!skel.plan.length) return null;
-  skel.plan=skel.plan.slice(0, Math.min(skel.plan.length, 10));
 
-  /* Passe 2 — détail éditorial des jours */
-  const daysDetail=await _completeJSON(buildDaysPrompt(skel));
+  /* Passe 2 — détail éditorial des jours, par lots de 7 pour les longs voyages */
+  const allDays=[];
+  for(let offset=0; offset<skel.plan.length; offset+=DAYS_BATCH_SIZE){
+    const batch=skel.plan.slice(offset, offset+DAYS_BATCH_SIZE);
+    const batchResult=await _completeJSON(buildDaysPrompt(skel, batch, offset));
+    const batchDays=(batchResult&&Array.isArray(batchResult.days))?batchResult.days:[];
+    for(let i=0;i<batch.length;i++){ allDays.push(batchDays[i]||null); }
+  }
+  const daysDetail={days:allDays};
 
   /* Passe 3 — adresses, gems, highlights */
   const hilites=await _completeJSON(buildHighlightsPrompt(skel, daysDetail));
@@ -343,7 +393,7 @@ async function runGeneration(){
   const statusEl=el.querySelector('[data-gen-status]');
   const steps=[
     'Lecture de vos envies…','Choix des étapes…',"Tracé de l'itinéraire…",
-    'Sélection des adresses locales…','Recherche des pépites cachées…',
+    'Rédaction des étapes…','Sélection des adresses locales…','Recherche des pépites cachées…',
     'Calibrage du budget…','Derniers ajustements…',
   ];
   let si=0;

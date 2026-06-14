@@ -20,6 +20,14 @@ function travelerLabel(){ return state.travelers + ' voyageur' + (state.traveler
 function screenEl(){ return document.querySelector('.screen'); }
 function esc(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function eur(n){ return Math.round(n).toLocaleString('fr-FR') + ' €'; }
+function hexA(hex, alpha){
+  hex = (hex || '#9c7c44');
+  if (hex.indexOf('#') !== 0) return 'rgba(156,124,68,'+alpha+')';
+  hex = hex.replace('#','');
+  if (hex.length === 3) hex = hex.split('').map(function(c){ return c+c; }).join('');
+  const r = parseInt(hex.substr(0,2),16), g = parseInt(hex.substr(2,2),16), b = parseInt(hex.substr(4,2),16);
+  return 'rgba('+r+','+g+','+b+','+alpha+')';
+}
 
 /* ── overlays ── */
 const ovStack = [];
@@ -292,6 +300,18 @@ async function loadSavedItinerary(id){
     Object.assign(ITINERARY, rows[0].data);
     openItinerary();
   }catch(e){ toast('Erreur de chargement'); }
+}
+async function deleteSavedItinerary(id){
+  const token = localStorage.getItem('sb_token');
+  if(!token) return;
+  try{
+    await fetch(SUPABASE_URL+'/rest/v1/itineraries?id=eq.'+id,{
+      method:'DELETE',
+      headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+token}
+    });
+    toast('Voyage supprimé');
+    loadVoyagesTab();
+  }catch(e){ toast('Erreur de suppression'); }
 }
 
 /* ── callback Google OAuth ── */
