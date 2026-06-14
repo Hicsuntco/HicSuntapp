@@ -16,8 +16,8 @@
   --tile-bg:linear-gradient(160deg,#efe9da,#e4dac6);
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{background:#ece7da}
-body{font-family:var(--sf);color:var(--ink);min-height:100vh;
+html,body{background:#ece7da;height:100%;overflow:hidden}
+body{font-family:var(--sf);color:var(--ink);height:100%;
   background:
     radial-gradient(1200px 600px at 80% -10%, rgba(156,124,68,0.07), transparent 60%),
     radial-gradient(900px 500px at 0% 110%, rgba(156,124,68,0.06), transparent 55%),

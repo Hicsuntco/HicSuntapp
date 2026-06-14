@@ -377,10 +377,13 @@ function playSplash(next){
   el.innerHTML = splashHTML();
   const splash = el.firstElementChild;
   s.appendChild(splash);
-  requestAnimationFrame(function(){ requestAnimationFrame(function(){ splash.classList.add('run'); }); });
+  requestAnimationFrame(function(){ requestAnimationFrame(function(){ if (splash.parentNode) splash.classList.add('run'); }); });
   setTimeout(function(){
-    splash.classList.add('out');
-    setTimeout(function(){ next(); }, 480);
+    if (splash.parentNode) splash.classList.add('out');
+    setTimeout(function(){
+      if (splash.parentNode) splash.parentNode.removeChild(splash);
+      next();
+    }, 480);
   }, 1500);
 }
 
