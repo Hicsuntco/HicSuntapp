@@ -101,7 +101,7 @@ const CONTRIBUTORS = [
 
 /* Cercle Hic Sunt — loyalty programme */
 const CERCLE = {
-  tier:'Cartographe', next:'Explorateur', progress: 0, points: 0, toNext: 1260,
+  tier:'Découvreur', next:'Cartographe', progress: 0, points: 0, toNext: 1000,
   perks: [
     { i:'bell', n:'Conciergerie dédiée', d:'Un interlocuteur unique, réponse en moins d’une heure.' },
     { i:'clock', n:'Accès anticipé', d:'Les nouvelles destinations 30 jours avant tout le monde.' },

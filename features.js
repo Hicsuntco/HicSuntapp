@@ -220,9 +220,11 @@ function cercleView(){
         return '<div class="perk">' + ico(p.i, 19, 1.5) + '<div class="p-t">' + esc(p.n) + '</div><div class="p-d">' + esc(p.d) + '</div></div>';
       }).join('') + '</div>'
     +   '<div class="section-h"><h2>Historique</h2><span class="meta">Points</span></div>'
-    +   CERCLE.history.map(function(h){
-        return '<div class="hist"><div><div class="hi-n">' + esc(h.n) + '</div><div class="hi-w">' + esc(h.when) + '</div></div><span class="hi-p">' + esc(h.pts) + '</span></div>';
-      }).join('')
+    +   (CERCLE.history.length === 0
+        ? '<p style="color:var(--sub);font-size:14px;margin-top:4px;font-style:italic">Réservez votre premier voyage pour commencer à cumuler des points.</p>'
+        : CERCLE.history.map(function(h){
+            return '<div class="hist"><div><div class="hi-n">' + esc(h.n) + '</div><div class="hi-w">' + esc(h.when) + '</div></div><span class="hi-p">' + esc(h.pts) + '</span></div>';
+          }).join(''))
     + '</div>';
 }
 
@@ -245,7 +247,74 @@ function gemsView(){
     + '</div>';
 }
 
+async function exportPDF(){
+  const it = ITINERARY;
+  const win = window.open('', '_blank');
+  if (!win){ toast('Autorisez les pop-ups pour exporter'); return; }
+  const stayById = {};
+  it.accommodations.forEach(function(a){ stayById[a.id] = a; });
+  const daysHTML = it.plan.map(function(p){
+    const nightLabel = (p.night && p.night.acc && stayById[p.night.acc]) ? stayById[p.night.acc].n : (p.night ? p.night.n : '');
+    const moments = p.moments.map(function(m){
+      return '<li><b>'+esc(m[0])+'</b> — '+esc(m[2])+(m[3]?' · '+esc(m[3]):'')+'</li>';
+    }).join('');
+    return '<div style="margin-bottom:22px;page-break-inside:avoid">'
+      + '<h3 style="font-family:Georgia,serif;margin:0 0 4px">Jour '+p.n+' — '+esc(p.title)+'</h3>'
+      + '<p style="margin:0 0 6px;color:#666;font-size:13px">'+esc(p.loc)+'</p>'
+      + '<p style="margin:0 0 8px;font-style:italic">'+esc(p.desc)+'</p>'
+      + '<ul style="margin:0 0 8px;padding-left:18px;font-size:14px">'+moments+'</ul>'
+      + (nightLabel ? '<p style="margin:0;font-size:13px;color:#666">Nuit : '+esc(nightLabel)+'</p>' : '')
+      + (p.tip ? '<p style="margin:4px 0 0;font-size:13px;color:#9c7c44"><i>Conseil : '+esc(p.tip)+'</i></p>' : '')
+      + '</div>';
+  }).join('');
+  const accHTML = it.accommodations.map(function(a){
+    return '<div style="margin-bottom:14px;page-break-inside:avoid">'
+      + '<h4 style="font-family:Georgia,serif;margin:0 0 2px">'+esc(a.n)+'</h4>'
+      + '<p style="margin:0;font-size:13px;color:#666">'+esc(a.type)+' · '+esc(a.loc)+'</p>'
+      + '<p style="margin:2px 0 0;font-size:13px">'+eur(a.price)+' / nuit · '+a.nights+' nuit'+(a.nights>1?'s':'')+'</p>'
+      + (a.blurb ? '<p style="margin:4px 0 0;font-size:13px;font-style:italic">'+esc(a.blurb)+'</p>' : '')
+      + '</div>';
+  }).join('');
+  const html = '<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>'+esc(it.dest)+' — Itinéraire Hic Sunt</title>'
+    + '<style>body{font-family:-apple-system,Helvetica,Arial,sans-serif;color:#1b1610;max-width:680px;margin:40px auto;padding:0 24px;line-height:1.5}'
+    + 'h1{font-family:Georgia,serif;font-size:32px;margin:0 0 4px}'
+    + '.tag{font-style:italic;color:#9c7c44;margin:0 0 18px}'
+    + '.meta{font-size:13px;color:#666;margin:0 0 28px;letter-spacing:.05em;text-transform:uppercase}'
+    + 'h2{font-family:Georgia,serif;font-size:20px;border-bottom:1px solid #ddd;padding-bottom:6px;margin:32px 0 16px}'
+    + '@media print{body{margin:0;padding:24px}}</style></head><body>'
+    + '<h1>'+esc(it.dest)+'</h1>'
+    + '<p class="tag">'+esc(it.tag)+'</p>'
+    + '<p class="meta">'+esc(it.dates)+' · '+it.days+' jours · '+esc(it.level)+' · '+eur(it.budgetTotal)+' tout compris</p>'
+    + '<h2>Jour par jour</h2>' + daysHTML
+    + '<h2>Hébergements</h2>' + accHTML
+    + '</body></html>';
+  win.document.write(html);
+  win.document.close();
+  setTimeout(function(){ win.print(); }, 300);
+}
+
 /* ── 24 · Partage ───────────────────────────────────────────────────── */
+function shareLink(){
+  const it = ITINERARY;
+  return 'https://hic-suntapp.vercel.app/?voyage=' + encodeURIComponent((it.dest||'').toLowerCase().replace(/\s+/g,'-'));
+}
+async function copyShareLink(){
+  try{
+    await navigator.clipboard.writeText(shareLink());
+    toast('Lien copié');
+  }catch(e){ toast('Impossible de copier le lien'); }
+}
+async function sendShareLink(){
+  const it = ITINERARY;
+  const text = 'Découvre cet itinéraire ' + (it.dest||'') + ' composé par Hic Sunt : ' + shareLink();
+  if (navigator.share){
+    try{ await navigator.share({ title:'Hic Sunt · '+(it.dest||''), text:text, url:shareLink() }); }
+    catch(e){ /* annulé par l'utilisateur */ }
+  } else {
+    try{ await navigator.clipboard.writeText(text); toast('Lien copié — collez-le dans Messages'); }
+    catch(e){ toast('Partage indisponible sur ce navigateur'); }
+  }
+}
 function shareView(){
   const it = ITINERARY;
   if (it.generated) {
@@ -253,8 +322,9 @@ function shareView(){
       + '<div class="ov-scroll px">'
       +   '<span class="eyebrow" style="display:block;margin-top:10px">' + esc(it.dest) + ' · ' + it.days + ' jours</span>'
       +   '<h1 style="font-family:var(--serif);font-weight:600;font-size:28px;letter-spacing:-0.4px;margin-top:8px">Partager ce voyage</h1>'
-      +   '<div class="row" onclick="toast(\'Lien copié\')"><span class="r-ico">' + ico('link',19,1.5) + '</span><div class="r-main"><div class="r-t">Copier le lien</div><div class="r-s">Lecture seule</div></div><span class="r-chev">' + ico('chevron',17,1.6) + '</span></div>'
-      +   '<div class="row" onclick="toast(\'Ouverture de Messages\')"><span class="r-ico">' + ico('share',18,1.5) + '</span><div class="r-main"><div class="r-t">Envoyer par message</div><div class="r-s">iMessage · WhatsApp</div></div><span class="r-chev">' + ico('chevron',17,1.6) + '</span></div>'
+      +   '<div class="row" onclick="copyShareLink()"><span class="r-ico">' + ico('link',19,1.5) + '</span><div class="r-main"><div class="r-t">Copier le lien</div><div class="r-s">Lecture seule</div></div><span class="r-chev">' + ico('chevron',17,1.6) + '</span></div>'
+      +   '<div class="row" onclick="sendShareLink()"><span class="r-ico">' + ico('share',18,1.5) + '</span><div class="r-main"><div class="r-t">Envoyer par message</div><div class="r-s">iMessage · WhatsApp</div></div><span class="r-chev">' + ico('chevron',17,1.6) + '</span></div>'
+      +   '<div class="row" onclick="exportPDF()"><span class="r-ico">' + ico('doc',19,1.5) + '</span><div class="r-main"><div class="r-t">Exporter en PDF</div><div class="r-s">Itinéraire complet</div></div><span class="r-chev">' + ico('chevron',17,1.6) + '</span></div>'
       + '</div>';
   }
   return statusBar() + navbar('Partager le voyage')
@@ -267,11 +337,11 @@ function shareView(){
           + '<div><div class="c-n">' + esc(c.n) + '</div><div class="c-r">' + esc(c.role) + '</div></div>'
           + (c.you ? '<span class="c-you">Vous</span>' : '') + '</div>';
       }).join('')
-    +   '<button class="btn-ghost sm" style="margin-top:16px" onclick="toast(\'Invitation envoyée\')">' + ico('plus',16,1.8) + 'Inviter un voyageur</button>'
+    +   '<button class="btn-ghost sm" style="margin-top:16px" onclick="sendShareLink()">' + ico('plus',16,1.8) + 'Inviter un voyageur</button>'
     +   '<div class="section-h"><h2>Partager</h2></div>'
-    +   '<div class="row" onclick="toast(\'Lien copié\')"><span class="r-ico">' + ico('link',19,1.5) + '</span><div class="r-main"><div class="r-t">Copier le lien</div><div class="r-s">Lecture seule</div></div><span class="r-chev">' + ico('chevron',17,1.6) + '</span></div>'
-    +   '<div class="row" onclick="toast(\'Ouverture de Messages\')"><span class="r-ico">' + ico('share',18,1.5) + '</span><div class="r-main"><div class="r-t">Envoyer par message</div><div class="r-s">iMessage · WhatsApp</div></div><span class="r-chev">' + ico('chevron',17,1.6) + '</span></div>'
-    +   '<div class="row" onclick="toast(\'Export PDF bientôt disponible\')"><span class="r-ico">' + ico('doc',19,1.5) + '</span><div class="r-main"><div class="r-t">Exporter en PDF</div><div class="r-s">Itinéraire complet</div></div><span class="r-chev">' + ico('chevron',17,1.6) + '</span></div>'
+    +   '<div class="row" onclick="copyShareLink()"><span class="r-ico">' + ico('link',19,1.5) + '</span><div class="r-main"><div class="r-t">Copier le lien</div><div class="r-s">Lecture seule</div></div><span class="r-chev">' + ico('chevron',17,1.6) + '</span></div>'
+    +   '<div class="row" onclick="sendShareLink()"><span class="r-ico">' + ico('share',18,1.5) + '</span><div class="r-main"><div class="r-t">Envoyer par message</div><div class="r-s">iMessage · WhatsApp</div></div><span class="r-chev">' + ico('chevron',17,1.6) + '</span></div>'
+    +   '<div class="row" onclick="exportPDF()"><span class="r-ico">' + ico('doc',19,1.5) + '</span><div class="r-main"><div class="r-t">Exporter en PDF</div><div class="r-s">Itinéraire complet</div></div><span class="r-chev">' + ico('chevron',17,1.6) + '</span></div>'
     + '</div>';
 }
 
