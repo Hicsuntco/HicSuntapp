@@ -146,11 +146,13 @@ function accGradient(a, it){
 /* ── composant accCard ──────────────────────────────────────────────── */
 function accCard(a){
   const it = ITINERARY;
+  const monogram = (a.n||'').replace(/[^A-Za-zÀ-ÿ]/g,'').slice(0,1).toUpperCase() || '?';
   return '<div class="acc" onclick="openBooking(\'' + a.id + '\')">'
     + '<div class="a-img" style="position:relative;overflow:hidden">'
     +   '<div style="position:absolute;inset:0;background:' + accGradient(a, it) + '"></div>'
     +   contour()
-    +   '<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:rgba(246,240,228,0.35)">' + ico(a.i, 56, 1.1) + '</span>'
+    +   '<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-weight:600;font-size:88px;color:rgba(246,240,228,0.14);letter-spacing:-4px;line-height:1">' + esc(monogram) + '</span>'
+    +   '<span style="position:absolute;bottom:11px;left:13px;z-index:1;color:rgba(246,240,228,0.85)">' + ico(a.i, 22, 1.5) + '</span>'
     +   '<span class="a-tag" style="position:relative;z-index:1">' + esc(a.tag) + '</span>'
     +   '<button class="a-fav" style="position:relative;z-index:1" onclick="event.stopPropagation();this.classList.toggle(\'on\')" aria-label="Favori">' + ico('heart', 17, 1.6) + '</button>'
     + '</div>'
@@ -287,10 +289,12 @@ function bookingView(accId){
   _bookId = accId;
   const a = _accById(accId);
   const sub = a.price * a.nights, fee = Math.round(sub * 0.08), total = sub + fee;
+  const monogram = (a.n||'').replace(/[^A-Za-zÀ-ÿ]/g,'').slice(0,1).toUpperCase() || '?';
   return '<div class="book-hero" style="position:relative;overflow:hidden">'
     +   '<div style="position:absolute;inset:0;background:' + accGradient(a, ITINERARY) + '"></div>'
     +   contour()
-    +   '<span style="position:relative;z-index:0;color:rgba(246,240,228,0.35)">' + ico(a.i, 80, 1.1) + '</span>'
+    +   '<span style="position:relative;z-index:0;font-family:var(--serif);font-weight:600;font-size:128px;color:rgba(246,240,228,0.14);letter-spacing:-6px">' + esc(monogram) + '</span>'
+    +   '<span style="position:absolute;bottom:18px;left:20px;z-index:1;color:rgba(246,240,228,0.85)">' + ico(a.i, 26, 1.5) + '</span>'
     +   '<div class="navbar" style="position:absolute;top:54px;left:0;right:0;z-index:1"><button class="nav-btn" onclick="closeOverlay()" aria-label="Retour">' + ico('back',20,1.7) + '</button>'
     +   '<button class="nav-btn" onclick="this.classList.toggle(\'on\');" aria-label="Favori">' + ico('heart',18,1.6) + '</button></div>'
     + '</div>'

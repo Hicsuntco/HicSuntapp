@@ -94,29 +94,55 @@ function buildBrief(){
   return {surprise:surprise, lines:lines, daysCount:daysCount};
 }
 
-/* ── Passe 1 : ossature + étapes ─────────────────────────────────────── */
-function buildSkeletonPrompt(){
+/* ── Passe 1 : ossature + étapes (par lots si voyage long) ───────────── */
+const SKEL_BATCH_SIZE = 7;
+function buildSkeletonPrompt(dc, batchSize, offset){
   const b=buildBrief();
-  const dc=b.daysCount;
+  const isFirst = offset === 0;
+  const n = Math.min(batchSize, dc-offset);
+  const common=[
+    '- Étapes RÉELLES dans un ordre logique géographiquement (ne pas sauter d\'un bout à l\'autre du pays).',
+    '- "night" de chaque entrée "plan" = "name" EXACT d\'un hébergement de "stays".',
+    '- sky dans [sun, cloud, rain].',
+    '- Réponds UNIQUEMENT en JSON compact valide, sans texte ni markdown autour.',
+  ];
+  if(isFirst){
+    return [
+      'Tu es le cartographe senior de Hic Sunt, maison de voyages haut de gamme avec une exigence éditoriale absolue.',
+      'Compose l\'OSSATURE d\'un itinéraire RÉEL, DÉSIRABLE et PRÉCIS de '+dc+' jours au total.',
+      '',
+      '═══ BRIEF CLIENT ═══',
+      b.lines,
+      '',
+      '═══ CONSIGNES STRICTES ═══',
+      common.join('\n'),
+      '- "plan" doit contenir EXACTEMENT '+n+' entrées : les jours 1 à '+n+' de ce voyage de '+dc+' jours (les jours suivants seront détaillés séparément).',
+      '- "stays" doit couvrir TOUT le voyage de '+dc+' jours (pas seulement ces '+n+' premiers jours) — prévoir tous les hébergements nécessaires pour les '+dc+' jours. Pas plus de '+Math.min(8,Math.max(3,Math.ceil(dc/3)))+' hébergements différents.',
+      '- "budget" = fourchette totale réaliste en euros pour TOUS les voyageurs sur les '+dc+' jours (hébergements+repas+activités+transport local, hors vols).',
+      '  · Éco: 60-100€/pers/j · Confort: 120-220€/pers/j · Luxe: 250-500€/pers/j · Ultra: 500€+/pers/j',
+      '',
+      'SCHÉMA (respecte les types et clés exactement) :',
+      '{"dest":"","country":"","tagline":"phrase poétique évocatrice","level":"Éco|Confort|Luxe|Ultra","dates":"ex: Août 2026 · '+dc+' jours","days_count":'+dc+',"budget":0,"season":"meilleure saison courte","coords":"ex: 6°55′N · 79°51′E","region":"région","stays":[{"name":"vrai nom hébergement","type":"ex: Lodge safari","loc":"ville","price":0,"nights":1,"blurb":"max 6 mots évocateurs"}],"plan":[{"title":"titre évocateur","loc":"ville / zone","night":"nom exact stays","sky":"sun","temp":"27°","hook":"accroche 1 phrase narrative"}]}',
+    ].join('\n');
+  }
+  /* batches suivants : continuer le plan uniquement, avec les stays déjà établis */
+  const staysList=(state._genStays||[]).map(function(s){return '- "'+s.name+'" ('+s.type+', '+s.loc+')';}).join('\n');
   return [
-    'Tu es le cartographe senior de Hic Sunt, maison de voyages haut de gamme avec une exigence éditoriale absolue.',
-    'Compose l\'OSSATURE d\'un itinéraire RÉEL, DÉSIRABLE et PRÉCIS.',
+    'Tu es le cartographe senior de Hic Sunt. Tu CONTINUES l\'itinéraire de '+dc+' jours déjà commencé.',
     '',
     '═══ BRIEF CLIENT ═══',
     b.lines,
     '',
-    '═══ CONSIGNES STRICTES ═══',
-    '- Étapes RÉELLES dans un ordre logique géographiquement (ne pas sauter d\'un bout à l\'autre du pays).',
-    '- "plan" doit avoir EXACTEMENT '+dc+' entrées (une par jour).',
-    '- Hébergements VRAIS et plausibles ; gamme et budget adaptés au confort demandé. Pas plus de 5 hébergements différents.',
-    '- "budget" = fourchette totale réaliste en euros pour TOUS les voyageurs (hébergements+repas+activités+transport local, hors vols).',
-    '  · Éco: 60-100€/pers/j · Confort: 120-220€/pers/j · Luxe: 250-500€/pers/j · Ultra: 500€+/pers/j',
-    '- "night" de chaque plan = "name" EXACT d\'un "stays".',
-    '- sky dans [sun, cloud, rain].',
-    '- Réponds UNIQUEMENT en JSON compact valide, sans texte ni markdown autour.',
+    'Hébergements déjà établis pour ce voyage (réutilise EXACTEMENT ces noms dans "night", n\'en crée pas de nouveaux) :',
+    staysList,
     '',
-    'SCHÉMA (respecte les types et clés exactement) :',
-    '{"dest":"","country":"","tagline":"phrase poétique évocatrice","level":"Éco|Confort|Luxe|Ultra","dates":"ex: Août 2026 · 10 jours","days_count":'+dc+',"budget":0,"season":"meilleure saison courte","coords":"ex: 6°55′N · 79°51′E","region":"région","stays":[{"name":"vrai nom hébergement","type":"ex: Lodge safari","loc":"ville","price":0,"nights":1,"blurb":"max 6 mots évocateurs"}],"plan":[{"title":"titre évocateur","loc":"ville / zone","night":"nom exact stays","sky":"sun","temp":"27°","hook":"accroche 1 phrase narrative"}]}',
+    '═══ CONSIGNES STRICTES ═══',
+    common.join('\n'),
+    '- "plan" doit contenir EXACTEMENT '+n+' entrées : les jours '+(offset+1)+' à '+(offset+n)+' de ce voyage de '+dc+' jours.',
+    '- Continue logiquement depuis l\'étape précédente (même région ou étape suivante du circuit).',
+    '',
+    'Réponds UNIQUEMENT avec :',
+    '{"plan":[{"title":"titre évocateur","loc":"ville / zone","night":"nom exact stays","sky":"sun","temp":"27°","hook":"accroche 1 phrase narrative"}]}',
   ].join('\n');
 }
 
@@ -370,9 +396,25 @@ function deriveBudget(stays, total){
 /* ── 3 passes de génération ─────────────────────────────────────────── */
 const DAYS_BATCH_SIZE = 7;
 async function callCartographe(){
-  /* Passe 1 — ossature */
-  const skel=await _completeJSON(buildSkeletonPrompt());
-  if(!skel||!Array.isArray(skel.plan)||!skel.plan.length) return null;
+  const b=buildBrief();
+  const dc=b.daysCount;
+
+  /* Passe 1 — ossature, par lots de 7 jours pour les longs voyages */
+  let skel=null;
+  for(let offset=0; offset<dc; offset+=SKEL_BATCH_SIZE){
+    const batchResult=await _completeJSON(buildSkeletonPrompt(dc, SKEL_BATCH_SIZE, offset));
+    if(offset===0){
+      skel=batchResult;
+      if(!skel||!Array.isArray(skel.plan)||!skel.plan.length) return null;
+      state._genStays=skel.stays||[];
+    } else {
+      const morePlan=(batchResult&&Array.isArray(batchResult.plan))?batchResult.plan:[];
+      skel.plan=skel.plan.concat(morePlan);
+    }
+  }
+  /* sécurité : si la génération par lots n'atteint pas dc, on tronque proprement */
+  if(skel.plan.length>dc) skel.plan=skel.plan.slice(0,dc);
+  skel.days_count=skel.plan.length;
 
   /* Passe 2 — détail éditorial des jours, par lots de 7 pour les longs voyages */
   const allDays=[];
