@@ -127,12 +127,32 @@ function generationView(){
     + '</div></div>';
 }
 
+/* ── gradients par type d'hébergement, teintés par la palette destination ── */
+const ACC_TYPE_GRADIENT={
+  wave:['#5B9FBE','#3d7a96'], droplet:['#E8A0A0','#c97a7a'], leaf:['#7BAE6E','#5a8a4f'],
+  arch:['#C9965A','#a3753f'], peaks:['#9BA7B5','#6f7c8a'], bed:['#B07EB0','#8a5d8c'],
+};
+function accGradient(a, it){
+  const palette = (it && it.palette) || null;
+  const cat = palette ? (KIND_CATEGORY[a.i] || 'culture') : null;
+  if(palette && cat && palette[cat]){
+    const c = palette[cat];
+    return 'linear-gradient(135deg, '+hexA(c,0.85)+', '+hexA(c,0.45)+'), linear-gradient(135deg,#1a1610,#2a2018)';
+  }
+  const g = ACC_TYPE_GRADIENT[a.i] || ['#9c7c44','#7a5f33'];
+  return 'linear-gradient(135deg, '+g[0]+', '+g[1]+')';
+}
+
 /* ── composant accCard ──────────────────────────────────────────────── */
 function accCard(a){
+  const it = ITINERARY;
   return '<div class="acc" onclick="openBooking(\'' + a.id + '\')">'
-    + '<div class="a-img">' + ico(a.i, 64, 1) 
-    +   '<span class="a-tag">' + esc(a.tag) + '</span>'
-    +   '<button class="a-fav" onclick="event.stopPropagation();this.classList.toggle(\'on\')" aria-label="Favori">' + ico('heart', 17, 1.6) + '</button>'
+    + '<div class="a-img" style="position:relative;overflow:hidden">'
+    +   '<div style="position:absolute;inset:0;background:' + accGradient(a, it) + '"></div>'
+    +   contour()
+    +   '<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:rgba(246,240,228,0.35)">' + ico(a.i, 56, 1.1) + '</span>'
+    +   '<span class="a-tag" style="position:relative;z-index:1">' + esc(a.tag) + '</span>'
+    +   '<button class="a-fav" style="position:relative;z-index:1" onclick="event.stopPropagation();this.classList.toggle(\'on\')" aria-label="Favori">' + ico('heart', 17, 1.6) + '</button>'
     + '</div>'
     + '<div class="a-body">'
     +   '<div class="a-top"><span class="a-n">' + esc(a.n) + '</span><span class="a-rate">' + ico('star', 11) + a.rate + '</span></div>'
@@ -267,8 +287,11 @@ function bookingView(accId){
   _bookId = accId;
   const a = _accById(accId);
   const sub = a.price * a.nights, fee = Math.round(sub * 0.08), total = sub + fee;
-  return '<div class="book-hero">' + ico(a.i, 96, 1)
-    +   '<div class="navbar"><button class="nav-btn" onclick="closeOverlay()" aria-label="Retour">' + ico('back',20,1.7) + '</button>'
+  return '<div class="book-hero" style="position:relative;overflow:hidden">'
+    +   '<div style="position:absolute;inset:0;background:' + accGradient(a, ITINERARY) + '"></div>'
+    +   contour()
+    +   '<span style="position:relative;z-index:0;color:rgba(246,240,228,0.35)">' + ico(a.i, 80, 1.1) + '</span>'
+    +   '<div class="navbar" style="position:absolute;top:54px;left:0;right:0;z-index:1"><button class="nav-btn" onclick="closeOverlay()" aria-label="Retour">' + ico('back',20,1.7) + '</button>'
     +   '<button class="nav-btn" onclick="this.classList.toggle(\'on\');" aria-label="Favori">' + ico('heart',18,1.6) + '</button></div>'
     + '</div>'
     + '<div class="ov-scroll has-foot px">'

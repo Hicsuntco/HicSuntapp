@@ -336,9 +336,8 @@ function deriveActivities(plan){
   if(typeof ACTIVITIES==='undefined') return;
   const picks=[];
   plan.forEach(function(p){p.moments.forEach(function(m){if(m[1]==='plane'||m[1]==='bed') return; picks.push({day:p.n,i:m[1],n:m[2],loc:p.loc,tag:(TAG_MAP[m[1]]||TAG_MAP.pin)[1]});});});
-  const sel=picks.slice(0,6);
   ACTIVITIES.length=0;
-  sel.forEach(function(a,i){
+  picks.forEach(function(a,i){
     const base=ACT_PRICE[a.i]||55;
     ACTIVITIES.push({id:'ac'+(i+1),day:a.day,i:a.i,n:a.n,loc:a.loc,dur:ACT_DUR[i%ACT_DUR.length],rate:['4,9','4,95','4,8','4,88','4,92','4,97'][i%6],price:base+(i%2?7:0),tag:a.tag});
   });
@@ -346,17 +345,23 @@ function deriveActivities(plan){
 function deriveBudget(stays, total){
   if(typeof BUDGET==='undefined') return;
   const stayCost=stays.reduce(function(s,a){return s+a.price*a.nights;},0);
-  const actCost=(typeof ACTIVITIES!=='undefined')?ACTIVITIES.reduce(function(s,a){return s+a.price;},0):0;
-  const flights=Math.round(total*0.32);
-  const food=Math.round(total*0.12);
-  let transfers=total-stayCost-actCost-flights-food;
-  if(transfers<0) transfers=Math.round(total*0.06);
   const nights=stays.reduce(function(s,a){return s+a.nights;},0);
+  const nbAct=(typeof ACTIVITIES!=='undefined')?ACTIVITIES.length:0;
+
+  /* hébergement = coût réel, plafonné pour laisser de la place aux autres postes */
+  const accom=Math.min(stayCost, Math.round(total*0.55));
+  /* le reste du budget se répartit par parts proportionnelles fixes */
+  const remainder=total-accom;
+  const flights=Math.round(remainder*0.40);
+  const food=Math.round(remainder*0.22);
+  const activities=Math.round(remainder*0.23);
+  const transfers=remainder-flights-food-activities;
+
   BUDGET.total=total; BUDGET.spent=0;
   BUDGET.lines=[
-    {i:'bed',n:'Hébergements',sub:nights+' nuit'+(nights>1?'s':'')+' · '+stays.length+' adresse'+(stays.length>1?'s':''),amount:stayCost,paid:false},
+    {i:'bed',n:'Hébergements',sub:nights+' nuit'+(nights>1?'s':'')+' · '+stays.length+' adresse'+(stays.length>1?'s':''),amount:accom,paid:false},
     {i:'plane',n:'Vols',sub:(state.origin||'Paris')+' · aller-retour · '+travelerLabel(),amount:flights,paid:false},
-    {i:'ticket',n:'Activités & expériences',sub:(typeof ACTIVITIES!=='undefined'?ACTIVITIES.length:0)+' sélectionnées',amount:actCost,paid:false},
+    {i:'ticket',n:'Activités & expériences',sub:nbAct+' sélectionnée'+(nbAct>1?'s':''),amount:activities,paid:false},
     {i:'fork',n:'Restauration',sub:'Estimation · demi-pension',amount:food,paid:false},
     {i:'compass',n:'Transferts & transport local',sub:'Selon votre circuit',amount:Math.max(0,transfers),paid:false},
   ];
