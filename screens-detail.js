@@ -143,6 +143,26 @@ function accGradient(a, it){
   return 'linear-gradient(135deg, '+g[0]+', '+g[1]+')';
 }
 
+/* ── liens d'affiliation ──────────────────────────────────────────────
+   Pas de réservation directe : l'utilisateur est redirigé vers le
+   partenaire (Booking.com ou Airbnb) avec le nom + ville pré-remplis.
+   Remplacer AFFILIATE_TAGS par les vrais identifiants d'affiliation
+   une fois les programmes Booking.com / Airbnb actifs. ── */
+const AFFILIATE_TAGS = { booking:'', airbnb:'' };
+function affiliateLink(a){
+  const type=(a.type||'').toLowerCase();
+  const query=encodeURIComponent((a.n||'')+' '+(a.loc||''));
+  if(/villa|appartement|apparthotel|maison|airbnb|guesthouse|gîte|loft/.test(type)){
+    return 'https://www.airbnb.fr/s/'+query+'/homes'+(AFFILIATE_TAGS.airbnb?'?af='+AFFILIATE_TAGS.airbnb:'');
+  }
+  return 'https://www.booking.com/searchresults.html?ss='+query+(AFFILIATE_TAGS.booking?'&aid='+AFFILIATE_TAGS.booking:'');
+}
+function openAffiliate(accId){
+  const a = _accById(accId);
+  if(!a) return;
+  window.open(affiliateLink(a), '_blank');
+}
+
 /* ── composant accCard ──────────────────────────────────────────────── */
 function accCard(a){
   const it = ITINERARY;
@@ -208,7 +228,7 @@ function itineraryView(){
     + '</div>'
     + '<div class="ov-foot"><div class="foot-price">'
     +   '<div><div class="fp-v">' + eur(it.budgetTotal) + '</div><div class="fp-l">tout compris · ' + travelerLabel() + '</div></div>'
-    +   '<button class="btn" onclick="openBooking(\'' + it.accommodations[0].id + '\')">Réserver les étapes</button>'
+    +   '<button class="btn" onclick="openBooking(\'' + it.accommodations[0].id + '\')">Voir les hébergements</button>'
     + '</div></div>';
 }
 
@@ -288,8 +308,9 @@ function _accById(id){
 function bookingView(accId){
   _bookId = accId;
   const a = _accById(accId);
-  const sub = a.price * a.nights, fee = Math.round(sub * 0.08), total = sub + fee;
+  const total = a.price * a.nights;
   const monogram = (a.n||'').replace(/[^A-Za-zÀ-ÿ]/g,'').slice(0,1).toUpperCase() || '?';
+  const isAirbnb = /villa|appartement|apparthotel|maison|airbnb|guesthouse|gîte|loft/.test((a.type||'').toLowerCase());
   return '<div class="book-hero" style="position:relative;overflow:hidden">'
     +   '<div style="position:absolute;inset:0;background:' + accGradient(a, ITINERARY) + '"></div>'
     +   contour()
@@ -306,54 +327,16 @@ function bookingView(accId){
     +   '<div class="chips" style="margin-top:16px">' + a.am.map(function(k){
         return '<span class="chip" style="cursor:default">' + ico(k,14,1.6) + (AM_LABEL[k] || k) + '</span>';
       }).join('') + '</div>'
-    +   '<div class="host"><span class="avatar" style="width:40px;height:40px;font-size:15px">H</span>'
-    +     '<div><div class="h-n">Hansa · Conciergerie</div><div class="h-s">Réponse en moins d\'une heure</div></div></div>'
     +   '<div class="section-h"><h2>Votre séjour</h2></div>'
     +   '<div class="stay-row">' + ico('cal',18,1.5) + '<span class="sr-l">' + esc(ITINERARY.dates) + '</span><span class="sr-v">' + a.nights + ' nuit' + (a.nights>1?'s':'') + '</span></div>'
     +   '<div class="stay-row">' + ico('users',18,1.5) + '<span class="sr-l">Voyageurs</span><span class="sr-v">' + travelerLabel() + '</span></div>'
-    +   '<div class="section-h"><h2>Détail du prix</h2></div>'
-    +   '<div class="price-l"><span>' + eur(a.price) + ' × ' + a.nights + ' nuit' + (a.nights>1?'s':'') + '</span><span>' + eur(sub) + '</span></div>'
-    +   '<div class="price-l"><span>Service Hic Sunt · 8 %</span><span>' + eur(fee) + '</span></div>'
-    +   '<div class="price-l total"><span>Total</span><span>' + eur(total) + '</span></div>'
+    +   '<div class="section-h"><h2>Estimation</h2></div>'
+    +   '<div class="price-l"><span>' + eur(a.price) + ' × ' + a.nights + ' nuit' + (a.nights>1?'s':'') + '</span><span>' + eur(total) + '</span></div>'
+    +   '<p class="book-desc" style="margin-top:8px;color:var(--sub)">Prix indicatif. La disponibilité et le tarif définitif sont confirmés sur ' + (isAirbnb?'Airbnb':'Booking.com') + '.</p>'
     + '</div>'
     + '<div class="ov-foot"><div class="foot-price">'
-    +   '<div><div class="fp-v">' + eur(total) + '</div><div class="fp-l">' + a.nights + ' nuit' + (a.nights>1?'s':'') + ' · estimation, taxes incluses</div></div>'
-    +   '<button class="btn" onclick="openOverlay(\'payment\', paymentView())">Demander la réservation</button>'
+    +   '<div><div class="fp-v">' + eur(total) + '</div><div class="fp-l">' + a.nights + ' nuit' + (a.nights>1?'s':'') + ' · estimation</div></div>'
+    +   '<button class="btn" onclick="openAffiliate(\'' + a.id + '\')">Voir sur ' + (isAirbnb?'Airbnb':'Booking.com') + '</button>'
     + '</div></div>';
 }
 
-/* ── 10 · Récapitulatif de la demande ──────────────────────────────────── */
-function paymentView(){
-  const a = _accById(_bookId);
-  const sub = a.price * a.nights, fee = Math.round(sub * 0.08), total = sub + fee;
-  return statusBar() + navbar('Récapitulatif')
-    + '<div class="ov-scroll has-foot px">'
-    +   '<div class="pay-sum"><span class="th">' + ico(a.i, 28, 1.3) + '</span>'
-    +     '<div><div class="ps-n">' + esc(a.n) + '</div><div class="ps-s">' + esc(a.loc) + ' · ' + a.nights + ' nuit' + (a.nights>1?'s':'') + '</div></div>'
-    +     '<span class="ps-v">' + eur(total) + '</span></div>'
-    +   '<p class="book-desc" style="margin-top:18px">Hansa, votre conciergerie, va vérifier la disponibilité et vous envoyer un lien de paiement sécurisé pour finaliser la réservation.</p>'
-    +   '<div class="section-h"><h2>Détail</h2></div>'
-    +   '<div class="price-l"><span>' + eur(a.price) + ' × ' + a.nights + ' nuit' + (a.nights>1?'s':'') + '</span><span>' + eur(sub) + '</span></div>'
-    +   '<div class="price-l"><span>Service Hic Sunt · 8 %</span><span>' + eur(fee) + '</span></div>'
-    +   '<div class="price-l total"><span>Total estimé</span><span>' + eur(total) + '</span></div>'
-    +   '<div class="secure">' + ico('lock',13,1.7) + 'Aucun paiement maintenant · lien sécurisé envoyé par Hansa</div>'
-    + '</div>'
-    + '<div class="ov-foot"><button class="btn gold" onclick="payFlow()">Confirmer la demande</button></div>';
-}
-
-/* ── 11 · Confirmation ──────────────────────────────────────────────── */
-function confirmationView(){
-  const a = _accById(_bookId);
-  const ref = 'HS-'+Math.floor(1000+Math.random()*9000)+'-'+(a.loc||'').slice(0,2).toUpperCase();
-  return statusBar()
-    + '<div class="conf">'
-    +   '<div class="c-badge">' + ico('checkbig', 46, 1.8) + '</div>'
-    +   '<h1>Demande envoyée</h1>'
-    +   '<p class="c-s">' + esc(a.n) + ' · ' + esc(a.loc) + '<br>Hansa va vérifier la disponibilité et vous enverra un lien de paiement sécurisé sous peu.</p>'
-    +   '<div class="c-ref">' + ref + '</div>'
-    + '</div>'
-    + '<div class="conf-acts">'
-    +   '<button class="btn" onclick="closeAllOverlays();setTab(\'voyages\')">Voir mon voyage</button>'
-    +   '<button class="btn-ghost" onclick="closeAllOverlays();setTab(\'discover\')">Revenir à l\'accueil</button>'
-    + '</div>';
-}

@@ -84,7 +84,7 @@ function budgetView(){
     + (isGen
       ? '<div class="ov-foot"><div class="foot-price">'
         + '<div><div class="fp-v">' + eur(b.total) + '</div><div class="fp-l">estimation totale</div></div>'
-        + '<button class="btn" onclick="openBooking(\'' + (ITINERARY.accommodations[0]?ITINERARY.accommodations[0].id:'') + '\')">Réserver les étapes</button>'
+        + '<button class="btn" onclick="openBooking(\'' + (ITINERARY.accommodations[0]?ITINERARY.accommodations[0].id:'') + '\')">Voir les hébergements</button>'
         + '</div></div>'
       : '<div class="ov-foot"><div class="foot-price">'
         + '<div><div class="fp-v">' + eur(rest) + '</div><div class="fp-l">solde restant</div></div>'

@@ -142,11 +142,6 @@ function openDay(i){ openOverlay('day', dayDetailView(i)); }
 function openBooking(id){ openOverlay('booking', bookingView(id)); }
 function openAI(){ const el = openOverlay('ai', aiView()); requestAnimationFrame(function(){ aiScroll(); }); }
 function openMapOv(){ openOverlay('map', mapView()); }
-function payFlow(){
-  const el = openOverlay('confirmation', confirmationView(), { modal:true });
-  const c = el.querySelector('.conf');
-  requestAnimationFrame(function(){ requestAnimationFrame(function(){ if (c) c.classList.add('show'); }); });
-}
 function composeFromDest(key){
   state.destination = key;
   state.createTab = 'known';

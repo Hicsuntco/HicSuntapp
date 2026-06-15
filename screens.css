@@ -69,8 +69,8 @@
 .deck-bar i{display:block;height:100%;background:var(--gold);transition:width 0.45s cubic-bezier(0.4,0,0.2,1)}
 .deck-count{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:1px;color:var(--sub);flex:none}
 #deck{position:relative;height:560px;margin-top:24px;padding:0 24px}
-.dcard{position:absolute;left:24px;right:24px;top:0;height:520px;background:var(--surface);border:1px solid var(--line);border-radius:var(--card-radius);box-shadow:var(--shadow-card);padding:26px 22px;display:flex;flex-direction:column;transition:transform 0.5s cubic-bezier(0.34,1.2,0.4,1),opacity 0.4s ease;will-change:transform,opacity}
-.dcard .d-q{font-family:var(--serif);font-weight:600;font-size:26px;line-height:1.18;letter-spacing:-0.4px;margin-top:10px}
+.dcard{position:absolute;left:24px;right:24px;top:0;height:520px;background:var(--surface);border:1px solid var(--line);border-radius:var(--card-radius);box-shadow:var(--shadow-card);padding:26px 22px;display:flex;flex-direction:column;transition:transform 0.5s cubic-bezier(0.34,1.2,0.4,1),opacity 0.4s ease;will-change:transform,opacity;color:var(--ink)}
+.dcard .d-q{font-family:var(--serif);font-weight:600;font-size:26px;line-height:1.18;letter-spacing:-0.4px;margin-top:10px;color:var(--ink)}
 .dcard .d-q em{font-style:italic;color:var(--gold)}
 .dcard .d-s{font-size:13px;font-weight:300;color:var(--sub);line-height:1.55;margin-top:9px}
 .dcard .d-body{flex:1;margin-top:20px;overflow-y:auto;scrollbar-width:none;padding-bottom:4px}
@@ -83,10 +83,10 @@
 .mode-btn .m-t{font-family:var(--serif);font-weight:600;font-size:18px;color:var(--ink)}
 .mode-btn .m-d{font-size:12px;font-weight:300;color:var(--sub);margin-top:3px;line-height:1.45}
 
-.radio-it{width:100%;display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:10px;cursor:pointer;transition:all 0.18s;text-align:left}
+.radio-it{width:100%;display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:10px;cursor:pointer;transition:all 0.18s;text-align:left;color:var(--ink)}
 .radio-it:active{transform:scale(0.98)}
 .radio-it.on{border-color:var(--ink);background:var(--ink);color:var(--onink)}
-.radio-it .ra-t{font-family:var(--serif);font-weight:600;font-size:17px}
+.radio-it .ra-t{font-family:var(--serif);font-weight:600;font-size:17px;color:inherit}
 .radio-it .ra-d{font-size:11.5px;font-weight:300;color:var(--sub);margin-top:2px}
 .radio-it.on .ra-d{color:rgba(246,240,228,0.65)}
 .radio-it .ra-dot{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--line);flex:none}
@@ -95,16 +95,16 @@
 .stepper{display:flex;align-items:center;justify-content:center;gap:26px;padding:30px 0}
 .stepper button{width:52px;height:52px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform 0.15s}
 .stepper button:active{transform:scale(0.92)}
-.stepper .st-v{text-align:center;min-width:110px}
-.stepper .st-n{font-family:var(--serif);font-weight:600;font-size:52px;line-height:1}
+.stepper .st-v{text-align:center;min-width:110px;color:var(--ink)}
+.stepper .st-n{font-family:var(--serif);font-weight:600;font-size:52px;line-height:1;color:var(--ink)}
 .stepper .st-l{font-family:var(--mono);font-size:9px;letter-spacing:1.6px;text-transform:uppercase;color:var(--sub);margin-top:8px}
 
 .occ-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.occ{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:15px 13px;cursor:pointer;text-align:left;transition:all 0.18s}
+.occ{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:15px 13px;cursor:pointer;text-align:left;transition:all 0.18s;color:var(--ink)}
 .occ:active{transform:scale(0.97)}
 .occ.on{border-color:var(--ink);background:var(--ink);color:var(--onink)}
 .occ .o-e{font-size:21px}
-.occ .o-t{font-family:var(--serif);font-weight:600;font-size:15px;margin-top:8px}
+.occ .o-t{font-family:var(--serif);font-weight:600;font-size:15px;margin-top:8px;color:inherit}
 .occ .o-d{font-size:10.5px;font-weight:300;color:var(--sub);margin-top:3px;line-height:1.4}
 .occ.on .o-d{color:rgba(246,240,228,0.65)}
 
