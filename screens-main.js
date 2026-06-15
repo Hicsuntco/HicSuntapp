@@ -37,7 +37,7 @@ function discoverView(){
   return statusBar()
     + '<div class="px disc-head">'
     +   '<div class="disc-top"><span class="eyebrow">Atlas personnel</span>'
-    +     '<button class="bell-btn" onclick="openOverlay(\'notifications\', notificationsView())" aria-label="Notifications">' + ico('bell', 19, 1.5) + '<span class="dot"></span></button></div>'
+    +     '<button class="bell-btn" onclick="openOverlay(\'notifications\', notificationsView())" aria-label="Notifications">' + ico('bell', 19, 1.5) + (NOTIFS.some(function(n){return n.unread;}) ? '<span class="dot"></span>' : '') + '</button></div>'
     +   '<hr class="hairline gold" style="margin-top:14px">'
     +   '<div class="disc-hello">Bonjour, ' + esc(USER.name) + '</div>'
     +   '<h1 class="disc-hero">Où mène votre<br><em>boussole&nbsp;?</em></h1>'

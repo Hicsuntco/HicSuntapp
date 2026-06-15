@@ -1,5 +1,6 @@
 /* ── HIC SUNT · icons + data ──────────────────────────────────── */
 const I = {
+  close:'<path d="M18 6 6 18"/><path d="M6 6l12 12"/>',
   torii:'<path d="M3 8q9-3 18 0"/><path d="M4 8h16"/><path d="M6 11h12"/><path d="M7 8v11"/><path d="M17 8v11"/>',
   arch:'<path d="M5 20v-7a7 7 0 0 1 7-7 7 7 0 0 1 7 7v7"/><path d="M9 20v-5a3 3 0 0 1 6 0v5"/>',
   leaf:'<path d="M5 19c0-8 6-14 14-14 0 8-6 14-14 14Z"/><path d="M5 19 17 7"/>',
@@ -171,21 +172,23 @@ const ITINERARY = {
 
 /* trips (Voyages) */
 const TRIPS = {
-  upcoming: [],
-  past: [],
-  draft: [],
+  upcoming:[
+    { n:'Sri Lanka', i:'leaf', bg:'linear-gradient(160deg,#dfe9df,#cfdccb)', d:'12 – 22 mai 2026', s:['ok','Confirmé'], days:'10 jours', itin:true },
+    { n:'Maroc', i:'arch', bg:'linear-gradient(160deg,#f0e4d2,#e6d3b8)', d:'Mars 2026', s:['prep','En préparation'], days:'8 jours' },
+  ],
+  past:[
+    { n:'Japon', i:'torii', bg:'linear-gradient(160deg,#ece2da,#ddd0c6)', d:'Avril 2024', s:['ok','Terminé'], days:'14 jours' },
+    { n:'Portugal', i:'wave', bg:'linear-gradient(160deg,#dce6ec,#cbdae4)', d:'Sept. 2023', s:['ok','Terminé'], days:'7 jours' },
+  ],
+  draft:[
+    { n:'Islande', i:'droplet', bg:'linear-gradient(160deg,#dfe4e8,#cdd6dc)', d:'Sans date', s:['draft','Brouillon'], days:'6 jours' },
+  ],
 };
 
 const AM_LABEL = { bed:'Chambres', wifi:'Wi-Fi', pool:'Piscine', fork:'Table' };
 
-/* notifications */
-const NOTIFS = [
-  { i:'sparkle', t:'Votre itinéraire est prêt', d:'Sri Lanka · 10 jours a été composé. Découvrez le jour par jour.', time:'Il y a 5 min', unread:true, action:'open-itin' },
-  { i:'bell', t:'Conciergerie', d:'Hansa : « J\'ai réservé votre table à Mirissa pour le soir 5. »', time:'Il y a 2 h', unread:true, action:'open-concierge' },
-  { i:'check', t:'Réservation confirmée', d:'Villa Lagune, Colombo — référence HS-4827-LK.', time:'Hier', unread:false },
-  { i:'plane', t:'Pensez à votre vol', d:'Les meilleurs tarifs CDG → CMB pour mai sont disponibles.', time:'Il y a 2 j', unread:false },
-  { i:'leaf', t:'Inspiration', d:'5 lodges de thé d\'exception sélectionnés pour vous.', time:'Il y a 4 j', unread:false },
-];
+/* notifications — vide par défaut, alimenté plus tard par de vrais événements */
+const NOTIFS = [];
 
 /* travel preferences */
 const PREFS = {

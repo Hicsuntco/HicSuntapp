@@ -107,6 +107,10 @@ function notificationsView(){
 function fillNotifs(){
   const host = document.querySelector('[data-notifs]');
   if (!host) return;
+  if(!NOTIFS.length){
+    host.innerHTML = '<p style="text-align:center;padding:40px 0;color:var(--sub);font-size:14px;font-style:italic">Aucune notification pour le moment.</p>';
+    return;
+  }
   host.innerHTML = NOTIFS.map(function(n){
     const action = n.action === 'open-itin' ? 'openItinerary()'
       : n.action === 'open-concierge' ? "openOverlay('concierge', conciergeView())" : 'void(0)';

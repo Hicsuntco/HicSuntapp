@@ -16,8 +16,8 @@
   --tile-bg:linear-gradient(160deg,#efe9da,#e4dac6);
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{background:#ece7da;height:100%;overflow:hidden}
-body{font-family:var(--sf);color:var(--ink);height:100%;
+html,body{background:#ece7da;height:100%;height:-webkit-fill-available;overflow:hidden}
+body{position:fixed;inset:0;font-family:var(--sf);color:var(--ink);height:100%;height:-webkit-fill-available;
   background:
     radial-gradient(1200px 600px at 80% -10%, rgba(156,124,68,0.07), transparent 60%),
     radial-gradient(900px 500px at 0% 110%, rgba(156,124,68,0.06), transparent 55%),
@@ -38,7 +38,7 @@ body{font-family:var(--sf);color:var(--ink);height:100%;
 @media (max-width:480px){
   .studio-head{display:none}
   .stage{padding:0}
-  .phone{width:100vw;height:100vh;height:100dvh;border-radius:0;padding:0;box-shadow:none;background:var(--bg)}
+  .phone{width:100vw;height:100vh;height:100dvh;height:-webkit-fill-available;border-radius:0;padding:0;box-shadow:none;background:var(--bg)}
   .phone::after{display:none}
   .screen{border-radius:0}
 }
@@ -165,3 +165,8 @@ textarea.input{height:auto;min-height:110px;padding:14px 16px;resize:none;line-h
 /* ── apparition en cascade des destinations suggérées ── */
 .tile-in{opacity:0;transform:translateY(12px) scale(0.98);animation:tileIn 0.5s cubic-bezier(.22,.68,.2,1) forwards}
 @keyframes tileIn{to{opacity:1;transform:translateY(0) scale(1)}}
+
+/* ── TEMP DEBUG — à retirer après diagnostic ── */
+.tabview.active{outline:3px solid red}
+.ov.in{outline:3px solid blue}
+.statusbar{outline:2px solid lime}

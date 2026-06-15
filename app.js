@@ -325,6 +325,8 @@ async function loadSavedItinerary(id){
     const rows = await res.json();
     if(!rows||!rows.length) return;
     Object.assign(ITINERARY, rows[0].data);
+    if(typeof deriveActivities==='function') deriveActivities(ITINERARY.plan||[]);
+    if(typeof deriveBudget==='function') deriveBudget(ITINERARY.accommodations||[], ITINERARY.budgetTotal||0);
     openItinerary();
   }catch(e){ toast('Erreur de chargement'); }
 }

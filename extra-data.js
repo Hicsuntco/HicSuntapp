@@ -93,20 +93,14 @@ const BUDGET = {
 };
 
 /* collaborative — travel companions */
-const CONTRIBUTORS = [
-  { n:'Charlotte L.', av:'CL', role:'Organisatrice', you:true, color:'#9c7c44' },
-  { n:'Julien M.', av:'JM', role:'A rejoint', you:false, color:'#6c764f' },
-  { n:'Amélie D.', av:'AD', role:'Invitée', you:false, color:'#9c5a44' },
-];
-
 /* Cercle Hic Sunt — loyalty programme */
 const CERCLE = {
   tier:'Découvreur', next:'Cartographe', progress: 0, points: 0, toNext: 1000,
   perks: [
-    { i:'bell', n:'Conciergerie dédiée', d:'Un interlocuteur unique, réponse en moins d’une heure.' },
-    { i:'clock', n:'Accès anticipé', d:'Les nouvelles destinations 30 jours avant tout le monde.' },
-    { i:'gift', n:'Surclassements offerts', d:'Selon disponibilités, sur vos hébergements partenaires.' },
-    { i:'shield', n:'Assurance voyage incluse', d:'Couverture annulation et soins à l’étranger.' },
+    { i:'sparkle', n:'Itinéraires illimités', d:'Composez autant de voyages sur-mesure que vous le souhaitez.' },
+    { i:'bell', n:'Conciergerie Hansa', d:'Un assistant qui ajuste votre itinéraire en temps réel.' },
+    { i:'doc', n:'Export PDF illimité', d:'Vos itinéraires complets, prêts à emporter.' },
+    { i:'clock', n:'Accès anticipé', d:'Les nouvelles destinations et fonctionnalités avant tout le monde.' },
   ],
   history: [],
 };
