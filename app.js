@@ -263,6 +263,12 @@ async function checkProfile(){
     const res = await fetch(SUPABASE_URL+'/rest/v1/profiles?id=eq.'+userId+'&select=first_name,last_name',{
       headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+token}
     });
+    if(res.status===401){
+      /* token expiré : on déconnecte proprement plutôt que de boucler sur "Bienvenue" */
+      localStorage.removeItem('sb_token');
+      localStorage.removeItem('hs_profile_done');
+      return true;
+    }
     const rows = await res.json();
     if(rows&&rows.length&&rows[0].first_name){
       localStorage.setItem('hs_profile_done','1');

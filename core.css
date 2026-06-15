@@ -166,7 +166,3 @@ textarea.input{height:auto;min-height:110px;padding:14px 16px;resize:none;line-h
 .tile-in{opacity:0;transform:translateY(12px) scale(0.98);animation:tileIn 0.5s cubic-bezier(.22,.68,.2,1) forwards}
 @keyframes tileIn{to{opacity:1;transform:translateY(0) scale(1)}}
 
-/* ── TEMP DEBUG — à retirer après diagnostic ── */
-.tabview.active{outline:3px solid red}
-.ov.in{outline:3px solid blue}
-.statusbar{outline:2px solid lime}
