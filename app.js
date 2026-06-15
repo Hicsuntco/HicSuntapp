@@ -102,6 +102,7 @@ function setTab(name){
         v.innerHTML = discoverView();
         const tiles = v.querySelectorAll('.dest-grid > *');
         tiles.forEach(function(t, i){ t.style.animationDelay = (i * 55) + 'ms'; t.classList.add('tile-in'); });
+        loadDiscoverTrips();
       }
       if (name === 'create')   v.innerHTML = createView();
       if (name === 'voyages')  { v.innerHTML = voyagesView(); loadVoyagesTab(); }
@@ -345,7 +346,8 @@ async function deleteSavedItinerary(id){
       headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+token}
     });
     toast('Voyage supprimé');
-    loadVoyagesTab();
+    if(document.querySelector('[data-trips]')) loadVoyagesTab();
+    if(document.querySelector('[data-disc-trips]')) loadDiscoverTrips();
   }catch(e){ toast('Erreur de suppression'); }
 }
 

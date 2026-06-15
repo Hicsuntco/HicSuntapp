@@ -77,10 +77,10 @@
 .dcard .d-body::-webkit-scrollbar{display:none}
 .dcard .d-foot{margin-top:14px}
 
-.mode-btn{width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:12px;cursor:pointer;transition:all 0.18s;display:flex;align-items:center;gap:15px}
+.mode-btn{width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:12px;cursor:pointer;transition:all 0.18s;display:flex;align-items:center;gap:15px;color:var(--ink)}
 .mode-btn:active{transform:scale(0.98)}
 .mode-btn .m-i{width:46px;height:46px;border-radius:14px;background:var(--surface2);color:var(--gold);display:flex;align-items:center;justify-content:center;flex:none}
-.mode-btn .m-t{font-family:var(--serif);font-weight:600;font-size:18px}
+.mode-btn .m-t{font-family:var(--serif);font-weight:600;font-size:18px;color:var(--ink)}
 .mode-btn .m-d{font-size:12px;font-weight:300;color:var(--sub);margin-top:3px;line-height:1.45}
 
 .radio-it{width:100%;display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:10px;cursor:pointer;transition:all 0.18s;text-align:left}

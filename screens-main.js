@@ -53,8 +53,23 @@ function discoverView(){
     +   '<div class="section-h"><h2>Destinations</h2><span class="meta">' + DEST_ORDER.length + ' régions</span></div>'
     +   '<div class="dest-grid" style="margin-top:0">' + DEST_ORDER.map(tileHTML).join('') + '</div>'
     +   '<div class="section-h"><h2>Mes voyages</h2><span class="meta">À venir</span></div>'
-    +   TRIPS.upcoming.map(tripCard).join('')
+    +   '<div data-disc-trips><div style="text-align:center;padding:24px 0"><div class="notif-load"><i></i></div></div></div>'
     + '</div>';
+}
+async function loadDiscoverTrips(){
+  const items = await loadItineraries();
+  const host = document.querySelector('[data-disc-trips]');
+  if(!host) return;
+  if(!items||!items.length){
+    host.innerHTML = '<p style="text-align:center;padding:24px 0;color:var(--sub);font-size:13px;font-style:italic">Aucun voyage sauvegardé pour le moment.</p>';
+    return;
+  }
+  host.innerHTML = items.slice(0,3).map(savedTripCard).join('');
+  const cards = host.querySelectorAll('.trip');
+  cards.forEach(function(c, i){
+    c.style.animationDelay = (i * 70) + 'ms';
+    c.classList.add('trip-in');
+  });
 }
 
 /* placeholder typewriter de la muse */

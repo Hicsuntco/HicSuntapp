@@ -317,42 +317,40 @@ function bookingView(accId){
     +   '<div class="price-l total"><span>Total</span><span>' + eur(total) + '</span></div>'
     + '</div>'
     + '<div class="ov-foot"><div class="foot-price">'
-    +   '<div><div class="fp-v">' + eur(total) + '</div><div class="fp-l">' + a.nights + ' nuit' + (a.nights>1?'s':'') + ' · taxes incluses</div></div>'
-    +   '<button class="btn" onclick="openOverlay(\'payment\', paymentView())">Réserver</button>'
+    +   '<div><div class="fp-v">' + eur(total) + '</div><div class="fp-l">' + a.nights + ' nuit' + (a.nights>1?'s':'') + ' · estimation, taxes incluses</div></div>'
+    +   '<button class="btn" onclick="openOverlay(\'payment\', paymentView())">Demander la réservation</button>'
     + '</div></div>';
 }
 
-/* ── 10 · Paiement ──────────────────────────────────────────────────── */
+/* ── 10 · Récapitulatif de la demande ──────────────────────────────────── */
 function paymentView(){
   const a = _accById(_bookId);
-  const total = Math.round(a.price * a.nights * 1.08);
-  return statusBar() + navbar('Paiement')
+  const sub = a.price * a.nights, fee = Math.round(sub * 0.08), total = sub + fee;
+  return statusBar() + navbar('Récapitulatif')
     + '<div class="ov-scroll has-foot px">'
     +   '<div class="pay-sum"><span class="th">' + ico(a.i, 28, 1.3) + '</span>'
     +     '<div><div class="ps-n">' + esc(a.n) + '</div><div class="ps-s">' + esc(a.loc) + ' · ' + a.nights + ' nuit' + (a.nights>1?'s':'') + '</div></div>'
     +     '<span class="ps-v">' + eur(total) + '</span></div>'
-    +   '<button class="apple-btn" style="margin-top:18px" onclick="payFlow()">' + ico('apple',19,1.4) + 'Pay</button>'
-    +   '<div class="sep">ou payer par carte</div>'
-    +   '<div class="cardform">'
-    +     '<div class="cf full"><label>Numéro de carte</label><input inputmode="numeric" placeholder="4242 4242 4242 4242"></div>'
-    +     '<div class="cf"><label>Expiration</label><input inputmode="numeric" placeholder="08 / 27"></div>'
-    +     '<div class="cf"><label>CVC</label><input inputmode="numeric" placeholder="•••"></div>'
-    +     '<div class="cf full"><label>Nom sur la carte</label><input placeholder="Charlotte L."></div>'
-    +   '</div>'
-    +   '<div class="secure">' + ico('lock',13,1.7) + 'Paiement chiffré · 3-D Secure</div>'
+    +   '<p class="book-desc" style="margin-top:18px">Hansa, votre conciergerie, va vérifier la disponibilité et vous envoyer un lien de paiement sécurisé pour finaliser la réservation.</p>'
+    +   '<div class="section-h"><h2>Détail</h2></div>'
+    +   '<div class="price-l"><span>' + eur(a.price) + ' × ' + a.nights + ' nuit' + (a.nights>1?'s':'') + '</span><span>' + eur(sub) + '</span></div>'
+    +   '<div class="price-l"><span>Service Hic Sunt · 8 %</span><span>' + eur(fee) + '</span></div>'
+    +   '<div class="price-l total"><span>Total estimé</span><span>' + eur(total) + '</span></div>'
+    +   '<div class="secure">' + ico('lock',13,1.7) + 'Aucun paiement maintenant · lien sécurisé envoyé par Hansa</div>'
     + '</div>'
-    + '<div class="ov-foot"><button class="btn gold" onclick="payFlow()">Payer ' + eur(total) + '</button></div>';
+    + '<div class="ov-foot"><button class="btn gold" onclick="payFlow()">Confirmer la demande</button></div>';
 }
 
 /* ── 11 · Confirmation ──────────────────────────────────────────────── */
 function confirmationView(){
   const a = _accById(_bookId);
+  const ref = 'HS-'+Math.floor(1000+Math.random()*9000)+'-'+(a.loc||'').slice(0,2).toUpperCase();
   return statusBar()
     + '<div class="conf">'
     +   '<div class="c-badge">' + ico('checkbig', 46, 1.8) + '</div>'
-    +   '<h1>Réservation confirmée</h1>'
-    +   '<p class="c-s">' + esc(a.n) + ' · ' + esc(a.loc) + '<br>Votre conciergerie prend le relais — tout est dans vos documents.</p>'
-    +   '<div class="c-ref">HS-4827-LK</div>'
+    +   '<h1>Demande envoyée</h1>'
+    +   '<p class="c-s">' + esc(a.n) + ' · ' + esc(a.loc) + '<br>Hansa va vérifier la disponibilité et vous enverra un lien de paiement sécurisé sous peu.</p>'
+    +   '<div class="c-ref">' + ref + '</div>'
     + '</div>'
     + '<div class="conf-acts">'
     +   '<button class="btn" onclick="closeAllOverlays();setTab(\'voyages\')">Voir mon voyage</button>'
