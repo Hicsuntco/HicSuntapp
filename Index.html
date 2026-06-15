@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#f7f4ec">
+<title>Hic Sunt — Application</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="studio/core.css">
+<link rel="stylesheet" href="studio/screens.css">
+<link rel="stylesheet" href="studio/overlays.css">
+<link rel="stylesheet" href="studio/features.css">
+</head>
+<body>
+
+<script>
+/* Strip environment-injected attribute names containing "::" that break
+   DOM-to-SVG serialization (screenshot/PDF tooling). No effect on the app. */
+(function () {
+  function clean(el) {
+    if (!el || !el.attributes) return;
+    [...el.attributes].forEach(function (a) {
+      if (a.name.indexOf('::') !== -1) el.removeAttribute(a.name);
+    });
+  }
+  clean(document.documentElement);
+  try {
+    new MutationObserver(function () { clean(document.documentElement); })
+      .observe(document.documentElement, { attributes: true });
+  } catch (e) {}
+})();
+</script>
+
+<div class="studio-head">
+  <p class="studio-eyebrow">Hic Sunt · iOS</p>
+  <h1 class="studio-title">Application <em>Sillage</em></h1>
+  <p class="studio-sub">Itinéraires sur-mesure — carte interactive, météo, budget, activités, Cercle &amp; cartographe IA. Touchez pour explorer.</p>
+</div>
+
+<div class="stage">
+  <div class="phone"><div class="screen"></div></div>
+</div>
+
+<script src="studio/data.js"></script>
+<script src="studio/extra-data.js"></script>
+<script src="studio/screens-main.js"></script>
+<script src="studio/screens-detail.js"></script>
+<script src="studio/screens-extra.js"></script>
+<script src="studio/deck.js"></script>
+<script src="studio/features.js"></script>
+<script src="studio/generate.js"></script>
+<script src="studio/app.js"></script>
+
+</body>
+</html>
