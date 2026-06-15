@@ -30,6 +30,46 @@ function _occasionLabel(id){
   return o?o.label:null;
 }
 
+/* ── traduction des réponses du questionnaire en consignes concrètes ── */
+const RYTHME_MOMENTS={'Lent':2,'Équilibré':3,'Intense':4};
+function _momentsPerDay(){ return RYTHME_MOMENTS[state.rythme] || 3; }
+function _rythmeDirective(){
+  const r=state.rythme||'Équilibré';
+  if(r==='Lent') return 'Rythme LENT : peu d\'étapes par jour, larges plages libres, favoriser un même lieu plusieurs jours, transferts courts.';
+  if(r==='Intense') return 'Rythme INTENSE : journées denses, plusieurs activités/lieux par jour, peu de temps mort, maximiser les découvertes.';
+  return 'Rythme ÉQUILIBRÉ : alternance activités et temps libre, transferts raisonnables.';
+}
+function _occasionDirective(){
+  const id=state.occasion;
+  if(!id) return '';
+  const map={
+    'lune-de-miel':'OCCASION — Lune de miel : privilégier dîners romantiques en tête-à-tête, hébergements intimistes (vue, terrasse privée, suites), moments à deux (massage en duo, bateau privé, coucher de soleil).',
+    'anniversaire':'OCCASION — Anniversaire : prévoir au moins un moment de célébration mémorable (dîner spécial, surprise locale, expérience exclusive le jour J si possible).',
+    'evjf':'OCCASION — EVJF : adresses tendance et instagrammables, spas/bien-être, brunchs et rooftops, ambiance festive entre amies.',
+    'evg':'OCCASION — EVG : expériences fortes en sensations (sports, sorties nocturnes, activités entre amis), ambiance conviviale et dynamique.',
+    'famille':'OCCASION — En famille : activités adaptées à tous âges (pas d\'horaires extrêmes, pas de randonnées trop longues), hébergements avec espace/piscine, rythme doux.',
+    'solo':'OCCASION — En solo : favoriser rencontres locales, hébergements conviviaux (guesthouses, petites adresses), activités modulables.',
+  };
+  return map[id]||'';
+}
+function _styleDirective(){
+  const styles=(state.styles||[]);
+  if(!styles.length) return '';
+  const lower=styles.join(' ').toLowerCase();
+  const notes=[];
+  if(lower.includes('luxe')) notes.push('hébergements haut de gamme, services premium, adresses signature');
+  if(lower.includes('authentique')||lower.includes('local')) notes.push('guesthouses et adresses tenues par des locaux, immersion culturelle');
+  if(lower.includes('nature')||lower.includes('aventure')) notes.push('lodges nature, accès direct aux sentiers/sites naturels');
+  if(lower.includes('détente')||lower.includes('bien-être')) notes.push('hébergements avec spa/piscine, journées avec temps de repos');
+  if(lower.includes('gastro')||lower.includes('culinaire')) notes.push('hébergements proches de bonnes tables, expériences culinaires locales');
+  return notes.length ? 'STYLE DE VOYAGE ('+styles.join(', ')+') : '+notes.join(' ; ')+'.' : '';
+}
+function _dreamDirective(){
+  if(!state.dream) return '';
+  const surprise=state.createTab==='surprise';
+  return (surprise?'CONTRAINTES / À ÉVITER (impératif) : ':'ENVIE PRIORITAIRE DU CLIENT (à intégrer absolument) : ')+state.dream;
+}
+
 /* ── catégories thématiques & palettes adaptatives ───────────────────── */
 /* chaque "kind" de moment appartient à une catégorie thématique */
 const KIND_CATEGORY={
@@ -107,6 +147,7 @@ function buildSkeletonPrompt(dc, batchSize, offset){
     '- Réponds UNIQUEMENT en JSON compact valide, sans texte ni markdown autour.',
   ];
   if(isFirst){
+    const directives=[_rythmeDirective(),_occasionDirective(),_styleDirective(),_dreamDirective()].filter(Boolean);
     return [
       'Tu es le cartographe senior de Hic Sunt, maison de voyages haut de gamme avec une exigence éditoriale absolue.',
       'Compose l\'OSSATURE d\'un itinéraire RÉEL, DÉSIRABLE et PRÉCIS de '+dc+' jours au total.',
@@ -114,10 +155,14 @@ function buildSkeletonPrompt(dc, batchSize, offset){
       '═══ BRIEF CLIENT ═══',
       b.lines,
       '',
+      '═══ DIRECTIVES PERSONNALISATION (à respecter dans le choix des étapes et hébergements) ═══',
+      directives.length?directives.join('\n'):'Aucune contrainte spécifique au-delà du brief ci-dessus.',
+      '',
       '═══ CONSIGNES STRICTES ═══',
       common.join('\n'),
       '- "plan" doit contenir EXACTEMENT '+n+' entrées : les jours 1 à '+n+' de ce voyage de '+dc+' jours (les jours suivants seront détaillés séparément).',
       '- "stays" doit couvrir TOUT le voyage de '+dc+' jours (pas seulement ces '+n+' premiers jours) — prévoir tous les hébergements nécessaires pour les '+dc+' jours. Pas plus de '+Math.min(8,Math.max(3,Math.ceil(dc/3)))+' hébergements différents.',
+      '- Les hébergements doivent refléter les directives de personnalisation ci-dessus (style, occasion).',
       '- "budget" = fourchette totale réaliste en euros pour TOUS les voyageurs sur les '+dc+' jours (hébergements+repas+activités+transport local, hors vols).',
       '  · Éco: 60-100€/pers/j · Confort: 120-220€/pers/j · Luxe: 250-500€/pers/j · Ultra: 500€+/pers/j',
       '',
@@ -148,26 +193,32 @@ function buildSkeletonPrompt(dc, batchSize, offset){
 
 /* ── Passe 2 : détail éditorial des jours (par lots) ─────────────────── */
 function buildDaysPrompt(skel, planSteps, offset){
-  const interests=(state.interests||[]).join(', ')||'découverte';
-  const budget=state.budget||'Confort';
+  const b=buildBrief();
+  const nMoments=_momentsPerDay();
+  const directives=[_rythmeDirective(),_occasionDirective(),_styleDirective(),_dreamDirective()].filter(Boolean);
   const steps=planSteps.map(function(p,i){return (offset+i+1)+'. '+p.title+' — '+p.loc+(p.hook?' ('+p.hook+')':'');}).join('\n');
   return [
-    'Tu es le cartographe de Hic Sunt. Tu rédiges les détails éditoriaux de ces étapes (jours '+(offset+1)+' à '+(offset+planSteps.length)+' du voyage).',
-    'Destination : '+skel.dest+' · Pays : '+(skel.country||'')+' · Confort : '+budget+' · Intérêts : '+interests,
+    'Tu es le cartographe de Hic Sunt. Tu rédiges les détails éditoriaux de ces étapes (jours '+(offset+1)+' à '+(offset+planSteps.length)+' du voyage de '+skel.dest+').',
+    '',
+    '═══ BRIEF CLIENT ═══',
+    b.lines,
+    '',
+    '═══ DIRECTIVES PERSONNALISATION ═══',
+    directives.length?directives.join('\n'):'Aucune contrainte spécifique au-delà du brief ci-dessus.',
     '',
     'ÉTAPES (dans l\'ordre, même ordre dans ta réponse) :',
     steps,
     '',
     '═══ CONSIGNES ÉDITORIALES STRICTES ═══',
     'Pour CHAQUE étape, donne :',
-    '- "desc" : 2 phrases narratives et évocatrices (max 25 mots), style guide de voyage haut de gamme',
-    '- "moments" : EXACTEMENT 3 moments réels et spécifiques à ce lieu — vrais noms de sites, restaurants, activités',
+    '- "desc" : 2 phrases narratives et évocatrices (max 25 mots), style guide de voyage haut de gamme — refléter le rythme et l\'occasion ci-dessus.',
+    '- "moments" : EXACTEMENT '+nMoments+' moments réels et spécifiques à ce lieu — vrais noms de sites, restaurants, activités, cohérents avec le rythme et les intérêts du client',
     '  · moment = {t:"heure", k:"icône", ti:"nom précis du lieu/activité", d:"détail local en 6 mots max"}',
     '  · k dans ['+GEN_KINDS.join(',')+']',
-    '  · Inclure 1 repas avec VRAI nom de restaurant local, 1 activité phare, 1 moment contemplatif ou culturel',
+    '  · Inclure au moins 1 repas avec VRAI nom de restaurant local, et des activités cohérentes avec les intérêts/occasion du client',
     '- "tip" : conseil d\'initié spécifique à cette étape (ex: "arriver avant 7h pour éviter les groupes")',
     '- "restaurant" : {"name":"vrai nom","type":"ex: Rice & curry local","price":"ex: €€","note":"1 phrase"}',
-    '- "wellness" : si intérêts incluent spa/bien-être, un vrai spa/massage local avec nom et prix. Sinon null.',
+    '- "wellness" : si intérêts/occasion incluent spa/bien-être/lune de miel, un vrai spa/massage local avec nom et prix. Sinon null.',
     '',
     'Réponds UNIQUEMENT en JSON compact valide, EXACTEMENT '+planSteps.length+' entrées dans "days" :',
     '{"days":[{"desc":"","tip":"","restaurant":{"name":"","type":"","price":"","note":""},"wellness":null,"moments":[{"t":"07:30","k":"peaks","ti":"nom lieu","d":"détail court"}]}]}',
@@ -179,15 +230,18 @@ function buildHighlightsPrompt(skel, days){
   const b=buildBrief();
   const dest=skel.dest||'';
   const interests=(state.interests||[]).join(', ')||'';
+  const directives=[_occasionDirective(),_styleDirective(),_dreamDirective()].filter(Boolean);
   const locs=(skel.plan||[]).map(function(p){return p.loc;}).filter(function(v,i,a){return a.indexOf(v)===i;}).join(', ');
-  const wantSpa=interests.toLowerCase().includes('spa')||interests.toLowerCase().includes('bien-être');
+  const wantSpa=interests.toLowerCase().includes('spa')||interests.toLowerCase().includes('bien-être')||state.occasion==='lune-de-miel';
   const wantNature=interests.toLowerCase().includes('nature')||interests.toLowerCase().includes('randonn');
   const wantBeach=interests.toLowerCase().includes('plage');
   const wantFood=interests.toLowerCase().includes('gastro')||interests.toLowerCase().includes('cuisine');
   return [
-    'Expert voyages. Destination : '+dest+' · Étapes : '+locs,
+    'Expert voyages Hic Sunt. Destination : '+dest+' · Étapes : '+locs,
     'Intérêts client : '+interests,
+    directives.length?directives.join('\n'):'',
     '',
+    'Les "gems" (pépites cachées) doivent refléter les directives de personnalisation ci-dessus si présentes (ex: lune de miel → lieu romantique peu connu ; famille → activité adaptée aux enfants).',
     'Génère UNIQUEMENT les sections suivantes. JSON compact valide, aucun texte autour.',
     '',
     '{"gems":[{"name":"vrai nom lieu secret","loc":"ville","desc":"pourquoi y aller en 1 phrase","tip":"conseil pratique"}],"highlights":{"spas":'+
@@ -200,7 +254,7 @@ function buildHighlightsPrompt(skel, days){
     (wantFood?'[{"name":"vrai nom resto","loc":"ville","type":"spécialité","price":"fourchette","note":"pourquoi y aller"}]':'[]')+
     '},"essentials":{"transport":["conseil vols","conseil transport local"],"visa":"info visa ressortissants français","bestTime":"'+
     (skel.season||'à définir')+' — raison courte","toKnow":["info pratique 1","info culturelle 2","info sécurité 3"]},"budget_note":"fourchette totale par personne hors vols"}',
-  ].join('\n');
+  ].filter(Boolean).join('\n');
 }
 
 /* ── parsing JSON ────────────────────────────────────────────────────── */
@@ -291,7 +345,7 @@ function applyGenerated(skel, daysDetail, hilites){
   const plan=(Array.isArray(skel.plan)?skel.plan:[]).map(function(p,i){
     const dd=detailDays[i]||{};
     const rawMoments=Array.isArray(dd.moments)&&dd.moments.length?dd.moments:[{t:'—',k:_momentIcon(p.title),ti:p.title||'Étape',d:''}];
-    const moments=rawMoments.slice(0,3).map(function(m){return [m.t||'—',_kind(m.k||_momentIcon(m.ti)),m.ti||'Moment',m.d||''];});
+    const moments=rawMoments.slice(0,_momentsPerDay()).map(function(m){return [m.t||'—',_kind(m.k||_momentIcon(m.ti)),m.ti||'Moment',m.d||''];});
     const tags=[];
     moments.forEach(function(m){if(tags.length<2&&!tags.some(function(t){return t[0]===m[1];}))tags.push(TAG_MAP[m[1]]||TAG_MAP.pin);});
     while(tags.length<2) tags.push(TAG_MAP.pin);
