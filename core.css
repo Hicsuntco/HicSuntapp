@@ -38,7 +38,7 @@ body{position:fixed;inset:0;font-family:var(--sf);color:var(--ink);height:100%;
 @media (max-width:480px){
   .studio-head{display:none}
   .stage{padding:0}
-  .phone{width:100vw;height:100vh;height:100dvh;border-radius:0;padding:0;box-shadow:none;background:var(--bg)}
+  .phone{width:100vw;height:100vh;height:100dvh;border-radius:0;padding:env(safe-area-inset-top) 0 0;box-shadow:none;background:var(--bg)}
   .phone::after{display:none}
   .screen{border-radius:0}
 }
