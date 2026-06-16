@@ -96,9 +96,11 @@
 .acc:active{transform:scale(0.985)}
 .acc .a-img{height:145px;background:var(--tile-bg);position:relative;display:flex;align-items:center;justify-content:center}
 .acc .a-img .ico{color:var(--ink);opacity:0.2}
-.acc .a-tag{position:absolute;top:11px;left:11px;font-family:var(--mono);font-size:8.5px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;background:rgba(255,253,247,0.92);border:1px solid var(--line);color:var(--gold-deep);padding:6px 10px;border-radius:20px}
-.acc .a-fav{position:absolute;top:9px;right:9px;width:36px;height:36px;border-radius:50%;border:none;background:rgba(255,253,247,0.92);color:var(--ink-soft);display:flex;align-items:center;justify-content:center;cursor:pointer}
-.acc .a-fav.on{color:var(--gold)}
+.a-icring{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1;width:58px;height:58px;border-radius:50%;border:1px solid;display:flex;align-items:center;justify-content:center;background:rgba(15,12,9,0.3)}
+.a-edge{position:absolute;left:0;right:0;bottom:0;height:2px;z-index:1;opacity:0.55}
+.acc .a-tag{position:absolute;top:11px;left:11px;font-family:var(--mono);font-size:8.5px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;background:rgba(15,12,9,0.55);border:1px solid var(--line);color:rgba(246,240,228,0.9);padding:6px 10px;border-radius:20px}
+.acc .a-fav{position:absolute;bottom:9px;right:9px;width:36px;height:36px;border-radius:50%;border:none;background:rgba(15,12,9,0.45);color:rgba(246,240,228,0.85);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.acc .a-fav.on{color:var(--gold-soft)}
 .acc .a-fav.on svg{fill:currentColor}
 .acc .a-body{padding:14px 15px 15px}
 .acc .a-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
@@ -131,6 +133,7 @@
 .book-hero{height:245px;background:var(--tile-bg);position:relative;display:flex;align-items:center;justify-content:center;flex:none}
 .book-hero .ico{color:var(--ink);opacity:0.18}
 .book-hero .navbar{position:absolute;top:54px;left:0;right:0}
+.book-icring{width:74px;height:74px}
 .book-h{font-family:var(--serif);font-weight:600;font-size:26px;letter-spacing:-0.4px;margin-top:7px;display:flex;justify-content:space-between;align-items:baseline;gap:12px}
 .book-meta{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--sub);margin-top:6px}
 .book-desc{font-size:13.5px;font-weight:300;color:var(--ink-soft);line-height:1.6;margin-top:14px}

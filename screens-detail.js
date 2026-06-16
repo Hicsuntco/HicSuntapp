@@ -180,17 +180,24 @@ function openAffiliate(accId){
 }
 
 /* ── composant accCard ──────────────────────────────────────────────── */
+function accThemeAccent(a, it){
+  const palette = (it && it.palette) || null;
+  const cat = palette ? (KIND_CATEGORY[a.i] || 'culture') : null;
+  return (palette && cat && palette[cat]) ? palette[cat] : '#9c7c44';
+}
 function accCard(a){
   const it = ITINERARY;
-  const monogram = (a.n||'').replace(/[^A-Za-zÀ-ÿ]/g,'').slice(0,1).toUpperCase() || '?';
+  const accent = accThemeAccent(a, it);
   return '<div class="acc" onclick="openBooking(\'' + a.id + '\')">'
-    + '<div class="a-img" style="position:relative;overflow:hidden">'
-    +   '<div style="position:absolute;inset:0;background:' + accGradient(a, it) + '"></div>'
-    +   contour()
-    +   '<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-weight:600;font-size:88px;color:rgba(246,240,228,0.14);letter-spacing:-4px;line-height:1">' + esc(monogram) + '</span>'
-    +   '<span style="position:absolute;bottom:11px;left:13px;z-index:1;color:rgba(246,240,228,0.85)">' + ico(a.i, 22, 1.5) + '</span>'
-    +   '<span class="a-tag" style="position:relative;z-index:1">' + esc(a.tag) + '</span>'
+    + '<div class="a-img" style="position:relative;overflow:hidden;background:linear-gradient(160deg,#1c1812,#0d0b08)">'
+    +   '<svg class="grat" viewBox="0 0 345 188" preserveAspectRatio="none" fill="none" stroke="'+hexA(accent,0.4)+'" stroke-width="0.5">'
+    +     [0,1,2,3,4,5,6].map(function(i){ return '<line x1="'+(i*57.5)+'" y1="0" x2="'+(i*57.5)+'" y2="188"/>'; }).join('')
+    +     [0,1,2,3,4].map(function(i){ return '<line x1="0" y1="'+(i*47)+'" x2="345" y2="'+(i*47)+'"/>'; }).join('')
+    +   '</svg>'
+    +   '<span class="a-icring" style="border-color:'+hexA(accent,0.5)+';color:'+hexA(accent,0.95)+'">' + ico(a.i, 22, 1.3) + '</span>'
+    +   '<span class="a-tag" style="position:relative;z-index:1;border-color:'+hexA(accent,0.4)+'">' + esc(a.tag) + '</span>'
     +   '<button class="a-fav" style="position:relative;z-index:1" onclick="event.stopPropagation();this.classList.toggle(\'on\')" aria-label="Favori">' + ico('heart', 17, 1.6) + '</button>'
+    +   '<span class="a-edge" style="background:'+accent+'"></span>'
     + '</div>'
     + '<div class="a-body">'
     +   '<div class="a-top"><span class="a-n">' + esc(a.n) + '</span><span class="a-rate">' + ico('star', 11) + a.rate + '</span></div>'
@@ -325,13 +332,15 @@ function bookingView(accId){
   _bookId = accId;
   const a = _accById(accId);
   const total = a.price * a.nights;
-  const monogram = (a.n||'').replace(/[^A-Za-zÀ-ÿ]/g,'').slice(0,1).toUpperCase() || '?';
+  const accent = accThemeAccent(a, ITINERARY);
   const isAirbnb = /villa|appartement|apparthotel|maison|airbnb|guesthouse|gîte|loft/.test((a.type||'').toLowerCase());
-  return '<div class="book-hero" style="position:relative;overflow:hidden">'
-    +   '<div style="position:absolute;inset:0;background:' + accGradient(a, ITINERARY) + '"></div>'
-    +   contour()
-    +   '<span style="position:relative;z-index:0;font-family:var(--serif);font-weight:600;font-size:128px;color:rgba(246,240,228,0.14);letter-spacing:-6px">' + esc(monogram) + '</span>'
-    +   '<span style="position:absolute;bottom:18px;left:20px;z-index:1;color:rgba(246,240,228,0.85)">' + ico(a.i, 26, 1.5) + '</span>'
+  return '<div class="book-hero" style="position:relative;overflow:hidden;background:linear-gradient(160deg,#1c1812,#0d0b08)">'
+    +   '<svg class="grat" viewBox="0 0 393 280" preserveAspectRatio="none" fill="none" stroke="'+hexA(accent,0.4)+'" stroke-width="0.5">'
+    +     [0,1,2,3,4,5,6].map(function(i){ return '<line x1="'+(i*65.5)+'" y1="0" x2="'+(i*65.5)+'" y2="280"/>'; }).join('')
+    +     [0,1,2,3,4,5,6].map(function(i){ return '<line x1="0" y1="'+(i*46.6)+'" x2="393" y2="'+(i*46.6)+'"/>'; }).join('')
+    +   '</svg>'
+    +   '<span class="a-icring book-icring" style="border-color:'+hexA(accent,0.5)+';color:'+hexA(accent,0.95)+'">' + ico(a.i, 30, 1.3) + '</span>'
+    +   '<span class="a-edge" style="background:'+accent+'"></span>'
     +   '<div class="navbar" style="position:absolute;top:54px;left:0;right:0;z-index:1"><button class="nav-btn" onclick="closeOverlay()" aria-label="Retour">' + ico('back',20,1.7) + '</button>'
     +   '<button class="nav-btn" onclick="this.classList.toggle(\'on\');" aria-label="Favori">' + ico('heart',18,1.6) + '</button></div>'
     + '</div>'

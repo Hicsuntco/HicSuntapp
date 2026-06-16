@@ -34,6 +34,14 @@ function _interestsDirective(){
   if(!interests.length) return '';
   return 'INTÉRÊTS DU CLIENT (impératif — CHAQUE jour doit refléter au moins un de ces intérêts dans ses moments/activités, et la majorité des moments du voyage doivent s\'y rattacher) : '+interests.join(', ')+'. Ne propose PAS d\'activités hors de ces thèmes sauf nécessité logistique (transferts, repas).';
 }
+function _antiTouristDirective(){
+  return 'EXIGENCE ÉDITORIALE HIC SUNT (non négociable, prioritaire sur tout le reste) : Hic Sunt signifie "Beyond the Known" — chaque étape doit éviter le circuit touristique de masse. '
+    + 'AUTO-VÉRIFICATION OBLIGATOIRE avant de valider chaque lieu : "Ce nom apparaît-il dans le top 5 des résultats Google Images, TripAdvisor ou Instagram pour cette destination ?" Si oui, c\'est interdit — trouve une alternative réelle et moins connue. '
+    + 'Exemples concrets de ce qui est INTERDIT sauf demande explicite du client : Jardin Majorelle à Marrakech, plage de Patong ou Kata à Phuket, Wat Pho/Wat Arun à Bangkok, Ubud central à Bali, Santorin/Oia, Eiffel/Louvre à Paris — et tout équivalent "carte postale" dans n\'importe quelle destination. '
+    + 'Remplace systématiquement par l\'alternative la plus secrète et la moins fréquentée de la même région : une crique voisine au lieu de la plage la plus citée, un marché de quartier au lieu du marché central, un village à 20-40 minutes au lieu de la ville-aimant-à-touristes, un riad/maison d\'hôtes tenu par des locaux au lieu de l\'adresse listée partout, un jardin privé ou une plantation discrète au lieu du jardin botanique le plus visité. '
+    + 'Si l\'utilisateur mentionne explicitement vouloir éviter la foule/le tourisme de masse, c\'est une contrainte ABSOLUE : aucune plage/site bondé en haute saison, même célèbre, ne doit apparaître, même en filigrane ou en passage rapide. '
+    + 'Les hébergements doivent aussi privilégier des adresses indépendantes et discrètes plutôt que les grandes chaînes archi-connues, sauf si le niveau de confort/style du client l\'exige explicitement.';
+}
 
 /* ── traduction des réponses du questionnaire en consignes concrètes ── */
 const RYTHME_MOMENTS={'Lent':2,'Équilibré':3,'Intense':4};
@@ -169,7 +177,7 @@ function buildSkeletonPrompt(dc, batchSize, offset){
     '- Réponds UNIQUEMENT en JSON compact valide, sans texte ni markdown autour.',
   ];
   if(isFirst){
-    const directives=[_interestsDirective(),_rythmeDirective(),_occasionDirective(),_styleDirective(),_dreamDirective()].filter(Boolean);
+    const directives=[_antiTouristDirective(),_interestsDirective(),_rythmeDirective(),_occasionDirective(),_styleDirective(),_dreamDirective()].filter(Boolean);
     return [
       'Tu es le cartographe senior de Hic Sunt, maison de voyages haut de gamme avec une exigence éditoriale absolue.',
       'Compose l\'OSSATURE d\'un itinéraire RÉEL, DÉSIRABLE et PRÉCIS de '+dc+' jours au total.',
@@ -217,7 +225,7 @@ function buildSkeletonPrompt(dc, batchSize, offset){
 function buildDaysPrompt(skel, planSteps, offset){
   const b=buildBrief();
   const nMoments=_momentsPerDay();
-  const directives=[_interestsDirective(),_rythmeDirective(),_occasionDirective(),_styleDirective(),_dreamDirective()].filter(Boolean);
+  const directives=[_antiTouristDirective(),_interestsDirective(),_rythmeDirective(),_occasionDirective(),_styleDirective(),_dreamDirective()].filter(Boolean);
   const steps=planSteps.map(function(p,i){return (offset+i+1)+'. '+p.title+' — '+p.loc+(p.hook?' ('+p.hook+')':'');}).join('\n');
   return [
     'Tu es le cartographe de Hic Sunt. Tu rédiges les détails éditoriaux de ces étapes (jours '+(offset+1)+' à '+(offset+planSteps.length)+' du voyage de '+skel.dest+').',
@@ -252,7 +260,7 @@ function buildHighlightsPrompt(skel, days){
   const b=buildBrief();
   const dest=skel.dest||'';
   const interests=(state.interests||[]).join(', ')||'';
-  const directives=[_interestsDirective(),_occasionDirective(),_styleDirective(),_dreamDirective()].filter(Boolean);
+  const directives=[_antiTouristDirective(),_interestsDirective(),_occasionDirective(),_styleDirective(),_dreamDirective()].filter(Boolean);
   const locs=(skel.plan||[]).map(function(p){return p.loc;}).filter(function(v,i,a){return a.indexOf(v)===i;}).join(', ');
   const wantSpa=interests.toLowerCase().includes('spa')||interests.toLowerCase().includes('bien-être')||state.occasion==='lune-de-miel';
   const wantNature=interests.toLowerCase().includes('nature')||interests.toLowerCase().includes('randonn');
@@ -476,7 +484,7 @@ const DAYS_BATCH_SIZE = 7;
 /* ── Mode "Surprenez-moi" : suggestion légère avant génération complète ── */
 function buildDestinationSuggestPrompt(excluded){
   const b=buildBrief();
-  const directives=[_interestsDirective(),_rythmeDirective(),_occasionDirective(),_styleDirective(),_dreamDirective()].filter(Boolean);
+  const directives=[_antiTouristDirective(),_interestsDirective(),_rythmeDirective(),_occasionDirective(),_styleDirective(),_dreamDirective()].filter(Boolean);
   const excludeLine=(excluded&&excluded.length)?('Ne propose AUCUNE des destinations déjà suggérées et refusées : '+excluded.join(', ')+'.'):'';
   return [
     'Tu es le cartographe senior de Hic Sunt, maison de voyages haut de gamme spécialisée dans les destinations hors des sentiers battus.',

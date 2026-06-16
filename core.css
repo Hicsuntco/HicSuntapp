@@ -16,6 +16,8 @@
   --tile-bg:linear-gradient(160deg,#efe9da,#e4dac6);
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+button,a{color:inherit;font:inherit;text-decoration:none}
+button{background:none;border:none}
 html,body{background:#ece7da;height:100%;overflow:hidden}
 body{position:fixed;inset:0;font-family:var(--sf);color:var(--ink);height:100%;
   background:
