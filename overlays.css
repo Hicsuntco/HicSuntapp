@@ -64,10 +64,10 @@
 .minimap .mm-cap{position:absolute;left:13px;bottom:11px;font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--sub);z-index:3}
 
 .tools{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px}
-.tool{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:15px;cursor:pointer;transition:transform 0.18s;text-align:left}
+.tool{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:15px;cursor:pointer;transition:transform 0.18s;text-align:left;color:var(--ink)}
 .tool:active{transform:scale(0.97)}
 .tool .ico{color:var(--gold)}
-.tool .tl-t{font-family:var(--serif);font-weight:500;font-size:17px;margin-top:10px}
+.tool .tl-t{font-family:var(--serif);font-weight:500;font-size:17px;margin-top:10px;color:inherit}
 .tool .tl-s{font-family:var(--mono);font-size:9px;letter-spacing:0.8px;text-transform:uppercase;color:var(--sub);margin-top:4px}
 
 .ai-banner{display:flex;align-items:center;gap:14px;border:1px solid var(--line);background:var(--surface);border-radius:var(--card-radius);padding:16px;margin-top:20px;cursor:pointer;transition:transform 0.18s}
