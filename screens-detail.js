@@ -189,15 +189,15 @@ function accCard(a){
   const it = ITINERARY;
   const accent = accThemeAccent(a, it);
   return '<div class="acc" onclick="openBooking(\'' + a.id + '\')">'
-    + '<div class="a-img" style="position:relative;overflow:hidden;background:linear-gradient(160deg,#1c1812,#0d0b08)">'
-    +   '<svg class="grat" viewBox="0 0 345 188" preserveAspectRatio="none" fill="none" stroke="'+hexA(accent,0.4)+'" stroke-width="0.5">'
+    + '<div class="a-img" style="position:relative;overflow:hidden;height:145px;background:radial-gradient(120% 100% at 15% 0%,'+hexA(accent,0.28)+',transparent 60%),linear-gradient(155deg,#1c1812,#0d0b08 55%,#000)">'
+    +   '<svg style="position:absolute;inset:0;width:100%;height:100%" viewBox="0 0 345 188" preserveAspectRatio="none" fill="none" stroke="'+hexA(accent,0.4)+'" stroke-width="0.5">'
     +     [0,1,2,3,4,5,6].map(function(i){ return '<line x1="'+(i*57.5)+'" y1="0" x2="'+(i*57.5)+'" y2="188"/>'; }).join('')
     +     [0,1,2,3,4].map(function(i){ return '<line x1="0" y1="'+(i*47)+'" x2="345" y2="'+(i*47)+'"/>'; }).join('')
     +   '</svg>'
-    +   '<span class="a-icring" style="border-color:'+hexA(accent,0.5)+';color:'+hexA(accent,0.95)+'">' + ico(a.i, 22, 1.3) + '</span>'
-    +   '<span class="a-tag" style="position:relative;z-index:1;border-color:'+hexA(accent,0.4)+'">' + esc(a.tag) + '</span>'
-    +   '<button class="a-fav" style="position:relative;z-index:1" onclick="event.stopPropagation();this.classList.toggle(\'on\')" aria-label="Favori">' + ico('heart', 17, 1.6) + '</button>'
-    +   '<span class="a-edge" style="background:'+accent+'"></span>'
+    +   '<span style="position:absolute;top:11px;left:11px;z-index:1;font-family:var(--mono);font-size:8.5px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;background:rgba(15,12,9,0.65);border:1px solid '+hexA(accent,0.4)+';color:rgba(246,240,228,0.92);padding:6px 10px;border-radius:20px">' + esc(a.tag) + '</span>'
+    +   '<button class="a-fav" style="position:absolute;top:9px;right:9px;z-index:1;width:34px;height:34px;border-radius:50%;border:none;background:rgba(15,12,9,0.5);color:rgba(246,240,228,0.85);display:flex;align-items:center;justify-content:center;cursor:pointer" onclick="event.stopPropagation();this.classList.toggle(\'on\')" aria-label="Favori">' + ico('heart', 16, 1.6) + '</button>'
+    +   '<span style="position:absolute;bottom:14px;right:14px;z-index:1;color:'+hexA(accent,0.9)+';display:flex;opacity:0.95">' + ico(a.i, 24, 1.4) + '</span>'
+    +   '<span style="position:absolute;left:14px;right:14px;bottom:13px;height:1px;z-index:0;background:'+hexA(accent,0.25)+'"></span>'
     + '</div>'
     + '<div class="a-body">'
     +   '<div class="a-top"><span class="a-n">' + esc(a.n) + '</span><span class="a-rate">' + ico('star', 11) + a.rate + '</span></div>'
@@ -334,13 +334,13 @@ function bookingView(accId){
   const total = a.price * a.nights;
   const accent = accThemeAccent(a, ITINERARY);
   const isAirbnb = /villa|appartement|apparthotel|maison|airbnb|guesthouse|gîte|loft/.test((a.type||'').toLowerCase());
-  return '<div class="book-hero" style="position:relative;overflow:hidden;background:linear-gradient(160deg,#1c1812,#0d0b08)">'
-    +   '<svg class="grat" viewBox="0 0 393 280" preserveAspectRatio="none" fill="none" stroke="'+hexA(accent,0.4)+'" stroke-width="0.5">'
+  return '<div class="book-hero" style="position:relative;overflow:hidden;height:245px;background:radial-gradient(120% 100% at 15% 0%,'+hexA(accent,0.28)+',transparent 60%),linear-gradient(155deg,#1c1812,#0d0b08 55%,#000)">'
+    +   '<svg style="position:absolute;inset:0;width:100%;height:100%" viewBox="0 0 393 280" preserveAspectRatio="none" fill="none" stroke="'+hexA(accent,0.4)+'" stroke-width="0.5">'
     +     [0,1,2,3,4,5,6].map(function(i){ return '<line x1="'+(i*65.5)+'" y1="0" x2="'+(i*65.5)+'" y2="280"/>'; }).join('')
     +     [0,1,2,3,4,5,6].map(function(i){ return '<line x1="0" y1="'+(i*46.6)+'" x2="393" y2="'+(i*46.6)+'"/>'; }).join('')
     +   '</svg>'
-    +   '<span class="a-icring book-icring" style="border-color:'+hexA(accent,0.5)+';color:'+hexA(accent,0.95)+'">' + ico(a.i, 30, 1.3) + '</span>'
-    +   '<span class="a-edge" style="background:'+accent+'"></span>'
+    +   '<span style="position:absolute;bottom:20px;right:24px;z-index:1;color:'+hexA(accent,0.9)+';display:flex;opacity:0.95">' + ico(a.i, 32, 1.3) + '</span>'
+    +   '<span style="position:absolute;left:24px;right:24px;bottom:19px;height:1px;z-index:0;background:'+hexA(accent,0.25)+'"></span>'
     +   '<div class="navbar" style="position:absolute;top:54px;left:0;right:0;z-index:1"><button class="nav-btn" onclick="closeOverlay()" aria-label="Retour">' + ico('back',20,1.7) + '</button>'
     +   '<button class="nav-btn" onclick="this.classList.toggle(\'on\');" aria-label="Favori">' + ico('heart',18,1.6) + '</button></div>'
     + '</div>'
