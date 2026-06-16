@@ -29,6 +29,11 @@ function _occasionLabel(id){
   const o=(typeof OCCASIONS!=='undefined')&&OCCASIONS.find(function(x){return x.id===id;});
   return o?o.label:null;
 }
+function _interestsDirective(){
+  const interests=(state.interests||[]);
+  if(!interests.length) return '';
+  return 'INTÉRÊTS DU CLIENT (impératif — CHAQUE jour doit refléter au moins un de ces intérêts dans ses moments/activités, et la majorité des moments du voyage doivent s\'y rattacher) : '+interests.join(', ')+'. Ne propose PAS d\'activités hors de ces thèmes sauf nécessité logistique (transferts, repas).';
+}
 
 /* ── traduction des réponses du questionnaire en consignes concrètes ── */
 const RYTHME_MOMENTS={'Lent':2,'Équilibré':3,'Intense':4};
@@ -103,6 +108,23 @@ function _themeForDestination(dest, region, country){
   return 'tropical';
 }
 
+/* ── coefficient de coût de vie par destination ──────────────────────
+   Le niveau de confort (Éco/Confort/Luxe/Ultra) définit une fourchette
+   de base en €/pers/jour, calibrée sur un coût de vie "Europe de l'Ouest".
+   Ce coefficient l'ajuste à la réalité locale (Asie du SE, Afrique etc.
+   sont nettement moins chères ; Japon/Suisse/USA/Émirats plus chères). ── */
+function _costOfLivingFactor(dest, region, country){
+  const s=((dest||'')+' '+(region||'')+' '+(country||'')).toLowerCase();
+  /* zones très onéreuses */
+  if(/japon|tokyo|kyoto|suisse|norvège|islande|new york|émirats|dubai|singapour|hong kong/.test(s)) return 1.25;
+  /* zones très économiques */
+  if(/thaïlande|vietnam|cambodge|laos|indonésie|bali|sri lanka|inde|népal|philippines|maroc|égypte|kenya|tanzanie|madagascar/.test(s)) return 0.55;
+  /* zones modérément économiques */
+  if(/portugal|grèce|croatie|mexique|pérou|colombie|turquie|géorgie|albanie/.test(s)) return 0.75;
+  /* défaut : Europe de l'Ouest / Amérique du Nord */
+  return 1;
+}
+
 /* ── brief ───────────────────────────────────────────────────────────── */
 function buildBrief(){
   const surprise=state.createTab==='surprise';
@@ -119,7 +141,7 @@ function buildBrief(){
   const flightsLine=(state.flightOut||state.flightIn)
     ?'Vols : aller '+(state.flightOut||'non renseigné')+' / retour '+(state.flightIn||'non renseigné'):'';
   const lines=[
-    'Destination : '+(surprise||!state.destination?'SURPRISE — choisis la destination la plus désirable pour ce profil':state.destination),
+    'Destination : '+(state.destination?state.destination:(surprise?'SURPRISE — choisis la destination la plus désirable pour ce profil':'')),
     'Départ : '+(state.origin||'Paris'),
     datesLine, durationLine,
     'Voyageurs : '+travelerLabel(),
@@ -147,7 +169,7 @@ function buildSkeletonPrompt(dc, batchSize, offset){
     '- Réponds UNIQUEMENT en JSON compact valide, sans texte ni markdown autour.',
   ];
   if(isFirst){
-    const directives=[_rythmeDirective(),_occasionDirective(),_styleDirective(),_dreamDirective()].filter(Boolean);
+    const directives=[_interestsDirective(),_rythmeDirective(),_occasionDirective(),_styleDirective(),_dreamDirective()].filter(Boolean);
     return [
       'Tu es le cartographe senior de Hic Sunt, maison de voyages haut de gamme avec une exigence éditoriale absolue.',
       'Compose l\'OSSATURE d\'un itinéraire RÉEL, DÉSIRABLE et PRÉCIS de '+dc+' jours au total.',
@@ -195,7 +217,7 @@ function buildSkeletonPrompt(dc, batchSize, offset){
 function buildDaysPrompt(skel, planSteps, offset){
   const b=buildBrief();
   const nMoments=_momentsPerDay();
-  const directives=[_rythmeDirective(),_occasionDirective(),_styleDirective(),_dreamDirective()].filter(Boolean);
+  const directives=[_interestsDirective(),_rythmeDirective(),_occasionDirective(),_styleDirective(),_dreamDirective()].filter(Boolean);
   const steps=planSteps.map(function(p,i){return (offset+i+1)+'. '+p.title+' — '+p.loc+(p.hook?' ('+p.hook+')':'');}).join('\n');
   return [
     'Tu es le cartographe de Hic Sunt. Tu rédiges les détails éditoriaux de ces étapes (jours '+(offset+1)+' à '+(offset+planSteps.length)+' du voyage de '+skel.dest+').',
@@ -230,7 +252,7 @@ function buildHighlightsPrompt(skel, days){
   const b=buildBrief();
   const dest=skel.dest||'';
   const interests=(state.interests||[]).join(', ')||'';
-  const directives=[_occasionDirective(),_styleDirective(),_dreamDirective()].filter(Boolean);
+  const directives=[_interestsDirective(),_occasionDirective(),_styleDirective(),_dreamDirective()].filter(Boolean);
   const locs=(skel.plan||[]).map(function(p){return p.loc;}).filter(function(v,i,a){return a.indexOf(v)===i;}).join(', ');
   const wantSpa=interests.toLowerCase().includes('spa')||interests.toLowerCase().includes('bien-être')||state.occasion==='lune-de-miel';
   const wantNature=interests.toLowerCase().includes('nature')||interests.toLowerCase().includes('randonn');
@@ -318,8 +340,10 @@ function applyGenerated(skel, daysDetail, hilites){
   const dc=_clampInt(skel.days_count, 1, 60, buildBrief().daysCount);
 
   /* hébergements */
-  const ACC_PRICE_RANGE={'Éco':[30,90],'Confort':[80,200],'Luxe':[180,450],'Ultra':[400,1200]};
-  const accRange=ACC_PRICE_RANGE[level]||ACC_PRICE_RANGE['Confort'];
+  const colFactor=_costOfLivingFactor(dest, skel.region, skel.country);
+  const ACC_PRICE_RANGE_BASE={'Éco':[25,70],'Confort':[60,140],'Luxe':[150,400],'Ultra':[350,1100]};
+  const baseAcc=ACC_PRICE_RANGE_BASE[level]||ACC_PRICE_RANGE_BASE['Confort'];
+  const accRange=[Math.round(baseAcc[0]*colFactor), Math.round(baseAcc[1]*colFactor)];
   const stayTags=['Coup de cœur','Adresse rare','Signature Hic Sunt','Pépite locale','Écrin de sérénité'];
   const stayRates=['4,96','4,89','4,92','4,88','4,94'];
   const stays=(Array.isArray(skel.stays)?skel.stays:[]).slice(0,5).map(function(s,i){
@@ -449,6 +473,30 @@ function deriveBudget(stays, total){
 
 /* ── 3 passes de génération ─────────────────────────────────────────── */
 const DAYS_BATCH_SIZE = 7;
+/* ── Mode "Surprenez-moi" : suggestion légère avant génération complète ── */
+function buildDestinationSuggestPrompt(excluded){
+  const b=buildBrief();
+  const directives=[_interestsDirective(),_rythmeDirective(),_occasionDirective(),_styleDirective(),_dreamDirective()].filter(Boolean);
+  const excludeLine=(excluded&&excluded.length)?('Ne propose AUCUNE des destinations déjà suggérées et refusées : '+excluded.join(', ')+'.'):'';
+  return [
+    'Tu es le cartographe senior de Hic Sunt, maison de voyages haut de gamme spécialisée dans les destinations hors des sentiers battus.',
+    'Propose UNE SEULE destination (pays ou région), la plus désirable et la plus adaptée à ce profil.',
+    '',
+    '═══ BRIEF CLIENT ═══',
+    b.lines,
+    '',
+    '═══ DIRECTIVES ═══',
+    directives.length?directives.join('\n'):'Aucune contrainte spécifique au-delà du brief ci-dessus.',
+    excludeLine,
+    '',
+    'Réponds UNIQUEMENT en JSON compact valide :',
+    '{"dest":"nom du pays/région","country":"pays","tagline":"phrase poétique évocatrice (max 12 mots)","teaser":"2 phrases qui donnent envie, en lien avec le brief (max 35 mots)","coords":"ex: 6°55′N · 79°51′E"}',
+  ].join('\n');
+}
+async function suggestDestination(excluded){
+  return await _completeJSON(buildDestinationSuggestPrompt(excluded));
+}
+
 async function callCartographe(){
   const b=buildBrief();
   const dc=b.daysCount;
@@ -488,9 +536,67 @@ async function callCartographe(){
 
 /* ── flux de génération ─────────────────────────────────────────────── */
 async function runGeneration(){
+  if(state.createTab==='surprise' && !state.destination){
+    await runDestinationSuggestion([]);
+    return;
+  }
+  await runFullGeneration();
+}
+
+/* ── Étape 1 (mode Surprenez-moi) : suggestion de destination ────────── */
+async function runDestinationSuggestion(excluded){
   const el=openOverlay('generating',generationView(),{modal:true,carto:true});
   const gen=el.querySelector('.gen');
   requestAnimationFrame(function(){gen.classList.add('run');});
+  const statusEl=el.querySelector('[data-gen-status]');
+  if(statusEl) statusEl.textContent='Lecture de vos envies…';
+  const minShow=new Promise(function(r){setTimeout(r,1400);});
+  let suggestion=null;
+  try{const res=await Promise.all([suggestDestination(excluded),minShow]);suggestion=res[0];}catch(e){await minShow;}
+  if(!suggestion||!suggestion.dest){
+    toast('Connexion limitée — réessayez');
+    closeOverlay();
+    return;
+  }
+  state._suggested=suggestion;
+  state._suggestedExcluded=excluded;
+  gen.classList.remove('run');
+  setTimeout(function(){
+    gen.outerHTML = destinationSuggestView(suggestion);
+    const newGen=el.querySelector('.gen');
+    requestAnimationFrame(function(){requestAnimationFrame(function(){newGen.classList.add('run');});});
+  },280);
+}
+async function retrySuggestion(){
+  const excluded=(state._suggestedExcluded||[]).concat(state._suggested?[state._suggested.dest]:[]);
+  await runDestinationSuggestion(excluded);
+}
+async function confirmSuggestedDestination(){
+  const s=state._suggested;
+  if(!s) return;
+  state.destination=s.dest;
+  state._suggestedTagline=s.tagline||'';
+  const el=document.querySelector('.ov[data-ov="generating"] .gen');
+  if(el){
+    el.classList.remove('run');
+    setTimeout(function(){
+      el.outerHTML = generationView();
+      const newGen=document.querySelector('.ov[data-ov="generating"] .gen');
+      requestAnimationFrame(function(){requestAnimationFrame(function(){newGen.classList.add('run');});});
+      runFullGeneration(true);
+    },280);
+  } else {
+    runFullGeneration(true);
+  }
+}
+
+/* ── Étape 2 : génération complète de l'itinéraire ────────────────────── */
+async function runFullGeneration(overlayAlreadyOpen){
+  const el = overlayAlreadyOpen
+    ? document.querySelector('.ov[data-ov="generating"]')
+    : openOverlay('generating',generationView(),{modal:true,carto:true});
+  const gen=el.querySelector('.gen');
+  if(!overlayAlreadyOpen) requestAnimationFrame(function(){gen.classList.add('run');});
   const statusEl=el.querySelector('[data-gen-status]');
   const steps=[
     'Lecture de vos envies…','Choix des étapes…',"Tracé de l'itinéraire…",
@@ -514,6 +620,7 @@ async function runGeneration(){
     openItinerary();
     saveItinerary();
     state.deckIndex=0;
+    state._suggested=null; state._suggestedExcluded=null;
     if(typeof initDeck==='function') initDeck();
     setTimeout(function(){
       const gi=ovStack.findIndex(function(o){return o.dataset.ov==='generating';});

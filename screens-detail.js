@@ -127,6 +127,22 @@ function generationView(){
     + '</div></div>';
 }
 
+/* ── Suggestion de destination (mode "Surprenez-moi") ────────────────── */
+function destinationSuggestView(s){
+  return '<div class="gen suggest">' + statusBar(true)
+    + '<div class="gen-body">'
+    +   '<span class="eyebrow" style="color:var(--gold-soft)">Destination suggérée</span>'
+    +   '<h1 class="sugg-dest">' + esc(s.dest||'') + '</h1>'
+    +   '<p class="sugg-tag">' + esc(s.tagline||'') + '</p>'
+    +   '<p class="sugg-teaser">' + esc(s.teaser||'') + '</p>'
+    +   (s.coords?'<div class="sugg-coords">'+esc(s.coords)+'</div>':'')
+    +   '<div class="sugg-acts">'
+    +     '<button class="btn gold" onclick="confirmSuggestedDestination()">' + ico('sparkle',18,1.7) + 'Composer cet itinéraire</button>'
+    +     '<button class="btn-ghost on-dark" onclick="retrySuggestion()">Proposer une autre destination</button>'
+    +   '</div>'
+    + '</div></div>';
+}
+
 /* ── gradients par type d'hébergement, teintés par la palette destination ── */
 const ACC_TYPE_GRADIENT={
   wave:['#5B9FBE','#3d7a96'], droplet:['#E8A0A0','#c97a7a'], leaf:['#7BAE6E','#5a8a4f'],

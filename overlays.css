@@ -191,3 +191,12 @@
 .gen-bar{width:148px;height:1.5px;background:rgba(246,240,228,0.14);border-radius:2px;overflow:hidden}
 .gen-bar i{display:block;height:100%;width:40%;background:var(--gold-soft);animation:genbar 1.5s ease-in-out infinite}
 @keyframes genbar{0%{transform:translateX(-110%)}100%{transform:translateX(380%)}}
+
+/* ── suggestion de destination (mode Surprenez-moi) ── */
+.gen.suggest .gen-body{gap:14px;text-align:center}
+.sugg-dest{font-family:var(--serif);font-weight:600;font-size:42px;letter-spacing:-0.5px;color:var(--onink)}
+.sugg-tag{font-family:var(--serif);font-style:italic;font-size:16px;color:var(--gold-soft);line-height:1.4}
+.sugg-teaser{font-size:13px;font-weight:300;color:rgba(246,240,228,0.7);line-height:1.6;max-width:280px}
+.sugg-coords{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(246,240,228,0.4);margin-top:4px}
+.sugg-acts{display:flex;flex-direction:column;gap:10px;width:100%;margin-top:18px}
+.btn-ghost.on-dark{color:var(--onink);border-color:rgba(246,240,228,0.22);background:transparent}
