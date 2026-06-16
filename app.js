@@ -295,20 +295,25 @@ async function saveItinerary(){
 }
 async function loadItineraries(){
   const token = localStorage.getItem('sb_token');
-  if(!token) return [];
+  if(!token) return null;
   try{
     const res = await fetch(SUPABASE_URL+'/rest/v1/itineraries?select=*&order=created_at.desc',{
       headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+token}
     });
+    if(!res.ok) return null;
     const data = await res.json();
-    return Array.isArray(data) ? data : [];
-  }catch(e){ return []; }
+    return Array.isArray(data) ? data : null;
+  }catch(e){ return null; }
 }
 async function loadVoyagesTab(){
   const items = await loadItineraries();
   const host = document.querySelector('[data-trips]');
   if(!host) return;
-  if(!items||!items.length){
+  if(items===null){
+    host.innerHTML = '<p style="text-align:center;padding:40px 0;color:var(--sub);font-size:14px;font-style:italic">Erreur de chargement. Réessayez.</p>';
+    return;
+  }
+  if(!items.length){
     host.innerHTML = '<p style="text-align:center;padding:40px 0;color:var(--sub);font-size:14px;font-style:italic">Aucun voyage sauvegardé.<br>Composez votre premier itinéraire.</p>';
     return;
   }
@@ -339,8 +344,12 @@ async function loadSavedItinerary(id){
 async function deleteSavedItinerary(id){
   const token = localStorage.getItem('sb_token');
   if(!token) return;
+  if(!id || typeof id !== 'string' || !id.trim()){
+    toast('Erreur : voyage non identifié');
+    return;
+  }
   try{
-    await fetch(SUPABASE_URL+'/rest/v1/itineraries?id=eq.'+id,{
+    await fetch(SUPABASE_URL+'/rest/v1/itineraries?id=eq.'+encodeURIComponent(id),{
       method:'DELETE',
       headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+token}
     });

@@ -60,15 +60,21 @@ async function loadDiscoverTrips(){
   const items = await loadItineraries();
   const host = document.querySelector('[data-disc-trips]');
   if(!host) return;
-  if(!items||!items.length){
+  if(items===null){
+    host.innerHTML = '<p style="text-align:center;padding:24px 0;color:var(--sub);font-size:13px;font-style:italic">Erreur de chargement.</p>';
+    return;
+  }
+  if(!items.length){
     host.innerHTML = '<p style="text-align:center;padding:24px 0;color:var(--sub);font-size:13px;font-style:italic">Aucun voyage sauvegardé pour le moment.</p>';
     return;
   }
   host.innerHTML = items.slice(0,3).map(savedTripCard).join('');
   const cards = host.querySelectorAll('.trip');
-  cards.forEach(function(c, i){
-    c.style.animationDelay = (i * 70) + 'ms';
-    c.classList.add('trip-in');
+  requestAnimationFrame(function(){
+    cards.forEach(function(c, i){
+      c.style.animationDelay = (i * 70) + 'ms';
+      c.classList.add('trip-in');
+    });
   });
 }
 
