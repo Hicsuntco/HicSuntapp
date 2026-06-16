@@ -97,11 +97,14 @@ function setTab(name){
   for (let i = 0; i < views.length; i++){
     const v = views[i];
     const on = v.dataset.tab === name;
+    v.classList.toggle('active', on);
     if (on){
       if (name === 'discover') {
         v.innerHTML = discoverView();
         const tiles = v.querySelectorAll('.dest-grid > *');
-        tiles.forEach(function(t, i){ t.style.animationDelay = (i * 55) + 'ms'; t.classList.add('tile-in'); });
+        requestAnimationFrame(function(){
+          tiles.forEach(function(t, i){ t.style.animationDelay = (i * 55) + 'ms'; t.classList.add('tile-in'); });
+        });
         loadDiscoverTrips();
       }
       if (name === 'create')   v.innerHTML = createView();
@@ -109,7 +112,6 @@ function setTab(name){
       if (name === 'profile')  v.innerHTML = profileView();
       v.scrollTop = 0;
     }
-    v.classList.toggle('active', on);
   }
   const btns = screenEl().querySelectorAll('[data-tabbtn]');
   for (let i = 0; i < btns.length; i++) btns[i].classList.toggle('on', btns[i].dataset.tabbtn === name);
@@ -120,7 +122,7 @@ function setTab(name){
 /* ── openers ── */
 function openItinerary(){
   const el = openOverlay('itinerary', itineraryView());
-  requestAnimationFrame(function(){ revealOnScroll(el); });
+  requestAnimationFrame(function(){ requestAnimationFrame(function(){ revealOnScroll(el); }); });
 }
 function revealOnScroll(container){
   const rows = container.querySelectorAll('.dayrow');
@@ -312,9 +314,11 @@ async function loadVoyagesTab(){
   }
   host.innerHTML = items.map(savedTripCard).join('');
   const cards = host.querySelectorAll('.trip');
-  cards.forEach(function(c, i){
-    c.style.animationDelay = (i * 70) + 'ms';
-    c.classList.add('trip-in');
+  requestAnimationFrame(function(){
+    cards.forEach(function(c, i){
+      c.style.animationDelay = (i * 70) + 'ms';
+      c.classList.add('trip-in');
+    });
   });
 }
 async function loadSavedItinerary(id){
@@ -369,11 +373,25 @@ function handleAuthCallback(){
 /* ── splash de lancement ─────────────────────────────────────────────── */
 function splashHTML(){
   return '<div class="splash" data-splash>'
-    +   '<div class="splash-mark">'
-    +     '<span class="splash-word">Hic</span><span class="splash-word splash-em"><em>Sunt</em></span>'
+    +   '<svg class="splash-grid" viewBox="0 0 393 852" preserveAspectRatio="none" fill="none">'
+    +     [0,1,2,3,4,5,6].map(function(i){ return '<line class="sg-line" x1="'+(i*65.5)+'" y1="0" x2="'+(i*65.5)+'" y2="852"/>'; }).join('')
+    +     [0,1,2,3,4,5,6,7,8,9,10,11,12].map(function(i){ return '<line class="sg-line" x1="0" y1="'+(i*71)+'" x2="393" y2="'+(i*71)+'"/>'; }).join('')
+    +   '</svg>'
+    +   '<svg class="splash-compass" viewBox="0 0 120 120" fill="none">'
+    +     '<circle class="sc-ring" cx="60" cy="60" r="46"/>'
+    +     '<circle class="sc-ring sc-ring2" cx="60" cy="60" r="58"/>'
+    +     '<g class="sc-needle"><path d="M60 18 L67 60 L60 102 L53 60 Z"/></g>'
+    +     '<text class="sc-n" x="60" y="11" text-anchor="middle">N</text>'
+    +   '</svg>'
+    +   '<span class="splash-coord splash-coord-1">48°51′N</span>'
+    +   '<span class="splash-coord splash-coord-2">2°21′E</span>'
+    +   '<div class="splash-core">'
+    +     '<div class="splash-mark">'
+    +       '<span class="splash-word">Hic</span><span class="splash-word splash-em"><em>Sunt</em></span>'
+    +     '</div>'
+    +     '<div class="splash-rule"></div>'
+    +     '<div class="splash-tag">Beyond the Known</div>'
     +   '</div>'
-    +   '<div class="splash-rule"></div>'
-    +   '<div class="splash-tag">Beyond the Known</div>'
     + '</div>';
 }
 function playSplash(next){
@@ -389,7 +407,7 @@ function playSplash(next){
       if (splash.parentNode) splash.parentNode.removeChild(splash);
       next();
     }, 480);
-  }, 1500);
+  }, 2000);
 }
 
 /* ── boot ── */

@@ -16,7 +16,7 @@
   --tile-bg:linear-gradient(160deg,#efe9da,#e4dac6);
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{background:red !important;height:100%;overflow:hidden}
+html,body{background:#ece7da;height:100%;overflow:hidden}
 body{position:fixed;inset:0;font-family:var(--sf);color:var(--ink);height:100%;
   background:
     radial-gradient(1200px 600px at 80% -10%, rgba(156,124,68,0.07), transparent 60%),
@@ -141,17 +141,35 @@ textarea.input{height:auto;min-height:110px;padding:14px 16px;resize:none;line-h
 
 .ico{display:block;flex:none}
 
-/* ── splash de lancement ── */
-.splash{position:absolute;inset:0;z-index:600;background:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;opacity:1;transition:opacity 0.48s ease}
+/* ── splash de lancement · cartographique ── */
+.splash{position:absolute;inset:0;z-index:600;background:var(--ink);display:flex;align-items:center;justify-content:center;opacity:1;overflow:hidden;transition:opacity 0.5s ease}
 .splash.out{opacity:0}
+
+.splash-grid{position:absolute;inset:0;width:100%;height:100%;stroke:var(--gold-soft)}
+.sg-line{stroke-dasharray:4 6;stroke-width:0.6;opacity:0;stroke-dashoffset:140;transition:opacity 1.1s ease,stroke-dashoffset 1.4s cubic-bezier(.22,.68,.2,1)}
+.splash.run .sg-line{opacity:0.16;stroke-dashoffset:0}
+
+.splash-compass{position:absolute;width:230px;height:230px;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.82) rotate(-26deg);opacity:0;transition:opacity 0.8s ease,transform 1.3s cubic-bezier(.22,.68,.2,1)}
+.splash.run .splash-compass{opacity:0.5;transform:translate(-50%,-50%) scale(1) rotate(0deg)}
+.sc-ring{stroke:var(--gold-soft);stroke-width:0.6;fill:none}
+.sc-ring2{stroke-dasharray:2 5;opacity:0.6}
+.sc-needle path{fill:var(--gold-soft)}
+.sc-n{font-family:var(--mono);font-size:7px;font-weight:700;fill:var(--sub);letter-spacing:1px}
+
+.splash-coord{position:absolute;font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--sub);opacity:0;transition:opacity 0.7s ease}
+.splash.run .splash-coord{opacity:0.55}
+.splash-coord-1{top:18%;left:9%;transition-delay:0.5s}
+.splash-coord-2{bottom:20%;right:9%;transition-delay:0.7s}
+
+.splash-core{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:14px}
 .splash-mark{font-family:var(--serif);font-weight:600;font-size:34px;letter-spacing:-0.4px;color:var(--onink);display:flex;gap:10px;overflow:hidden}
 .splash-word{display:inline-block;opacity:0;transform:translateY(14px);transition:opacity 0.7s cubic-bezier(.22,.68,.2,1.1),transform 0.7s cubic-bezier(.22,.68,.2,1.1)}
 .splash-em em{font-style:italic;color:var(--gold-soft)}
-.splash.run .splash-word{opacity:1;transform:translateY(0)}
-.splash.run .splash-word.splash-em{transition-delay:0.12s}
-.splash-rule{width:0;height:1px;background:var(--gold-soft);transition:width 0.9s cubic-bezier(.22,.68,.2,1) 0.32s}
+.splash.run .splash-word{opacity:1;transform:translateY(0);transition-delay:0.35s}
+.splash.run .splash-word.splash-em{transition-delay:0.47s}
+.splash-rule{width:0;height:1px;background:var(--gold-soft);transition:width 0.9s cubic-bezier(.22,.68,.2,1) 0.7s}
 .splash.run .splash-rule{width:120px}
-.splash-tag{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:var(--sub);opacity:0;transition:opacity 0.6s ease 0.55s}
+.splash-tag{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:var(--sub);opacity:0;transition:opacity 0.6s ease 0.95s}
 .splash.run .splash-tag{opacity:1}
 
 /* ── cascade d'apparition des cartes de voyages ── */
@@ -161,6 +179,7 @@ textarea.input{height:auto;min-height:110px;padding:14px 16px;resize:none;line-h
 /* ── apparition progressive des jours dans l'itinéraire ── */
 .dayrow.reveal{opacity:0;transform:translateY(18px);transition:opacity 0.5s cubic-bezier(.22,.68,.2,1),transform 0.5s cubic-bezier(.22,.68,.2,1)}
 .dayrow.reveal.in{opacity:1;transform:translateY(0)}
+
 
 /* ── apparition en cascade des destinations suggérées ── */
 .tile-in{opacity:0;transform:translateY(12px) scale(0.98);animation:tileIn 0.5s cubic-bezier(.22,.68,.2,1) forwards}
