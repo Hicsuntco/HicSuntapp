@@ -2,7 +2,7 @@
    Connecté à l'Edge Function Supabase (super-endpoint).
    3 passes : ossature → jours détaillés → adresses & highlights        */
 
-const SUPABASE_ENDPOINT = 'https://lucbxwxcismnvcdnctau.supabase.co/functions/v1/super-endpoint';
+const SUPABASE_ENDPOINT = 'https://lucbxwxcismnvcdnctau.supabase.co/functions/v1/generate-itinerary';
 
 const GEN_KINDS = ['plane','fork','droplet','wave','peaks','arch','leaf','sun','moon','bed','star','camera','ticket','pin','compass'];
 const GEN_SKY   = ['sun','cloud','rain'];
@@ -131,6 +131,31 @@ function _costOfLivingFactor(dest, region, country){
   if(/portugal|grèce|croatie|mexique|pérou|colombie|turquie|géorgie|albanie/.test(s)) return 0.75;
   /* défaut : Europe de l'Ouest / Amérique du Nord */
   return 1;
+}
+
+/* ── fourchettes de prix de vols A/R au départ de Paris, par zone ──────
+   Calibré sur des moyennes réelles observées (sources : comparateurs de vols,
+   moyennes 2026). Volontairement large car les tarifs varient fortement
+   selon la saison et le délai de réservation — l'objectif est un budget
+   crédible, pas un prix de billet exact. ── */
+const FLIGHT_BANDS={
+  court:    [80, 320],   /* Maroc, Italie, Espagne, Portugal, Grèce, Croatie... */
+  moyen:    [250, 550],  /* Turquie, Égypte, Émirats, Europe de l'Est lointaine... */
+  long:     [600, 1050], /* Thaïlande, Bali, Sri Lanka, Kenya, Inde... */
+  tresLong: [800, 1450], /* Amérique, Océanie, Japon, Pacifique... */
+};
+function _flightBand(dest, region, country){
+  const s=((dest||'')+' '+(region||'')+' '+(country||'')).toLowerCase();
+  if(/maroc|italie|espagne|portugal|grèce|croatie|sardaigne|sicile|provence|méditerran|tunisie|malte|chypre/.test(s)) return 'court';
+  if(/turquie|égypte|émirats|dubai|jordanie|géorgie|albanie|israël|liban|arménie/.test(s)) return 'moyen';
+  if(/thaïlande|vietnam|cambodge|laos|indonésie|bali|sri lanka|inde|népal|philippines|kenya|tanzanie|madagascar|maldives|birmanie/.test(s)) return 'long';
+  if(/japon|corée|chine|singapour|hong kong|australie|nouvelle-zélande|pérou|colombie|mexique|brésil|argentine|chili|états-unis|canada|polynésie|tahiti|fidji/.test(s)) return 'tresLong';
+  return 'long';
+}
+function _flightEstimate(dest, region, country, travelers){
+  const band = FLIGHT_BANDS[_flightBand(dest, region, country)];
+  const perPerson = Math.round((band[0]+band[1])/2);
+  return perPerson * Math.max(1, travelers||1);
 }
 
 /* ── brief ───────────────────────────────────────────────────────────── */
@@ -342,7 +367,7 @@ function _momentIcon(ti){
 }
 
 /* ── application du JSON → ITINERARY ────────────────────────────────── */
-function applyGenerated(skel, daysDetail, hilites){
+function applyGenerated(skel, daysDetail, hilites, flightInfo){
   const dest=skel.dest||state.destination||'Votre voyage';
   const level=['Éco','Confort','Luxe','Ultra'].includes(skel.level)?skel.level:(state.budget||'Confort');
   const dc=_clampInt(skel.days_count, 1, 60, buildBrief().daysCount);
@@ -411,9 +436,14 @@ function applyGenerated(skel, daysDetail, hilites){
   const minBudget=Math.round(ppd[0]*travelers*dc);
   const maxBudget=Math.round(ppd[1]*travelers*dc);
   const stayCost=stays.reduce(function(s,a){return s+a.price*a.nights;},0);
+  /* prix de vol : on privilégie la recherche web fraîche si elle a renvoyé un résultat plausible,
+     sinon on retombe sur la fourchette statique par zone */
+  const staticFlight=_flightEstimate(dest, skel.region, skel.country, travelers);
+  const flightFloor=(flightInfo&&flightInfo.amount>0)?flightInfo.amount:staticFlight;
   let budgetTotal=_clampInt(skel.budget, minBudget, maxBudget*1.15, Math.round((minBudget+maxBudget)/2));
-  /* le budget doit au moins couvrir l'hébergement */
-  if(budgetTotal<stayCost) budgetTotal=Math.min(Math.round(stayCost*1.5), maxBudget*1.15);
+  /* le budget doit au moins couvrir l'hébergement et une estimation réaliste des vols */
+  const essentialFloor=stayCost+flightFloor;
+  if(budgetTotal<essentialFloor) budgetTotal=Math.min(Math.round(essentialFloor*1.25), Math.max(maxBudget*1.15, essentialFloor*1.25));
 
   /* application */
   ITINERARY.plan.length=0; plan.forEach(function(p){ITINERARY.plan.push(p);});
@@ -425,6 +455,7 @@ function applyGenerated(skel, daysDetail, hilites){
     budgetTotal:budgetTotal, coords:skel.coords||dest, distance:plan.length+' jours',
     region:skel.region||'', season:skel.season||'', generated:true,
     theme:themeName, palette:THEME_PALETTES[themeName],
+    dateFrom:state.dateFrom||'', dateTo:state.dateTo||'',
   });
 
   /* highlights */
@@ -436,7 +467,7 @@ function applyGenerated(skel, daysDetail, hilites){
   }
 
   deriveActivities(plan);
-  deriveBudget(stays, budgetTotal);
+  deriveBudget(stays, budgetTotal, dest, skel.region, skel.country, travelers, flightInfo);
   if(typeof SEASON!=='undefined'&&skel.season){SEASON.best=skel.season;SEASON.note=skel.season;}
   return true;
 }
@@ -454,7 +485,7 @@ function deriveActivities(plan){
     ACTIVITIES.push({id:'ac'+(i+1),day:a.day,i:a.i,n:a.n,loc:a.loc,dur:ACT_DUR[i%ACT_DUR.length],rate:['4,9','4,95','4,8','4,88','4,92','4,97'][i%6],price:base+(i%2?7:0),tag:a.tag});
   });
 }
-function deriveBudget(stays, total){
+function deriveBudget(stays, total, dest, region, country, travelers, flightInfo){
   if(typeof BUDGET==='undefined') return;
   const stayCost=stays.reduce(function(s,a){return s+a.price*a.nights;},0);
   const nights=stays.reduce(function(s,a){return s+a.nights;},0);
@@ -462,17 +493,22 @@ function deriveBudget(stays, total){
 
   /* hébergement = coût réel, plafonné pour laisser de la place aux autres postes */
   const accom=Math.min(stayCost, Math.round(total*0.55));
-  /* le reste du budget se répartit par parts proportionnelles fixes */
   const remainder=total-accom;
-  const flights=Math.round(remainder*0.40);
-  const food=Math.round(remainder*0.22);
-  const activities=Math.round(remainder*0.23);
-  const transfers=remainder-flights-food-activities;
+  /* vols = prix issu d'une recherche web fraîche si disponible et plausible,
+     sinon fourchette statique par zone — plafonné à ce que le budget restant peut absorber */
+  const hasRealFlight=flightInfo&&flightInfo.amount>0;
+  const flightsRaw=hasRealFlight?flightInfo.amount:_flightEstimate(dest, region, country, travelers);
+  const flights=Math.min(flightsRaw, Math.round(remainder*0.65));
+  const afterFlights=remainder-flights;
+  const food=Math.round(afterFlights*0.38);
+  const activities=Math.round(afterFlights*0.40);
+  const transfers=afterFlights-food-activities;
+  const flightSub=(state.origin||'Paris')+' · aller-retour · '+travelerLabel()+(hasRealFlight&&flightInfo.source?' · estimation '+flightInfo.source:' · estimation')
 
   BUDGET.total=total; BUDGET.spent=0;
   BUDGET.lines=[
     {i:'bed',n:'Hébergements',sub:nights+' nuit'+(nights>1?'s':'')+' · '+stays.length+' adresse'+(stays.length>1?'s':''),amount:accom,paid:false},
-    {i:'plane',n:'Vols',sub:(state.origin||'Paris')+' · aller-retour · '+travelerLabel(),amount:flights,paid:false},
+    {i:'plane',n:'Vols',sub:flightSub,amount:flights,paid:false},
     {i:'ticket',n:'Activités & expériences',sub:nbAct+' sélectionnée'+(nbAct>1?'s':''),amount:activities,paid:false},
     {i:'fork',n:'Restauration',sub:'Estimation · demi-pension',amount:food,paid:false},
     {i:'compass',n:'Transferts & transport local',sub:'Selon votre circuit',amount:Math.max(0,transfers),paid:false},
@@ -505,6 +541,38 @@ async function suggestDestination(excluded){
   return await _completeJSON(buildDestinationSuggestPrompt(excluded));
 }
 
+/* ── recherche web du prix de vol (appel séparé, avec fallback statique) ── */
+function buildFlightSearchPrompt(dest, country, dateFrom, dateTo, travelers){
+  const origin = state.origin || 'Paris';
+  const period = (dateFrom && dateTo) ? ('autour des dates '+dateFrom+' au '+dateTo) : 'pour les prochains mois';
+  return [
+    'Cherche sur le web une fourchette de prix réaliste et actuelle pour un vol aller-retour en classe économique de '+origin+' vers '+(dest||'')+' ('+(country||'')+'), '+period+'.',
+    'Base-toi sur des comparateurs de vols fiables (Google Flights, Kayak, Skyscanner, sites de compagnies aériennes).',
+    'Réponds UNIQUEMENT en JSON compact, sans texte ni markdown autour, au format exact :',
+    '{"perPersonMin":0,"perPersonMax":0,"source":"nom du comparateur utilisé"}',
+    'Les deux valeurs sont en euros, par personne, aller-retour. Si tu ne trouves rien de fiable, réponds {"perPersonMin":0,"perPersonMax":0,"source":""}.',
+  ].join('\n');
+}
+async function _fetchFlightPriceFromWeb(dest, country, dateFrom, dateTo, travelers){
+  try{
+    const prompt = buildFlightSearchPrompt(dest, country, dateFrom, dateTo, travelers);
+    const res = await fetch(SUPABASE_ENDPOINT,{
+      method:'POST',
+      headers:{'content-type':'application/json'},
+      body:JSON.stringify({prompt:prompt, webSearch:true})
+    });
+    if(!res.ok) return null;
+    const data = await res.json();
+    if(data.error) return null;
+    const j = parseItineraryJSON(data.result||'');
+    if(!j || !j.perPersonMin || !j.perPersonMax) return null;
+    const perPerson = Math.round((j.perPersonMin+j.perPersonMax)/2);
+    if(!isFinite(perPerson) || perPerson<=0) return null;
+    return { amount: perPerson*Math.max(1,travelers||1), source: j.source||'' };
+  }catch(e){ return null; }
+}
+
+/* ── orchestration des 3 passes (ossature, jours, highlights) ─────────── */
 async function callCartographe(){
   const b=buildBrief();
   const dc=b.daysCount;
@@ -526,6 +594,9 @@ async function callCartographe(){
   if(skel.plan.length>dc) skel.plan=skel.plan.slice(0,dc);
   skel.days_count=skel.plan.length;
 
+  /* recherche web du prix de vol — lancée en parallèle, dès que la destination est connue */
+  const flightPromise=_fetchFlightPriceFromWeb(skel.dest, skel.country, state.dateFrom, state.dateTo, state.travelers);
+
   /* Passe 2 — détail éditorial des jours, par lots de 7 pour les longs voyages */
   const allDays=[];
   for(let offset=0; offset<skel.plan.length; offset+=DAYS_BATCH_SIZE){
@@ -539,7 +610,11 @@ async function callCartographe(){
   /* Passe 3 — adresses, gems, highlights */
   const hilites=await _completeJSON(buildHighlightsPrompt(skel, daysDetail));
 
-  return {skel:skel, days:daysDetail, hilites:hilites};
+  /* le prix du vol a eu tout ce temps pour revenir ; sinon on retombe sur l'estimation statique */
+  let flightInfo=null;
+  try{ flightInfo=await flightPromise; }catch(e){ flightInfo=null; }
+
+  return {skel:skel, days:daysDetail, hilites:hilites, flightInfo:flightInfo};
 }
 
 /* ── flux de génération ─────────────────────────────────────────────── */
@@ -621,7 +696,7 @@ async function runFullGeneration(overlayAlreadyOpen){
   try{const res=await Promise.all([callCartographe(),minShow]);result=res[0];}catch(e){await minShow;}
   clearInterval(cycle);
   let ok=false;
-  if(result){try{ok=applyGenerated(result.skel,result.days,result.hilites);}catch(e){ok=false;}}
+  if(result){try{ok=applyGenerated(result.skel,result.days,result.hilites,result.flightInfo);}catch(e){ok=false;}}
   if(!ok) toast('Connexion limitée — itinéraire de démonstration');
   if(statusEl){statusEl.style.opacity=0;setTimeout(function(){statusEl.textContent='Votre voyage est prêt.';statusEl.style.opacity=1;},200);}
   setTimeout(function(){
