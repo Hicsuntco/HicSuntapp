@@ -2,7 +2,7 @@
    Connecté à l'Edge Function Supabase (super-endpoint).
    3 passes : ossature → jours détaillés → adresses & highlights        */
 
-const SUPABASE_ENDPOINT = 'https://lucbxwxcismnvcdnctau.supabase.co/functions/v1/generate-itinerary';
+const SUPABASE_ENDPOINT = 'https://lucbxwxcismnvcdnctau.supabase.co/functions/v1/super-endpoint';
 
 const GEN_KINDS = ['plane','fork','droplet','wave','peaks','arch','leaf','sun','moon','bed','star','camera','ticket','pin','compass'];
 const GEN_SKY   = ['sun','cloud','rain'];
@@ -203,8 +203,12 @@ function buildSkeletonPrompt(dc, batchSize, offset){
   ];
   if(isFirst){
     const directives=[_antiTouristDirective(),_interestsDirective(),_rythmeDirective(),_occasionDirective(),_styleDirective(),_dreamDirective()].filter(Boolean);
+    const destLock = (!b.surprise && state.destination)
+      ? '\n⚠️ DESTINATION IMPOSÉE PAR LE CLIENT (non négociable, ne PAS en choisir une autre) : "'+state.destination+'". Tout le voyage doit se dérouler dans cette destination exacte ou sa région immédiate. Le champ "dest" de ta réponse DOIT être "'+state.destination+'" (ou son nom complet usuel), jamais une autre destination.\n'
+      : '';
     return [
       'Tu es le cartographe senior de Hic Sunt, maison de voyages haut de gamme avec une exigence éditoriale absolue.',
+      destLock,
       'Compose l\'OSSATURE d\'un itinéraire RÉEL, DÉSIRABLE et PRÉCIS de '+dc+' jours au total.',
       '',
       '═══ BRIEF CLIENT ═══',
@@ -220,10 +224,11 @@ function buildSkeletonPrompt(dc, batchSize, offset){
       '- Les hébergements doivent refléter les directives de personnalisation ci-dessus (style, occasion).',
       '- "budget" = fourchette totale réaliste en euros pour TOUS les voyageurs sur les '+dc+' jours (hébergements+repas+activités+transport local, hors vols).',
       '  · Éco: 60-100€/pers/j · Confort: 120-220€/pers/j · Luxe: 250-500€/pers/j · Ultra: 500€+/pers/j',
+      destLock ? '\nRappel final : "dest" doit être "'+state.destination+'". Ne propose AUCUNE autre destination.' : '',
       '',
       'SCHÉMA (respecte les types et clés exactement) :',
       '{"dest":"","country":"","tagline":"phrase poétique évocatrice","level":"Éco|Confort|Luxe|Ultra","dates":"ex: Août 2026 · '+dc+' jours","days_count":'+dc+',"budget":0,"season":"meilleure saison courte","coords":"ex: 6°55′N · 79°51′E","region":"région","stays":[{"name":"vrai nom hébergement","type":"ex: Lodge safari","loc":"ville","price":0,"nights":1,"blurb":"max 6 mots évocateurs"}],"plan":[{"title":"titre évocateur","loc":"ville / zone","night":"nom exact stays","sky":"sun","temp":"27°","hook":"accroche 1 phrase narrative"}]}',
-    ].join('\n');
+    ].filter(Boolean).join('\n');
   }
   /* batches suivants : continuer le plan uniquement, avec les stays déjà établis */
   const staysList=(state._genStays||[]).map(function(s){return '- "'+s.name+'" ('+s.type+', '+s.loc+')';}).join('\n');
@@ -572,6 +577,27 @@ async function _fetchFlightPriceFromWeb(dest, country, dateFrom, dateTo, travele
   }catch(e){ return null; }
 }
 
+/* ── validation : la destination renvoyée correspond-elle à celle demandée ? ──
+   Comparaison volontairement souple (accents/casse ignorés, sous-chaîne dans
+   un sens ou l'autre) car le client peut taper "Sardaigne" et l'IA répondre
+   "Sardaigne, Italie" ou l'inverse — ce n'est pas une erreur. ── */
+function _normDest(s){
+  return (s||'').toString().toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
+}
+function _destinationMatches(requested, gotDest, gotCountry){
+  const req=_normDest(requested);
+  if(!req) return true;
+  const got=_normDest((gotDest||'')+' '+(gotCountry||''));
+  if(!got) return false;
+  if(got.indexOf(req)!==-1 || req.indexOf(got)!==-1) return true;
+  /* comparaison mot à mot : si un mot significatif du nom demandé (4+ lettres) apparaît, on accepte */
+  const reqWords=req.split(' ').filter(function(w){return w.length>=4;});
+  if(!reqWords.length) return got.indexOf(req)!==-1;
+  return reqWords.some(function(w){return got.indexOf(w)!==-1;});
+}
+
 /* ── orchestration des 3 passes (ossature, jours, highlights) ─────────── */
 async function callCartographe(){
   const b=buildBrief();
@@ -580,10 +606,24 @@ async function callCartographe(){
   /* Passe 1 — ossature, par lots de 7 jours pour les longs voyages */
   let skel=null;
   for(let offset=0; offset<dc; offset+=SKEL_BATCH_SIZE){
-    const batchResult=await _completeJSON(buildSkeletonPrompt(dc, SKEL_BATCH_SIZE, offset));
+    let batchResult=await _completeJSON(buildSkeletonPrompt(dc, SKEL_BATCH_SIZE, offset));
     if(offset===0){
       skel=batchResult;
       if(!skel||!Array.isArray(skel.plan)||!skel.plan.length) return null;
+      /* garde-fou : si une destination précise a été demandée, vérifie qu'elle a été respectée */
+      if(state.destination && !_destinationMatches(state.destination, skel.dest, skel.country)){
+        const retryResult=await _completeJSON(buildSkeletonPrompt(dc, SKEL_BATCH_SIZE, offset));
+        if(retryResult && Array.isArray(retryResult.plan) && retryResult.plan.length && _destinationMatches(state.destination, retryResult.dest, retryResult.country)){
+          skel=retryResult;
+        } else if(retryResult && Array.isArray(retryResult.plan) && retryResult.plan.length){
+          /* la 2e tentative a échoué aussi sur la destination — on force quand même
+             le nom demandé par le client plutôt que d'afficher une destination différente */
+          skel=retryResult;
+          skel.dest=state.destination;
+        } else {
+          skel.dest=state.destination;
+        }
+      }
       state._genStays=skel.stays||[];
     } else {
       const morePlan=(batchResult&&Array.isArray(batchResult.plan))?batchResult.plan:[];
