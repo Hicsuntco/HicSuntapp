@@ -2,22 +2,60 @@
 
 /* ── tab system ── */
 .tabs{position:absolute;inset:0}
-.tabview{position:absolute;inset:0;overflow-y:auto;overscroll-behavior:contain;padding-bottom:118px;opacity:0;pointer-events:none;transition:opacity 0.25s ease;scrollbar-width:none}
+.tabview{
+  position:absolute;inset:0;overflow-y:auto;overscroll-behavior:contain;
+  padding-bottom:118px;opacity:0;pointer-events:none;
+  transition:opacity 0.22s ease;scrollbar-width:none;
+}
 .tabview::-webkit-scrollbar{display:none}
 .tabview.active{opacity:1;pointer-events:auto}
 
-.tabbar{position:absolute;bottom:0;left:0;right:0;height:84px;background:rgba(255,253,247,0.88);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1px solid var(--line2);display:flex;z-index:50;padding-bottom:18px}
-.tab-it{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;border:none;background:transparent;color:var(--sub);cursor:pointer;transition:color 0.2s}
-.tab-it span{font-family:var(--mono);font-size:8.5px;font-weight:700;letter-spacing:0.4px;text-transform:uppercase}
+/* ── tab bar — iOS native ── */
+.tabbar{
+  position:absolute;bottom:0;left:0;right:0;
+  height:calc(68px + env(safe-area-inset-bottom,0px));
+  background:rgba(255,253,247,0.92);
+  backdrop-filter:blur(24px) saturate(180%);
+  -webkit-backdrop-filter:blur(24px) saturate(180%);
+  border-top:0.5px solid rgba(230,220,203,0.7);
+  display:flex;z-index:50;
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+/* iOS tab item — 44px tap zone, centered icon + label */
+.tab-it{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:4px;padding:8px 4px;
+  border:none;background:transparent;color:var(--sub);
+  cursor:pointer;
+  transition:transform 0.12s cubic-bezier(0.34,1.2,0.4,1),color 0.18s;
+  -webkit-user-select:none;user-select:none;
+  min-height:44px;
+}
+/* iOS tap: icon bounces slightly */
+.tab-it:active{transform:scale(0.86)}
+.tab-it span{
+  font-family:var(--sf);font-size:10px;font-weight:500;letter-spacing:0.1px;
+  /* overrides old mono uppercase */
+  text-transform:none;
+}
 .tab-it.on{color:var(--ink)}
 .tab-it.on .ico{color:var(--gold)}
+/* Selected icon gets a tiny scale-up */
+.tab-it.on{transform:none}
 
 /* ── discover header ── */
 .disc-head{padding-top:6px}
 .disc-top{display:flex;align-items:center;justify-content:space-between}
-.bell-btn{width:42px;height:42px;border-radius:14px;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative}
+.bell-btn{
+  width:44px;height:44px;border-radius:14px;border:1px solid var(--line);
+  background:var(--surface);color:var(--ink);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;
+  transition:transform 0.12s cubic-bezier(0.34,1.2,0.4,1);
+}
+.bell-btn:active{transform:scale(0.88)}
 .bell-btn .dot{position:absolute;top:10px;right:10px;width:7px;height:7px;border-radius:50%;background:var(--gold);border:1.5px solid var(--surface)}
 .disc-hello{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:2.4px;text-transform:uppercase;color:var(--gold);margin-top:14px}
+/* iOS Large Title — biggest and boldest in the hierarchy */
 .disc-hero{font-family:var(--serif);font-weight:600;font-size:44px;line-height:1.06;letter-spacing:-1px;margin-top:10px}
 .disc-hero em{font-style:italic;color:var(--gold)}
 
@@ -28,17 +66,26 @@
 .muse-row{display:flex;align-items:flex-end;gap:12px;margin-top:14px}
 .muse-input{flex:1;border:none;background:transparent;outline:none;font-family:var(--serif);font-style:italic;font-size:27px;color:var(--ink);min-width:0}
 .muse-input::placeholder{color:var(--ph)}
-.muse-go{width:44px;height:44px;border-radius:14px;border:none;background:var(--ink);color:var(--onink);display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none;transition:transform 0.15s}
-.muse-go:active{transform:scale(0.92)}
+/* iOS: minimum 44×44 tap target */
+.muse-go{
+  width:44px;height:44px;border-radius:14px;border:none;
+  background:var(--ink);color:var(--onink);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;flex:none;
+  transition:transform 0.12s cubic-bezier(0.34,1.2,0.4,1),opacity 0.12s;
+}
+.muse-go:active{transform:scale(0.88);opacity:0.8}
 .muse-line{height:1px;margin-top:12px;background:var(--line);position:relative;overflow:hidden}
 .muse-line::after{content:'';position:absolute;inset:0;background:linear-gradient(to right,transparent,var(--gold-soft),transparent);transform:translateX(-100%);animation:shimmer 2.8s ease-in-out infinite}
 @keyframes shimmer{60%,100%{transform:translateX(100%)}}
-.muse-sub{font-size:12.5px;font-weight:300;color:var(--sub);margin-top:11px;line-height:1.5}
+.muse-sub{font-size:13px;font-weight:300;color:var(--sub);margin-top:11px;line-height:1.5}
 
 /* ── destination grid ── */
 .dest-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-top:16px}
-.tile{height:168px;border-radius:var(--card-radius);border:1px solid var(--line);position:relative;overflow:hidden;cursor:pointer;transition:transform 0.18s}
-.tile:active{transform:scale(0.975)}
+.tile{height:168px;border-radius:var(--card-radius);border:1px solid var(--line);position:relative;overflow:hidden;cursor:pointer;
+  transition:transform 0.15s cubic-bezier(0.34,1.2,0.4,1),opacity 0.12s;
+}
+.tile:active{transform:scale(0.96);opacity:0.9}
 .tile .wash{position:absolute;inset:0}
 .tile .contour{opacity:0.1}
 .tile .wm{position:absolute;top:12px;right:10px;color:var(--ink);opacity:0.2}
@@ -48,22 +95,35 @@
 .tile .t-rule{width:26px;height:1.5px;background:var(--gold);margin:7px 0 6px}
 .tile .t-r{font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft);opacity:0.75}
 
-/* ── trip cards ── */
-.trip{display:grid;grid-template-columns:100px 1fr;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--card-radius);padding:12px;margin-bottom:12px;cursor:pointer;transition:transform 0.18s;align-items:center}
-.trip:active{transform:scale(0.985)}
+/* ── trip cards — more spacious ── */
+.trip{
+  display:grid;grid-template-columns:100px 1fr;gap:14px;
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--card-radius);padding:14px;margin-bottom:12px;
+  cursor:pointer;align-items:center;
+  transition:transform 0.15s cubic-bezier(0.34,1.2,0.4,1),opacity 0.12s;
+}
+.trip:active{transform:scale(0.978);opacity:0.9}
 .trip .th{height:100px;border-radius:14px;position:relative;overflow:hidden;border:1px solid var(--line2)}
 .trip .th .wm{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--ink);opacity:0.22}
-.trip .ti-n{font-family:var(--serif);font-weight:600;font-size:19px;letter-spacing:-0.2px}
-.trip .ti-d{font-family:var(--mono);font-size:9px;letter-spacing:0.8px;text-transform:uppercase;color:var(--sub);margin-top:5px}
-.trip .ti-days{font-family:var(--mono);font-size:8px;letter-spacing:0.8px;text-transform:uppercase;color:var(--gold-deep);margin-top:3px}
-.trip .ti-st{margin-top:9px}
-.trip-del{position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:50%;background:rgba(27,22,16,0.55);color:#fff;display:flex;align-items:center;justify-content:center;border:none;z-index:2;backdrop-filter:blur(4px)}
+/* iOS Title2 size for card name */
+.trip .ti-n{font-family:var(--serif);font-weight:600;font-size:20px;letter-spacing:-0.3px}
+.trip .ti-d{font-family:var(--mono);font-size:9px;letter-spacing:0.8px;text-transform:uppercase;color:var(--sub);margin-top:6px}
+.trip .ti-days{font-family:var(--mono);font-size:8px;letter-spacing:0.8px;text-transform:uppercase;color:var(--gold-deep);margin-top:4px}
+.trip .ti-st{margin-top:10px}
+.trip-del{position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;background:rgba(27,22,16,0.55);color:#fff;display:flex;align-items:center;justify-content:center;border:none;z-index:2;backdrop-filter:blur(4px)}
 .trip-del:active{background:rgba(27,22,16,0.8)}
 
 /* ── deck (questionnaire) ── */
 .deck-head{padding-top:8px}
 .deck-prog{display:flex;align-items:center;gap:13px;margin-top:14px}
-.deck-back{width:36px;height:36px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none;transition:opacity 0.2s}
+.deck-back{
+  width:44px;height:44px;border-radius:12px;border:1px solid var(--line);
+  background:var(--surface);color:var(--ink);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none;
+  transition:opacity 0.2s,transform 0.12s cubic-bezier(0.34,1.2,0.4,1);
+}
+.deck-back:active{transform:scale(0.88)}
 .deck-back[disabled]{opacity:0.35;pointer-events:none}
 .deck-bar{flex:1;height:2px;background:var(--line);border-radius:2px;overflow:hidden}
 .deck-bar i{display:block;height:100%;background:var(--gold);transition:width 0.45s cubic-bezier(0.4,0,0.2,1)}
@@ -72,40 +132,62 @@
 .dcard{position:absolute;left:24px;right:24px;top:0;height:520px;background:var(--surface);border:1px solid var(--line);border-radius:var(--card-radius);box-shadow:var(--shadow-card);padding:26px 22px;display:flex;flex-direction:column;transition:transform 0.5s cubic-bezier(0.34,1.2,0.4,1),opacity 0.4s ease;will-change:transform,opacity;color:var(--ink)}
 .dcard .d-q{font-family:var(--serif);font-weight:600;font-size:26px;line-height:1.18;letter-spacing:-0.4px;margin-top:10px;color:var(--ink)}
 .dcard .d-q em{font-style:italic;color:var(--gold)}
-.dcard .d-s{font-size:13px;font-weight:300;color:var(--sub);line-height:1.55;margin-top:9px}
+.dcard .d-s{font-size:14px;font-weight:300;color:var(--sub);line-height:1.55;margin-top:9px}
 .dcard .d-body{flex:1;margin-top:20px;overflow-y:auto;scrollbar-width:none;padding-bottom:4px}
 .dcard .d-body::-webkit-scrollbar{display:none}
 .dcard .d-foot{margin-top:14px}
 
-.mode-btn{width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:12px;cursor:pointer;transition:all 0.18s;display:flex;align-items:center;gap:15px;color:var(--ink)}
-.mode-btn:active{transform:scale(0.98)}
+.mode-btn{
+  width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);
+  border-radius:16px;padding:18px;margin-bottom:12px;
+  cursor:pointer;display:flex;align-items:center;gap:15px;color:var(--ink);
+  transition:transform 0.12s cubic-bezier(0.34,1.2,0.4,1),opacity 0.12s;
+  min-height:var(--tap-comfortable);
+}
+.mode-btn:active{transform:scale(0.97);opacity:0.85}
 .mode-btn .m-i{width:46px;height:46px;border-radius:14px;background:var(--surface2);color:var(--gold);display:flex;align-items:center;justify-content:center;flex:none}
 .mode-btn .m-t{font-family:var(--serif);font-weight:600;font-size:18px;color:var(--ink)}
-.mode-btn .m-d{font-size:12px;font-weight:300;color:var(--sub);margin-top:3px;line-height:1.45}
+.mode-btn .m-d{font-size:13px;font-weight:300;color:var(--sub);margin-top:3px;line-height:1.45}
 
-.radio-it{width:100%;display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:10px;cursor:pointer;transition:all 0.18s;text-align:left;color:var(--ink)}
-.radio-it:active{transform:scale(0.98)}
+.radio-it{
+  width:100%;display:flex;align-items:center;justify-content:space-between;
+  background:var(--surface);border:1px solid var(--line);border-radius:14px;
+  padding:16px;margin-bottom:10px;cursor:pointer;text-align:left;color:var(--ink);
+  transition:transform 0.12s cubic-bezier(0.34,1.2,0.4,1),background 0.18s;
+  min-height:var(--tap-comfortable);
+}
+.radio-it:active{transform:scale(0.97)}
 .radio-it.on{border-color:var(--ink);background:var(--ink);color:var(--onink)}
 .radio-it .ra-t{font-family:var(--serif);font-weight:600;font-size:17px;color:inherit}
-.radio-it .ra-d{font-size:11.5px;font-weight:300;color:var(--sub);margin-top:2px}
+.radio-it .ra-d{font-size:12px;font-weight:300;color:var(--sub);margin-top:2px}
 .radio-it.on .ra-d{color:rgba(246,240,228,0.65)}
 .radio-it .ra-dot{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--line);flex:none}
 .radio-it.on .ra-dot{border-color:var(--gold-soft);background:var(--gold)}
 
 .stepper{display:flex;align-items:center;justify-content:center;gap:26px;padding:30px 0}
-.stepper button{width:52px;height:52px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform 0.15s}
-.stepper button:active{transform:scale(0.92)}
+.stepper button{
+  width:52px;height:52px;border-radius:50%;border:1px solid var(--line);
+  background:var(--surface);color:var(--ink);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  transition:transform 0.12s cubic-bezier(0.34,1.2,0.4,1);
+}
+.stepper button:active{transform:scale(0.88)}
 .stepper .st-v{text-align:center;min-width:110px;color:var(--ink)}
 .stepper .st-n{font-family:var(--serif);font-weight:600;font-size:52px;line-height:1;color:var(--ink)}
 .stepper .st-l{font-family:var(--mono);font-size:9px;letter-spacing:1.6px;text-transform:uppercase;color:var(--sub);margin-top:8px}
 
 .occ-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.occ{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:15px 13px;cursor:pointer;text-align:left;transition:all 0.18s;color:var(--ink)}
-.occ:active{transform:scale(0.97)}
+.occ{
+  background:var(--surface);border:1px solid var(--line);border-radius:16px;
+  padding:16px 13px;cursor:pointer;text-align:left;color:var(--ink);
+  transition:transform 0.12s cubic-bezier(0.34,1.2,0.4,1),background 0.18s;
+  min-height:var(--tap-comfortable);
+}
+.occ:active{transform:scale(0.96)}
 .occ.on{border-color:var(--ink);background:var(--ink);color:var(--onink)}
-.occ .o-e{font-size:21px}
+.occ .o-e{font-size:22px}
 .occ .o-t{font-family:var(--serif);font-weight:600;font-size:15px;margin-top:8px;color:inherit}
-.occ .o-d{font-size:10.5px;font-weight:300;color:var(--sub);margin-top:3px;line-height:1.4}
+.occ .o-d{font-size:11px;font-weight:300;color:var(--sub);margin-top:3px;line-height:1.4}
 .occ.on .o-d{color:rgba(246,240,228,0.65)}
 
 /* ── voyages ── */
