@@ -6,7 +6,59 @@ const GEO_SHAPES = {
   'sardaigne': {
     vb:'0 0 100 160',
     path:'M50,8 C58,10 66,14 70,22 C74,30 72,38 74,46 C76,54 80,60 78,70 C76,80 70,84 68,94 C66,104 70,112 66,120 C62,128 54,134 46,138 C38,142 30,138 26,130 C22,122 24,114 22,106 C20,98 16,92 18,82 C20,72 26,66 28,56 C30,46 26,36 30,26 C34,16 42,6 50,8Z',
-    cities:{'Iglesias':[32,108],'Cagliari':[50,128],'Oristano':[30,80],'Nuoro':[58,60],'Sassari':[36,30],'Alghero':[26,40],'Olbia':[70,28],'Villasimius':[66,138],'Chia':[42,144]}
+    /* Coordonnées recalibrées pour être DANS le contour SVG ci-dessus */
+    /* centre approximatif de la Sardaigne : x≈46, y≈80 dans le vb 0 0 100 160 */
+    cities:{
+      'Cagliari':[50,130],       /* sud, centre */
+      'Iglesias':[34,118],       /* sud-ouest */
+      'Carbonia':[30,124],       /* sud-ouest */
+      'Villacidro':[38,110],     /* centre-sud */
+      'Oristano':[32,82],        /* centre-ouest */
+      'Nuoro':[58,62],           /* centre-est */
+      'Dorgali':[64,68],         /* centre-est */
+      'Sassari':[36,28],         /* nord-ouest */
+      'Alghero':[24,38],         /* nord-ouest côte */
+      'Olbia':[72,26],           /* nord-est */
+      'Arzachena':[68,18],       /* nord */
+      'La Maddalena':[74,12],    /* extrême nord */
+      'Palau':[72,16],           /* nord */
+      'Porto Cervo':[70,20],     /* nord-est */
+      'Siniscola':[68,50],       /* est */
+      'Tortolì':[70,80],         /* est */
+      'Arbatax':[72,86],         /* est */
+      'Villasimius':[68,136],    /* sud-est */
+      'Pula':[44,140],           /* sud */
+      'Chia':[40,146],           /* sud */
+      'Teulada':[36,142],        /* sud-ouest */
+      'Sant\'Antioco':[28,134],  /* île sud-ouest */
+      'Carloforte':[24,128],     /* île */
+      'Macomer':[42,58],         /* centre */
+      'Bosa':[24,60],            /* nord-ouest côte */
+      'Castelsardo':[46,16],     /* nord */
+      'Dolianova':[54,122],      /* sud-est intérieur */
+      'Mandas':[52,108],         /* centre-sud */
+      'Laconi':[46,88],          /* centre */
+      'Sorgono':[52,76],         /* centre */
+      'Gavoi':[54,68],           /* centre */
+      'Fonni':[58,70],           /* centre-est */
+      'Aritzo':[54,82],          /* centre */
+      'Barumini':[46,102],       /* centre-sud (Su Nuraxi) */
+      'Gesturi':[46,100],        /* centre-sud */
+      'Guspini':[34,96],         /* centre-ouest */
+      'Gonnosfanadiga':[36,106], /* sud-ouest intérieur */
+      'Fluminimaggiore':[28,116],/* sud-ouest */
+      'Buggerru':[24,110],       /* côte ouest */
+      'Piscinas':[24,104],       /* côte ouest */
+      'Arbus':[26,96],           /* centre-ouest */
+      'Terralba':[30,90],        /* ouest */
+      'Cabras':[28,80],          /* ouest */
+      'Putifigari':[30,44],      /* nord-ouest */
+      'Thiesi':[40,38],          /* nord-centre */
+      'Ozieri':[52,36],          /* nord-centre */
+      'Buddusò':[58,44],         /* centre-nord */
+      'Bitti':[60,56],           /* centre */
+      'Lula':[64,56],            /* centre-est */
+    }
   },
   'italie': {
     vb:'0 0 80 200',
@@ -90,19 +142,57 @@ function _cityPtsOnMap(plan, geo, W, H){
   const vbParts=(geo.g.vb||'0 0 100 100').split(' ').map(Number);
   const vbW=vbParts[2], vbH=vbParts[3];
   const cities=geo.g.cities||{};
-  return plan.map(function(p,i){
-    const loc=p.loc||'';
-    let cx,cy,found=false;
+
+  /* Pré-calculer le centroïde de la forme pour le fallback */
+  const cityVals=Object.values(cities);
+  let cxCentre=vbW/2, cyCentre=vbH/2;
+  if(cityVals.length){
+    cxCentre=cityVals.reduce(function(s,c){return s+c[0];},0)/cityVals.length;
+    cyCentre=cityVals.reduce(function(s,c){return s+c[1];},0)/cityVals.length;
+  }
+
+  /* Matching : plusieurs niveaux de fuzzy */
+  function matchCity(loc){
+    if(!loc) return null;
+    /* Nettoyer : prendre la partie avant "/" et "/" et trimmer */
+    const parts=loc.split(/[\/\-,]/);
+    const tokens=parts.map(function(p){return p.trim().toLowerCase();}).filter(Boolean);
+
     for(const city in cities){
-      if(loc.toLowerCase().includes(city.toLowerCase())||city.toLowerCase().includes(loc.toLowerCase().split('/')[0].trim().toLowerCase())){
-        cx=cities[city][0]/vbW*W; cy=cities[city][1]/vbH*H; found=true; break;
+      const cl=city.toLowerCase().trim();
+      for(let t=0;t<tokens.length;t++){
+        const tok=tokens[t];
+        if(!tok || tok.length<3) continue;
+        /* match exact ou sous-chaîne dans les deux sens */
+        if(cl===tok || cl.includes(tok) || tok.includes(cl)){
+          return cities[city];
+        }
+        /* match partiel : les 5 premiers caractères */
+        if(tok.length>=5 && cl.length>=5 && (cl.slice(0,5)===tok.slice(0,5))){
+          return cities[city];
+        }
       }
     }
-    if(!found){
-      const frac=plan.length>1?i/(plan.length-1):0.5;
-      cx=(0.25+frac*0.5)*W; cy=(0.25+frac*0.5)*H;
+    return null;
+  }
+
+  /* Compter d'abord combien de jours utilisent le fallback pour les disperser */
+  const matched=plan.map(function(p){ return matchCity(p.loc||''); });
+  const fallbackCount=matched.filter(function(m){return !m;}).length;
+  let fallbackIdx=0;
+
+  return plan.map(function(p,i){
+    const m=matched[i];
+    if(m){
+      return {cx:m[0]/vbW*W, cy:m[1]/vbH*H, n:i+1, loc:p.loc, day:p.n};
     }
-    return {cx:cx,cy:cy,n:i+1,loc:p.loc,day:p.n};
+    /* Fallback : distribuer en cercle autour du centroïde, à l'intérieur du contour */
+    const angle=(fallbackIdx/Math.max(1,fallbackCount))*Math.PI*2 - Math.PI/2;
+    const radius=Math.min(vbW,vbH)*0.18; /* rayon modeste pour rester dans le contour */
+    const fx=(cxCentre+Math.cos(angle)*radius)/vbW*W;
+    const fy=(cyCentre+Math.sin(angle)*radius)/vbH*H;
+    fallbackIdx++;
+    return {cx:fx, cy:fy, n:i+1, loc:p.loc, day:p.n};
   });
 }
 
