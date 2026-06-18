@@ -219,7 +219,7 @@ function itineraryView(){
     +     '<div class="itin-tag">' + esc(it.tag) + '</div>'
     +     '<div class="itin-pills"><span class="pill">' + esc(it.dates) + '</span><span class="pill">' + it.days + ' jours</span><span class="pill">' + esc(it.level) + '</span></div>'
     +   '</div>'
-    +   '<div class="minimap" onclick="openMapOv()">' + mapSVG(345, 188, null) + wxChip(wx1[0], wx1[1])
+    +   '<div class="minimap" onclick="openMapOv()">' + geoMapSVG(345, 188, null) + wxChip(wx1[0], wx1[1])
     +     '<span class="mm-cap">' + esc(it.coords || it.dest) + ' · ' + esc(it.distance || '') + '</span></div>'
     +   '<div class="tools">'
     +     '<button class="tool" onclick="openOverlay(\'budget\', budgetView())">' + ico('wallet',20,1.5) + '<div class="tl-t">Budget</div><div class="tl-s">' + eur(it.budgetTotal) + ' · estimation</div></button>'
