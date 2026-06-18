@@ -506,11 +506,13 @@ function deriveActivities(plan){
 }
 function deriveBudget(stays, total, dest, region, country, travelers, flightInfo){
   if(typeof BUDGET==='undefined') return;
-  const stayCost=stays.reduce(function(s,a){return s+a.price*a.nights;},0);
-  const nights=stays.reduce(function(s,a){return s+a.nights;},0);
+  total=Number(total)||0;
+  travelers=Math.max(1,Number(travelers)||1);
+  const stayCost=stays.reduce(function(s,a){return s+(Number(a.price)||0)*(Number(a.nights)||0);},0);
+  const nights=stays.reduce(function(s,a){return s+(Number(a.nights)||0);},0);
   const days=Math.max(1,nights);
   const nbAct=(typeof ACTIVITIES!=='undefined')?ACTIVITIES.length:0;
-  const colFactor=_costOfLivingFactor(dest, region, country);
+  const colFactor=Number(_costOfLivingFactor(dest, region, country))||1;
 
   /* plancher réaliste de restauration : ~30€/jour/pers en demi-pension en zone
      "Europe de l'Ouest" (colFactor=1), ajusté au coût de vie réel de la destination.
@@ -525,11 +527,13 @@ function deriveBudget(stays, total, dest, region, country, travelers, flightInfo
   /* hébergement = coût réel, plafonné pour laisser de la place aux autres postes */
   const accom=Math.min(stayCost, Math.round(total*0.55));
   const remainder=total-accom;
-  /* vols = prix issu d'une recherche web fraîche si disponible et plausible,
+  /* vols = prix issu d'une recherche web fraîche si disponible et plausible (et
+     numériquement valide — on se méfie d'une réponse IA mal formée),
      sinon fourchette statique par zone — plafonné à ce que le budget restant peut absorber */
-  const hasRealFlight=flightInfo&&flightInfo.amount>0;
-  const flightsRaw=hasRealFlight?flightInfo.amount:_flightEstimate(dest, region, country, travelers);
-  const flights=Math.min(flightsRaw, Math.round(remainder*0.65));
+  const flightAmountNum=flightInfo?Number(flightInfo.amount):NaN;
+  const hasRealFlight=isFinite(flightAmountNum)&&flightAmountNum>0&&flightAmountNum<20000;
+  const flightsRaw=hasRealFlight?flightAmountNum:(Number(_flightEstimate(dest, region, country, travelers))||0);
+  const flights=Math.min(flightsRaw, Math.max(0,Math.round(remainder*0.65)));
   let afterFlights=remainder-flights;
 
   /* si ce qui reste ne couvre même pas les planchers repas+transferts, le budget total
@@ -551,7 +555,7 @@ function deriveBudget(stays, total, dest, region, country, travelers, flightInfo
   BUDGET.lines=[
     {i:'bed',n:'Hébergements',sub:nights+' nuit'+(nights>1?'s':'')+' · '+stays.length+' adresse'+(stays.length>1?'s':''),amount:accom,paid:false},
     {i:'plane',n:'Vols',sub:flightSub,amount:flights,paid:false},
-    {i:'ticket',n:'Activités & expériences',sub:nbAct+' sélectionnée'+(nbAct>1?'s':''),amount:activities,paid:false},
+    {i:'ticket',n:'Activités & expériences',sub:nbAct+' suggérée'+(nbAct>1?'s':''),amount:activities,paid:false},
     {i:'fork',n:'Restauration',sub:'Estimation · demi-pension',amount:food,paid:false},
     {i:'compass',n:'Transferts & transport local',sub:'Selon votre circuit',amount:Math.max(0,transfers),paid:false},
   ];
