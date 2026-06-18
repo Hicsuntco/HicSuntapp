@@ -305,19 +305,65 @@ async function loadItineraries(){
     return Array.isArray(data) ? data : null;
   }catch(e){ return null; }
 }
+/* ── Filtrage des itinéraires par onglet ─────────────────────────────── */
+function _classifyItinerary(it){
+  /* Classifie un itinéraire selon ses dates en : upcoming / past / draft */
+  const data = it.data || {};
+  const dateFrom = data.dateFrom || it.date_from || '';
+  const dateTo   = data.dateTo   || it.date_to   || '';
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  /* Brouillon = généré sans dates précises */
+  if(!dateFrom && !dateTo){
+    /* Si le titre des dates contient une vraie date on essaie de parser */
+    const datesStr = it.dates || data.dates || '';
+    const match = datesStr.match(/(\d{1,2})\s+(\w+)\s+(\d{4})/i);
+    if(!match) return 'draft';
+  }
+
+  if(dateFrom){
+    const from = new Date(dateFrom); from.setHours(0,0,0,0);
+    const to   = dateTo ? new Date(dateTo) : new Date(from.getTime() + (it.days||7)*86400000);
+    to.setHours(23,59,59,999);
+    if(to < today) return 'past';
+    return 'upcoming';
+  }
+
+  /* Fallback sur la colonne created_at pour estimer si passé */
+  if(it.created_at){
+    const created = new Date(it.created_at);
+    const daysAgo = (today - created) / 86400000;
+    if(daysAgo > 90) return 'past';
+  }
+  return 'draft';
+}
+
 async function loadVoyagesTab(){
+  const seg = state._voySeg || 'upcoming';
   const items = await loadItineraries();
   const host = document.querySelector('[data-trips]');
   if(!host) return;
+
   if(items===null){
     host.innerHTML = '<p style="text-align:center;padding:40px 0;color:var(--sub);font-size:14px;font-style:italic">Erreur de chargement. Réessayez.</p>';
     return;
   }
-  if(!items.length){
-    host.innerHTML = '<p style="text-align:center;padding:40px 0;color:var(--sub);font-size:14px;font-style:italic">Aucun voyage sauvegardé.<br>Composez votre premier itinéraire.</p>';
+
+  /* Filtrer par segment */
+  const filtered = items.filter(function(it){ return _classifyItinerary(it) === seg; });
+
+  const emptyMessages = {
+    upcoming: 'Aucun voyage à venir.<br>Composez votre prochain itinéraire.',
+    past:     'Aucun voyage passé enregistré.',
+    draft:    'Aucun brouillon sauvegardé.',
+  };
+
+  if(!filtered.length){
+    host.innerHTML = '<p style="text-align:center;padding:40px 0;color:var(--sub);font-size:14px;font-style:italic">'+(emptyMessages[seg]||'Aucun voyage.')+'</p>';
     return;
   }
-  host.innerHTML = items.map(savedTripCard).join('');
+
+  host.innerHTML = filtered.map(savedTripCard).join('');
   const cards = host.querySelectorAll('.trip');
   requestAnimationFrame(function(){
     cards.forEach(function(c, i){
@@ -326,6 +372,7 @@ async function loadVoyagesTab(){
     });
   });
 }
+
 async function loadSavedItinerary(id){
   const token = localStorage.getItem('sb_token');
   if(!token) return;
@@ -333,13 +380,44 @@ async function loadSavedItinerary(id){
     const res = await fetch(SUPABASE_URL+'/rest/v1/itineraries?id=eq.'+id,{
       headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+token}
     });
+    if(!res.ok) throw new Error('HTTP '+res.status);
     const rows = await res.json();
-    if(!rows||!rows.length) return;
-    Object.assign(ITINERARY, rows[0].data);
-    if(typeof deriveActivities==='function') deriveActivities(ITINERARY.plan||[]);
-    if(typeof deriveBudget==='function') deriveBudget(ITINERARY.accommodations||[], ITINERARY.budgetTotal||0);
+    if(!rows||!rows.length){ toast('Itinéraire introuvable'); return; }
+    const saved = rows[0];
+    const data = saved.data || {};
+
+    /* Restauration complète de l'ITINERARY depuis les données sauvegardées */
+    Object.assign(ITINERARY, data);
+
+    /* S'assurer que les champs critiques sont présents même si data est partiel */
+    if(!ITINERARY.dest && saved.destination) ITINERARY.dest = saved.destination;
+    if(!ITINERARY.dates && saved.dates)       ITINERARY.dates = saved.dates;
+    if(!ITINERARY.days  && saved.days)        ITINERARY.days  = saved.days;
+    if(!ITINERARY.budgetTotal && saved.budget) ITINERARY.budgetTotal = saved.budget;
+    if(!Array.isArray(ITINERARY.plan))         ITINERARY.plan = [];
+    if(!Array.isArray(ITINERARY.accommodations)) ITINERARY.accommodations = [];
+
+    /* Recalcul des activités et du budget avec les bons arguments */
+    if(typeof deriveActivities === 'function'){
+      deriveActivities(ITINERARY.plan);
+    }
+    if(typeof deriveBudget === 'function'){
+      deriveBudget(
+        ITINERARY.accommodations,
+        ITINERARY.budgetTotal || 0,
+        ITINERARY.dest || '',
+        ITINERARY.region || '',
+        ITINERARY.country || '',
+        state.travelers || 2,
+        null
+      );
+    }
+
     openItinerary();
-  }catch(e){ toast('Erreur de chargement'); }
+  }catch(e){
+    console.error('loadSavedItinerary error:', e);
+    toast('Erreur de chargement');
+  }
 }
 async function deleteSavedItinerary(id){
   const token = localStorage.getItem('sb_token');
