@@ -472,7 +472,8 @@ function applyGenerated(skel, daysDetail, hilites, flightInfo){
   }
 
   deriveActivities(plan);
-  deriveBudget(stays, budgetTotal, dest, skel.region, skel.country, travelers, flightInfo);
+  const finalBudgetTotal=deriveBudget(stays, budgetTotal, dest, skel.region, skel.country, travelers, flightInfo);
+  if(finalBudgetTotal && finalBudgetTotal!==budgetTotal) ITINERARY.budgetTotal=finalBudgetTotal;
   if(typeof SEASON!=='undefined'&&skel.season){SEASON.best=skel.season;SEASON.note=skel.season;}
   return true;
 }
@@ -482,19 +483,43 @@ const ACT_PRICE={peaks:78,arch:55,leaf:62,wave:95,droplet:48,fork:120,sun:52,sta
 const ACT_DUR=['2 h','3 h','4 h','2 h 30','5 h','3 h 30'];
 function deriveActivities(plan){
   if(typeof ACTIVITIES==='undefined') return;
-  const picks=[];
-  plan.forEach(function(p){p.moments.forEach(function(m){if(m[1]==='plane'||m[1]==='bed') return; picks.push({day:p.n,i:m[1],n:m[2],loc:p.loc,tag:(TAG_MAP[m[1]]||TAG_MAP.pin)[1]});});});
-  ACTIVITIES.length=0;
-  picks.forEach(function(a,i){
-    const base=ACT_PRICE[a.i]||55;
-    ACTIVITIES.push({id:'ac'+(i+1),day:a.day,i:a.i,n:a.n,loc:a.loc,dur:ACT_DUR[i%ACT_DUR.length],rate:['4,9','4,95','4,8','4,88','4,92','4,97'][i%6],price:base+(i%2?7:0),tag:a.tag});
-  });
+  try{
+    const picks=[];
+    (Array.isArray(plan)?plan:[]).forEach(function(p){
+      (Array.isArray(p.moments)?p.moments:[]).forEach(function(m){
+        if(m[1]==='plane'||m[1]==='bed') return;
+        picks.push({day:p.n,i:m[1],n:m[2],loc:p.loc,tag:(TAG_MAP[m[1]]||TAG_MAP.pin)[1]});
+      });
+    });
+    ACTIVITIES.length=0;
+    picks.forEach(function(a,i){
+      const base=ACT_PRICE[a.i]||55;
+      ACTIVITIES.push({id:'ac'+(i+1),day:a.day,i:a.i,n:a.n,loc:a.loc,dur:ACT_DUR[i%ACT_DUR.length],rate:['4,9','4,95','4,8','4,88','4,92','4,97'][i%6],price:base+(i%2?7:0),tag:a.tag});
+    });
+    window._actSource = 'deriveActivities-ok (' + picks.length + ' picks bruts)';
+  }catch(e){
+    window._actSource = 'deriveActivities-ERREUR: ' + (e&&e.message?e.message:String(e));
+    /* on vide quand même la fixture par défaut plutôt que de laisser le Sri Lanka affiché */
+    ACTIVITIES.length=0;
+  }
 }
 function deriveBudget(stays, total, dest, region, country, travelers, flightInfo){
   if(typeof BUDGET==='undefined') return;
   const stayCost=stays.reduce(function(s,a){return s+a.price*a.nights;},0);
   const nights=stays.reduce(function(s,a){return s+a.nights;},0);
+  const days=Math.max(1,nights);
   const nbAct=(typeof ACTIVITIES!=='undefined')?ACTIVITIES.length:0;
+  const colFactor=_costOfLivingFactor(dest, region, country);
+
+  /* plancher réaliste de restauration : ~30€/jour/pers en demi-pension en zone
+     "Europe de l'Ouest" (colFactor=1), ajusté au coût de vie réel de la destination.
+     C'est un MINIMUM absolu, pas une estimation — en dessous, le budget affiché
+     serait simplement faux (ex: 107€ pour une semaine en Sardaigne est intenable). */
+  const FOOD_PER_DAY_PER_PERSON=30;
+  const foodFloor=Math.round(FOOD_PER_DAY_PER_PERSON*colFactor*travelers*days);
+  /* plancher de transferts locaux : ~8€/jour/pers (taxis, locations, essence) */
+  const TRANSFER_PER_DAY_PER_PERSON=8;
+  const transferFloor=Math.round(TRANSFER_PER_DAY_PER_PERSON*colFactor*travelers*days);
 
   /* hébergement = coût réel, plafonné pour laisser de la place aux autres postes */
   const accom=Math.min(stayCost, Math.round(total*0.55));
@@ -504,10 +529,21 @@ function deriveBudget(stays, total, dest, region, country, travelers, flightInfo
   const hasRealFlight=flightInfo&&flightInfo.amount>0;
   const flightsRaw=hasRealFlight?flightInfo.amount:_flightEstimate(dest, region, country, travelers);
   const flights=Math.min(flightsRaw, Math.round(remainder*0.65));
-  const afterFlights=remainder-flights;
-  const food=Math.round(afterFlights*0.38);
-  const activities=Math.round(afterFlights*0.40);
-  const transfers=afterFlights-food-activities;
+  let afterFlights=remainder-flights;
+
+  /* si ce qui reste ne couvre même pas les planchers repas+transferts, le budget total
+     affiché était sous-évalué pour ce voyage : on relève le total plutôt que d'afficher
+     des montants irréalistes (ex: 107€ de repas pour une semaine) */
+  const essentialAfterFlights=foodFloor+transferFloor;
+  if(afterFlights<essentialAfterFlights){
+    const gap=essentialAfterFlights-afterFlights;
+    total+=gap;
+    afterFlights=essentialAfterFlights;
+  }
+  /* le reste au-delà des planchers repas/transferts va aux activités */
+  const food=foodFloor;
+  const transfers=transferFloor;
+  const activities=Math.max(0,afterFlights-food-transfers);
   const flightSub=(state.origin||'Paris')+' · aller-retour · '+travelerLabel()+(hasRealFlight&&flightInfo.source?' · estimation '+flightInfo.source:' · estimation')
 
   BUDGET.total=total; BUDGET.spent=0;
@@ -518,6 +554,7 @@ function deriveBudget(stays, total, dest, region, country, travelers, flightInfo
     {i:'fork',n:'Restauration',sub:'Estimation · demi-pension',amount:food,paid:false},
     {i:'compass',n:'Transferts & transport local',sub:'Selon votre circuit',amount:Math.max(0,transfers),paid:false},
   ];
+  return total;
 }
 
 /* ── 3 passes de génération ─────────────────────────────────────────── */

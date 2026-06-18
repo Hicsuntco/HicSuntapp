@@ -101,7 +101,8 @@ function activitiesView(){
   const days = Object.keys(byDay).sort(function(a,b){ return a - b; });
   let total = 0, count = 0;
   ACTIVITIES.forEach(function(a){ if (actSel[a.id]){ total += a.price; count++; } });
-  return statusBar() + navbar('Activités & expériences')
+  const _dbg = '<div style="background:#fff3cd;color:#7a5b00;font-size:11px;padding:6px 14px;text-align:center">DEBUG · ' + ACTIVITIES.length + ' activité(s) · source=' + (window._actSource||'inconnue') + ' · dest=' + esc(ITINERARY.dest||'?') + '</div>';
+  return statusBar() + navbar('Activités & expériences') + _dbg
     + '<div class="ov-scroll has-foot px">'
     +   '<span class="eyebrow" style="display:block;margin-top:10px">Sélection du cartographe</span>'
     +   '<h1 style="font-family:var(--serif);font-weight:600;font-size:28px;letter-spacing:-0.4px;margin-top:8px">Expériences sur-mesure</h1>'
