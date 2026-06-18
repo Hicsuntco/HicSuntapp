@@ -138,12 +138,13 @@ function _geoShape(dest){
   return {key:'_default',g:GEO_SHAPES._default};
 }
 
-function _cityPtsOnMap(plan, geo, W, H){
+function _cityPtsOnMap(plan, geo){
+  /* Retourne des coordonnées dans l'espace viewBox (pas canvas) */
   const vbParts=(geo.g.vb||'0 0 100 100').split(' ').map(Number);
   const vbW=vbParts[2], vbH=vbParts[3];
   const cities=geo.g.cities||{};
 
-  /* Pré-calculer le centroïde de la forme pour le fallback */
+  /* Centroïde pour le fallback */
   const cityVals=Object.values(cities);
   let cxCentre=vbW/2, cyCentre=vbH/2;
   if(cityVals.length){
@@ -151,48 +152,37 @@ function _cityPtsOnMap(plan, geo, W, H){
     cyCentre=cityVals.reduce(function(s,c){return s+c[1];},0)/cityVals.length;
   }
 
-  /* Matching : plusieurs niveaux de fuzzy */
   function matchCity(loc){
     if(!loc) return null;
-    /* Nettoyer : prendre la partie avant "/" et "/" et trimmer */
     const parts=loc.split(/[\/\-,]/);
     const tokens=parts.map(function(p){return p.trim().toLowerCase();}).filter(Boolean);
-
     for(const city in cities){
       const cl=city.toLowerCase().trim();
       for(let t=0;t<tokens.length;t++){
         const tok=tokens[t];
-        if(!tok || tok.length<3) continue;
-        /* match exact ou sous-chaîne dans les deux sens */
-        if(cl===tok || cl.includes(tok) || tok.includes(cl)){
-          return cities[city];
-        }
-        /* match partiel : les 5 premiers caractères */
-        if(tok.length>=5 && cl.length>=5 && (cl.slice(0,5)===tok.slice(0,5))){
-          return cities[city];
-        }
+        if(!tok||tok.length<3) continue;
+        if(cl===tok||cl.includes(tok)||tok.includes(cl)) return cities[city];
+        if(tok.length>=5&&cl.length>=5&&cl.slice(0,5)===tok.slice(0,5)) return cities[city];
       }
     }
     return null;
   }
 
-  /* Compter d'abord combien de jours utilisent le fallback pour les disperser */
-  const matched=plan.map(function(p){ return matchCity(p.loc||''); });
+  const matched=plan.map(function(p){return matchCity(p.loc||'');});
   const fallbackCount=matched.filter(function(m){return !m;}).length;
   let fallbackIdx=0;
 
   return plan.map(function(p,i){
     const m=matched[i];
     if(m){
-      return {cx:m[0]/vbW*W, cy:m[1]/vbH*H, n:i+1, loc:p.loc, day:p.n};
+      /* coordonnées brutes dans le viewBox */
+      return {vx:m[0], vy:m[1], n:i+1, loc:p.loc, day:p.n};
     }
-    /* Fallback : distribuer en cercle autour du centroïde, à l'intérieur du contour */
-    const angle=(fallbackIdx/Math.max(1,fallbackCount))*Math.PI*2 - Math.PI/2;
-    const radius=Math.min(vbW,vbH)*0.18; /* rayon modeste pour rester dans le contour */
-    const fx=(cxCentre+Math.cos(angle)*radius)/vbW*W;
-    const fy=(cyCentre+Math.sin(angle)*radius)/vbH*H;
+    /* fallback en cercle autour du centroïde, dans le viewBox */
+    const angle=(fallbackIdx/Math.max(1,fallbackCount))*Math.PI*2-Math.PI/2;
+    const radius=Math.min(vbW,vbH)*0.15;
     fallbackIdx++;
-    return {cx:fx, cy:fy, n:i+1, loc:p.loc, day:p.n};
+    return {vx:cxCentre+Math.cos(angle)*radius, vy:cyCentre+Math.sin(angle)*radius, n:i+1, loc:p.loc, day:p.n};
   });
 }
 
@@ -203,38 +193,49 @@ function geoMapSVG(W, H, activeIdx){
   const vbParts=(geo.g.vb||'0 0 100 100').split(' ').map(Number);
   const vbW=vbParts[2], vbH=vbParts[3];
   const accent=(it.palette&&(it.palette.culture||it.palette.beach))||'#C9A96E';
-  const pts=_cityPtsOnMap(it.plan||[], geo, W, H);
+
+  /* Coordonnées viewBox — même système que le path */
+  const pts=_cityPtsOnMap(it.plan||[], geo);
 
   const scale=Math.min(W/vbW, H/vbH)*0.88;
   const offX=(W-vbW*scale)/2;
   const offY=(H-vbH*scale)/2;
 
+  /* Route pointillée — en coords viewBox, dans le même transform */
   let routePath='';
   if(pts.length>1){
-    routePath='M'+pts[0].cx.toFixed(1)+' '+pts[0].cy.toFixed(1);
+    routePath='M'+pts[0].vx.toFixed(1)+' '+pts[0].vy.toFixed(1);
     for(let i=1;i<pts.length;i++){
-      const mx=((pts[i-1].cx+pts[i].cx)/2).toFixed(1);
-      const my=((pts[i-1].cy+pts[i].cy)/2).toFixed(1);
-      routePath+=' Q'+pts[i-1].cx.toFixed(1)+' '+pts[i-1].cy.toFixed(1)+' '+mx+' '+my;
-      routePath+=' T'+pts[i].cx.toFixed(1)+' '+pts[i].cy.toFixed(1);
+      const mx=((pts[i-1].vx+pts[i].vx)/2).toFixed(1);
+      const my=((pts[i-1].vy+pts[i].vy)/2).toFixed(1);
+      routePath+=' Q'+pts[i-1].vx.toFixed(1)+' '+pts[i-1].vy.toFixed(1)+' '+mx+' '+my;
+      routePath+=' T'+pts[i].vx.toFixed(1)+' '+pts[i].vy.toFixed(1);
     }
   }
 
+  /* Taille des pins en unités viewBox (inversement proportionnelle au scale) */
+  const pinR=Math.round(7/scale*10)/10;
+  const pinRon=Math.round(10/scale*10)/10;
+  const fontSize=Math.round(6/scale*10)/10;
+  const fontSizeOn=Math.round(8/scale*10)/10;
+
   const pins=pts.map(function(p,i){
     const on=activeIdx===i;
-    const r=on?14:10;
+    const r=on?pinRon:pinR;
+    const fs=on?fontSizeOn:fontSize;
     return '<g class="mpin'+(on?' on':'')+'"'+(activeIdx!==null?' style="cursor:pointer" onclick="mapSelect('+i+')"':'')+' >'
-      +'<circle cx="'+p.cx.toFixed(1)+'" cy="'+p.cy.toFixed(1)+'" r="'+r+'"/>'
-      +'<text x="'+p.cx.toFixed(1)+'" y="'+(p.cy+(on?4.5:3.8)).toFixed(1)+'" font-size="'+(on?12:9)+'">'+p.n+'</text></g>';
+      +'<circle cx="'+p.vx.toFixed(1)+'" cy="'+p.vy.toFixed(1)+'" r="'+r+'"/>'
+      +'<text x="'+p.vx.toFixed(1)+'" y="'+(p.vy+r*0.38).toFixed(1)+'" font-size="'+fs+'">'+p.n+'</text></g>';
   }).join('');
 
+  /* Tout dans le même <g transform> — path + route + pins parfaitement alignés */
   return '<svg class="map-svg" viewBox="0 0 '+W+' '+H+'" fill="none" xmlns="http://www.w3.org/2000/svg">'
     +'<rect width="'+W+'" height="'+H+'" fill="rgba(246,240,228,0.02)" rx="10"/>'
     +'<g transform="translate('+offX.toFixed(1)+','+offY.toFixed(1)+') scale('+scale.toFixed(4)+')">'
-    +'<path d="'+geo.g.path+'" fill="'+hexA(accent,0.10)+'" stroke="'+hexA(accent,0.60)+'" stroke-width="'+(1.4/scale).toFixed(2)+'" stroke-linejoin="round" stroke-linecap="round"/>'
-    +'</g>'
-    +(routePath?'<path d="'+routePath+'" stroke="'+hexA(accent,0.85)+'" stroke-width="1.4" stroke-dasharray="5 4" fill="none"/>':'')
+    +'<path d="'+geo.g.path+'" fill="'+hexA(accent,0.10)+'" stroke="'+hexA(accent,0.60)+'" stroke-width="'+(1.2/scale).toFixed(2)+'" stroke-linejoin="round" stroke-linecap="round"/>'
+    +(routePath?'<path d="'+routePath+'" stroke="'+hexA(accent,0.85)+'" stroke-width="'+(1.5/scale).toFixed(2)+'" stroke-dasharray="'+(4/scale).toFixed(1)+' '+(3/scale).toFixed(1)+'" fill="none"/>':'')
     +pins
+    +'</g>'
     +'</svg>';
 }
 
@@ -243,10 +244,21 @@ function mapView(){
   const p=(ITINERARY.plan||[])[i];
   const dest=ITINERARY.dest||ITINERARY.destination||'';
   const geo=_geoShape(dest);
-  const pts=_cityPtsOnMap(ITINERARY.plan||[], geo, 345, 420);
-  const pin=pts[i]||{cx:172,cy:210};
-  const popLeftPct=Math.max(4,Math.min(pin.cx/345*100-20,50));
-  const popTopPct=pin.cy/420>0.58?(pin.cy/420*100-22):(pin.cy/420*100+6);
+  const vbParts=(geo.g.vb||'0 0 100 100').split(' ').map(Number);
+  const vbW=vbParts[2], vbH=vbParts[3];
+  const W=345, H=420;
+  const scale=Math.min(W/vbW,H/vbH)*0.88;
+  const offX=(W-vbW*scale)/2;
+  const offY=(H-vbH*scale)/2;
+
+  /* Convertir coords viewBox → canvas pour la popup */
+  const pts=_cityPtsOnMap(ITINERARY.plan||[], geo);
+  const pin=pts[i]||{vx:vbW/2,vy:vbH/2};
+  const pinCanvasX=offX+pin.vx*scale;
+  const pinCanvasY=offY+pin.vy*scale;
+  const popLeftPct=Math.max(4,Math.min(pinCanvasX/W*100-20,50));
+  const popTopPct=pinCanvasY/H>0.58?(pinCanvasY/H*100-22):(pinCanvasY/H*100+6);
+
   const pop=p?'<div class="map-pop" style="left:'+popLeftPct.toFixed(1)+'%;top:'+popTopPct.toFixed(1)+'%">'
     +'<div class="mp-k">Jour '+String(p.n).padStart(2,'0')+' · '+esc(p.loc)+'</div>'
     +'<div class="mp-t">'+esc(p.title)+'</div>'
@@ -258,7 +270,7 @@ function mapView(){
     +'<div class="bigmap">'
     +'<span class="map-coords">'+esc(ITINERARY.coords||ITINERARY.dest)+'</span>'
     +'<span class="map-rose">'+rose(26,1.1)+'</span>'
-    +geoMapSVG(345,420,i)+pop
+    +geoMapSVG(W,H,i)+pop
     +'</div>'
     +'<div class="map-rail">'+(ITINERARY.plan||[]).map(function(d,j){
       return '<button class="map-chip'+(j===i?' on':'')+'" onclick="mapSelect('+j+')">'

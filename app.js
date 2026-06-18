@@ -397,6 +397,19 @@ async function loadSavedItinerary(id){
     if(!Array.isArray(ITINERARY.plan))         ITINERARY.plan = [];
     if(!Array.isArray(ITINERARY.accommodations)) ITINERARY.accommodations = [];
 
+    /* Toujours reconstruire theme + palette depuis la destination
+       (les anciens itinéraires sauvegardés peuvent avoir palette null/undefined
+       ou l'ancienne palette avec le vert caca d'oie — on force la nouvelle) */
+    if(typeof _themeForDestination === 'function' && typeof THEME_PALETTES !== 'undefined'){
+      const themeName = _themeForDestination(
+        ITINERARY.dest || '',
+        ITINERARY.region || '',
+        ITINERARY.country || ''
+      );
+      ITINERARY.theme   = themeName;
+      ITINERARY.palette = THEME_PALETTES[themeName] || THEME_PALETTES.mediterranean;
+    }
+
     /* Recalcul des activités et du budget avec les bons arguments */
     if(typeof deriveActivities === 'function'){
       deriveActivities(ITINERARY.plan);

@@ -210,16 +210,41 @@ function accCard(a){
 function itineraryView(){
   const it = ITINERARY;
   const wx1 = it.plan[0] ? it.plan[0].wx : ['sun','30°'];
+
+  /* Couleur primaire du thème — utilisée partout dans l'écran */
+  const palette = it.palette || {};
+  const theme = it.theme || 'mediterranean';
+  /* Couleur signature : beach pour méditerranée/tropical, culture pour désert, hike pour alpine */
+  const themeSignature = {
+    mediterranean: palette.beach  || '#3A9EC9',
+    desert:        palette.culture|| '#D4943A',
+    alpine:        palette.hike   || '#3A9E7E',
+    tropical:      palette.beach  || '#3DAACC',
+    urban:         palette.culture|| '#7A65D4',
+  };
+  const primaryColor = themeSignature[theme] || '#3A9EC9';
+  const secondColor  = palette.food || palette.outdoor || '#D4943A';
+
+  /* Fond du minimap : légère teinte de la couleur primaire */
+  const minimapBg = 'linear-gradient(135deg,'
+    + hexA(primaryColor,0.08) + ' 0%,'
+    + hexA(secondColor,0.05) + ' 100%),'
+    + 'var(--surface)';
+
   return statusBar()
     + navbar(it.dest, { right:'<button class="nav-btn" onclick="openOverlay(\'share\', shareView())" aria-label="Partager">' + ico('share',18,1.5) + '</button>' })
     + '<div class="ov-scroll has-foot px">'
     +   '<div class="itin-hero">'
-    +     '<span class="eyebrow">Itinéraire composé</span>'
+    +     '<span class="eyebrow" style="color:'+primaryColor+'">Itinéraire composé · ' + esc(it.theme ? it.theme.charAt(0).toUpperCase()+it.theme.slice(1) : 'Sur-mesure') + '</span>'
     +     '<h1>' + esc(it.dest) + '</h1>'
     +     '<div class="itin-tag">' + esc(it.tag) + '</div>'
-    +     '<div class="itin-pills"><span class="pill">' + esc(it.dates) + '</span><span class="pill">' + it.days + ' jours</span><span class="pill">' + esc(it.level) + '</span></div>'
+    +     '<div class="itin-pills">'
+    +       '<span class="pill" style="color:'+primaryColor+';border-color:'+hexA(primaryColor,0.3)+';background:'+hexA(primaryColor,0.07)+'">' + esc(it.dates) + '</span>'
+    +       '<span class="pill">' + it.days + ' jours</span>'
+    +       '<span class="pill">' + esc(it.level) + '</span>'
+    +     '</div>'
     +   '</div>'
-    +   '<div class="minimap" onclick="openMapOv()">' + geoMapSVG(345, 188, null) + wxChip(wx1[0], wx1[1])
+    +   '<div class="minimap" style="background:'+minimapBg+'" onclick="openMapOv()">' + geoMapSVG(345, 188, null) + wxChip(wx1[0], wx1[1])
     +     '<span class="mm-cap">' + esc(it.coords || it.dest) + ' · ' + esc(it.distance || '') + '</span></div>'
     +   '<div class="tools">'
     +     '<button class="tool" onclick="openOverlay(\'budget\', budgetView())">' + ico('wallet',20,1.5) + '<div class="tl-t">Budget</div><div class="tl-s">' + eur(it.budgetTotal) + ' · estimation</div></button>'
@@ -230,20 +255,20 @@ function itineraryView(){
         : '<button class="tool" onclick="openOverlay(\'reviews\', reviewsView())">' + ico('star',18,1.5) + '<div class="tl-t">Avis</div><div class="tl-s">' + RATING.score + ' · ' + RATING.count + ' voyageurs</div></button>'
           + '<button class="tool" onclick="openOverlay(\'share\', shareView())">' + ico('share',19,1.5) + '<div class="tl-t">Partager</div><div class="tl-s">Copier le lien</div></button>')
     +   '</div>'
-    +   '<div class="ai-banner" onclick="openAI()">'
-    +     '<span class="ai-av">' + ico('sparkle',22,1.6) + '</span>'
+    +   '<div class="ai-banner" onclick="openAI()" style="border-color:'+hexA(primaryColor,0.25)+';background:'+hexA(primaryColor,0.05)+'">'
+    +     '<span class="ai-av" style="background:'+hexA(primaryColor,0.15)+';color:'+primaryColor+'">' + ico('sparkle',22,1.6) + '</span>'
     +     '<span><span class="ab-k">Cartographe · assistant</span><br><span class="ab-t">Modifier l\'itinéraire</span></span>'
     +     '<span class="ico chev">' + ico('chevron',20,1.7) + '</span>'
     +   '</div>'
     +   '<div class="section-h"><h2>Jour par jour</h2><span class="meta">' + it.days + ' jours</span></div>'
     +   it.plan.map(function(p, i){
-        const catColor = (it.palette && it.palette[p.category]) || null;
+        const catColor = (palette[p.category]) || primaryColor;
         return '<div class="dayrow" onclick="openDay(' + i + ')">'
-          + '<div class="dr-rail"><span class="dr-pin"' + (catColor ? ' style="background:'+catColor+';border-color:'+catColor+'"' : '') + '>' + p.n + '</span><span class="dr-line"></span></div>'
+          + '<div class="dr-rail"><span class="dr-pin" style="background:'+catColor+';border-color:'+catColor+'">' + p.n + '</span><span class="dr-line" style="background:'+hexA(catColor,0.2)+'"></span></div>'
           + '<div class="dr-main"><div class="dr-top"><div><div class="dr-t">' + esc(p.title) + '</div><div class="dr-l">' + esc(p.loc) + '</div></div>'
           + wxChip(p.wx[0], p.wx[1]) + '</div>'
           + '<div class="dr-d">' + esc(p.desc) + '</div>'
-          + '<div class="dr-tags">' + p.tags.map(function(t){ return '<span class="mini-tag"' + (catColor ? ' style="color:'+catColor+';border-color:'+hexA(catColor,0.3)+';background:'+hexA(catColor,0.08)+'"' : '') + '>' + ico(t[0],12,1.7) + t[1] + '</span>'; }).join('') + '</div>'
+          + '<div class="dr-tags">' + p.tags.map(function(t){ return '<span class="mini-tag" style="color:'+catColor+';border-color:'+hexA(catColor,0.3)+';background:'+hexA(catColor,0.08)+'">' + ico(t[0],12,1.7) + t[1] + '</span>'; }).join('') + '</div>'
           + '</div></div>';
       }).join('')
     +   '<div class="section-h"><h2>Hébergements</h2><span class="meta">' + it.accommodations.length + ' étapes</span></div>'
@@ -251,7 +276,7 @@ function itineraryView(){
     + '</div>'
     + '<div class="ov-foot"><div class="foot-price">'
     +   '<div><div class="fp-v">' + eur(it.budgetTotal) + '</div><div class="fp-l">tout compris · ' + travelerLabel() + '</div></div>'
-    +   '<button class="btn" onclick="openBooking(\'' + it.accommodations[0].id + '\')">Voir les hébergements</button>'
+    +   '<button class="btn" style="background:'+primaryColor+'" onclick="openBooking(\'' + (it.accommodations[0]?it.accommodations[0].id:'') + '\')">Voir les hébergements</button>'
     + '</div></div>';
 }
 
