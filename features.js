@@ -1,56 +1,180 @@
 /* ── HIC SUNT · Sillage — features : carte, budget, activités, IA… ──── */
 
-/* ── 12 · Carte ─────────────────────────────────────────────────────── */
-/* positions des étapes en % (route stylisée, 5 pins) */
-const MAP_PTS = [[16,74],[34,30],[55,52],[72,24],[85,64]];
-function mapSVG(w, h, activeIdx){
-  const pts = ITINERARY.plan.map(function(p, i){
-    const c = MAP_PTS[i % MAP_PTS.length];
-    return [c[0] / 100 * w, c[1] / 100 * h];
+/* ── 12 · Carte géographique ─────────────────────────────────────────── */
+/* Contours SVG simplifiés des pays + coordonnées relatives des villes clés */
+const GEO_SHAPES = {
+  'sardaigne': {
+    vb:'0 0 100 160',
+    path:'M50,8 C58,10 66,14 70,22 C74,30 72,38 74,46 C76,54 80,60 78,70 C76,80 70,84 68,94 C66,104 70,112 66,120 C62,128 54,134 46,138 C38,142 30,138 26,130 C22,122 24,114 22,106 C20,98 16,92 18,82 C20,72 26,66 28,56 C30,46 26,36 30,26 C34,16 42,6 50,8Z',
+    cities:{'Iglesias':[32,108],'Cagliari':[50,128],'Oristano':[30,80],'Nuoro':[58,60],'Sassari':[36,30],'Alghero':[26,40],'Olbia':[70,28],'Villasimius':[66,138],'Chia':[42,144]}
+  },
+  'italie': {
+    vb:'0 0 80 200',
+    path:'M32,10 C42,8 52,12 56,20 C60,28 56,40 58,52 C60,64 66,72 64,84 C62,96 56,104 54,116 C52,128 56,140 52,150 C48,158 40,160 34,154 C28,148 28,136 24,126 C20,116 14,108 14,96 C12,84 16,72 16,60 C16,48 12,36 16,24 C20,12 24,12 32,10Z M54,150 C60,158 64,170 60,176 C56,182 48,180 44,172 C40,164 42,154 48,148 L54,150Z',
+    cities:{'Rome':[40,88],'Milan':[32,24],'Florence':[44,66],'Naples':[50,118],'Venise':[58,20],'Palerme':[38,168]}
+  },
+  'maroc': {
+    vb:'0 0 140 120',
+    path:'M20,16 C32,10 50,10 64,14 C78,18 90,26 98,36 C106,46 108,58 106,70 C104,82 96,90 86,96 C76,102 62,104 48,104 C34,104 20,100 12,90 C4,80 4,66 6,54 C8,42 10,28 20,16Z',
+    cities:{'Marrakech':[60,74],'Casablanca':[30,48],'Fès':[74,34],'Rabat':[28,36],'Agadir':[36,92],'Essaouira':[22,78],'Tanger':[44,14],'Merzouga':[108,80],'Ouarzazate':[80,84]}
+  },
+  'sri lanka': {
+    vb:'0 0 80 120',
+    path:'M40,8 C50,10 58,16 62,26 C66,36 64,48 66,58 C68,68 72,76 70,86 C68,96 60,102 52,108 C44,114 34,116 26,110 C18,104 16,94 14,84 C12,74 14,64 16,54 C18,44 16,34 20,24 C24,14 30,6 40,8Z',
+    cities:{'Colombo':[22,66],'Kandy':[40,54],'Galle':[28,96],'Sigiriya':[50,36],'Ella':[52,76],'Trincomalee':[58,24],'Jaffna':[44,10]}
+  },
+  'thaïlande': {
+    vb:'0 0 80 180',
+    path:'M44,10 C54,12 62,18 64,28 C66,38 62,50 62,62 C62,74 66,86 62,96 C58,106 50,110 46,120 C42,130 44,142 38,148 C32,154 24,152 20,144 C16,136 18,124 16,114 C14,104 10,94 10,82 C10,70 12,58 14,46 C16,34 14,22 20,14 C26,6 36,8 44,10Z M38,148 C40,158 38,168 32,172 C26,176 20,172 18,162 C16,152 20,144 24,138 L38,148Z',
+    cities:{'Bangkok':[40,88],'Chiang Mai':[30,30],'Phuket':[28,158],'Koh Samui':[56,120],'Ayutthaya':[40,70],'Pai':[24,20]}
+  },
+  'grèce': {
+    vb:'0 0 160 120',
+    path:'M40,18 C52,12 66,12 78,16 C90,20 100,28 106,40 C112,52 110,64 106,74 C102,84 92,88 82,94 C72,100 58,102 46,98 C34,94 24,86 18,74 C12,62 12,48 16,36 C20,24 28,24 40,18Z M82,94 C88,104 90,114 84,118 C78,122 70,116 68,106 C66,96 70,88 76,84 L82,94Z M46,98 C40,108 36,116 40,120 C44,124 52,120 54,110 C56,100 52,92 48,88 L46,98Z',
+    cities:{'Athènes':[72,68],'Thessalonique':[64,22],'Santorin':[90,104],'Mykonos':[100,86],'Rhodes':[132,98],'Crète':[82,112]}
+  },
+  'portugal': {
+    vb:'0 0 60 120',
+    path:'M30,8 C38,6 46,10 50,18 C54,26 52,36 52,46 C52,56 54,66 52,76 C50,86 44,92 40,100 C36,108 36,118 30,118 C24,118 22,110 18,102 C14,94 12,82 12,70 C12,58 14,48 14,38 C14,28 10,18 14,10 C18,2 24,10 30,8Z',
+    cities:{'Lisbonne':[26,78],'Porto':[22,32],'Faro':[34,110],'Évora':[36,84],'Sintra':[20,74],'Coimbra':[24,52]}
+  },
+  'japon': {
+    vb:'0 0 140 180',
+    path:'M80,10 C90,12 98,18 100,28 C102,38 96,50 94,62 C92,74 96,86 90,96 C84,106 74,110 68,120 C62,130 60,142 54,148 C48,154 40,152 34,144 C28,136 28,124 26,112 C24,100 18,90 18,78 C18,66 22,54 26,44 C30,34 28,22 34,14 C40,6 50,6 62,8 L80,10Z M54,148 C56,160 54,172 48,176 C42,180 36,174 34,162 C32,150 36,142 40,136 L54,148Z',
+    cities:{'Tokyo':[82,58],'Kyoto':[62,86],'Osaka':[66,94],'Hiroshima':[50,108],'Nara':[64,90],'Hakone':[78,70],'Sapporo':[90,16]}
+  },
+  'islande': {
+    vb:'0 0 200 100',
+    path:'M30,50 C36,36 50,26 64,20 C78,14 96,14 110,18 C124,22 136,32 144,44 C152,56 150,68 138,76 C126,84 108,84 92,84 C76,84 60,84 46,76 C32,68 24,64 30,50Z',
+    cities:{'Reykjavik':[42,64],'Akureyri':[90,26],'Vik':[76,80],'Jökulsárlón':[116,70],'Landmannalaugar':[78,66],'Húsavík':[104,20]}
+  },
+  'pérou': {
+    vb:'0 0 100 140',
+    path:'M28,16 C38,10 52,8 64,12 C76,16 84,26 88,38 C92,50 90,64 88,76 C86,88 88,102 82,112 C76,122 64,126 52,126 C40,126 28,120 20,110 C12,100 10,86 12,74 C14,62 10,48 14,36 C18,24 20,22 28,16Z',
+    cities:{'Lima':[20,66],'Cusco':[60,96],'Machu Picchu':[52,100],'Arequipa':[48,112],'Iquitos':[72,36],'Paracas':[22,82]}
+  },
+  'bali': {
+    vb:'0 0 140 70',
+    path:'M20,35 C28,22 44,16 60,14 C76,12 90,16 104,24 C118,32 128,42 124,54 C120,66 104,68 88,68 C72,68 56,66 42,58 C28,50 12,48 20,35Z',
+    cities:{'Kuta':[38,50],'Ubud':[68,38],'Seminyak':[32,46],'Uluwatu':[50,60],'Amed':[108,30],'Nusa Dua':[58,56]}
+  },
+  'kenya': {
+    vb:'0 0 100 120',
+    path:'M28,16 C40,10 56,8 68,12 C80,16 90,26 94,38 C98,50 96,64 92,76 C88,88 88,102 80,110 C72,118 58,120 46,116 C34,112 22,104 16,92 C10,80 8,66 10,54 C12,42 16,30 28,16Z',
+    cities:{'Nairobi':[52,72],'Mombasa':[76,104],'Masai Mara':[26,84],'Amboseli':[46,98],'Lac Nakuru':[40,58],'Samburu':[66,38]}
+  },
+  '_default': {
+    vb:'0 0 100 100',
+    path:'M50,8 C64,10 76,20 80,34 C84,48 80,62 76,74 C72,86 64,94 52,98 C40,102 28,98 20,88 C12,78 10,64 12,52 C14,40 16,26 24,18 C32,10 38,6 50,8Z',
+    cities:{}
+  }
+};
+
+function _geoShape(dest){
+  const d=(dest||'').toLowerCase();
+  const keys=Object.keys(GEO_SHAPES).filter(function(k){return k!=='_default';});
+  for(let i=0;i<keys.length;i++){ if(d.includes(keys[i])) return {key:keys[i],g:GEO_SHAPES[keys[i]]};  }
+  if(/italie|sicile|rome|milan|florence|naples/.test(d)) return {key:'italie',g:GEO_SHAPES.italie};
+  if(/grèce|athènes|cyclades|crète|santorin/.test(d)) return {key:'grèce',g:GEO_SHAPES['grèce']};
+  if(/thaïlande|bangkok|chiang/.test(d)) return {key:'thaïlande',g:GEO_SHAPES['thaïlande']};
+  if(/japon|tokyo|kyoto|osaka/.test(d)) return {key:'japon',g:GEO_SHAPES.japon};
+  if(/bali|lombok|java|indonesie/.test(d)) return {key:'bali',g:GEO_SHAPES.bali};
+  if(/portugal|lisbonne|porto/.test(d)) return {key:'portugal',g:GEO_SHAPES.portugal};
+  if(/pérou|lima|cusco|machu/.test(d)) return {key:'pérou',g:GEO_SHAPES['pérou']};
+  if(/kenya|nairobi|safari/.test(d)) return {key:'kenya',g:GEO_SHAPES.kenya};
+  if(/islande|reykjavik/.test(d)) return {key:'islande',g:GEO_SHAPES.islande};
+  return {key:'_default',g:GEO_SHAPES._default};
+}
+
+function _cityPtsOnMap(plan, geo, W, H){
+  const vbParts=(geo.g.vb||'0 0 100 100').split(' ').map(Number);
+  const vbW=vbParts[2], vbH=vbParts[3];
+  const cities=geo.g.cities||{};
+  return plan.map(function(p,i){
+    const loc=p.loc||'';
+    let cx,cy,found=false;
+    for(const city in cities){
+      if(loc.toLowerCase().includes(city.toLowerCase())||city.toLowerCase().includes(loc.toLowerCase().split('/')[0].trim().toLowerCase())){
+        cx=cities[city][0]/vbW*W; cy=cities[city][1]/vbH*H; found=true; break;
+      }
+    }
+    if(!found){
+      const frac=plan.length>1?i/(plan.length-1):0.5;
+      cx=(0.25+frac*0.5)*W; cy=(0.25+frac*0.5)*H;
+    }
+    return {cx:cx,cy:cy,n:i+1,loc:p.loc,day:p.n};
   });
-  let path = '';
-  if (pts.length){
-    path = 'M' + pts[0][0].toFixed(1) + ' ' + pts[0][1].toFixed(1);
-    for (let i = 1; i < pts.length; i++){
-      const mx = ((pts[i-1][0] + pts[i][0]) / 2).toFixed(1);
-      path += ' Q' + pts[i-1][0].toFixed(1) + ' ' + pts[i-1][1].toFixed(1) + ' ' + mx + ' ' + ((pts[i-1][1] + pts[i][1]) / 2).toFixed(1);
-      path += ' T' + pts[i][0].toFixed(1) + ' ' + pts[i][1].toFixed(1);
+}
+
+function geoMapSVG(W, H, activeIdx){
+  const it=ITINERARY;
+  const dest=it.dest||it.destination||'';
+  const geo=_geoShape(dest);
+  const vbParts=(geo.g.vb||'0 0 100 100').split(' ').map(Number);
+  const vbW=vbParts[2], vbH=vbParts[3];
+  const accent=(it.palette&&(it.palette.culture||it.palette.beach))||'#C9A96E';
+  const pts=_cityPtsOnMap(it.plan||[], geo, W, H);
+
+  const scale=Math.min(W/vbW, H/vbH)*0.88;
+  const offX=(W-vbW*scale)/2;
+  const offY=(H-vbH*scale)/2;
+
+  let routePath='';
+  if(pts.length>1){
+    routePath='M'+pts[0].cx.toFixed(1)+' '+pts[0].cy.toFixed(1);
+    for(let i=1;i<pts.length;i++){
+      const mx=((pts[i-1].cx+pts[i].cx)/2).toFixed(1);
+      const my=((pts[i-1].cy+pts[i].cy)/2).toFixed(1);
+      routePath+=' Q'+pts[i-1].cx.toFixed(1)+' '+pts[i-1].cy.toFixed(1)+' '+mx+' '+my;
+      routePath+=' T'+pts[i].cx.toFixed(1)+' '+pts[i].cy.toFixed(1);
     }
   }
-  const pins = pts.map(function(c, i){
-    const on = activeIdx === i;
-    const r = on ? 14 : 11;
-    return '<g class="mpin' + (on ? ' on' : '') + '"' + (activeIdx !== null ? ' style="cursor:pointer" onclick="mapSelect(' + i + ')"' : '') + '>'
-      + '<circle cx="' + c[0].toFixed(1) + '" cy="' + c[1].toFixed(1) + '" r="' + r + '"/>'
-      + '<text x="' + c[0].toFixed(1) + '" y="' + (c[1] + (on ? 4.5 : 3.8)).toFixed(1) + '" font-size="' + (on ? 12 : 10) + '">' + (i + 1) + '</text></g>';
+
+  const pins=pts.map(function(p,i){
+    const on=activeIdx===i;
+    const r=on?14:10;
+    return '<g class="mpin'+(on?' on':'')+'"'+(activeIdx!==null?' style="cursor:pointer" onclick="mapSelect('+i+')"':'')+' >'
+      +'<circle cx="'+p.cx.toFixed(1)+'" cy="'+p.cy.toFixed(1)+'" r="'+r+'"/>'
+      +'<text x="'+p.cx.toFixed(1)+'" y="'+(p.cy+(on?4.5:3.8)).toFixed(1)+'" font-size="'+(on?12:9)+'">'+p.n+'</text></g>';
   }).join('');
-  return graticule(w, h, 40) + contour()
-    + '<svg class="map-svg" viewBox="0 0 ' + w + ' ' + h + '"><path class="route" d="' + path + '"/>' + pins + '</svg>';
+
+  return '<svg class="map-svg" viewBox="0 0 '+W+' '+H+'" fill="none" xmlns="http://www.w3.org/2000/svg">'
+    +'<rect width="'+W+'" height="'+H+'" fill="rgba(246,240,228,0.02)" rx="10"/>'
+    +'<g transform="translate('+offX.toFixed(1)+','+offY.toFixed(1)+') scale('+scale.toFixed(4)+')">'
+    +'<path d="'+geo.g.path+'" fill="'+hexA(accent,0.10)+'" stroke="'+hexA(accent,0.60)+'" stroke-width="'+(1.4/scale).toFixed(2)+'" stroke-linejoin="round" stroke-linecap="round"/>'
+    +'</g>'
+    +(routePath?'<path d="'+routePath+'" stroke="'+hexA(accent,0.85)+'" stroke-width="1.4" stroke-dasharray="5 4" fill="none"/>':'')
+    +pins
+    +'</svg>';
 }
+
 function mapView(){
-  const i = state.mapDay || 0;
-  const p = ITINERARY.plan[i];
-  const c = MAP_PTS[i % MAP_PTS.length];
-  const popLeft = Math.max(4, Math.min(c[0] - 26, 40));
-  const popTop = c[1] > 50 ? c[1] - 32 : c[1] + 8;
-  const pop = p ? '<div class="map-pop" style="left:' + popLeft + '%;top:' + popTop + '%">'
-    + '<div class="mp-k">Jour ' + String(p.n).padStart(2,'0') + ' · ' + esc(p.loc) + '</div>'
-    + '<div class="mp-t">' + esc(p.title) + '</div>'
-    + '<div class="mp-m"><span class="mp-wx">' + ico(p.wx[0],13,1.7) + p.wx[1] + '</span>'
-    + '<span class="mp-l" onclick="openDay(' + i + ')">Détails ›</span></div></div>' : '';
+  const i=state.mapDay||0;
+  const p=(ITINERARY.plan||[])[i];
+  const dest=ITINERARY.dest||ITINERARY.destination||'';
+  const geo=_geoShape(dest);
+  const pts=_cityPtsOnMap(ITINERARY.plan||[], geo, 345, 420);
+  const pin=pts[i]||{cx:172,cy:210};
+  const popLeftPct=Math.max(4,Math.min(pin.cx/345*100-20,50));
+  const popTopPct=pin.cy/420>0.58?(pin.cy/420*100-22):(pin.cy/420*100+6);
+  const pop=p?'<div class="map-pop" style="left:'+popLeftPct.toFixed(1)+'%;top:'+popTopPct.toFixed(1)+'%">'
+    +'<div class="mp-k">Jour '+String(p.n).padStart(2,'0')+' · '+esc(p.loc)+'</div>'
+    +'<div class="mp-t">'+esc(p.title)+'</div>'
+    +'<div class="mp-m"><span class="mp-wx">'+ico(p.wx[0],13,1.7)+p.wx[1]+'</span>'
+    +'<span class="mp-l" onclick="openDay('+i+')">Détails ›</span></div></div>':'';
   return statusBar()
-    + navbar('Carte du voyage', { right:'<button class="nav-btn" onclick="openOffline()" aria-label="Hors-ligne">' + ico('download',18,1.6) + '</button>' })
-    + '<div class="ov-scroll">'
-    +   '<div class="bigmap">'
-    +     '<span class="map-coords">' + esc(ITINERARY.coords || ITINERARY.dest) + '</span>'
-    +     '<span class="map-rose">' + rose(26, 1.1) + '</span>'
-    +     mapSVG(345, 460, i) + pop
-    +   '</div>'
-    +   '<div class="map-rail">' + ITINERARY.plan.map(function(d, j){
-        return '<button class="map-chip' + (j === i ? ' on' : '') + '" onclick="mapSelect(' + j + ')">'
-          + '<div class="mc-d">Jour ' + String(d.n).padStart(2,'0') + '</div><div class="mc-l">' + esc(d.loc) + '</div></button>';
-      }).join('') + '</div>'
-    + '</div>';
+    +navbar('Carte du voyage',{right:'<button class="nav-btn" onclick="openOffline()" aria-label="Hors-ligne">'+ico('download',18,1.6)+'</button>'})
+    +'<div class="ov-scroll">'
+    +'<div class="bigmap">'
+    +'<span class="map-coords">'+esc(ITINERARY.coords||ITINERARY.dest)+'</span>'
+    +'<span class="map-rose">'+rose(26,1.1)+'</span>'
+    +geoMapSVG(345,420,i)+pop
+    +'</div>'
+    +'<div class="map-rail">'+(ITINERARY.plan||[]).map(function(d,j){
+      return '<button class="map-chip'+(j===i?' on':'')+'" onclick="mapSelect('+j+')">'
+        +'<div class="mc-d">Jour '+String(d.n).padStart(2,'0')+'</div><div class="mc-l">'+esc(d.loc)+'</div></button>';
+    }).join('')+'</div>'
+    +'</div>';
 }
 function mapSelect(i){
   state.mapDay = i;

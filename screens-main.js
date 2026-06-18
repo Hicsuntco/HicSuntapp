@@ -119,21 +119,47 @@ const DEST_BG_MAP = {
   'thaïlande':'linear-gradient(135deg,#150F05,#221505)','kenya':'linear-gradient(135deg,#110D05,#1e1508)',
   'indonesie':'linear-gradient(135deg,#0D1F0F,#162B18)','bali':'linear-gradient(135deg,#0D1F0F,#162B18)',
   'philippines':'linear-gradient(135deg,#080C14,#0d1a28)','vietnam':'linear-gradient(135deg,#0F1A0D,#172514)',
+  'sardaigne':'linear-gradient(135deg,#170F08,#261A0E)','italie':'linear-gradient(135deg,#170F08,#261A0E)',
+  'sicile':'linear-gradient(135deg,#170F08,#261A0E)','grèce':'linear-gradient(135deg,#0A0C14,#131c2a)',
+  'espagne':'linear-gradient(135deg,#150A04,#221208)','croatie':'linear-gradient(135deg,#080C14,#0d1828)',
+};
+/* Couleur d'accent thématique par destination (remplace le noir opaque) */
+const DEST_ACCENT_MAP = {
+  mediterranean:{ primary:'#E8844A', glow:'rgba(232,132,74,0.30)' },
+  desert:       { primary:'#D4943A', glow:'rgba(212,148,58,0.30)' },
+  alpine:       { primary:'#5B9FBE', glow:'rgba(91,159,190,0.30)' },
+  tropical:     { primary:'#4DAE7B', glow:'rgba(77,174,123,0.30)' },
+  urban:        { primary:'#9B85CC', glow:'rgba(155,133,204,0.30)' },
 };
 function destBg(name){ const k=(name||'').toLowerCase(); for(const pat in DEST_BG_MAP){ if(k.includes(pat)) return DEST_BG_MAP[pat]; } return 'linear-gradient(135deg,#1a1610,#2a2018)'; }
 function destIcon(name){ const k=(name||'').toLowerCase(); if(/japon|tokyo|kyoto/.test(k)) return 'arch'; if(/maroc|marrakech/.test(k)) return 'compass'; if(/islande/.test(k)) return 'peaks'; if(/safari|kenya|afrique/.test(k)) return 'leaf'; if(/bali|indonesie|philippines|thaïlande|vietnam/.test(k)) return 'leaf'; if(/pérou|andes/.test(k)) return 'peaks'; return 'compass'; }
+function _destAccent(dest){
+  const theme = (typeof _themeForDestination === 'function') ? _themeForDestination(dest, '', '') : 'mediterranean';
+  return DEST_ACCENT_MAP[theme] || DEST_ACCENT_MAP.mediterranean;
+}
 function savedTripCard(it){
-  const bg=destBg(it.destination), icon=destIcon(it.destination);
+  const bg = destBg(it.destination);
+  const icon = destIcon(it.destination);
+  const accent = _destAccent(it.destination);
+  const daysColor = accent.primary;
   return '<div class="trip" style="position:relative" onclick="loadSavedItinerary(\''+it.id+'\')">'
     +'<button class="trip-del" onclick="event.stopPropagation();deleteSavedItinerary(\''+it.id+'\')" aria-label="Supprimer">'+ico('close',14,2)+'</button>'
     +'<div class="th" style="position:relative;overflow:hidden">'
+    /* fond sombre par destination */
     +'<div style="position:absolute;inset:0;background:'+bg+'"></div>'
-    +contour()
-    +'<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:rgba(246,240,228,0.18)">'+ico(icon,38,1.2)+'</span>'
+    /* lueur colorée thématique au centre */
+    +'<div style="position:absolute;inset:0;background:radial-gradient(65% 65% at 50% 50%,'+accent.glow+',transparent)"></div>'
+    /* grille cartographique fine teintée */
+    +'<svg style="position:absolute;inset:0;width:100%;height:100%;opacity:0.15" viewBox="0 0 80 80" preserveAspectRatio="none" fill="none" stroke="'+accent.primary+'" stroke-width="0.7">'
+    +[0,1,2,3].map(function(i){ return '<line x1="'+(i*27)+'" y1="0" x2="'+(i*27)+'" y2="80"/>'; }).join('')
+    +[0,1,2,3].map(function(i){ return '<line x1="0" y1="'+(i*27)+'" x2="80" y2="'+(i*27)+'"/>'; }).join('')
+    +'</svg>'
+    /* icône colorée selon le thème (plus opaque, colorée) */
+    +'<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:'+accent.primary+';opacity:0.85">'+ico(icon,36,1.3)+'</span>'
     +'</div>'
     +'<div><div class="ti-n">'+esc(it.destination)+'</div>'
     +'<div class="ti-d">'+esc(it.dates)+'</div>'
-    +'<div class="ti-days">'+it.days+' jour'+(it.days>1?'s':'')+'</div>'
+    +'<div class="ti-days" style="color:'+daysColor+'">'+it.days+' jour'+(it.days>1?'s':'')+'</div>'
     +'<div class="ti-st"><span class="status ok">Sauvegardé</span></div>'
     +'</div></div>';
 }

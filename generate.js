@@ -99,13 +99,20 @@ const CATEGORY_LABELS={
   food:'Table & saveurs', culture:'Patrimoine', outdoor:'Plein air', transit:'Transfert',
 };
 
-/* palettes par "climat visuel" — choisies selon mots-clés de la destination/région */
+/* palettes par "climat visuel" — choisies selon mots-clés de la destination/région
+   ⚠️ Plus de vert caca d'oie (#7BAE6E / #8BAE6E) en Mediterranean et Urban.
+   Chaque thème a des couleurs vives, distinctes, et évocatrices de la destination. */
 const THEME_PALETTES={
-  tropical:{ hike:'#7BAE6E', beach:'#5B9FBE', spa:'#E8A0A0', food:'#C98A52', culture:'#B07EB0', outdoor:'#C9A853', transit:'#8A9E88' },
-  desert:  { hike:'#C9A853', beach:'#E0C28A', spa:'#E8B7A0', food:'#C9784F', culture:'#B5895A', outdoor:'#D9B26A', transit:'#A99572' },
-  alpine:  { hike:'#6FA888', beach:'#6FA0C9', spa:'#C9B6E8', food:'#C98A52', culture:'#9BA7B5', outdoor:'#7BAEBE', transit:'#94A3A8' },
-  urban:   { hike:'#7BAE6E', beach:'#5B9FBE', spa:'#D9A0C9', food:'#C9965A', culture:'#9B85CC', outdoor:'#C9A853', transit:'#8A9E88' },
-  mediterranean:{ hike:'#8BAE6E', beach:'#5BA8C9', spa:'#E8C0A0', food:'#C9784F', culture:'#C9A85A', outdoor:'#7BC4B0', transit:'#A99880' },
+  /* Tropiques : émeraude vif, turquoise, rose corail, orange épicé */
+  tropical:{ hike:'#4DAE7B', beach:'#3DAACC', spa:'#E87A9A', food:'#E08A3C', culture:'#A87BD4', outdoor:'#D4B84A', transit:'#7DA898' },
+  /* Désert : ocre chaud, sable, terracotta, épice rouge, bronze */
+  desert:  { hike:'#D4943A', beach:'#D9B870', spa:'#E8A070', food:'#D4522A', culture:'#B08A3A', outdoor:'#D4C06A', transit:'#A89572' },
+  /* Alpine : vert sapin, bleu glacier, lavande, orange fromage, ardoise */
+  alpine:  { hike:'#3A9E7E', beach:'#4A8EC9', spa:'#9B8AD4', food:'#D47A3A', culture:'#6A96B8', outdoor:'#4ABECE', transit:'#8AA4A8' },
+  /* Urbain : vert moderne, bleu ciel, violet chic, orange bistro, indigo */
+  urban:   { hike:'#5AAE6E', beach:'#4A9FBE', spa:'#C97AC9', food:'#D4854A', culture:'#7A65D4', outdoor:'#D4A84A', transit:'#8A9E8A' },
+  /* Méditerranée : ZÉRO vert militaire — or antiquité, bleu mer intense, rouge tomate, turquoise */
+  mediterranean:{ hike:'#5A9A5A', beach:'#3A9EC9', spa:'#E8A87A', food:'#D44A2A', culture:'#D4943A', outdoor:'#4ABDB0', transit:'#A89880' },
 };
 function _themeForDestination(dest, region, country){
   const s=((dest||'')+' '+(region||'')+' '+(country||'')).toLowerCase();
