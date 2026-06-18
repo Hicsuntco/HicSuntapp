@@ -99,59 +99,34 @@ function activitiesView(){
   const byDay = {};
   ACTIVITIES.forEach(function(a){ (byDay[a.day] = byDay[a.day] || []).push(a); });
   const days = Object.keys(byDay).sort(function(a,b){ return a - b; });
-  let total = 0, count = 0;
-  ACTIVITIES.forEach(function(a){ if (actSel[a.id]){ total += a.price; count++; } });
-  const _dbg = '<div style="background:#fff3cd;color:#7a5b00;font-size:11px;padding:6px 14px;text-align:center">DEBUG · ' + ACTIVITIES.length + ' activité(s) · source=' + (window._actSource||'inconnue') + ' · dest=' + esc(ITINERARY.dest||'?') + '</div>';
-  return statusBar() + navbar('Activités & expériences') + _dbg
-    + '<div class="ov-scroll has-foot px">'
+  return statusBar() + navbar('Activités & expériences')
+    + '<div class="ov-scroll px">'
     +   '<span class="eyebrow" style="display:block;margin-top:10px">Sélection du cartographe</span>'
     +   '<h1 style="font-family:var(--serif);font-weight:600;font-size:28px;letter-spacing:-0.4px;margin-top:8px">Expériences sur-mesure</h1>'
-    +   '<p class="lede" style="margin-top:10px">Réservables en un geste — chacune s\'insère dans votre jour par jour.</p>'
+    +   '<p class="lede" style="margin-top:10px">Des suggestions pour enrichir votre séjour — à organiser sur place ou auprès d\'un prestataire local.</p>'
     +   days.map(function(d){
         return '<div class="act-day">Jour ' + String(d).padStart(2,'0') + '</div>'
           + byDay[d].map(function(a){
-            const on = !!actSel[a.id];
             return '<div class="act" onclick="openActivityDetail(\'' + a.id + '\')" style="cursor:pointer">' + '<span class="a-th">' + ico(a.i, 26, 1.3) + '</span>'
               + '<div class="ac-m"><div class="ac-tag">' + esc(a.tag) + '</div><div class="ac-n">' + esc(a.n) + '</div>'
-              + '<div class="ac-s">' + esc(a.loc) + ' · ' + esc(a.dur) + ' · ' + ico('star',10) + a.rate + '</div></div>'
-              + '<div class="ac-r"><span class="ac-p">' + eur(a.price) + '</span>'
-              + '<button class="act-add' + (on ? ' on' : '') + '" onclick="event.stopPropagation();toggleAct(\'' + a.id + '\')" aria-label="Ajouter">' + ico(on ? 'check' : 'plus', 17, 1.8) + '</button></div></div>';
+              + '<div class="ac-s">' + esc(a.loc) + ' · ' + esc(a.dur) + '</div></div>'
+              + '<div class="ac-r"><span class="ac-p">~' + eur(a.price) + '</span></div></div>';
           }).join('');
       }).join('')
-    + '</div>'
-    + '<div class="ov-foot"><div class="foot-price">'
-    +   '<div><div class="fp-v">' + eur(total) + '</div><div class="fp-l">' + count + ' expérience' + (count > 1 ? 's' : '') + ' sélectionnée' + (count > 1 ? 's' : '') + '</div></div>'
-    +   '<button class="btn" onclick="addActs()">Ajouter à l\'itinéraire</button>'
-    + '</div></div>';
-}
-function toggleAct(id){
-  actSel[id] = !actSel[id];
-  const el = ovStack[ovStack.length - 1];
-  if (el && el.dataset.ov === 'activities'){ const st = el.querySelector('.ov-scroll').scrollTop; el.innerHTML = activitiesView(); el.querySelector('.ov-scroll').scrollTop = st; }
-}
-function addActs(){
-  let count = 0;
-  ACTIVITIES.forEach(function(a){ if (actSel[a.id]) count++; });
-  toast(count ? count + ' expérience' + (count>1?'s':'') + ' ajoutée' + (count>1?'s':'') + ' à l\'itinéraire' : 'Sélectionnez au moins une expérience');
-  if (count) closeOverlay();
+    + '</div>';
 }
 function _actById(id){ return ACTIVITIES.find(function(a){ return a.id === id; }); }
 function openActivityDetail(id){
   const a = _actById(id);
   if (!a) return;
-  const on = !!actSel[a.id];
   const html = statusBar() + navbar('Activité')
-    + '<div class="ov-scroll has-foot px">'
+    + '<div class="ov-scroll px">'
     +   '<div style="display:flex;align-items:center;justify-content:center;height:140px;background:var(--tile-bg);border-radius:14px;margin-top:14px;color:var(--gold)">' + ico(a.i, 48, 1.2) + '</div>'
     +   '<span class="eyebrow" style="display:block;margin-top:18px">' + esc(a.tag) + ' · Jour ' + a.day + '</span>'
     +   '<h1 style="font-family:var(--serif);font-weight:600;font-size:26px;letter-spacing:-0.4px;margin-top:6px">' + esc(a.n) + '</h1>'
-    +   '<div class="book-meta" style="margin-top:4px">' + esc(a.loc) + ' · ' + esc(a.dur) + ' · ' + ico('star',12) + ' ' + a.rate + '</div>'
-    +   '<p class="book-desc" style="margin-top:14px">Une expérience sélectionnée par votre cartographe pour s\'intégrer naturellement à votre journée à ' + esc(a.loc) + '. Réservation flexible, annulation possible jusqu\'à 24h avant.</p>'
-    + '</div>'
-    + '<div class="ov-foot"><div class="foot-price">'
-    +   '<div><div class="fp-v">' + eur(a.price) + '</div><div class="fp-l">par personne</div></div>'
-    +   '<button class="btn' + (on?' gold':'') + '" onclick="toggleAct(\'' + a.id + '\');closeOverlay()">' + (on ? 'Retirer' : 'Ajouter à l\'itinéraire') + '</button>'
-    + '</div></div>';
+    +   '<div class="book-meta" style="margin-top:4px">' + esc(a.loc) + ' · ' + esc(a.dur) + '</div>'
+    +   '<p class="book-desc" style="margin-top:14px">Une suggestion de votre cartographe pour s\'intégrer naturellement à votre journée à ' + esc(a.loc) + '. Budget indicatif ~' + eur(a.price) + ' par personne — à organiser sur place ou auprès d\'un prestataire local.</p>'
+    + '</div>';
   openOverlay('activity-detail', html);
 }
 

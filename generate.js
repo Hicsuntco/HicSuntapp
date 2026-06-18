@@ -487,7 +487,8 @@ function deriveActivities(plan){
     const picks=[];
     (Array.isArray(plan)?plan:[]).forEach(function(p){
       (Array.isArray(p.moments)?p.moments:[]).forEach(function(m){
-        if(m[1]==='plane'||m[1]==='bed') return;
+        /* exclure les transferts/déplacements : ce ne sont pas de vraies activités réservables */
+        if(m[1]==='plane'||m[1]==='bed'||m[1]==='compass') return;
         picks.push({day:p.n,i:m[1],n:m[2],loc:p.loc,tag:(TAG_MAP[m[1]]||TAG_MAP.pin)[1]});
       });
     });
