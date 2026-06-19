@@ -424,12 +424,28 @@ function applyGenerated(skel, daysDetail, hilites, flightInfo){
   const accRange=[Math.round(baseAcc[0]*colFactor), Math.round(baseAcc[1]*colFactor)];
   const stayTags=['Coup de cœur','Adresse rare','Signature Hic Sunt','Pépite locale','Écrin de sérénité'];
   const stayRates=['4,96','4,89','4,92','4,88','4,94'];
-  const stays=(Array.isArray(skel.stays)?skel.stays:[]).slice(0,5).map(function(s,i){
+  const stays=(Array.isArray(skel.stays)?skel.stays:[]).slice(0,8).map(function(s,i){
+    const rawPrice=Math.round(Number(s.price)||0);
+    const midAcc=Math.round((accRange[0]+accRange[1])/2);
+    let price;
+    if(rawPrice>=accRange[0]&&rawPrice<=accRange[1]*1.3){
+      price=rawPrice;
+    } else {
+      const tl=(s.type||'').toLowerCase();
+      if(/villa|résidence|privée/.test(tl))            price=Math.round(accRange[1]*0.85);
+      else if(/luxe|resort|palace/.test(tl))           price=Math.round(accRange[1]*0.75);
+      else if(/lodge|boutique|charme|écolodge/.test(tl))price=Math.round(midAcc*1.15);
+      else if(/guesthouse|maison d|homestay/.test(tl)) price=Math.round(accRange[0]*1.3);
+      else if(/hostel|auberge/.test(tl))               price=accRange[0];
+      else price=midAcc;
+      const vary=[1,0.85,1.15,0.92,1.08,0.78,1.22,0.88][i]||1;
+      price=Math.max(accRange[0],Math.min(accRange[1],Math.round(price*vary)));
+    }
     return {
       id:'a'+(i+1), n:s.name||('Hébergement '+(i+1)), i:_stayIcon(s.type),
       type:s.type||'Hôtel-boutique', loc:s.loc||dest,
-      tag:stayTags[i]||'Sélection', rate:stayRates[i]||'4,9',
-      nights:_clampInt(s.nights,1,14,2), price:_clampInt(s.price,accRange[0],accRange[1],Math.round((accRange[0]+accRange[1])/2)),
+      tag:stayTags[i%stayTags.length]||'Sélection', rate:stayRates[i%stayRates.length]||'4,9',
+      nights:_clampInt(s.nights,1,21,2), price:price,
       am:['bed','wifi',i%2?'fork':'pool'], blurb:s.blurb||'Une adresse d\'exception.',
     };
   });

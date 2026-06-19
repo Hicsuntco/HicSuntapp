@@ -654,10 +654,9 @@ async function exportPDF(){
     + '.foot h3{font-family:Fraunces,serif;font-style:italic;font-weight:300;font-size:1.5rem;color:'+sigColor+';margin-bottom:.4rem}'
     + '.foot p{font-size:.6rem;color:'+PDF_THEME.sub+';letter-spacing:.2em;text-transform:uppercase}'
     + '.foot-line{width:32px;height:1px;background:'+sigColor+';opacity:.3;margin:.8rem auto}'
-    + '@media print{.close-btn{display:none}body{background:#fff}}'
+    + '@media print{body{background:#fff}}'
     + '@media(min-width:640px){.hero,.timeline-wrap,.legend-bar,.leg-section,.foot{padding-left:4rem;padding-right:4rem}}'
     + '</style></head><body>'
-    + '<button class="close-btn" onclick="window.close()" aria-label="Fermer">\u2715</button>'
     + '<section class="hero"><div class="hero-bg"></div>'
     + '<div class="hero-eyebrow">Itin\u00E9raire compos\u00E9 \u00B7 Hic Sunt \u00B7 '+esc(it.country||it.dest)+'</div>'
     + '<h1>'+esc(it.dest)+'</h1>'
@@ -681,24 +680,28 @@ async function exportPDF(){
     + '</body></html>';
 
   /* ── Affichage du PDF dans un overlay iframe (iOS Safari compatible) ── */
-  /* window.open est bloqué en PWA — on injecte via un overlay plein écran */
   const pdfOverlay = document.createElement('div');
   pdfOverlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:#F8F4EC;display:flex;flex-direction:column';
 
-  /* Barre d'action */
-  const bar = document.createElement('div');
-  bar.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:white;border-bottom:1px solid rgba(26,22,16,0.12);flex:none';
-  bar.innerHTML = '<button onclick="this.closest(\'[data-pdf-ov]\').remove()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#1a1610">✕</button>'
-    + '<span style="font-family:Jost,sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#7A6E62">'+esc(it.dest)+' · Itinéraire PDF</span>'
-    + '<button onclick="window.print()" style="background:#1a1610;color:white;border:none;border-radius:10px;padding:8px 16px;font-family:Jost,sans-serif;font-size:13px;font-weight:500;cursor:pointer">Imprimer</button>';
+  /* Boutons flottants — ✕ à gauche, Imprimer à droite, sans bandeau */
+  const closeBtn = document.createElement('button');
+  closeBtn.innerHTML = '✕';
+  closeBtn.style.cssText = 'position:absolute;top:16px;left:16px;z-index:2;width:36px;height:36px;border-radius:50%;background:rgba(26,22,16,0.75);color:white;border:none;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px)';
+  closeBtn.onclick = function(){ pdfOverlay.remove(); };
 
-  const iframe = document.createElement('iframe');
-  iframe.style.cssText = 'flex:1;border:none;width:100%';
-  iframe.srcdoc = html;
+  const printBtn = document.createElement('button');
+  printBtn.innerHTML = 'Imprimer';
+  printBtn.style.cssText = 'position:absolute;top:16px;right:16px;z-index:2;padding:8px 18px;border-radius:20px;background:#1a1610;color:white;border:none;font-family:Jost,sans-serif;font-size:13px;font-weight:500;cursor:pointer;backdrop-filter:blur(8px)';
+  printBtn.onclick = function(){ pdfIframe.contentWindow.print(); };
+
+  const pdfIframe = document.createElement('iframe');
+  pdfIframe.style.cssText = 'flex:1;border:none;width:100%;height:100%';
+  pdfIframe.srcdoc = html;
 
   pdfOverlay.setAttribute('data-pdf-ov','');
-  pdfOverlay.appendChild(bar);
-  pdfOverlay.appendChild(iframe);
+  pdfOverlay.appendChild(pdfIframe);
+  pdfOverlay.appendChild(closeBtn);
+  pdfOverlay.appendChild(printBtn);
   document.body.appendChild(pdfOverlay);
 }
 
