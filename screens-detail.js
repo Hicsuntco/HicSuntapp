@@ -123,7 +123,10 @@ function generationView(){
     +   '<div class="gen-logo">Hic <em>Sunt</em></div>'
     +   '<div class="gen-map">' + graticule(220, 220, 40) + route + '</div>'
     +   '<p class="gen-status" data-gen-status>Lecture de vos envies…</p>'
-    +   '<div class="gen-bar"><i></i></div>'
+    +   '<div class="gen-progress">'
+    +     '<div class="gen-progress-track"><div class="gen-progress-fill" data-gen-bar style="width:8%"></div></div>'
+    +     '<span class="gen-progress-pct" data-gen-pct>8%</span>'
+    +   '</div>'
     + '</div></div>';
 }
 
@@ -262,13 +265,16 @@ function itineraryView(){
     +   '</div>'
     +   '<div class="section-h"><h2>Jour par jour</h2><span class="meta">' + it.days + ' jours</span></div>'
     +   it.plan.map(function(p, i){
+        if(!p) return '';
         const catColor = (palette[p.category]) || primaryColor;
+        const tags = Array.isArray(p.tags) ? p.tags : [];
+        const wx = Array.isArray(p.wx) ? p.wx : ['sun','—'];
         return '<div class="dayrow" onclick="openDay(' + i + ')">'
           + '<div class="dr-rail"><span class="dr-pin" style="background:'+catColor+';border-color:'+catColor+'">' + p.n + '</span><span class="dr-line" style="background:'+hexA(catColor,0.2)+'"></span></div>'
-          + '<div class="dr-main"><div class="dr-top"><div><div class="dr-t">' + esc(p.title) + '</div><div class="dr-l">' + esc(p.loc) + '</div></div>'
-          + wxChip(p.wx[0], p.wx[1]) + '</div>'
-          + '<div class="dr-d">' + esc(p.desc) + '</div>'
-          + '<div class="dr-tags">' + p.tags.map(function(t){ return '<span class="mini-tag" style="color:'+catColor+';border-color:'+hexA(catColor,0.3)+';background:'+hexA(catColor,0.08)+'">' + ico(t[0],12,1.7) + t[1] + '</span>'; }).join('') + '</div>'
+          + '<div class="dr-main"><div class="dr-top"><div><div class="dr-t">' + esc(p.title||'') + '</div><div class="dr-l">' + esc(p.loc||'') + '</div></div>'
+          + wxChip(wx[0], wx[1]) + '</div>'
+          + '<div class="dr-d">' + esc(p.desc||'') + '</div>'
+          + '<div class="dr-tags">' + tags.map(function(t){ return '<span class="mini-tag" style="color:'+catColor+';border-color:'+hexA(catColor,0.3)+';background:'+hexA(catColor,0.08)+'">' + ico(t[0],12,1.7) + t[1] + '</span>'; }).join('') + '</div>'
           + '</div></div>';
       }).join('')
     +   '<div class="section-h"><h2>Hébergements</h2><span class="meta">' + it.accommodations.length + ' étapes</span></div>'

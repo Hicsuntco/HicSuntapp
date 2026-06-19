@@ -221,8 +221,10 @@
 @keyframes dash{to{stroke-dashoffset:-44}}
 .gen-route circle{fill:var(--gold)}
 .gen-status{font-family:var(--serif);font-style:italic;font-size:17px;color:var(--gold-soft);transition:opacity 0.24s ease;min-height:24px;text-align:center}
-.gen-bar{width:148px;height:1.5px;background:rgba(246,240,228,0.14);border-radius:2px;overflow:hidden}
-.gen-bar i{display:block;height:100%;width:40%;background:var(--gold-soft);animation:genbar 1.5s ease-in-out infinite}
+.gen-progress{display:flex;align-items:center;gap:10px;width:200px}
+.gen-progress-track{flex:1;height:2px;background:rgba(246,240,228,0.14);border-radius:2px;overflow:hidden}
+.gen-progress-fill{height:100%;background:var(--gold-soft);border-radius:2px;width:8%;transition:width 0.9s cubic-bezier(0.4,0,0.2,1)}
+.gen-progress-pct{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:1px;color:rgba(246,240,228,0.4);min-width:28px;text-align:right}
 @keyframes genbar{0%{transform:translateX(-110%)}100%{transform:translateX(380%)}}
 
 /* ── suggestion de destination (mode Surprenez-moi) ── */

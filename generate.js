@@ -775,19 +775,36 @@ async function runFullGeneration(overlayAlreadyOpen){
     'Rédaction des étapes…','Sélection des adresses locales…','Recherche des pépites cachées…',
     'Calibrage du budget…','Derniers ajustements…',
   ];
+  /* Pourcentages progressifs alignés sur la durée réelle (~10-15s) */
+  const stepPcts=[8, 18, 32, 48, 62, 74, 86, 94];
   let si=0;
+  function _setProgress(pct, label){
+    if(statusEl){
+      statusEl.style.opacity=0;
+      setTimeout(function(){statusEl.textContent=label;statusEl.style.opacity=1;},240);
+    }
+    const barI=el.querySelector('[data-gen-bar]');
+    const barPct=el.querySelector('[data-gen-pct]');
+    if(barI) barI.style.width=pct+'%';
+    if(barPct) barPct.textContent=pct+'%';
+  }
+  _setProgress(stepPcts[0], steps[0]);
   const cycle=setInterval(function(){
     si=(si+1)%steps.length;
-    if(statusEl){statusEl.style.opacity=0;setTimeout(function(){statusEl.textContent=steps[si];statusEl.style.opacity=1;},240);}
+    _setProgress(stepPcts[si], steps[si]);
   },1300);
   const minShow=new Promise(function(r){setTimeout(r,2200);});
   let result=null;
   try{const res=await Promise.all([callCartographe(),minShow]);result=res[0];}catch(e){await minShow;}
   clearInterval(cycle);
+  const barI=el.querySelector('[data-gen-bar]');
+  const barPct=el.querySelector('[data-gen-pct]');
+  if(barI){ barI.style.transition='width 0.5s ease'; barI.style.width='100%'; }
+  if(barPct) barPct.textContent='100%';
+  if(statusEl){statusEl.style.opacity=0;setTimeout(function(){statusEl.textContent='Votre voyage est prêt.';statusEl.style.opacity=1;},200);}
   let ok=false;
   if(result){try{ok=applyGenerated(result.skel,result.days,result.hilites,result.flightInfo);}catch(e){ok=false;}}
   if(!ok) toast('Connexion limitée — itinéraire de démonstration');
-  if(statusEl){statusEl.style.opacity=0;setTimeout(function(){statusEl.textContent='Votre voyage est prêt.';statusEl.style.opacity=1;},200);}
   setTimeout(function(){
     openItinerary();
     saveItinerary();
