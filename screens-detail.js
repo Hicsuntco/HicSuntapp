@@ -26,6 +26,28 @@ if(typeof geoMapSVG === 'undefined'){
     if(/maroc|marrakech/.test(d))return{key:'maroc',g:GEO_SHAPES_SD.maroc};
     return{key:'_default',g:GEO_SHAPES_SD._default};
   }
+  function _sdMatchCity(loc, cities){
+    var parts=(loc||'').split(/[\/\-,]/);
+    for(var ci in cities){var cl=ci.toLowerCase();for(var pi=0;pi<parts.length;pi++){var tok=parts[pi].trim().toLowerCase();if(tok.length>=3&&(cl===tok||cl.includes(tok)||tok.includes(cl)))return cities[ci];}}
+    return null;
+  }
+  function _sdCityPts(plan, geo){
+    var vbParts=(geo.g.vb||'0 0 100 100').split(' ').map(Number);
+    var vbW=vbParts[2],vbH=vbParts[3];
+    var cities=geo.g.cities||{};
+    var cityVals=Object.values(cities);
+    var cxC=vbW/2,cyC=vbH/2;
+    if(cityVals.length){cxC=cityVals.reduce(function(s,c){return s+c[0];},0)/cityVals.length;cyC=cityVals.reduce(function(s,c){return s+c[1];},0)/cityVals.length;}
+    var matched=plan.map(function(p){return _sdMatchCity(p.loc||'',cities);});
+    var fbCount=matched.filter(function(m){return !m;}).length,fbIdx=0;
+    return plan.map(function(p,i){
+      var m=matched[i];
+      if(m)return{vx:m[0],vy:m[1],n:i+1,loc:p.loc};
+      var angle=(fbIdx/Math.max(1,fbCount))*Math.PI*2-Math.PI/2;
+      fbIdx++;
+      return{vx:cxC+Math.cos(angle)*Math.min(vbW,vbH)*0.15,vy:cyC+Math.sin(angle)*Math.min(vbW,vbH)*0.15,n:i+1,loc:p.loc};
+    });
+  }
   function geoMapSVG(W,H,activeIdx){
     var it=ITINERARY;
     var dest=it.dest||it.destination||'';
@@ -33,35 +55,71 @@ if(typeof geoMapSVG === 'undefined'){
     var vbParts=(geo.g.vb||'0 0 100 100').split(' ').map(Number);
     var vbW=vbParts[2],vbH=vbParts[3];
     var accent=(it.palette&&(it.palette.culture||it.palette.beach))||'#C9A96E';
-    var plan=it.plan||[];
-    var cities=geo.g.cities||{};
-    var cityVals=Object.values(cities);
-    var cxC=vbW/2,cyC=vbH/2;
-    if(cityVals.length){cxC=cityVals.reduce(function(s,c){return s+c[0];},0)/cityVals.length;cyC=cityVals.reduce(function(s,c){return s+c[1];},0)/cityVals.length;}
-    function matchC(loc){
-      var parts=(loc||'').split(/[\/\-,]/);
-      for(var ci in cities){var cl=ci.toLowerCase();for(var pi=0;pi<parts.length;pi++){var tok=parts[pi].trim().toLowerCase();if(tok.length>=3&&(cl===tok||cl.includes(tok)||tok.includes(cl)))return cities[ci];}}
-      return null;
-    }
-    var matched=plan.map(function(p){return matchC(p.loc||'');});
-    var fbCount=matched.filter(function(m){return !m;}).length,fbIdx=0;
-    var pts=plan.map(function(p,i){
-      var m=matched[i];
-      if(m)return{vx:m[0],vy:m[1],n:i+1};
-      var angle=(fbIdx/Math.max(1,fbCount))*Math.PI*2-Math.PI/2;
-      fbIdx++;
-      return{vx:cxC+Math.cos(angle)*Math.min(vbW,vbH)*0.15,vy:cyC+Math.sin(angle)*Math.min(vbW,vbH)*0.15,n:i+1};
-    });
+    var pts=_sdCityPts(it.plan||[],geo);
     var scale=Math.min(W/vbW,H/vbH)*0.88;
     var offX=(W-vbW*scale)/2,offY=(H-vbH*scale)/2;
     var rp='';
-    if(pts.length>1){rp='M'+pts[0].vx.toFixed(1)+' '+pts[0].vy.toFixed(1);for(var ri=1;ri<pts.length;ri++){rp+=' T'+pts[ri].vx.toFixed(1)+' '+pts[ri].vy.toFixed(1);}}
+    if(pts.length>1){
+      rp='M'+pts[0].vx.toFixed(1)+' '+pts[0].vy.toFixed(1);
+      for(var ri=1;ri<pts.length;ri++){
+        var mx=((pts[ri-1].vx+pts[ri].vx)/2).toFixed(1);
+        var my=((pts[ri-1].vy+pts[ri].vy)/2).toFixed(1);
+        rp+=' Q'+pts[ri-1].vx.toFixed(1)+' '+pts[ri-1].vy.toFixed(1)+' '+mx+' '+my+' T'+pts[ri].vx.toFixed(1)+' '+pts[ri].vy.toFixed(1);
+      }
+    }
     var pinR=(7/scale),pinRon=(10/scale),fs=(6/scale),fson=(8/scale);
-    var pins=pts.map(function(p,i){var on=activeIdx===i;var r=on?pinRon:pinR;return'<g class="mpin'+(on?' on':'')+'"'+(activeIdx!==null?' onclick="mapSelect('+i+')"':'')+' ><circle cx="'+p.vx.toFixed(1)+'" cy="'+p.vy.toFixed(1)+'" r="'+r.toFixed(1)+'"/><text x="'+p.vx.toFixed(1)+'" y="'+(p.vy+r*0.38).toFixed(1)+'" font-size="'+(on?fson:fs).toFixed(1)+'">'+p.n+'</text></g>';}).join('');
-    return'<svg class="map-svg" viewBox="0 0 '+W+' '+H+'" fill="none"><rect width="'+W+'" height="'+H+'" fill="rgba(246,240,228,0.02)" rx="10"/><g transform="translate('+offX.toFixed(1)+','+offY.toFixed(1)+') scale('+scale.toFixed(4)+')">'
-      +'<path d="'+geo.g.path+'" fill="'+hexA(accent,0.10)+'" stroke="'+hexA(accent,0.60)+'" stroke-width="'+(1.2/scale).toFixed(2)+'" stroke-linejoin="round" stroke-linecap="round"/>'
-      +(rp?'<path d="'+rp+'" stroke="'+hexA(accent,0.85)+'" stroke-width="'+(1.5/scale).toFixed(2)+'" stroke-dasharray="'+(4/scale).toFixed(1)+' '+(3/scale).toFixed(1)+'" fill="none"/>':'')
+    var pins=pts.map(function(p,i){
+      var on=activeIdx===i;
+      var r=on?pinRon:pinR;
+      return'<g class="mpin'+(on?' on':'')+'"'+(activeIdx!==null?' onclick="mapSelect('+i+')"':'')+' style="animation:none">'
+        +'<circle cx="'+p.vx.toFixed(1)+'" cy="'+p.vy.toFixed(1)+'" r="'+r.toFixed(1)+'" style="animation:none"/>'
+        +'<text x="'+p.vx.toFixed(1)+'" y="'+(p.vy+r*0.38).toFixed(1)+'" font-size="'+(on?fson:fs).toFixed(1)+'">'+p.n+'</text></g>';
+    }).join('');
+    return'<svg class="map-svg" viewBox="0 0 '+W+' '+H+'" fill="none" style="animation:none">'
+      +'<rect width="'+W+'" height="'+H+'" fill="rgba(246,240,228,0.02)" rx="10" style="animation:none"/>'
+      +'<g transform="translate('+offX.toFixed(1)+','+offY.toFixed(1)+') scale('+scale.toFixed(4)+')" style="animation:none">'
+      +'<path d="'+geo.g.path+'" fill="'+hexA(accent,0.10)+'" stroke="'+hexA(accent,0.60)+'" stroke-width="'+(1.2/scale).toFixed(2)+'" stroke-linejoin="round" stroke-linecap="round" style="animation:none"/>'
+      +(rp?'<path d="'+rp+'" stroke="'+hexA(accent,0.85)+'" stroke-width="'+(1.5/scale).toFixed(2)+'" stroke-dasharray="'+(4/scale).toFixed(1)+' '+(3/scale).toFixed(1)+'" fill="none" style="animation:none"/>':'')
       +pins+'</g></svg>';
+  }
+  function mapView(){
+    var i=state.mapDay||0;
+    var p=(ITINERARY.plan||[])[i];
+    var dest=ITINERARY.dest||ITINERARY.destination||'';
+    var geo=_geoShapeSD(dest);
+    var vbParts=(geo.g.vb||'0 0 100 100').split(' ').map(Number);
+    var vbW=vbParts[2],vbH=vbParts[3];
+    var W=345,H=420;
+    var scale=Math.min(W/vbW,H/vbH)*0.88;
+    var offX=(W-vbW*scale)/2,offY=(H-vbH*scale)/2;
+    var pts=_sdCityPts(ITINERARY.plan||[],geo);
+    var pin=pts[i]||{vx:vbW/2,vy:vbH/2};
+    var pinCanvasX=offX+pin.vx*scale,pinCanvasY=offY+pin.vy*scale;
+    var popL=Math.max(4,Math.min(pinCanvasX/W*100-20,50));
+    var popT=pinCanvasY/H>0.58?(pinCanvasY/H*100-22):(pinCanvasY/H*100+6);
+    var wx=p&&Array.isArray(p.wx)?p.wx:['sun','—'];
+    var pop=p?'<div class="map-pop" style="left:'+popL.toFixed(1)+'%;top:'+popT.toFixed(1)+'%">'
+      +'<div class="mp-k">Jour '+String(p.n).padStart(2,'0')+' · '+esc(p.loc||'')+'</div>'
+      +'<div class="mp-t">'+esc(p.title||'')+'</div>'
+      +'<div class="mp-m"><span class="mp-wx">'+ico(wx[0],13,1.7)+wx[1]+'</span>'
+      +'<span class="mp-l" onclick="openDay('+i+')">Détails ›</span></div></div>':'';
+    return statusBar()
+      +navbar('Carte du voyage',{right:'<button class="nav-btn" onclick="openOffline&&openOffline()" aria-label="Hors-ligne">'+ico('download',18,1.6)+'</button>'})
+      +'<div class="ov-scroll">'
+      +'<div class="bigmap">'
+      +'<span class="map-coords">'+esc(ITINERARY.coords||ITINERARY.dest||'')+'</span>'
+      +'<span class="map-rose">'+(typeof rose==='function'?rose(26,1.1):'')+'</span>'
+      +geoMapSVG(W,H,i)+pop
+      +'</div>'
+      +'<div class="map-rail">'+(ITINERARY.plan||[]).map(function(d,j){
+        return'<button class="map-chip'+(j===i?' on':'')+'" onclick="mapSelect('+j+')">'
+          +'<div class="mc-d">Jour '+String(d.n).padStart(2,'0')+'</div><div class="mc-l">'+esc(d.loc||'')+'</div></button>';
+      }).join('')+'</div></div>';
+  }
+  function mapSelect(i){
+    state.mapDay=i;
+    var el=ovStack[ovStack.length-1];
+    if(el&&el.dataset.ov==='map') el.innerHTML=mapView();
   }
 }
 
