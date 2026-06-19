@@ -1,126 +1,109 @@
 /* ── HIC SUNT · Sillage — écrans détail ─────────────────────────────── */
 
-/* ── Carte géographique (inline fallback si features.js non à jour) ─── */
-if(typeof geoMapSVG === 'undefined'){
-  var GEO_SHAPES_SD = {
-    'sardaigne':{vb:'0 0 100 160',path:'M50,8 C58,10 66,14 70,22 C74,30 72,38 74,46 C76,54 80,60 78,70 C76,80 70,84 68,94 C66,104 70,112 66,120 C62,128 54,134 46,138 C38,142 30,138 26,130 C22,122 24,114 22,106 C20,98 16,92 18,82 C20,72 26,66 28,56 C30,46 26,36 30,26 C34,16 42,6 50,8Z',cities:{'Cagliari':[50,130],'Iglesias':[34,118],'Oristano':[32,82],'Nuoro':[58,62],'Sassari':[36,28],'Alghero':[24,38],'Olbia':[72,26],'Villasimius':[68,136],'Chia':[40,146],'Barumini':[46,102]}},
-    'thaïlande':{vb:'0 0 80 180',path:'M44,10 C54,12 62,18 64,28 C66,38 62,50 62,62 C62,74 66,86 62,96 C58,106 50,110 46,120 C42,130 44,142 38,148 C32,154 24,152 20,144 C16,136 18,124 16,114 C14,104 10,94 10,82 C10,70 12,58 14,46 C16,34 14,22 20,14 C26,6 36,8 44,10Z M38,148 C40,158 38,168 32,172 C26,176 20,172 18,162 C16,152 20,144 24,138 L38,148Z',cities:{'Bangkok':[40,88],'Chiang Mai':[30,30],'Phuket':[28,158],'Koh Samui':[56,120],'Ayutthaya':[40,70]}},
-    'maroc':{vb:'0 0 140 120',path:'M20,16 C32,10 50,10 64,14 C78,18 90,26 98,36 C106,46 108,58 106,70 C104,82 96,90 86,96 C76,102 62,104 48,104 C34,104 20,100 12,90 C4,80 4,66 6,54 C8,42 10,28 20,16Z',cities:{'Marrakech':[60,74],'Casablanca':[30,48],'Fès':[74,34],'Agadir':[36,92],'Essaouira':[22,78]}},
-    'japon':{vb:'0 0 140 180',path:'M80,10 C90,12 98,18 100,28 C102,38 96,50 94,62 C92,74 96,86 90,96 C84,106 74,110 68,120 C62,130 60,142 54,148 C48,154 40,152 34,144 C28,136 28,124 26,112 C24,100 18,90 18,78 C18,66 22,54 26,44 C30,34 28,22 34,14 C40,6 50,6 62,8 L80,10Z',cities:{'Tokyo':[82,58],'Kyoto':[62,86],'Osaka':[66,94],'Hiroshima':[50,108]}},
-    'grèce':{vb:'0 0 160 120',path:'M40,18 C52,12 66,12 78,16 C90,20 100,28 106,40 C112,52 110,64 106,74 C102,84 92,88 82,94 C72,100 58,102 46,98 C34,94 24,86 18,74 C12,62 12,48 16,36 C20,24 28,24 40,18Z',cities:{'Athènes':[72,68],'Santorin':[90,104],'Mykonos':[100,86]}},
-    'portugal':{vb:'0 0 60 120',path:'M30,8 C38,6 46,10 50,18 C54,26 52,36 52,46 C52,56 54,66 52,76 C50,86 44,92 40,100 C36,108 36,118 30,118 C24,118 22,110 18,102 C14,94 12,82 12,70 C12,58 14,48 14,38 C14,28 10,18 14,10 C18,2 24,10 30,8Z',cities:{'Lisbonne':[26,78],'Porto':[22,32],'Faro':[34,110]}},
-    'islande':{vb:'0 0 200 100',path:'M30,50 C36,36 50,26 64,20 C78,14 96,14 110,18 C124,22 136,32 144,44 C152,56 150,68 138,76 C126,84 108,84 92,84 C76,84 60,84 46,76 C32,68 24,64 30,50Z',cities:{'Reykjavik':[42,64],'Akureyri':[90,26]}},
-    'pérou':{vb:'0 0 100 140',path:'M28,16 C38,10 52,8 64,12 C76,16 84,26 88,38 C92,50 90,64 88,76 C86,88 88,102 82,112 C76,122 64,126 52,126 C40,126 28,120 20,110 C12,100 10,86 12,74 C14,62 10,48 14,36 C18,24 20,22 28,16Z',cities:{'Lima':[20,66],'Cusco':[60,96],'Machu Picchu':[52,100]}},
-    'kenya':{vb:'0 0 100 120',path:'M28,16 C40,10 56,8 68,12 C80,16 90,26 94,38 C98,50 96,64 92,76 C88,88 88,102 80,110 C72,118 58,120 46,116 C34,112 22,104 16,92 C10,80 8,66 10,54 C12,42 16,30 28,16Z',cities:{'Nairobi':[52,72],'Mombasa':[76,104],'Masai Mara':[26,84]}},
-    'bali':{vb:'0 0 140 70',path:'M20,35 C28,22 44,16 60,14 C76,12 90,16 104,24 C118,32 128,42 124,54 C120,66 104,68 88,68 C72,68 56,66 42,58 C28,50 12,48 20,35Z',cities:{'Ubud':[68,38],'Kuta':[38,50],'Seminyak':[32,46]}},
-    '_default':{vb:'0 0 100 100',path:'M50,8 C64,10 76,20 80,34 C84,48 80,62 76,74 C72,86 64,94 52,98 C40,102 28,98 20,88 C12,78 10,64 12,52 C14,40 16,26 24,18 C32,10 38,6 50,8Z',cities:{}}
-  };
-  function _geoShapeSD(dest){
-    var d=(dest||'').toLowerCase();
-    var keys=Object.keys(GEO_SHAPES_SD).filter(function(k){return k!=='_default';});
-    for(var i=0;i<keys.length;i++){if(d.includes(keys[i]))return{key:keys[i],g:GEO_SHAPES_SD[keys[i]]};}
-    if(/italie|sicile|rome/.test(d))return{key:'sardaigne',g:GEO_SHAPES_SD.sardaigne};
-    if(/thaïlande|bangkok|phuket/.test(d))return{key:'thaïlande',g:GEO_SHAPES_SD['thaïlande']};
-    if(/grèce|athènes|santorin/.test(d))return{key:'grèce',g:GEO_SHAPES_SD['grèce']};
-    if(/japon|tokyo|kyoto/.test(d))return{key:'japon',g:GEO_SHAPES_SD.japon};
-    if(/maroc|marrakech/.test(d))return{key:'maroc',g:GEO_SHAPES_SD.maroc};
-    return{key:'_default',g:GEO_SHAPES_SD._default};
-  }
-  function _sdMatchCity(loc, cities){
-    var parts=(loc||'').split(/[\/\-,]/);
-    for(var ci in cities){var cl=ci.toLowerCase();for(var pi=0;pi<parts.length;pi++){var tok=parts[pi].trim().toLowerCase();if(tok.length>=3&&(cl===tok||cl.includes(tok)||tok.includes(cl)))return cities[ci];}}
-    return null;
-  }
-  function _sdCityPts(plan, geo){
-    var vbParts=(geo.g.vb||'0 0 100 100').split(' ').map(Number);
-    var vbW=vbParts[2],vbH=vbParts[3];
-    var cities=geo.g.cities||{};
-    var cityVals=Object.values(cities);
-    var cxC=vbW/2,cyC=vbH/2;
-    if(cityVals.length){cxC=cityVals.reduce(function(s,c){return s+c[0];},0)/cityVals.length;cyC=cityVals.reduce(function(s,c){return s+c[1];},0)/cityVals.length;}
-    var matched=plan.map(function(p){return _sdMatchCity(p.loc||'',cities);});
-    var fbCount=matched.filter(function(m){return !m;}).length,fbIdx=0;
-    return plan.map(function(p,i){
-      var m=matched[i];
-      if(m)return{vx:m[0],vy:m[1],n:i+1,loc:p.loc};
-      var angle=(fbIdx/Math.max(1,fbCount))*Math.PI*2-Math.PI/2;
-      fbIdx++;
-      return{vx:cxC+Math.cos(angle)*Math.min(vbW,vbH)*0.15,vy:cyC+Math.sin(angle)*Math.min(vbW,vbH)*0.15,n:i+1,loc:p.loc};
-    });
-  }
-  function geoMapSVG(W,H,activeIdx){
-    var it=ITINERARY;
-    var dest=it.dest||it.destination||'';
-    var geo=_geoShapeSD(dest);
-    var vbParts=(geo.g.vb||'0 0 100 100').split(' ').map(Number);
-    var vbW=vbParts[2],vbH=vbParts[3];
-    var accent=(it.palette&&(it.palette.culture||it.palette.beach))||'#C9A96E';
-    var pts=_sdCityPts(it.plan||[],geo);
-    var scale=Math.min(W/vbW,H/vbH)*0.88;
-    var offX=(W-vbW*scale)/2,offY=(H-vbH*scale)/2;
-    var rp='';
-    if(pts.length>1){
-      rp='M'+pts[0].vx.toFixed(1)+' '+pts[0].vy.toFixed(1);
-      for(var ri=1;ri<pts.length;ri++){
-        var mx=((pts[ri-1].vx+pts[ri].vx)/2).toFixed(1);
-        var my=((pts[ri-1].vy+pts[ri].vy)/2).toFixed(1);
-        rp+=' Q'+pts[ri-1].vx.toFixed(1)+' '+pts[ri-1].vy.toFixed(1)+' '+mx+' '+my+' T'+pts[ri].vx.toFixed(1)+' '+pts[ri].vy.toFixed(1);
-      }
+/* ── Carte géographique — redéfinition forcée (remplace features.js) ── */
+var GEO_SHAPES_SD = {
+  'sardaigne':{vb:'0 0 100 160',path:'M50,8 C58,10 66,14 70,22 C74,30 72,38 74,46 C76,54 80,60 78,70 C76,80 70,84 68,94 C66,104 70,112 66,120 C62,128 54,134 46,138 C38,142 30,138 26,130 C22,122 24,114 22,106 C20,98 16,92 18,82 C20,72 26,66 28,56 C30,46 26,36 30,26 C34,16 42,6 50,8Z',cities:{'Cagliari':[50,130],'Iglesias':[34,118],'Oristano':[32,82],'Nuoro':[58,62],'Sassari':[36,28],'Alghero':[24,38],'Olbia':[72,26],'Villasimius':[68,136],'Chia':[40,146],'Barumini':[46,102]}},
+  'thaïlande':{vb:'0 0 80 180',path:'M44,10 C54,12 62,18 64,28 C66,38 62,50 62,62 C62,74 66,86 62,96 C58,106 50,110 46,120 C42,130 44,142 38,148 C32,154 24,152 20,144 C16,136 18,124 16,114 C14,104 10,94 10,82 C10,70 12,58 14,46 C16,34 14,22 20,14 C26,6 36,8 44,10Z M38,148 C40,158 38,168 32,172 C26,176 20,172 18,162 C16,152 20,144 24,138 L38,148Z',cities:{'Bangkok':[40,88],'Chiang Mai':[30,30],'Phuket':[28,158],'Koh Samui':[56,120],'Ayutthaya':[40,70]}},
+  'maroc':{vb:'0 0 140 120',path:'M20,16 C32,10 50,10 64,14 C78,18 90,26 98,36 C106,46 108,58 106,70 C104,82 96,90 86,96 C76,102 62,104 48,104 C34,104 20,100 12,90 C4,80 4,66 6,54 C8,42 10,28 20,16Z',cities:{'Marrakech':[60,74],'Casablanca':[30,48],'Fès':[74,34],'Agadir':[36,92],'Essaouira':[22,78]}},
+  'japon':{vb:'0 0 140 180',path:'M80,10 C90,12 98,18 100,28 C102,38 96,50 94,62 C92,74 96,86 90,96 C84,106 74,110 68,120 C62,130 60,142 54,148 C48,154 40,152 34,144 C28,136 28,124 26,112 C24,100 18,90 18,78 C18,66 22,54 26,44 C30,34 28,22 34,14 C40,6 50,6 62,8 L80,10Z',cities:{'Tokyo':[82,58],'Kyoto':[62,86],'Osaka':[66,94],'Hiroshima':[50,108]}},
+  'grèce':{vb:'0 0 160 120',path:'M40,18 C52,12 66,12 78,16 C90,20 100,28 106,40 C112,52 110,64 106,74 C102,84 92,88 82,94 C72,100 58,102 46,98 C34,94 24,86 18,74 C12,62 12,48 16,36 C20,24 28,24 40,18Z',cities:{'Athènes':[72,68],'Santorin':[90,104],'Mykonos':[100,86]}},
+  'portugal':{vb:'0 0 60 120',path:'M30,8 C38,6 46,10 50,18 C54,26 52,36 52,46 C52,56 54,66 52,76 C50,86 44,92 40,100 C36,108 36,118 30,118 C24,118 22,110 18,102 C14,94 12,82 12,70 C12,58 14,48 14,38 C14,28 10,18 14,10 C18,2 24,10 30,8Z',cities:{'Lisbonne':[26,78],'Porto':[22,32],'Faro':[34,110]}},
+  'islande':{vb:'0 0 200 100',path:'M30,50 C36,36 50,26 64,20 C78,14 96,14 110,18 C124,22 136,32 144,44 C152,56 150,68 138,76 C126,84 108,84 92,84 C76,84 60,84 46,76 C32,68 24,64 30,50Z',cities:{'Reykjavik':[42,64],'Akureyri':[90,26]}},
+  'pérou':{vb:'0 0 100 140',path:'M28,16 C38,10 52,8 64,12 C76,16 84,26 88,38 C92,50 90,64 88,76 C86,88 88,102 82,112 C76,122 64,126 52,126 C40,126 28,120 20,110 C12,100 10,86 12,74 C14,62 10,48 14,36 C18,24 20,22 28,16Z',cities:{'Lima':[20,66],'Cusco':[60,96],'Machu Picchu':[52,100]}},
+  'kenya':{vb:'0 0 100 120',path:'M28,16 C40,10 56,8 68,12 C80,16 90,26 94,38 C98,50 96,64 92,76 C88,88 88,102 80,110 C72,118 58,120 46,116 C34,112 22,104 16,92 C10,80 8,66 10,54 C12,42 16,30 28,16Z',cities:{'Nairobi':[52,72],'Mombasa':[76,104],'Masai Mara':[26,84]}},
+  'bali':{vb:'0 0 140 70',path:'M20,35 C28,22 44,16 60,14 C76,12 90,16 104,24 C118,32 128,42 124,54 C120,66 104,68 88,68 C72,68 56,66 42,58 C28,50 12,48 20,35Z',cities:{'Ubud':[68,38],'Kuta':[38,50],'Seminyak':[32,46]}},
+  '_default':{vb:'0 0 100 100',path:'M50,8 C64,10 76,20 80,34 C84,48 80,62 76,74 C72,86 64,94 52,98 C40,102 28,98 20,88 C12,78 10,64 12,52 C14,40 16,26 24,18 C32,10 38,6 50,8Z',cities:{}}
+};
+function _geoShapeSD(dest){
+  var d=(dest||'').toLowerCase();
+  var keys=Object.keys(GEO_SHAPES_SD).filter(function(k){return k!=='_default';});
+  for(var i=0;i<keys.length;i++){if(d.includes(keys[i]))return{key:keys[i],g:GEO_SHAPES_SD[keys[i]]};}
+  if(/italie|sicile|rome/.test(d))return{key:'sardaigne',g:GEO_SHAPES_SD.sardaigne};
+  if(/thaïlande|bangkok|phuket/.test(d))return{key:'thaïlande',g:GEO_SHAPES_SD['thaïlande']};
+  if(/grèce|athènes|santorin/.test(d))return{key:'grèce',g:GEO_SHAPES_SD['grèce']};
+  if(/japon|tokyo|kyoto/.test(d))return{key:'japon',g:GEO_SHAPES_SD.japon};
+  if(/maroc|marrakech/.test(d))return{key:'maroc',g:GEO_SHAPES_SD.maroc};
+  return{key:'_default',g:GEO_SHAPES_SD._default};
+}
+function _sdMatchCity(loc,cities){
+  var parts=(loc||'').split(/[\/\-,]/);
+  for(var ci in cities){var cl=ci.toLowerCase();for(var pi=0;pi<parts.length;pi++){var tok=parts[pi].trim().toLowerCase();if(tok.length>=3&&(cl===tok||cl.includes(tok)||tok.includes(cl)))return cities[ci];}}
+  return null;
+}
+function _sdCityPts(plan,geo){
+  var vbParts=(geo.g.vb||'0 0 100 100').split(' ').map(Number);
+  var vbW=vbParts[2],vbH=vbParts[3],cities=geo.g.cities||{};
+  var cityVals=Object.values(cities),cxC=vbW/2,cyC=vbH/2;
+  if(cityVals.length){cxC=cityVals.reduce(function(s,c){return s+c[0];},0)/cityVals.length;cyC=cityVals.reduce(function(s,c){return s+c[1];},0)/cityVals.length;}
+  var matched=plan.map(function(p){return _sdMatchCity(p.loc||'',cities);});
+  var fbCount=matched.filter(function(m){return !m;}).length,fbIdx=0;
+  return plan.map(function(p,i){
+    var m=matched[i];
+    if(m)return{vx:m[0],vy:m[1],n:i+1,loc:p.loc};
+    var angle=(fbIdx/Math.max(1,fbCount))*Math.PI*2-Math.PI/2;fbIdx++;
+    return{vx:cxC+Math.cos(angle)*Math.min(vbW,vbH)*0.15,vy:cyC+Math.sin(angle)*Math.min(vbW,vbH)*0.15,n:i+1,loc:p.loc};
+  });
+}
+function geoMapSVG(W,H,activeIdx){
+  var it=ITINERARY,dest=it.dest||it.destination||'';
+  var geo=_geoShapeSD(dest);
+  var vbParts=(geo.g.vb||'0 0 100 100').split(' ').map(Number),vbW=vbParts[2],vbH=vbParts[3];
+  var accent=(it.palette&&(it.palette.culture||it.palette.beach))||'#C9A96E';
+  var pts=_sdCityPts(it.plan||[],geo);
+  var scale=Math.min(W/vbW,H/vbH)*0.88,offX=(W-vbW*scale)/2,offY=(H-vbH*scale)/2;
+  var rp='';
+  if(pts.length>1){
+    rp='M'+pts[0].vx.toFixed(1)+' '+pts[0].vy.toFixed(1);
+    for(var ri=1;ri<pts.length;ri++){
+      var mx=((pts[ri-1].vx+pts[ri].vx)/2).toFixed(1),my=((pts[ri-1].vy+pts[ri].vy)/2).toFixed(1);
+      rp+=' Q'+pts[ri-1].vx.toFixed(1)+' '+pts[ri-1].vy.toFixed(1)+' '+mx+' '+my+' T'+pts[ri].vx.toFixed(1)+' '+pts[ri].vy.toFixed(1);
     }
-    var pinR=(7/scale),pinRon=(10/scale),fs=(6/scale),fson=(8/scale);
-    var pins=pts.map(function(p,i){
-      var on=activeIdx===i;
-      var r=on?pinRon:pinR;
-      return'<g class="mpin'+(on?' on':'')+'"'+(activeIdx!==null?' onclick="mapSelect('+i+')"':'')+' style="animation:none">'
-        +'<circle cx="'+p.vx.toFixed(1)+'" cy="'+p.vy.toFixed(1)+'" r="'+r.toFixed(1)+'" style="animation:none"/>'
-        +'<text x="'+p.vx.toFixed(1)+'" y="'+(p.vy+r*0.38).toFixed(1)+'" font-size="'+(on?fson:fs).toFixed(1)+'">'+p.n+'</text></g>';
-    }).join('');
-    return'<svg class="map-svg" viewBox="0 0 '+W+' '+H+'" fill="none" style="animation:none">'
-      +'<rect width="'+W+'" height="'+H+'" fill="rgba(246,240,228,0.02)" rx="10" style="animation:none"/>'
-      +'<g transform="translate('+offX.toFixed(1)+','+offY.toFixed(1)+') scale('+scale.toFixed(4)+')" style="animation:none">'
-      +'<path d="'+geo.g.path+'" fill="'+hexA(accent,0.10)+'" stroke="'+hexA(accent,0.60)+'" stroke-width="'+(1.2/scale).toFixed(2)+'" stroke-linejoin="round" stroke-linecap="round" style="animation:none"/>'
-      +(rp?'<path d="'+rp+'" stroke="'+hexA(accent,0.85)+'" stroke-width="'+(1.5/scale).toFixed(2)+'" stroke-dasharray="'+(4/scale).toFixed(1)+' '+(3/scale).toFixed(1)+'" fill="none" style="animation:none"/>':'')
-      +pins+'</g></svg>';
   }
-  function mapView(){
-    var i=state.mapDay||0;
-    var p=(ITINERARY.plan||[])[i];
-    var dest=ITINERARY.dest||ITINERARY.destination||'';
-    var geo=_geoShapeSD(dest);
-    var vbParts=(geo.g.vb||'0 0 100 100').split(' ').map(Number);
-    var vbW=vbParts[2],vbH=vbParts[3];
-    var W=345,H=420;
-    var scale=Math.min(W/vbW,H/vbH)*0.88;
-    var offX=(W-vbW*scale)/2,offY=(H-vbH*scale)/2;
-    var pts=_sdCityPts(ITINERARY.plan||[],geo);
-    var pin=pts[i]||{vx:vbW/2,vy:vbH/2};
-    var pinCanvasX=offX+pin.vx*scale,pinCanvasY=offY+pin.vy*scale;
-    var popL=Math.max(4,Math.min(pinCanvasX/W*100-20,50));
-    var popT=pinCanvasY/H>0.58?(pinCanvasY/H*100-22):(pinCanvasY/H*100+6);
-    var wx=p&&Array.isArray(p.wx)?p.wx:['sun','—'];
-    var pop=p?'<div class="map-pop" style="left:'+popL.toFixed(1)+'%;top:'+popT.toFixed(1)+'%">'
-      +'<div class="mp-k">Jour '+String(p.n).padStart(2,'0')+' · '+esc(p.loc||'')+'</div>'
-      +'<div class="mp-t">'+esc(p.title||'')+'</div>'
-      +'<div class="mp-m"><span class="mp-wx">'+ico(wx[0],13,1.7)+wx[1]+'</span>'
-      +'<span class="mp-l" onclick="openDay('+i+')">Détails ›</span></div></div>':'';
-    return statusBar()
-      +navbar('Carte du voyage',{right:'<button class="nav-btn" onclick="openOffline&&openOffline()" aria-label="Hors-ligne">'+ico('download',18,1.6)+'</button>'})
-      +'<div class="ov-scroll">'
-      +'<div class="bigmap">'
-      +'<span class="map-coords">'+esc(ITINERARY.coords||ITINERARY.dest||'')+'</span>'
-      +'<span class="map-rose">'+(typeof rose==='function'?rose(26,1.1):'')+'</span>'
-      +geoMapSVG(W,H,i)+pop
-      +'</div>'
-      +'<div class="map-rail">'+(ITINERARY.plan||[]).map(function(d,j){
-        return'<button class="map-chip'+(j===i?' on':'')+'" onclick="mapSelect('+j+')">'
-          +'<div class="mc-d">Jour '+String(d.n).padStart(2,'0')+'</div><div class="mc-l">'+esc(d.loc||'')+'</div></button>';
-      }).join('')+'</div></div>';
-  }
-  function mapSelect(i){
-    state.mapDay=i;
-    var el=ovStack[ovStack.length-1];
-    if(el&&el.dataset.ov==='map') el.innerHTML=mapView();
-  }
+  var pinR=7/scale,pinRon=10/scale,fs=6/scale,fson=8/scale;
+  var pins=pts.map(function(p,i){
+    var on=activeIdx===i,r=on?pinRon:pinR;
+    return '<g class="mpin'+(on?' on':'')+'"'+(activeIdx!==null?' onclick="mapSelect('+i+')"':'')+' style="animation:none">'
+      +'<circle cx="'+p.vx.toFixed(1)+'" cy="'+p.vy.toFixed(1)+'" r="'+r.toFixed(1)+'" style="animation:none"/>'
+      +'<text x="'+p.vx.toFixed(1)+'" y="'+(p.vy+r*0.38).toFixed(1)+'" font-size="'+(on?fson:fs).toFixed(1)+'">'+p.n+'</text></g>';
+  }).join('');
+  return '<svg class="map-svg" viewBox="0 0 '+W+' '+H+'" fill="none" style="animation:none">'
+    +'<rect width="'+W+'" height="'+H+'" fill="rgba(246,240,228,0.02)" rx="10" style="animation:none"/>'
+    +'<g transform="translate('+offX.toFixed(1)+','+offY.toFixed(1)+') scale('+scale.toFixed(4)+')" style="animation:none">'
+    +'<path d="'+geo.g.path+'" fill="'+hexA(accent,0.10)+'" stroke="'+hexA(accent,0.60)+'" stroke-width="'+(1.2/scale).toFixed(2)+'" stroke-linejoin="round" style="animation:none"/>'
+    +(rp?'<path d="'+rp+'" stroke="'+hexA(accent,0.85)+'" stroke-width="'+(1.5/scale).toFixed(2)+'" stroke-dasharray="'+(4/scale).toFixed(1)+' '+(3/scale).toFixed(1)+'" fill="none" style="animation:none"/>':'')
+    +pins+'</g></svg>';
+}
+function mapView(){
+  var i=state.mapDay||0,p=(ITINERARY.plan||[])[i];
+  var dest=ITINERARY.dest||ITINERARY.destination||'';
+  var geo=_geoShapeSD(dest);
+  var vbParts=(geo.g.vb||'0 0 100 100').split(' ').map(Number),vbW=vbParts[2],vbH=vbParts[3];
+  var W=345,H=420,scale=Math.min(W/vbW,H/vbH)*0.88;
+  var offX=(W-vbW*scale)/2,offY=(H-vbH*scale)/2;
+  var pts=_sdCityPts(ITINERARY.plan||[],geo),pin=pts[i]||{vx:vbW/2,vy:vbH/2};
+  var pCx=offX+pin.vx*scale,pCy=offY+pin.vy*scale;
+  var popL=Math.max(4,Math.min(pCx/W*100-20,50)),popT=pCy/H>0.58?(pCy/H*100-22):(pCy/H*100+6);
+  var wx=p&&Array.isArray(p.wx)?p.wx:['sun','—'];
+  var pop=p?'<div class="map-pop" style="left:'+popL.toFixed(1)+'%;top:'+popT.toFixed(1)+'%">'
+    +'<div class="mp-k">Jour '+String(p.n).padStart(2,'0')+' · '+esc(p.loc||'')+'</div>'
+    +'<div class="mp-t">'+esc(p.title||'')+'</div>'
+    +'<div class="mp-m"><span class="mp-wx">'+ico(wx[0],13,1.7)+wx[1]+'</span>'
+    +'<span class="mp-l" onclick="openDay('+i+')">Détails ›</span></div></div>':'';
+  return statusBar()
+    +navbar('Carte du voyage',{right:'<button class="nav-btn" onclick="if(typeof openOffline===\'function\')openOffline()" aria-label="Hors-ligne">'+ico('download',18,1.6)+'</button>'})
+    +'<div class="ov-scroll"><div class="bigmap">'
+    +'<span class="map-coords">'+esc(ITINERARY.coords||ITINERARY.dest||'')+'</span>'
+    +'<span class="map-rose">'+(typeof rose==='function'?rose(26,1.1):'')+'</span>'
+    +geoMapSVG(W,H,i)+pop
+    +'</div><div class="map-rail">'+(ITINERARY.plan||[]).map(function(d,j){
+      return '<button class="map-chip'+(j===i?' on':'')+'" onclick="mapSelect('+j+')">'
+        +'<div class="mc-d">Jour '+String(d.n).padStart(2,'0')+'</div><div class="mc-l">'+esc(d.loc||'')+'</div></button>';
+    }).join('')+'</div></div>';
+}
+function mapSelect(i){
+  state.mapDay=i;
+  var el=ovStack[ovStack.length-1];
+  if(el&&el.dataset.ov==='map')el.innerHTML=mapView();
 }
 
 /* ── 1 · Onboarding ─────────────────────────────────────────────────── */
