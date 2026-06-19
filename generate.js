@@ -231,7 +231,9 @@ function buildSkeletonPrompt(dc, batchSize, offset){
   const isFirst = offset === 0;
   const n = Math.min(batchSize, dc-offset);
   const common=[
-    '- Étapes RÉELLES dans un ordre logique géographiquement (ne pas sauter d\'un bout à l\'autre du pays).',
+    '- Étapes RÉELLES dans un ordre logique géographiquement — circuit cohérent SANS allers-retours ni zigzags.',
+    '- Le parcours doit avoir une logique claire : nord→sud, côte→intérieur, ou par régions distinctes. JAMAIS revenir en arrière.',
+    '- Chaque ville/zone doit être géographiquement proche de la précédente.',
     '- "night" de chaque entrée "plan" = "name" EXACT d\'un hébergement de "stays".',
     '- sky dans [sun, cloud, rain].',
     '- Réponds UNIQUEMENT en JSON compact valide, sans texte ni markdown autour.',
@@ -259,6 +261,9 @@ function buildSkeletonPrompt(dc, batchSize, offset){
       '- Les hébergements doivent refléter les directives de personnalisation ci-dessus (style, occasion).',
       '- "budget" = fourchette totale réaliste en euros pour TOUS les voyageurs sur les '+dc+' jours (hébergements+repas+activités+transport local, hors vols).',
       '  · Éco: 60-100€/pers/j · Confort: 120-220€/pers/j · Luxe: 250-500€/pers/j · Ultra: 500€+/pers/j',
+      '- EXEMPLE DE LOGIQUE GÉOGRAPHIQUE (Thaïlande 28j) : Bangkok(arr.) → Ayutthaya → Chiang Mai → Pai → Chiang Rai → Bangkok(transit) → Hua Hin → Surat Thani → Koh Samui → Krabi → Phuket. JAMAIS Chiang Mai → Bangkok → Chiang Rai.',
+      '- EXEMPLE MAROC : Casablanca(arr.) → Fès → Merzouga → Ouarzazate → Marrakech → Essaouira → Agadir. JAMAIS Fès → Marrakech → Merzouga → Fès.',
+      '- Applique cette même logique de circuit à toute destination.',
       destLock ? '\nRappel final : "dest" doit être "'+state.destination+'". Ne propose AUCUNE autre destination.' : '',
       '',
       'SCHÉMA (respecte les types et clés exactement) :',
