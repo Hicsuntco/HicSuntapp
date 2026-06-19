@@ -261,8 +261,8 @@ function itineraryView(){
     +     (it.generated
         ? '<button class="tool" onclick="openOverlay(\'gems\', gemsView())">' + ico('star',18,1.5) + '<div class="tl-t">Pépites</div><div class="tl-s">' + ((it.gems||[]).length) + ' adresses secrètes</div></button>'
           + '<button class="tool" onclick="openOverlay(\'share\', shareView())">' + ico('share',19,1.5) + '<div class="tl-t">Partager</div><div class="tl-s">Copier le lien</div></button>'
-        : '<button class="tool" onclick="openOverlay(\'reviews\', reviewsView())">' + ico('star',18,1.5) + '<div class="tl-t">Avis</div><div class="tl-s">' + RATING.score + ' · ' + RATING.count + ' voyageurs</div></button>'
-          + '<button class="tool" onclick="openOverlay(\'share\', shareView())">' + ico('share',19,1.5) + '<div class="tl-t">Partager</div><div class="tl-s">Copier le lien</div></button>')
+        : '<button class="tool" onclick="openOverlay(\'share\', shareView())">' + ico('share',19,1.5) + '<div class="tl-t">Partager</div><div class="tl-s">Copier le lien</div></button>'
+          + '<button class="tool" onclick="openOverlay(\'gems\', gemsView())">' + ico('star',18,1.5) + '<div class="tl-t">Pépites</div><div class="tl-s">' + ((it.gems||[]).length) + ' adresses</div></button>')
     +   '</div>'
     +   '<div class="ai-banner" onclick="openAI()" style="border-color:'+hexA(primaryColor,0.25)+';background:'+hexA(primaryColor,0.05)+'">'
     +     '<span class="ai-av" style="background:'+hexA(primaryColor,0.15)+';color:'+primaryColor+'">' + ico('sparkle',22,1.6) + '</span>'

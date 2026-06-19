@@ -377,6 +377,7 @@ async function loadSavedItinerary(id){
   const token = localStorage.getItem('sb_token');
   if(!token) return;
   try{
+    /* ── 1. Fetch depuis Supabase ── */
     const res = await fetch(SUPABASE_URL+'/rest/v1/itineraries?id=eq.'+id,{
       headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+token}
     });
@@ -386,49 +387,82 @@ async function loadSavedItinerary(id){
     const saved = rows[0];
     const data = saved.data || {};
 
-    /* Restauration complète de l'ITINERARY depuis les données sauvegardées */
+    /* ── 2. Reset propre de l'ITINERARY avant de remplir ── */
+    /* On vide d'abord pour éviter des résidus d'un itinéraire précédent */
+    const keys = Object.keys(ITINERARY);
+    keys.forEach(function(k){ delete ITINERARY[k]; });
     Object.assign(ITINERARY, data);
 
-    /* S'assurer que les champs critiques sont présents même si data est partiel */
-    if(!ITINERARY.dest && saved.destination) ITINERARY.dest = saved.destination;
-    if(!ITINERARY.dates && saved.dates)       ITINERARY.dates = saved.dates;
-    if(!ITINERARY.days  && saved.days)        ITINERARY.days  = saved.days;
-    if(!ITINERARY.budgetTotal && saved.budget) ITINERARY.budgetTotal = saved.budget;
-    if(!Array.isArray(ITINERARY.plan))         ITINERARY.plan = [];
+    /* ── 3. Champs critiques avec fallbacks ── */
+    if(!ITINERARY.dest)         ITINERARY.dest         = saved.destination || 'Destination';
+    if(!ITINERARY.dates)        ITINERARY.dates        = saved.dates || '';
+    if(!ITINERARY.days)         ITINERARY.days         = saved.days || (ITINERARY.plan||[]).length || 7;
+    if(!ITINERARY.budgetTotal)  ITINERARY.budgetTotal  = saved.budget || 0;
+    if(!ITINERARY.level)        ITINERARY.level        = saved.level || 'Confort';
+    if(!ITINERARY.tag)          ITINERARY.tag          = '';
+    if(!ITINERARY.coords)       ITINERARY.coords       = '';
+    if(!ITINERARY.distance)     ITINERARY.distance     = '';
+    if(!Array.isArray(ITINERARY.plan))          ITINERARY.plan          = [];
     if(!Array.isArray(ITINERARY.accommodations)) ITINERARY.accommodations = [];
+    if(!Array.isArray(ITINERARY.gems))           ITINERARY.gems           = [];
 
-    /* Toujours reconstruire theme + palette depuis la destination
-       (les anciens itinéraires sauvegardés peuvent avoir palette null/undefined
-       ou l'ancienne palette avec le vert caca d'oie — on force la nouvelle) */
-    if(typeof _themeForDestination === 'function' && typeof THEME_PALETTES !== 'undefined'){
+    /* Normaliser chaque jour du plan */
+    ITINERARY.plan = ITINERARY.plan.map(function(p, i){
+      if(!p || typeof p !== 'object') return null;
+      return {
+        n:        p.n || (i+1),
+        loc:      p.loc || '',
+        title:    p.title || '',
+        desc:     p.desc || '',
+        category: p.category || 'culture',
+        wx:       Array.isArray(p.wx) ? p.wx : ['sun','—'],
+        tags:     Array.isArray(p.tags) ? p.tags : [],
+        moments:  Array.isArray(p.moments) ? p.moments : [],
+        tip:      p.tip || '',
+        night:    p.night || null,
+        restaurant: p.restaurant || null,
+        wellness:   p.wellness || null,
+      };
+    }).filter(Boolean);
+
+    /* Normaliser les hébergements */
+    ITINERARY.accommodations = ITINERARY.accommodations.map(function(a){
+      if(!a || typeof a !== 'object') return null;
+      return {
+        id:     a.id || ('acc-'+Math.random().toString(36).slice(2)),
+        n:      a.n || a.name || 'Hébergement',
+        type:   a.type || '',
+        loc:    a.loc || a.location || '',
+        price:  Number(a.price) || 0,
+        nights: Number(a.nights) || 1,
+        blurb:  a.blurb || '',
+        i:      a.i || 'bed',
+        url:    a.url || '',
+      };
+    }).filter(Boolean);
+
+    /* ── 4. Reconstruction theme + palette ── */
+    if(typeof _themeForDestination === 'function'){
       const themeName = _themeForDestination(
-        ITINERARY.dest || '',
-        ITINERARY.region || '',
-        ITINERARY.country || ''
+        ITINERARY.dest, ITINERARY.region||'', ITINERARY.country||''
       );
       ITINERARY.theme   = themeName;
-      ITINERARY.palette = THEME_PALETTES[themeName] || THEME_PALETTES.mediterranean;
+      ITINERARY.palette = (typeof THEME_PALETTES!=='undefined' && THEME_PALETTES[themeName])
+        || THEME_PALETTES && THEME_PALETTES.mediterranean
+        || {};
     }
 
-    /* Recalcul des activités et du budget avec les bons arguments */
-    if(typeof deriveActivities === 'function'){
-      deriveActivities(ITINERARY.plan);
-    }
-    if(typeof deriveBudget === 'function'){
-      deriveBudget(
-        ITINERARY.accommodations,
-        ITINERARY.budgetTotal || 0,
-        ITINERARY.dest || '',
-        ITINERARY.region || '',
-        ITINERARY.country || '',
-        state.travelers || 2,
-        null
-      );
-    }
+    /* ── 5. Dérivés ── */
+    if(typeof deriveActivities==='function') try{ deriveActivities(ITINERARY.plan); }catch(e){ console.warn('deriveActivities',e); }
+    if(typeof deriveBudget==='function') try{
+      deriveBudget(ITINERARY.accommodations, ITINERARY.budgetTotal, ITINERARY.dest, ITINERARY.region||'', ITINERARY.country||'', state.travelers||2, null);
+    }catch(e){ console.warn('deriveBudget',e); }
 
+    /* ── 6. Ouverture de l'écran ── */
     openItinerary();
+
   }catch(e){
-    console.error('loadSavedItinerary error:', e);
+    console.error('[loadSavedItinerary] crash:', e.message, e.stack);
     toast('Erreur de chargement');
   }
 }
