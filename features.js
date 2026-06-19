@@ -729,8 +729,26 @@ async function exportPDF(){
     + '<p>'+esc(it.dest)+' \u00B7 '+esc(it.dates)+' \u00B7 Hic Sunt \u00B7 Beyond the Known</p></div>'
     + '</body></html>';
 
-  win.document.write(html);
-  win.document.close();
+  /* ── Affichage du PDF dans un overlay iframe (iOS Safari compatible) ── */
+  /* window.open est bloqué en PWA — on injecte via un overlay plein écran */
+  const pdfOverlay = document.createElement('div');
+  pdfOverlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:#F8F4EC;display:flex;flex-direction:column';
+
+  /* Barre d'action */
+  const bar = document.createElement('div');
+  bar.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:white;border-bottom:1px solid rgba(26,22,16,0.12);flex:none';
+  bar.innerHTML = '<button onclick="this.closest(\'[data-pdf-ov]\').remove()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#1a1610">✕</button>'
+    + '<span style="font-family:Jost,sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#7A6E62">'+esc(it.dest)+' · Itinéraire PDF</span>'
+    + '<button onclick="window.print()" style="background:#1a1610;color:white;border:none;border-radius:10px;padding:8px 16px;font-family:Jost,sans-serif;font-size:13px;font-weight:500;cursor:pointer">Imprimer</button>';
+
+  const iframe = document.createElement('iframe');
+  iframe.style.cssText = 'flex:1;border:none;width:100%';
+  iframe.srcdoc = html;
+
+  pdfOverlay.setAttribute('data-pdf-ov','');
+  pdfOverlay.appendChild(bar);
+  pdfOverlay.appendChild(iframe);
+  document.body.appendChild(pdfOverlay);
 }
 
 /* ── 24 · Partage ───────────────────────────────────────────────────── */
