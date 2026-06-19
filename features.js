@@ -388,10 +388,8 @@ function gemsView(){
 
 async function exportPDF(){
   const it = ITINERARY;
-  const win = window.open('', '_blank');
-  if (!win){ toast('Autorisez les pop-ups pour exporter'); return; }
 
-  /* ── Palette : toujours reconstruire depuis la destination ── */
+  /* ── Palette ── */
   const themeName = (typeof _themeForDestination === 'function')
     ? _themeForDestination(it.dest||'', it.region||'', it.country||'')
     : (it.theme || 'mediterranean');
@@ -515,12 +513,13 @@ async function exportPDF(){
   /* ── jours regroupés par étape ── */
   let sectionHTML = '';
   let stopIdx = 0, dayInStop = 0;
-  it.plan.forEach(function(p, i){
+  (it.plan||[]).forEach(function(p, i){
+    if(!p) return;
     const color = palette[p.category] || sigColor;
     const rgbaBg = hexA(color, 0.07), rgbaB = hexA(color, 0.22);
 
     if (dayInStop === 0) {
-      const s = stops[stopIdx];
+      const s = stops[stopIdx] || {loc:p.loc||'',nights:1,startDay:p.n||i+1,endDay:p.n||i+1};
       sectionHTML += '<section class="leg-section">'
         + '<div class="leg-head" style="--c:'+color+'">'
         + '<div class="leg-num">'+String(stopIdx+1).padStart(2,'0')+'</div>'
@@ -542,7 +541,7 @@ async function exportPDF(){
       if (p.restaurant) {
         cards += '<div class="card" style="--bg:'+hexA(palette.food||sigColor2,0.07)+';--b:'+hexA(palette.food||sigColor2,0.22)+';--c:'+(palette.food||sigColor2)+'">'
           + '<div class="card-label">'+CAT_EMOJI.food+' Table</div>'
-          + '<div class="card-name">'+esc(p.restaurant.name)+'</div>'
+          + '<div class="card-name">'+esc(p.restaurant.name||'')+'</div>'
           + '<div class="card-desc">'+esc(p.restaurant.type||'')+(p.restaurant.note?' \u2014 '+esc(p.restaurant.note):'')+'</div>'
           + (p.restaurant.price ? '<div class="card-note">'+esc(p.restaurant.price)+'</div>' : '')
           + '</div>';
@@ -550,7 +549,7 @@ async function exportPDF(){
       if (p.wellness) {
         cards += '<div class="card" style="--bg:'+hexA(palette.spa||'#E8A87A',0.07)+';--b:'+hexA(palette.spa||'#E8A87A',0.22)+';--c:'+(palette.spa||'#E8A87A')+'">'
           + '<div class="card-label">'+CAT_EMOJI.spa+' Bien-\u00EAtre</div>'
-          + '<div class="card-name">'+esc(p.wellness.name)+'</div>'
+          + '<div class="card-name">'+esc(p.wellness.name||'')+'</div>'
           + '<div class="card-desc">'+esc(p.wellness.type||'')+(p.wellness.note?' \u2014 '+esc(p.wellness.note):'')+'</div>'
           + (p.wellness.price ? '<div class="card-note">'+esc(p.wellness.price)+'</div>' : '')
           + '</div>';
@@ -558,20 +557,22 @@ async function exportPDF(){
       if (cards) sectionHTML += '<div class="cards">'+cards+'</div>';
     }
 
-    const moments = p.moments.map(function(m){
+    const moments = Array.isArray(p.moments) ? p.moments : [];
+    const momentsHTML = moments.map(function(m){
       const glyph = dayMomentIcon[m[1]] || '\u2022';
       return '<div class="moment"><span class="mo-time">'+esc(m[0])+'</span><span class="mo-glyph" style="color:'+color+'">'+glyph+'</span>'
-        + '<div class="mo-text"><span class="mo-title">'+esc(m[2])+'</span>'+(m[3]?'<span class="mo-detail">'+esc(m[3])+'</span>':'')+'</div></div>';
+        + '<div class="mo-text"><span class="mo-title">'+esc(m[2]||'')+'</span>'+(m[3]?'<span class="mo-detail">'+esc(m[3])+'</span>':'')+'</div></div>';
     }).join('');
     sectionHTML += '<div class="day">'
-      + '<div class="day-head"><span class="day-num" style="color:'+color+'">'+String(p.n).padStart(2,'0')+'</span>'
-      + '<div><h3>'+esc(p.title)+'</h3><p class="day-loc">'+esc(p.loc)+'</p></div></div>'
-      + '<div class="moments">'+moments+'</div>'
+      + '<div class="day-head"><span class="day-num" style="color:'+color+'">'+String(p.n||i+1).padStart(2,'0')+'</span>'
+      + '<div><h3>'+esc(p.title||'')+'</h3><p class="day-loc">'+esc(p.loc||'')+'</p></div></div>'
+      + '<div class="moments">'+momentsHTML+'</div>'
       + (p.tip ? '<p class="day-tip" style="color:'+color+'">'+esc(p.tip)+'</p>' : '')
       + '</div>';
 
     dayInStop++;
-    if (dayInStop >= stops[stopIdx].nights) { dayInStop = 0; stopIdx++; sectionHTML += '</section>'; }
+    const curStop = stops[stopIdx];
+    if (!curStop || dayInStop >= curStop.nights) { dayInStop = 0; stopIdx++; sectionHTML += '</section>'; }
   });
 
   /* ── pépites cachées ── */
