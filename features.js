@@ -417,70 +417,11 @@ async function exportPDF(){
 
   /* ── PDF layout par thème : fond, typographie, structure ── */
   /* Chaque thème a une identité visuelle distincte */
-  const PDF_LAYOUTS = {
-    mediterranean: {
-      bg:'#F8F4EC', surface:'#FFFFFF', panel:'#F1EBE0',
-      ink:'#1A1610', sub:'#7A6E62', line:'rgba(26,22,16,0.10)', line2:'rgba(26,22,16,0.05)',
-      heroFont:'Fraunces', bodyFont:'Epilogue',
-      heroSize:'clamp(3rem,10vw,4.8rem)', heroWeight:'300',
-      heroBgStyle:'linear-gradient(160deg, '+hexA(sigColor,0.08)+' 0%, transparent 50%), '+hexA(sigColor2,0.04)+' 0%',
-      dividerStyle:'1px solid rgba(26,22,16,0.10)',
-    },
-    desert: {
-      bg:'#F5EDE0', surface:'#FFF8F0', panel:'#EDE0CC',
-      ink:'#2A1A08', sub:'#8A6A42', line:'rgba(42,26,8,0.12)', line2:'rgba(42,26,8,0.06)',
-      heroFont:'Fraunces', bodyFont:'Epilogue',
-      heroSize:'clamp(2.8rem,9vw,4.4rem)', heroWeight:'500',
-      heroBgStyle:'radial-gradient(ellipse 100% 80% at 0% 0%, '+hexA(sigColor,0.18)+' 0%, transparent 55%), radial-gradient(ellipse 60% 60% at 100% 100%, '+hexA(sigColor2,0.12)+' 0%, transparent 50%)',
-      dividerStyle:'1px solid rgba(42,26,8,0.10)',
-    },
-    alpine: {
-      bg:'#F0F4F8', surface:'#FFFFFF', panel:'#E4EBF0',
-      ink:'#0C1820', sub:'#5A7080', line:'rgba(12,24,32,0.10)', line2:'rgba(12,24,32,0.05)',
-      heroFont:'Fraunces', bodyFont:'Epilogue',
-      heroSize:'clamp(2.8rem,9vw,4.4rem)', heroWeight:'300',
-      heroBgStyle:'linear-gradient(135deg, '+hexA(sigColor,0.12)+' 0%, transparent 60%), linear-gradient(225deg, '+hexA(sigColor2,0.08)+' 0%, transparent 50%)',
-      dividerStyle:'1px solid rgba(12,24,32,0.08)',
-    },
-    tropical: {
-      bg:'#F2F8F4', surface:'#FFFFFF', panel:'#E4F0E8',
-      ink:'#0A1E10', sub:'#4A7A5A', line:'rgba(10,30,16,0.10)', line2:'rgba(10,30,16,0.05)',
-      heroFont:'Fraunces', bodyFont:'Epilogue',
-      heroSize:'clamp(2.8rem,9vw,4.4rem)', heroWeight:'300',
-      heroBgStyle:'radial-gradient(ellipse 80% 60% at 30% 20%, '+hexA(sigColor,0.14)+' 0%, transparent 55%), radial-gradient(ellipse 50% 70% at 80% 80%, '+hexA(sigColor2,0.10)+' 0%, transparent 50%)',
-      dividerStyle:'1px solid rgba(10,30,16,0.08)',
-    },
-    tropical_io: {
-      bg:'#F0F8FA', surface:'#FFFFFF', panel:'#E0F0F5',
-      ink:'#081820', sub:'#3A6878', line:'rgba(8,24,32,0.10)', line2:'rgba(8,24,32,0.05)',
-      heroFont:'Fraunces', bodyFont:'Epilogue',
-      heroSize:'clamp(2.8rem,9vw,4.4rem)', heroWeight:'300',
-      heroBgStyle:'linear-gradient(160deg, '+hexA(sigColor,0.15)+' 0%, transparent 50%), linear-gradient(320deg, '+hexA(sigColor2,0.10)+' 0%, transparent 50%)',
-      dividerStyle:'1px solid rgba(8,24,32,0.08)',
-    },
-    urban_asia: {
-      bg:'#F4F2F8', surface:'#FFFFFF', panel:'#EAE8F2',
-      ink:'#100A20', sub:'#5A5078', line:'rgba(16,10,32,0.10)', line2:'rgba(16,10,32,0.05)',
-      heroFont:'Fraunces', bodyFont:'Epilogue',
-      heroSize:'clamp(2.8rem,9vw,4.4rem)', heroWeight:'500',
-      heroBgStyle:'linear-gradient(135deg, '+hexA(sigColor,0.12)+' 0%, transparent 60%), linear-gradient(315deg, '+hexA(sigColor2,0.10)+' 0%, transparent 50%)',
-      dividerStyle:'1px solid rgba(16,10,32,0.08)',
-    },
-    savanna: {
-      bg:'#F5F2E8', surface:'#FFFFFF', panel:'#EBE8D8',
-      ink:'#1A1808', sub:'#6A6030', line:'rgba(26,24,8,0.10)', line2:'rgba(26,24,8,0.05)',
-      heroFont:'Fraunces', bodyFont:'Epilogue',
-      heroSize:'clamp(2.8rem,9vw,4.4rem)', heroWeight:'300',
-      heroBgStyle:'radial-gradient(ellipse 90% 70% at 10% 10%, '+hexA(sigColor,0.14)+' 0%, transparent 55%), radial-gradient(ellipse 60% 50% at 90% 90%, '+hexA(sigColor2,0.10)+' 0%, transparent 50%)',
-      dividerStyle:'1px solid rgba(26,24,8,0.08)',
-    },
-  };
-  const PDF_THEME = PDF_LAYOUTS[themeName] || PDF_LAYOUTS[themeName.split('_')[0]] || PDF_LAYOUTS.mediterranean;
   const CAT_LABEL = {hike:'Rando & nature',beach:'Plage & océan',spa:'Bien-être',food:'Table & saveurs',culture:'Patrimoine',outdoor:'Plein air',transit:'Transfert'};
   const CAT_EMOJI = {hike:'\u{1F95E}',beach:'\u{1F30A}',spa:'\u{1F9D8}',food:'\u{1F37D}',culture:'\u{1F3DB}',outdoor:'\u2600',transit:'\u2708'};
 
   const stayById = {};
-  it.accommodations.forEach(function(a){ stayById[a.id] = a; });
+  (it.accommodations||[]).forEach(function(a){ stayById[a.id] = a; });
 
   const dayMomentIcon = {plane:'\u2708',fork:'\u25CB',droplet:'\u2740',wave:'\u223C',peaks:'\u25B2',arch:'\u25A0',leaf:'\u2741',sun:'\u2600',moon:'\u263D',bed:'\u25A1',star:'\u2605',camera:'\u25C9',ticket:'\u25C8',pin:'\u25CF',compass:'\u25C7'};
 

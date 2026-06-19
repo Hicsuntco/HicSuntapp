@@ -847,7 +847,7 @@ document.addEventListener('DOMContentLoaded', function(){
       +'</div>'
       +'<div class="ov-foot"><div class="foot-price">'
       +'<div><div class="fp-v">'+eur(displayTotal)+'</div><div class="fp-l">estimation totale</div></div>'
-      +'<button class="btn" onclick="openBooking(\''+(it.accommodations&&it.accommodations[0]?it.accommodations[0].id:'')+'\')">Voir les hébergements</button>'
+      +'<button class="btn" onclick="openAllBookings()">Voir les hébergements</button>'
       +'</div></div>';
   };
 
@@ -1036,7 +1036,63 @@ document.addEventListener('DOMContentLoaded', function(){
           +'<div class="ac-r"><span class="ac-p">~'+eur(a.price)+'</span></div></div>';}).join('');}).join('')
       +'</div>';
   };
-  window.openActivities = function(){ openOverlay('activities', window.activitiesView()); };
+  /* ── Tous les hébergements avec comparateur ── */
+  window.openAllBookings = function(){
+    var it=ITINERARY;
+    var accs=it.accommodations||[];
+    if(!accs.length){ toast('Aucun hébergement dans cet itinéraire'); return; }
+    var guests=(state&&state.travelers)||2;
+    var accent=(it.palette&&(it.palette.culture||it.palette.beach))||'#C9A96E';
+
+    function platformBtn(url, label, color){
+      return '<a href="'+url+'" target="_blank" rel="noopener" style="flex:1;display:flex;align-items:center;justify-content:center;padding:10px 8px;border-radius:10px;background:'+color+';color:white;font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:0.5px;text-decoration:none;text-align:center">'+label+'</a>';
+    }
+
+    var html = statusBar()+navbar('Hébergements du voyage')
+      +'<div class="ov-scroll px" style="padding-top:8px">'
+      +'<p style="font-size:13px;color:var(--sub);margin-bottom:20px;line-height:1.5">Cliquez sur une plateforme pour voir les disponibilités avec vos dates pré-remplies — réservez directement au meilleur prix.</p>';
+
+    accs.forEach(function(a){
+      var price=Number(a.price)||0, nights=Number(a.nights)||1;
+      var nameQ=encodeURIComponent(a.n||'');
+      var cityQ=encodeURIComponent(a.loc||it.dest||'');
+      var checkin=it.dateFrom||'';
+      var checkout=it.dateTo||'';
+
+      var bookingUrl='https://www.booking.com/searchresults.html?ss='+nameQ+'%2C%20'+cityQ+'&lang=fr&group_adults='+guests+'&no_rooms=1'
+        +(checkin?'&checkin='+checkin:'')+(checkout?'&checkout='+checkout:'')
+        +(typeof AFFILIATE_TAGS!=='undefined'&&AFFILIATE_TAGS.booking?'&aid='+AFFILIATE_TAGS.booking:'');
+      var airbnbUrl='https://www.airbnb.fr/s/'+cityQ+'/homes?query='+nameQ+'&adults='+guests
+        +(checkin?'&checkin='+checkin:'')+(checkout?'&checkout='+checkout:'');
+      var hotelsUrl='https://fr.hotels.com/search.do?q-destination='+nameQ+'%20'+cityQ+'&q-rooms=1&q-room-0-adults='+guests
+        +(checkin?'&q-check-in='+checkin:'')+(checkout?'&q-check-out='+checkout:'');
+
+      html += '<div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px">'
+        /* En-tête hébergement */
+        +'<div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:12px">'
+        +'<div style="width:38px;height:38px;border-radius:10px;background:'+hexA(accent,0.12)+';display:flex;align-items:center;justify-content:center;flex:none;color:'+accent+'">'+ico(a.i||'bed',20,1.3)+'</div>'
+        +'<div style="flex:1">'
+        +'<div style="font-family:var(--serif);font-size:16px;font-weight:600;color:var(--ink)">'+esc(a.n||'Hébergement')+'</div>'
+        +'<div style="font-family:var(--mono);font-size:9px;letter-spacing:0.8px;text-transform:uppercase;color:var(--sub);margin-top:3px">'+esc(a.type||'')+' · '+esc(a.loc||'')+'</div>'
+        +'</div>'
+        +'<div style="text-align:right;flex:none">'
+        +'<div style="font-size:15px;font-weight:600;color:var(--ink)">'+eur(price)+'/nuit</div>'
+        +'<div style="font-family:var(--mono);font-size:9px;color:var(--sub)">'+nights+' nuit'+(nights>1?'s':'')+'</div>'
+        +'</div>'
+        +'</div>'
+        +(a.blurb?'<p style="font-size:13px;color:var(--ink-soft);margin-bottom:12px;line-height:1.5">'+esc(a.blurb)+'</p>':'')
+        /* 3 boutons plateformes */
+        +'<div style="display:flex;gap:8px">'
+        +platformBtn(bookingUrl,'Booking.com','#003580')
+        +platformBtn(airbnbUrl,'Airbnb','#FF5A5F')
+        +platformBtn(hotelsUrl,'Hotels.com','#CC0000')
+        +'</div>'
+        +'</div>';
+    });
+
+    html += '</div>';
+    openOverlay('allbookings', html);
+  };
 
   playSplash(buildApp);
 });
