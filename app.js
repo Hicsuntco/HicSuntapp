@@ -770,11 +770,11 @@ document.addEventListener('DOMContentLoaded', function(){
     var it=ITINERARY;
     return statusBar()+navbar('Partager le voyage')
       +'<div class="ov-scroll px">'
-      +'<span class="eyebrow" style="display:block;margin-top:10px">'+esc(it.dest||'')+' · '+(it.days||'')+ ' jours</span>'
+      +'<span class="eyebrow" style="display:block;margin-top:10px">'+esc(it.dest||'')+' · '+(it.days||'')+' jours</span>'
       +'<h1 style="font-family:var(--serif);font-weight:600;font-size:28px;letter-spacing:-0.4px;margin-top:8px">Partager ce voyage</h1>'
-      +'<div class="row" onclick="copyShareLink()"><span class="r-ico">'+ico('link',19,1.5)+'</span><div class="r-main"><div class="r-t">Copier le lien</div><div class="r-s">Lecture seule</div></div><span class="r-chev">'+ico('chevron',17,1.6)+'</span></div>'
-      +'<div class="row" onclick="sendShareLink()"><span class="r-ico">'+ico('share',18,1.5)+'</span><div class="r-main"><div class="r-t">Envoyer par message</div><div class="r-s">iMessage · WhatsApp</div></div><span class="r-chev">'+ico('chevron',17,1.6)+'</span></div>'
-      +'<div class="row" onclick="exportPDF&&exportPDF()"><span class="r-ico">'+ico('doc',19,1.5)+'</span><div class="r-main"><div class="r-t">Exporter en PDF</div><div class="r-s">Itinéraire complet</div></div><span class="r-chev">'+ico('chevron',17,1.6)+'</span></div>'
+      +'<div class="row" onclick="window.copyShareLink&&window.copyShareLink()"><span class="r-ico">'+ico('link',19,1.5)+'</span><div class="r-main"><div class="r-t">Copier le lien</div><div class="r-s">Lecture seule</div></div><span class="r-chev">'+ico('chevron',17,1.6)+'</span></div>'
+      +'<div class="row" onclick="window.sendShareLink&&window.sendShareLink()"><span class="r-ico">'+ico('share',18,1.5)+'</span><div class="r-main"><div class="r-t">Envoyer par message</div><div class="r-s">iMessage · WhatsApp</div></div><span class="r-chev">'+ico('chevron',17,1.6)+'</span></div>'
+      +'<div class="row" onclick="window.triggerPDF&&window.triggerPDF()"><span class="r-ico">'+ico('doc',19,1.5)+'</span><div class="r-main"><div class="r-t">Exporter en PDF</div><div class="r-s">Itinéraire complet</div></div><span class="r-chev">'+ico('chevron',17,1.6)+'</span></div>'
       +'</div>';
   };
   if(typeof copyShareLink==='undefined'||true){
@@ -874,6 +874,94 @@ document.addEventListener('DOMContentLoaded', function(){
       +'</div>';
   };
 
+  /* ── Voir les hébergements — version robuste ── */
+  window.bookingView = function(accId){
+    var it=ITINERARY;
+    var a=null;
+    (it.accommodations||[]).forEach(function(acc){ if(acc.id===accId) a=acc; });
+    if(!a&&it.accommodations&&it.accommodations.length) a=it.accommodations[0];
+    if(!a) return statusBar()+navbar('Hébergement')+'<div class="ov-scroll px"><p style="padding:40px 0;text-align:center;color:var(--sub)">Hébergement introuvable.</p></div>';
+    var price=Number(a.price)||0, nights=Number(a.nights)||1, total=price*nights;
+    var accent=(it.palette&&(it.palette.culture||it.palette.beach))||'#C9A96E';
+    var isAirbnb=/villa|appartement|maison|airbnb|guesthouse|gîte|loft/.test((a.type||'').toLowerCase());
+    return '<div class="book-hero" style="position:relative;overflow:hidden;height:220px;background:linear-gradient(155deg,#1c1812,#0d0b08)">'
+      +'<div style="position:absolute;inset:0;background:radial-gradient(120% 100% at 15% 0%,'+hexA(accent,0.25)+',transparent 60%)"></div>'
+      +'<div class="navbar" style="position:absolute;top:54px;left:0;right:0;z-index:1"><button class="nav-btn" onclick="closeOverlay()" aria-label="Retour">'+ico('back',20,1.7)+'</button></div>'
+      +'<span style="position:absolute;bottom:20px;right:24px;color:'+hexA(accent,0.9)+'">'+ico(a.i||'bed',32,1.3)+'</span>'
+      +'</div>'
+      +'<div class="ov-scroll has-foot px">'
+      +'<div class="book-h" style="margin-top:16px"><span>'+esc(a.n||'Hébergement')+'</span></div>'
+      +'<div class="book-meta">'+esc(a.type||'')+' · '+esc(a.loc||'')+'</div>'
+      +(a.blurb?'<p class="book-desc">'+esc(a.blurb)+'</p>':'')
+      +'<div class="section-h"><h2>Votre séjour</h2></div>'
+      +'<div class="stay-row">'+ico('cal',18,1.5)+'<span class="sr-l">'+esc(it.dates||'')+'</span><span class="sr-v">'+nights+' nuit'+(nights>1?'s':'')+'</span></div>'
+      +'<div class="stay-row">'+ico('users',18,1.5)+'<span class="sr-l">Voyageurs</span><span class="sr-v">'+travelerLabel()+'</span></div>'
+      +'<div class="section-h"><h2>Estimation</h2></div>'
+      +'<div class="price-l"><span>'+eur(price)+' × '+nights+' nuit'+(nights>1?'s':'')+'</span><span>'+eur(total)+'</span></div>'
+      +'<p class="book-desc" style="margin-top:8px;color:var(--sub)">Prix indicatif. La disponibilité et le tarif définitif sont confirmés sur '+(isAirbnb?'Airbnb':'Booking.com')+'.</p>'
+      +'</div>'
+      +'<div class="ov-foot"><div class="foot-price">'
+      +'<div><div class="fp-v">'+eur(total)+'</div><div class="fp-l">'+nights+' nuit'+(nights>1?'s':'')+' · estimation</div></div>'
+      +'<button class="btn" onclick="if(typeof openAffiliate===\'function\')openAffiliate(\''+esc(a.id||'')+'\');else toast(\'Redirection...\')">Voir sur '+(isAirbnb?'Airbnb':'Booking.com')+'</button>'
+      +'</div></div>';
+  };
+
+  /* ── Modifier l'itinéraire (IA) — version robuste ── */
+  window.openAI = function(){
+    if(typeof aiView==='function'){
+      try{
+        var el=openOverlay('ai', aiView());
+        requestAnimationFrame(function(){ if(typeof aiScroll==='function') aiScroll(); });
+        return;
+      }catch(e){ console.warn('aiView crash',e); }
+    }
+    /* Fallback minimal */
+    openOverlay('ai', statusBar()+navbar('Modifier l\'itinéraire')
+      +'<div class="ov-scroll px" style="padding-top:20px">'
+      +'<p style="color:var(--sub);font-size:14px;line-height:1.6">L\'assistant cartographe vous permet de modifier votre itinéraire. Rechargez la page et réessayez.</p>'
+      +'</div>');
+  };
+
+  /* ── Export PDF — déclenche la vraie fonction de features.js ── */
+  window.triggerPDF = function(){
+    if(typeof exportPDF==='function'){ exportPDF(); }
+    else{ toast('Export PDF indisponible — rechargez la page'); }
+  };
+
+  /* ── Activités avec prix estimés ── */
+  window.activitiesView = function(){
+    var it=ITINERARY;
+    var acts=[];
+    /* Utiliser ACTIVITIES si disponible et riche */
+    if(typeof ACTIVITIES!=='undefined'&&ACTIVITIES.length>0){
+      acts=ACTIVITIES;
+    } else {
+      /* Extraire depuis les moments du plan */
+      var colFactor=(typeof _costOfLivingFactor==='function')?_costOfLivingFactor(it.dest||'',it.region||'',it.country||''):1;
+      var priceMap={hike:25,beach:0,spa:80,food:45,culture:20,outdoor:30,transit:15};
+      (it.plan||[]).forEach(function(p){
+        (p.moments||[]).forEach(function(m,mi){
+          var basePrice=(priceMap[p.category]||20)*colFactor;
+          acts.push({id:'a'+p.n+'_'+mi,day:p.n,n:m[2]||'Expérience',tag:m[3]||p.category||'',loc:p.loc||'',dur:'~2h',price:Math.round(basePrice),i:m[1]||p.category||'pin'});
+        });
+      });
+    }
+    if(!acts.length) return statusBar()+navbar('Activités')+'<div class="ov-scroll px"><p style="padding:40px 0;text-align:center;color:var(--sub)">Aucune activité disponible.</p></div>';
+    var byDay={};
+    acts.forEach(function(a){(byDay[a.day]=byDay[a.day]||[]).push(a);});
+    var days=Object.keys(byDay).sort(function(a,b){return Number(a)-Number(b);});
+    return statusBar()+navbar('Activités & expériences')
+      +'<div class="ov-scroll px">'
+      +'<span class="eyebrow" style="display:block;margin-top:10px">Sélection du cartographe</span>'
+      +'<h1 style="font-family:var(--serif);font-weight:600;font-size:28px;margin-top:8px">Expériences sur-mesure</h1>'
+      +days.map(function(d){return '<div class="act-day">Jour '+String(d).padStart(2,'0')+'</div>'
+        +byDay[d].map(function(a){return '<div class="act" style="cursor:pointer">'
+          +'<span class="a-th">'+ico(a.i,26,1.3)+'</span>'
+          +'<div class="ac-m"><div class="ac-tag">'+esc(a.tag)+'</div><div class="ac-n">'+esc(a.n)+'</div>'
+          +'<div class="ac-s">'+esc(a.loc)+' · '+esc(a.dur)+'</div></div>'
+          +'<div class="ac-r"><span class="ac-p">~'+eur(a.price)+'</span></div></div>';}).join('');}).join('')
+      +'</div>';
+  };
   window.openActivities = function(){ openOverlay('activities', window.activitiesView()); };
 
   playSplash(buildApp);
