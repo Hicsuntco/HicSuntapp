@@ -459,11 +459,17 @@ async function loadSavedItinerary(id){
     }catch(e){ console.warn('deriveBudget',e); }
 
     /* ── 6. Ouverture de l'écran ── */
-    openItinerary();
+    try{
+      openItinerary();
+    }catch(e2){
+      console.error('[itineraryView] crash:', e2.message, e2.stack);
+      toast('Vue : ' + (e2.message||'?').slice(0,80));
+    }
 
   }catch(e){
     console.error('[loadSavedItinerary] crash:', e.message, e.stack);
-    toast('Erreur de chargement');
+    const msg = e && e.message ? e.message.slice(0, 80) : 'inconnue';
+    toast('Fetch : ' + msg);
   }
 }
 async function deleteSavedItinerary(id){
