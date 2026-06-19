@@ -233,7 +233,7 @@ function geoMapSVG(W, H, activeIdx){
     +'<rect width="'+W+'" height="'+H+'" fill="rgba(246,240,228,0.02)" rx="10"/>'
     +'<g transform="translate('+offX.toFixed(1)+','+offY.toFixed(1)+') scale('+scale.toFixed(4)+')">'
     +'<path d="'+geo.g.path+'" fill="'+hexA(accent,0.10)+'" stroke="'+hexA(accent,0.60)+'" stroke-width="'+(1.2/scale).toFixed(2)+'" stroke-linejoin="round" stroke-linecap="round"/>'
-    +(routePath?'<path d="'+routePath+'" stroke="'+hexA(accent,0.85)+'" stroke-width="'+(1.5/scale).toFixed(2)+'" stroke-dasharray="'+(4/scale).toFixed(1)+' '+(3/scale).toFixed(1)+'" fill="none"/>':'')
+    +(routePath?'<path class="geo-route" d="'+routePath+'" stroke="'+hexA(accent,0.85)+'" stroke-width="'+(1.5/scale).toFixed(2)+'" stroke-dasharray="'+(4/scale).toFixed(1)+' '+(3/scale).toFixed(1)+'" fill="none" style="animation:none !important;stroke-dashoffset:0 !important"/>':'')
     +pins
     +'</g>'
     +'</svg>';

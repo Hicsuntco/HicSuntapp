@@ -87,7 +87,7 @@ function geoMapSVG(W,H,activeIdx){
     +'<rect width="'+W+'" height="'+H+'" fill="rgba(246,240,228,0.02)" rx="10"/>'
     +'<g transform="translate('+ox.toFixed(1)+','+oy.toFixed(1)+') scale('+sc.toFixed(4)+')">'
     +'<path d="'+g.path+'" fill="'+hexA(accent,0.10)+'" stroke="'+hexA(accent,0.60)+'" stroke-width="'+(1.2/sc).toFixed(2)+'" stroke-linejoin="round" stroke-linecap="round"/>'
-    +(rp?'<path d="'+rp+'" stroke="'+hexA(accent,0.85)+'" stroke-width="'+(1.5/sc).toFixed(2)+'" stroke-dasharray="'+(4/sc).toFixed(1)+' '+(3/sc).toFixed(1)+'" fill="none"/>':'')
+    +(rp?'<path d="'+rp+'" stroke="'+hexA(accent,0.85)+'" stroke-width="'+(1.5/sc).toFixed(2)+'" stroke-dasharray="'+(4/sc).toFixed(1)+' '+(3/sc).toFixed(1)+'" fill="none" style="animation:none !important;stroke-dashoffset:0 !important"/>':'')
     +pins+'</g></svg>';
 }
 function mapView(){
@@ -727,7 +727,7 @@ document.addEventListener('DOMContentLoaded', function(){
       +'<rect width="'+W+'" height="'+H+'" fill="rgba(246,240,228,0.02)" rx="10"/>'
       +'<g transform="translate('+ox.toFixed(1)+','+oy.toFixed(1)+') scale('+sc.toFixed(4)+')">'
       +'<path d="'+g.path+'" fill="'+hexA(accent,0.10)+'" stroke="'+hexA(accent,0.60)+'" stroke-width="'+(1.2/sc).toFixed(2)+'" stroke-linejoin="round" stroke-linecap="round"/>'
-      +(rp?'<path d="'+rp+'" stroke="'+hexA(accent,0.85)+'" stroke-width="'+(1.5/sc).toFixed(2)+'" stroke-dasharray="'+(4/sc).toFixed(1)+' '+(3/sc).toFixed(1)+'" fill="none"/>':'')
+      +(rp?'<path d="'+rp+'" stroke="'+hexA(accent,0.85)+'" stroke-width="'+(1.5/sc).toFixed(2)+'" stroke-dasharray="'+(4/sc).toFixed(1)+' '+(3/sc).toFixed(1)+'" fill="none" style="animation:none !important;stroke-dashoffset:0 !important"/>':'')
       +pins+'</g></svg>';
   };
   window.mapView = function(){
