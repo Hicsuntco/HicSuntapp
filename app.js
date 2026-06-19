@@ -791,5 +791,78 @@ document.addEventListener('DOMContentLoaded', function(){
     };
   }
 
+  /* Overrides robustes pour Budget, Activités, Pépites — résistent aux données manquantes */
+  window.budgetView = function(){
+    var it=ITINERARY;
+    var total=it.budgetTotal||0;
+    var lines=(typeof BUDGET!=='undefined'&&BUDGET.lines&&BUDGET.lines.length)?BUDGET.lines
+      :(it.accommodations||[]).map(function(a){return{i:a.i||'bed',n:a.n||'Hébergement',sub:a.loc||'',amount:(a.price||0)*(a.nights||1),paid:false};});
+    if(!lines.length) lines=[{i:'wallet',n:'Budget estimé',sub:'tout compris',amount:total,paid:false}];
+    return statusBar()+navbar('Budget du voyage')
+      +'<div class="ov-scroll has-foot px">'
+      +'<div class="bud-card">'
+      +'<div class="bud-l">Total estimé · '+esc(it.dest||'')+'</div>'
+      +'<div class="bud-v">'+eur(total)+'</div>'
+      +'<div class="bud-s">'+travelerLabel()+' · '+(it.days||'')+ ' jours · estimation</div>'
+      +'</div>'
+      +'<div class="section-h"><h2>Répartition</h2><span class="meta">estimation</span></div>'
+      +lines.map(function(l){return '<div class="bline">'+ico(l.i,20,1.5)
+        +'<div class="bl-m"><div class="bl-n">'+esc(l.n)+'</div><div class="bl-s">'+esc(l.sub)+'</div></div>'
+        +'<div class="bl-r"><div class="bl-v">'+eur(l.amount)+'</div></div></div>';}).join('')
+      +'</div>'
+      +'<div class="ov-foot"><div class="foot-price">'
+      +'<div><div class="fp-v">'+eur(total)+'</div><div class="fp-l">estimation totale</div></div>'
+      +'<button class="btn" onclick="openBooking(\''+(it.accommodations&&it.accommodations[0]?it.accommodations[0].id:'')+'\')">Voir les hébergements</button>'
+      +'</div></div>';
+  };
+
+  window.activitiesView = function(){
+    var it=ITINERARY;
+    var acts=[];
+    (it.plan||[]).forEach(function(p){
+      (p.moments||[]).forEach(function(m,mi){
+        acts.push({id:'a'+p.n+'_'+mi,day:p.n,n:m[2]||'Expérience',tag:m[3]||'',loc:p.loc||'',dur:'~2h',price:0,i:m[1]||'pin'});
+      });
+    });
+    /* Fallback si ACTIVITIES global est plus complet */
+    if(typeof ACTIVITIES!=='undefined'&&ACTIVITIES.length>acts.length) acts=ACTIVITIES;
+    if(!acts.length) return statusBar()+navbar('Activités')+'<div class="ov-scroll px"><p style="padding:40px 0;text-align:center;color:var(--sub)">Aucune activité dans cet itinéraire.</p></div>';
+    var byDay={};
+    acts.forEach(function(a){(byDay[a.day]=byDay[a.day]||[]).push(a);});
+    var days=Object.keys(byDay).sort(function(a,b){return a-b;});
+    return statusBar()+navbar('Activités & expériences')
+      +'<div class="ov-scroll px">'
+      +'<span class="eyebrow" style="display:block;margin-top:10px">Sélection du cartographe</span>'
+      +'<h1 style="font-family:var(--serif);font-weight:600;font-size:28px;margin-top:8px">Expériences sur-mesure</h1>'
+      +days.map(function(d){return '<div class="act-day">Jour '+String(d).padStart(2,'0')+'</div>'
+        +byDay[d].map(function(a){return '<div class="act" onclick="toast(\''+esc(a.n)+'\')" style="cursor:pointer">'
+          +'<span class="a-th">'+ico(a.i,26,1.3)+'</span>'
+          +'<div class="ac-m"><div class="ac-tag">'+esc(a.tag)+'</div><div class="ac-n">'+esc(a.n)+'</div>'
+          +'<div class="ac-s">'+esc(a.loc)+' · '+esc(a.dur)+'</div></div>'
+          +'<div class="ac-r"><span class="ac-p">~'+eur(a.price)+'</span></div></div>';}).join('');}).join('')
+      +'</div>';
+  };
+
+  window.gemsView = function(){
+    var it=ITINERARY;
+    var gems=it.gems||[];
+    if(!gems.length) return statusBar()+navbar('Adresses secrètes')+'<div class="ov-scroll px"><p style="padding:40px 0;text-align:center;color:var(--sub)">Les pépites seront disponibles après génération.</p></div>';
+    var accent=(it.palette&&it.palette.culture)||'#D4943A';
+    return statusBar()+navbar('Adresses secrètes')
+      +'<div class="ov-scroll px">'
+      +'<span class="eyebrow" style="display:block;margin-top:10px;color:'+accent+'">Sélection exclusive</span>'
+      +'<h1 style="font-family:var(--serif);font-weight:600;font-size:28px;margin-top:8px">Pépites cachées</h1>'
+      +gems.map(function(g){return '<div class="gem-card" style="margin-top:14px;padding:16px;background:var(--surface);border:1px solid var(--line);border-radius:14px">'
+        +'<div style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:'+accent+';margin-bottom:6px">★ Pépite</div>'
+        +'<div style="font-family:var(--serif);font-size:18px;font-weight:600;margin-bottom:4px">'+esc(g.name||'')+'</div>'
+        +(g.loc?'<div style="font-size:12px;color:var(--sub)">'+esc(g.loc)+'</div>':'')
+        +(g.desc?'<div style="font-size:14px;margin-top:8px;color:var(--ink-soft)">'+esc(g.desc)+'</div>':'')
+        +(g.tip?'<div style="font-size:12px;font-style:italic;margin-top:6px;color:'+accent+'">'+esc(g.tip)+'</div>':'')
+        +'</div>';}).join('')
+      +'</div>';
+  };
+
+  window.openActivities = function(){ openOverlay('activities', window.activitiesView()); };
+
   playSplash(buildApp);
 });
