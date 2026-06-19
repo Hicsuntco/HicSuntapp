@@ -216,10 +216,12 @@
 .gen-logo em{font-style:italic;color:var(--gold-soft)}
 .gen-map{width:220px;height:220px;position:relative;border:1px solid rgba(179,154,100,0.25);border-radius:18px;overflow:hidden}
 .gen-map .grat{opacity:0.35}
-.gen-route{position:absolute;inset:0}
+.gen-route{position:absolute;inset:0;pointer-events:none}
 .gen-route path{stroke:var(--gold-soft);stroke-width:1.6;fill:none;stroke-dasharray:5 6;animation:dash 2.6s linear infinite}
 @keyframes dash{to{stroke-dashoffset:-44}}
-.gen-route circle{fill:var(--gold)}
+.gen-route circle{fill:var(--gold);animation:none}
+/* Bloquer toute animation héritée sur les SVG de carte géographique */
+.map-svg path,.minimap svg path,.bigmap svg path{animation:none !important}
 .gen-status{font-family:var(--serif);font-style:italic;font-size:17px;color:var(--gold-soft);transition:opacity 0.24s ease;min-height:24px;text-align:center}
 .gen-progress{display:flex;align-items:center;gap:10px;width:200px}
 .gen-progress-track{flex:1;height:2px;background:rgba(246,240,228,0.14);border-radius:2px;overflow:hidden}

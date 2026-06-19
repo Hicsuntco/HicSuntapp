@@ -472,32 +472,85 @@ async function exportPDF(){
     || it.palette
     || {hike:'#3A9E7E',beach:'#3A9EC9',spa:'#E8A87A',food:'#D44A2A',culture:'#D4943A',outdoor:'#4ABDB0',transit:'#A89880'};
 
-  /* Couleur signature selon le thème — utilisée pour les titres, hero, footer */
-  const sigColor = {
-    mediterranean: palette.beach   || '#3A9EC9',
-    desert:        palette.culture || '#D4943A',
-    alpine:        palette.hike    || '#3A9E7E',
-    tropical:      palette.beach   || '#3DAACC',
-    urban:         palette.culture || '#7A65D4',
-  }[themeName] || palette.beach || '#3A9EC9';
-
-  const sigColor2 = {
-    mediterranean: palette.food    || '#D44A2A',
-    desert:        palette.food    || '#D4522A',
-    alpine:        palette.outdoor || '#4ABECE',
-    tropical:      palette.food    || '#E08A3C',
-    urban:         palette.spa     || '#C97AC9',
-  }[themeName] || palette.food || '#D44A2A';
-
-  /* Fonds thématiques sombres pour le PDF */
-  const BG_THEMES = {
-    tropical:     { bg:'#0C160E', panel:'#1A2419', ink:'#EEE8D8', sub:'#8A9E88' },
-    desert:       { bg:'#1A1308', panel:'#2A2014', ink:'#F5E8D6', sub:'#B59A6E' },
-    alpine:       { bg:'#0C1620', panel:'#16242F', ink:'#E6EEF2', sub:'#7E96A3' },
-    urban:        { bg:'#120E18', panel:'#1E1726', ink:'#EDE6F2', sub:'#9A87B0' },
-    mediterranean:{ bg:'#170F08', panel:'#261A0E', ink:'#F2E8D6', sub:'#B59868' },
+  /* ── Couleurs signature étendues à tous les thèmes ── */
+  const SIG_PDF = {
+    mediterranean: { c1: palette.beach   ||'#3A9EC9', c2: palette.food    ||'#D44A2A' },
+    desert:        { c1: palette.culture ||'#D4943A', c2: palette.food    ||'#D4522A' },
+    alpine:        { c1: palette.hike    ||'#3A9E7E', c2: palette.outdoor ||'#4ABECE' },
+    tropical:      { c1: palette.food    ||'#E87A4A', c2: palette.hike    ||'#2D9E6B' },
+    tropical_io:   { c1: palette.beach   ||'#4AC8E0', c2: palette.spa     ||'#E87A9A' },
+    steppe:        { c1: palette.beach   ||'#5A8AAA', c2: palette.hike    ||'#7A9E8A' },
+    andean:        { c1: palette.culture ||'#C0A040', c2: palette.hike    ||'#8A6A3A' },
+    urban_asia:    { c1: palette.culture ||'#7A50C0', c2: palette.food    ||'#E05030' },
+    urban:         { c1: palette.culture ||'#7A65D4', c2: palette.food    ||'#D4854A' },
+    savanna:       { c1: palette.outdoor ||'#70A850', c2: palette.culture ||'#B07030' },
+    caribbean:     { c1: palette.beach   ||'#30C0C0', c2: palette.food    ||'#E0A030' },
   };
-  const bgTheme = BG_THEMES[themeName] || BG_THEMES.mediterranean;
+  const sig = SIG_PDF[themeName] || SIG_PDF.tropical;
+  const sigColor  = sig.c1;
+  const sigColor2 = sig.c2;
+
+  /* ── PDF layout par thème : fond, typographie, structure ── */
+  /* Chaque thème a une identité visuelle distincte */
+  const PDF_LAYOUTS = {
+    mediterranean: {
+      bg:'#F8F4EC', surface:'#FFFFFF', panel:'#F1EBE0',
+      ink:'#1A1610', sub:'#7A6E62', line:'rgba(26,22,16,0.10)', line2:'rgba(26,22,16,0.05)',
+      heroFont:'Fraunces', bodyFont:'Epilogue',
+      heroSize:'clamp(3rem,10vw,4.8rem)', heroWeight:'300',
+      heroBgStyle:'linear-gradient(160deg, '+hexA(sigColor,0.08)+' 0%, transparent 50%), '+hexA(sigColor2,0.04)+' 0%',
+      dividerStyle:'1px solid rgba(26,22,16,0.10)',
+    },
+    desert: {
+      bg:'#F5EDE0', surface:'#FFF8F0', panel:'#EDE0CC',
+      ink:'#2A1A08', sub:'#8A6A42', line:'rgba(42,26,8,0.12)', line2:'rgba(42,26,8,0.06)',
+      heroFont:'Fraunces', bodyFont:'Epilogue',
+      heroSize:'clamp(2.8rem,9vw,4.4rem)', heroWeight:'500',
+      heroBgStyle:'radial-gradient(ellipse 100% 80% at 0% 0%, '+hexA(sigColor,0.18)+' 0%, transparent 55%), radial-gradient(ellipse 60% 60% at 100% 100%, '+hexA(sigColor2,0.12)+' 0%, transparent 50%)',
+      dividerStyle:'1px solid rgba(42,26,8,0.10)',
+    },
+    alpine: {
+      bg:'#F0F4F8', surface:'#FFFFFF', panel:'#E4EBF0',
+      ink:'#0C1820', sub:'#5A7080', line:'rgba(12,24,32,0.10)', line2:'rgba(12,24,32,0.05)',
+      heroFont:'Fraunces', bodyFont:'Epilogue',
+      heroSize:'clamp(2.8rem,9vw,4.4rem)', heroWeight:'300',
+      heroBgStyle:'linear-gradient(135deg, '+hexA(sigColor,0.12)+' 0%, transparent 60%), linear-gradient(225deg, '+hexA(sigColor2,0.08)+' 0%, transparent 50%)',
+      dividerStyle:'1px solid rgba(12,24,32,0.08)',
+    },
+    tropical: {
+      bg:'#F2F8F4', surface:'#FFFFFF', panel:'#E4F0E8',
+      ink:'#0A1E10', sub:'#4A7A5A', line:'rgba(10,30,16,0.10)', line2:'rgba(10,30,16,0.05)',
+      heroFont:'Fraunces', bodyFont:'Epilogue',
+      heroSize:'clamp(2.8rem,9vw,4.4rem)', heroWeight:'300',
+      heroBgStyle:'radial-gradient(ellipse 80% 60% at 30% 20%, '+hexA(sigColor,0.14)+' 0%, transparent 55%), radial-gradient(ellipse 50% 70% at 80% 80%, '+hexA(sigColor2,0.10)+' 0%, transparent 50%)',
+      dividerStyle:'1px solid rgba(10,30,16,0.08)',
+    },
+    tropical_io: {
+      bg:'#F0F8FA', surface:'#FFFFFF', panel:'#E0F0F5',
+      ink:'#081820', sub:'#3A6878', line:'rgba(8,24,32,0.10)', line2:'rgba(8,24,32,0.05)',
+      heroFont:'Fraunces', bodyFont:'Epilogue',
+      heroSize:'clamp(2.8rem,9vw,4.4rem)', heroWeight:'300',
+      heroBgStyle:'linear-gradient(160deg, '+hexA(sigColor,0.15)+' 0%, transparent 50%), linear-gradient(320deg, '+hexA(sigColor2,0.10)+' 0%, transparent 50%)',
+      dividerStyle:'1px solid rgba(8,24,32,0.08)',
+    },
+    urban_asia: {
+      bg:'#F4F2F8', surface:'#FFFFFF', panel:'#EAE8F2',
+      ink:'#100A20', sub:'#5A5078', line:'rgba(16,10,32,0.10)', line2:'rgba(16,10,32,0.05)',
+      heroFont:'Fraunces', bodyFont:'Epilogue',
+      heroSize:'clamp(2.8rem,9vw,4.4rem)', heroWeight:'500',
+      heroBgStyle:'linear-gradient(135deg, '+hexA(sigColor,0.12)+' 0%, transparent 60%), linear-gradient(315deg, '+hexA(sigColor2,0.10)+' 0%, transparent 50%)',
+      dividerStyle:'1px solid rgba(16,10,32,0.08)',
+    },
+    savanna: {
+      bg:'#F5F2E8', surface:'#FFFFFF', panel:'#EBE8D8',
+      ink:'#1A1808', sub:'#6A6030', line:'rgba(26,24,8,0.10)', line2:'rgba(26,24,8,0.05)',
+      heroFont:'Fraunces', bodyFont:'Epilogue',
+      heroSize:'clamp(2.8rem,9vw,4.4rem)', heroWeight:'300',
+      heroBgStyle:'radial-gradient(ellipse 90% 70% at 10% 10%, '+hexA(sigColor,0.14)+' 0%, transparent 55%), radial-gradient(ellipse 60% 50% at 90% 90%, '+hexA(sigColor2,0.10)+' 0%, transparent 50%)',
+      dividerStyle:'1px solid rgba(26,24,8,0.08)',
+    },
+  };
+  const PDF_THEME = PDF_LAYOUTS[themeName] || PDF_LAYOUTS[themeName.split('_')[0]] || PDF_LAYOUTS.mediterranean;
   const CAT_LABEL = {hike:'Rando & nature',beach:'Plage & océan',spa:'Bien-être',food:'Table & saveurs',culture:'Patrimoine',outdoor:'Plein air',transit:'Transfert'};
   const CAT_EMOJI = {hike:'\u{1F95E}',beach:'\u{1F30A}',spa:'\u{1F9D8}',food:'\u{1F37D}',culture:'\u{1F3DB}',outdoor:'\u2600',transit:'\u2708'};
 
@@ -654,10 +707,10 @@ async function exportPDF(){
     + 'body{background:'+PDF_THEME.bg+';color:'+PDF_THEME.ink+';font-family:Epilogue,sans-serif;font-weight:300;line-height:1.7;-webkit-font-smoothing:antialiased}'
     + '.close-btn{position:fixed;top:18px;right:18px;width:38px;height:38px;border-radius:50%;background:'+PDF_THEME.ink+';color:'+PDF_THEME.bg+';border:none;font-size:18px;font-family:Epilogue,sans-serif;cursor:pointer;z-index:99;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,0.18)}'
     /* ── Hero : fond ivoire avec gradient de couleur thématique très léger ── */
-    + '.hero{padding:4.5rem 2.5rem 3rem;position:relative;overflow:hidden;border-bottom:1px solid '+PDF_THEME.line+'}'
-    + '.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 55% at 20% 15%, '+hexA(sigColor,0.10)+' 0%, transparent 60%),radial-gradient(ellipse 55% 75% at 80% 65%, '+hexA(sigColor2,0.07)+' 0%, transparent 55%)}'
+    + '.hero{padding:4.5rem 2.5rem 3rem;position:relative;overflow:hidden;border-bottom:'+PDF_THEME.dividerStyle+'}'
+    + '.hero-bg{position:absolute;inset:0;background:'+PDF_THEME.heroBgStyle+'}'
     + '.hero-eyebrow{font-size:.6rem;letter-spacing:.4em;text-transform:uppercase;color:'+sigColor+';margin-bottom:1.2rem;position:relative;z-index:2}'
-    + '.hero h1{font-family:Fraunces,serif;font-weight:300;font-size:clamp(2.6rem,9vw,4.2rem);line-height:1;margin-bottom:1.4rem;position:relative;z-index:2;color:'+PDF_THEME.ink+'}'
+    + '.hero h1{font-family:Fraunces,serif;font-weight:'+PDF_THEME.heroWeight+';font-size:'+PDF_THEME.heroSize+';line-height:1;margin-bottom:1.4rem;position:relative;z-index:2;color:'+PDF_THEME.ink+'}'
     + '.hero h1 em{font-style:italic;color:'+sigColor+'}'
     + '.hero-pills{display:flex;flex-wrap:wrap;gap:.5rem;position:relative;z-index:2;margin-bottom:1.2rem}'
     + '.pill{font-size:.62rem;letter-spacing:.08em;padding:.3rem .85rem;border-radius:20px;border:1px solid;font-weight:400}'

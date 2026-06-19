@@ -217,16 +217,22 @@ function itineraryView(){
   /* Couleur primaire du thème — utilisée partout dans l'écran */
   const palette = it.palette || {};
   const theme = it.theme || 'mediterranean';
-  /* Couleur signature : beach pour méditerranée/tropical, culture pour désert, hike pour alpine */
-  const themeSignature = {
-    mediterranean: palette.beach  || '#3A9EC9',
-    desert:        palette.culture|| '#D4943A',
-    alpine:        palette.hike   || '#3A9E7E',
-    tropical:      palette.beach  || '#3DAACC',
-    urban:         palette.culture|| '#7A65D4',
+  const SIG = {
+    mediterranean: { c1: palette.beach   || '#3A9EC9', c2: palette.food    || '#D44A2A' },
+    desert:        { c1: palette.culture || '#D4943A', c2: palette.food    || '#D4522A' },
+    alpine:        { c1: palette.hike    || '#3A9E7E', c2: palette.outdoor || '#4ABECE' },
+    tropical:      { c1: palette.food    || '#E87A4A', c2: palette.hike    || '#2D9E6B' },
+    tropical_io:   { c1: palette.beach   || '#4AC8E0', c2: palette.spa     || '#E87A9A' },
+    steppe:        { c1: palette.beach   || '#5A8AAA', c2: palette.hike    || '#7A9E8A' },
+    andean:        { c1: palette.culture || '#C0A040', c2: palette.hike    || '#8A6A3A' },
+    urban_asia:    { c1: palette.culture || '#7A50C0', c2: palette.food    || '#E05030' },
+    urban:         { c1: palette.culture || '#7A65D4', c2: palette.food    || '#D4854A' },
+    savanna:       { c1: palette.outdoor || '#70A850', c2: palette.culture || '#B07030' },
+    caribbean:     { c1: palette.beach   || '#30C0C0', c2: palette.food    || '#E0A030' },
   };
-  const primaryColor = themeSignature[theme] || '#3A9EC9';
-  const secondColor  = palette.food || palette.outdoor || '#D4943A';
+  const sig = SIG[theme] || SIG.tropical;
+  const primaryColor = sig.c1;
+  const secondColor  = sig.c2;
 
   /* Fond du minimap : légère teinte de la couleur primaire */
   const minimapBg = 'linear-gradient(135deg,'
@@ -282,7 +288,7 @@ function itineraryView(){
     + '</div>'
     + '<div class="ov-foot"><div class="foot-price">'
     +   '<div><div class="fp-v">' + eur(it.budgetTotal) + '</div><div class="fp-l">tout compris · ' + travelerLabel() + '</div></div>'
-    +   '<button class="btn" style="background:'+primaryColor+'" onclick="openBooking(\'' + (it.accommodations[0]?it.accommodations[0].id:'') + '\')">Voir les hébergements</button>'
+    +   '<button class="btn" onclick="openBooking(\'' + (it.accommodations[0]?it.accommodations[0].id:'') + '\')">Voir les hébergements</button>'
     + '</div></div>';
 }
 

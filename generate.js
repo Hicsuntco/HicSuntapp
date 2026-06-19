@@ -99,27 +99,55 @@ const CATEGORY_LABELS={
   food:'Table & saveurs', culture:'Patrimoine', outdoor:'Plein air', transit:'Transfert',
 };
 
-/* palettes par "climat visuel" — choisies selon mots-clés de la destination/région
-   ⚠️ Plus de vert caca d'oie (#7BAE6E / #8BAE6E) en Mediterranean et Urban.
-   Chaque thème a des couleurs vives, distinctes, et évocatrices de la destination. */
+/* ── palettes par pays / région — vraiment distinctes visuellement ────── */
 const THEME_PALETTES={
-  /* Tropiques : émeraude vif, turquoise, rose corail, orange épicé */
-  tropical:{ hike:'#4DAE7B', beach:'#3DAACC', spa:'#E87A9A', food:'#E08A3C', culture:'#A87BD4', outdoor:'#D4B84A', transit:'#7DA898' },
-  /* Désert : ocre chaud, sable, terracotta, épice rouge, bronze */
-  desert:  { hike:'#D4943A', beach:'#D9B870', spa:'#E8A070', food:'#D4522A', culture:'#B08A3A', outdoor:'#D4C06A', transit:'#A89572' },
-  /* Alpine : vert sapin, bleu glacier, lavande, orange fromage, ardoise */
-  alpine:  { hike:'#3A9E7E', beach:'#4A8EC9', spa:'#9B8AD4', food:'#D47A3A', culture:'#6A96B8', outdoor:'#4ABECE', transit:'#8AA4A8' },
-  /* Urbain : vert moderne, bleu ciel, violet chic, orange bistro, indigo */
-  urban:   { hike:'#5AAE6E', beach:'#4A9FBE', spa:'#C97AC9', food:'#D4854A', culture:'#7A65D4', outdoor:'#D4A84A', transit:'#8A9E8A' },
-  /* Méditerranée : ZÉRO vert militaire — or antiquité, bleu mer intense, rouge tomate, turquoise */
+  /* Tropiques Asie (Thaïlande, Bali, Vietnam…) : vert jungle, corail, or temple */
+  tropical:    { hike:'#2D9E6B', beach:'#E87A4A', spa:'#F0C060', food:'#D45A30', culture:'#C4803A', outdoor:'#48B89A', transit:'#7DA898' },
+  /* Tropiques Océan Indien (Maldives, Réunion, Maurice…) : lagon, rose, sable */
+  tropical_io: { hike:'#3AAE8A', beach:'#4AC8E0', spa:'#E87A9A', food:'#E89A4A', culture:'#A87BD4', outdoor:'#60C8B0', transit:'#7DAAB8' },
+  /* Désert chaud (Maroc, Jordanie, Égypte…) : ocre, terracotta, bronze */
+  desert:      { hike:'#D4943A', beach:'#D9B870', spa:'#E8A070', food:'#D4522A', culture:'#B08A3A', outdoor:'#D4C06A', transit:'#A89572' },
+  /* Désert froid / Steppe (Mongolie, Islande intérieur…) : gris bleu, sienne */
+  steppe:      { hike:'#7A9E8A', beach:'#5A8AAA', spa:'#B0A0D4', food:'#C0804A', culture:'#8A7A6A', outdoor:'#9ABAC0', transit:'#8A9EA8' },
+  /* Alpine Europe (Alpes, Pyrénées, Dolomites…) : vert sapin, bleu glacier */
+  alpine:      { hike:'#3A9E7E', beach:'#4A8EC9', spa:'#9B8AD4', food:'#D47A3A', culture:'#6A96B8', outdoor:'#4ABECE', transit:'#8AA4A8' },
+  /* Andine / Haute altitude (Pérou, Bolivie, Népal…) : terre, or inca, violet altitude */
+  andean:      { hike:'#8A6A3A', beach:'#C0903A', spa:'#A880C0', food:'#D06040', culture:'#C0A040', outdoor:'#6A9860', transit:'#907060' },
+  /* Urbain Asie (Japon, Corée, Singapour…) : indigo, cerise, néon doux */
+  urban_asia:  { hike:'#4A6AAA', beach:'#4A9FBE', spa:'#E06090', food:'#E05030', culture:'#7A50C0', outdoor:'#D0A030', transit:'#8090A8' },
+  /* Urbain Occident (Paris, Londres, NY…) : ardoise, or, bordeaux */
+  urban:       { hike:'#5AAE6E', beach:'#4A9FBE', spa:'#C97AC9', food:'#D4854A', culture:'#7A65D4', outdoor:'#D4A84A', transit:'#8A9E8A' },
+  /* Méditerranée (Italie, Grèce, Espagne, Sardaigne…) : bleu mer, rouge tomate, or */
   mediterranean:{ hike:'#5A9A5A', beach:'#3A9EC9', spa:'#E8A87A', food:'#D44A2A', culture:'#D4943A', outdoor:'#4ABDB0', transit:'#A89880' },
+  /* Afrique savane (Kenya, Tanzanie, Rwanda…) : ocre, rouge latérite, vert acacia */
+  savanna:     { hike:'#8AAA3A', beach:'#D0A040', spa:'#E09060', food:'#C05030', culture:'#B07030', outdoor:'#70A850', transit:'#9A8060' },
+  /* Caraïbes / Amérique centrale : turquoise, jaune soleil, rose bougainvillier */
+  caribbean:   { hike:'#3AAA6A', beach:'#30C0C0', spa:'#E070B0', food:'#E0A030', culture:'#C06030', outdoor:'#60C880', transit:'#70A0A8' },
 };
+
 function _themeForDestination(dest, region, country){
   const s=((dest||'')+' '+(region||'')+' '+(country||'')).toLowerCase();
-  if(/maroc|sahara|désert|jordanie|égypte|namibie|dubai|émirats|oman/.test(s)) return 'desert';
-  if(/islande|alpes|pérou|andes|nepal|himalaya|patagonie|norvège|suisse|montagne/.test(s)) return 'alpine';
-  if(/japon|tokyo|new york|londres|paris|corée|singapour|hong kong/.test(s)) return 'urban';
-  if(/italie|grèce|espagne|portugal|croatie|sardaigne|sicile|provence|méditerran/.test(s)) return 'mediterranean';
+  /* Désert */
+  if(/maroc|sahara|jordanie|égypte|namibie|dubai|émirats|oman|tunisie|libye|arabie/.test(s)) return 'desert';
+  /* Steppe / Islande */
+  if(/islande|mongolie|kirghizstan|kazakhstan/.test(s)) return 'steppe';
+  /* Andine / Haute altitude */
+  if(/pérou|bolivie|équateur|népal|himalaya|tibet|patagonie|andes/.test(s)) return 'andean';
+  /* Alpine Europe */
+  if(/alpes|suisse|autriche|dolomites|pyrénées|norvège|écosse|finlande|suède/.test(s)) return 'alpine';
+  /* Urbain Asie */
+  if(/japon|tokyo|kyoto|corée|séoul|singapour|hong kong|taipei|taiwan/.test(s)) return 'urban_asia';
+  /* Urbain Occident */
+  if(/paris|londres|berlin|new york|amsterdam|barcelone|madrid|lisbonne.*city/.test(s)) return 'urban';
+  /* Méditerranée */
+  if(/italie|grèce|espagne|portugal|croatie|sardaigne|sicile|provence|méditerran|malte|chypre/.test(s)) return 'mediterranean';
+  /* Savane Afrique */
+  if(/kenya|tanzanie|rwanda|ouganda|zimbabwe|botswana|afrique.*sud|namibie|éthiopie|sénégal/.test(s)) return 'savanna';
+  /* Caraïbes / Amér. centrale */
+  if(/mexique|cuba|jamaïque|martinique|guadeloupe|costa rica|panama|colombie|brésil.*côte|caraïbes/.test(s)) return 'caribbean';
+  /* Océan Indien */
+  if(/maldives|réunion|maurice|seychelles|madagascar|mozambique/.test(s)) return 'tropical_io';
+  /* Tout le reste : tropical Asie du SE */
   return 'tropical';
 }
 
