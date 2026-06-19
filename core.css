@@ -25,7 +25,9 @@
 button,a{color:inherit;font:inherit;text-decoration:none}
 button{background:none;border:none}
 html,body{background:#ece7da;height:100%;overflow:hidden}
-body{position:fixed;inset:0;font-family:var(--sf);color:var(--ink);height:100%;
+body{position:fixed;inset:0;font-family:var(--sf);color:var(--ink);
+  /* Couvre toute la hauteur incluant la barre Safari sur iOS */
+  height:100vh;height:100dvh;
   background:
     radial-gradient(1200px 600px at 80% -10%, rgba(156,124,68,0.07), transparent 60%),
     radial-gradient(900px 500px at 0% 110%, rgba(156,124,68,0.06), transparent 55%),

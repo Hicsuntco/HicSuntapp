@@ -747,6 +747,17 @@ function buildApp(){
 }
 
 document.addEventListener('DOMContentLoaded', function(){
+  /* Masquer la barre Safari en bas — scroll down 1px puis revenir */
+  if(/iPhone|iPad|iPod/.test(navigator.userAgent) && !window.navigator.standalone){
+    setTimeout(function(){
+      document.documentElement.style.height = (window.innerHeight + 60) + 'px';
+      window.scrollTo(0, 1);
+      setTimeout(function(){
+        document.documentElement.style.height = '';
+        window.scrollTo(0, 0);
+      }, 100);
+    }, 200);
+  }
   /* ── Réassignation forcée post-chargement de tous les scripts ──
      features.js (chargé avant app.js) définit mapSVG/mapView avec contour()
      et graticule() — les ronds abstraits et la spirale. On les écrase ici,
