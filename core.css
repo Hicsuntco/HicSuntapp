@@ -46,7 +46,8 @@ body{position:fixed;inset:0;font-family:var(--sf);color:var(--ink);height:100%;
 @media (max-width:480px){
   .studio-head{display:none}
   .stage{padding:0}
-  .phone{width:100vw;height:100vh;height:100dvh;border-radius:0;padding:env(safe-area-inset-top) 0 0;box-shadow:none;background:var(--bg)}
+  .phone{width:100vw;height:100vh;height:100dvh;border-radius:0;padding:0;box-shadow:none;background:var(--bg)}
+
   .phone::after{display:none}
   .screen{border-radius:0}
 }
@@ -55,7 +56,7 @@ body{position:fixed;inset:0;font-family:var(--sf);color:var(--ink);height:100%;
 }
 
 /* ── iOS status bar ── */
-.statusbar{height:54px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 30px 8px;font-family:var(--sf);position:relative;z-index:5;flex:none}
+.statusbar{height:54px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 30px 8px;padding-top:env(safe-area-inset-top,0px);height:calc(54px + env(safe-area-inset-top,0px));font-family:var(--sf);position:relative;z-index:5;flex:none}
 .sb-time{font-size:14.5px;font-weight:600;letter-spacing:0.2px}
 .sb-right{display:flex;align-items:center;gap:6px}
 .statusbar.on-dark{color:var(--onink)}
