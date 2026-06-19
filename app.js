@@ -558,11 +558,27 @@ async function loadSavedItinerary(id){
         || {};
     }
 
-    /* ── 5. Dérivés ── */
-    if(typeof deriveActivities==='function') try{ deriveActivities(ITINERARY.plan); }catch(e){ console.warn('deriveActivities',e); }
-    if(typeof deriveBudget==='function') try{
-      deriveBudget(ITINERARY.accommodations, ITINERARY.budgetTotal, ITINERARY.dest, ITINERARY.region||'', ITINERARY.country||'', state.travelers||2, null);
-    }catch(e){ console.warn('deriveBudget',e); }
+    /* ── 5. Rebuild BUDGET global depuis ITINERARY ── */
+    if(typeof BUDGET !== 'undefined'){
+      BUDGET.total = ITINERARY.budgetTotal || 0;
+      BUDGET.spent = 0;
+      BUDGET.lines = (ITINERARY.accommodations||[]).map(function(a){
+        return {i:a.i||'bed', n:a.n||'Hébergement', sub:a.loc||'', amount:(a.price||0)*(a.nights||1), paid:false};
+      });
+      if(!BUDGET.lines.length) BUDGET.lines = [{i:'wallet',n:'Budget estimé',sub:'tout compris',amount:ITINERARY.budgetTotal||0,paid:false}];
+    }
+
+    /* ── 6. Rebuild ACTIVITIES depuis le plan ── */
+    if(typeof deriveActivities === 'function'){
+      try{ deriveActivities(ITINERARY.plan); }catch(e){ console.warn('deriveActivities',e); }
+    } else if(typeof ACTIVITIES !== 'undefined'){
+      ACTIVITIES.length = 0;
+      (ITINERARY.plan||[]).forEach(function(p){
+        (p.moments||[]).forEach(function(m,mi){
+          ACTIVITIES.push({id:'a'+p.n+'_'+mi,day:p.n,n:m[2]||'',tag:m[3]||'',loc:p.loc||'',dur:'~2h',price:0,i:m[1]||'pin'});
+        });
+      });
+    }
 
     /* ── 6. Ouverture de l'écran ── */
     try{
@@ -681,5 +697,95 @@ function buildApp(){
 }
 
 document.addEventListener('DOMContentLoaded', function(){
+  /* ── Réassignation forcée post-chargement de tous les scripts ──
+     features.js (chargé avant app.js) définit mapSVG/mapView avec contour()
+     et graticule() — les ronds abstraits et la spirale. On les écrase ici,
+     après que tous les <script> ont été exécutés.                        ── */
+  window.geoMapSVG = function(W,H,activeIdx){
+    var it=ITINERARY,dest=it.dest||it.destination||'';
+    var g=_geoGet(dest);
+    var vb=g.vb.split(' ').map(Number),vbW=vb[2],vbH=vb[3];
+    var accent=(it.palette&&(it.palette.culture||it.palette.beach))||'#C9A96E';
+    var pts=_geoPts(it.plan||[],g);
+    var sc=Math.min(W/vbW,H/vbH)*0.88,ox=(W-vbW*sc)/2,oy=(H-vbH*sc)/2;
+    var rp='';
+    if(pts.length>1){
+      rp='M'+pts[0].vx.toFixed(1)+' '+pts[0].vy.toFixed(1);
+      for(var ri=1;ri<pts.length;ri++){
+        var mx=((pts[ri-1].vx+pts[ri].vx)/2).toFixed(1),my=((pts[ri-1].vy+pts[ri].vy)/2).toFixed(1);
+        rp+=' Q'+pts[ri-1].vx.toFixed(1)+' '+pts[ri-1].vy.toFixed(1)+' '+mx+' '+my+' T'+pts[ri].vx.toFixed(1)+' '+pts[ri].vy.toFixed(1);
+      }
+    }
+    var pr=7/sc,pro=10/sc,fs=6/sc,fso=8/sc;
+    var pins=pts.map(function(p,i){
+      var on=activeIdx===i,r=on?pro:pr;
+      return '<g class="mpin'+(on?' on':'')+'"'+(activeIdx!==null?' onclick="mapSelect('+i+')"':'')+' >'
+        +'<circle cx="'+p.vx.toFixed(1)+'" cy="'+p.vy.toFixed(1)+'" r="'+r.toFixed(1)+'"/>'
+        +'<text x="'+p.vx.toFixed(1)+'" y="'+(p.vy+r*0.38).toFixed(1)+'" font-size="'+(on?fso:fs).toFixed(1)+'">'+p.n+'</text></g>';
+    }).join('');
+    return '<svg class="map-svg" viewBox="0 0 '+W+' '+H+'" fill="none">'
+      +'<rect width="'+W+'" height="'+H+'" fill="rgba(246,240,228,0.02)" rx="10"/>'
+      +'<g transform="translate('+ox.toFixed(1)+','+oy.toFixed(1)+') scale('+sc.toFixed(4)+')">'
+      +'<path d="'+g.path+'" fill="'+hexA(accent,0.10)+'" stroke="'+hexA(accent,0.60)+'" stroke-width="'+(1.2/sc).toFixed(2)+'" stroke-linejoin="round" stroke-linecap="round"/>'
+      +(rp?'<path d="'+rp+'" stroke="'+hexA(accent,0.85)+'" stroke-width="'+(1.5/sc).toFixed(2)+'" stroke-dasharray="'+(4/sc).toFixed(1)+' '+(3/sc).toFixed(1)+'" fill="none"/>':'')
+      +pins+'</g></svg>';
+  };
+  window.mapView = function(){
+    var i=state.mapDay||0,p=(ITINERARY.plan||[])[i];
+    var g=_geoGet(ITINERARY.dest||ITINERARY.destination||'');
+    var vb=g.vb.split(' ').map(Number),vbW=vb[2],vbH=vb[3];
+    var W=345,H=420,sc=Math.min(W/vbW,H/vbH)*0.88;
+    var ox=(W-vbW*sc)/2,oy=(H-vbH*sc)/2;
+    var pts=_geoPts(ITINERARY.plan||[],g),pin=pts[i]||{vx:vbW/2,vy:vbH/2};
+    var pCx=ox+pin.vx*sc,pCy=oy+pin.vy*sc;
+    var popL=Math.max(4,Math.min(pCx/W*100-20,50)),popT=pCy/H>0.58?(pCy/H*100-22):(pCy/H*100+6);
+    var wx=p&&Array.isArray(p.wx)?p.wx:['sun','—'];
+    var pop=p?'<div class="map-pop" style="left:'+popL.toFixed(1)+'%;top:'+popT.toFixed(1)+'%">'
+      +'<div class="mp-k">Jour '+String(p.n).padStart(2,'0')+' · '+esc(p.loc||'')+'</div>'
+      +'<div class="mp-t">'+esc(p.title||'')+'</div>'
+      +'<div class="mp-m"><span class="mp-wx">'+ico(wx[0],13,1.7)+wx[1]+'</span>'
+      +'<span class="mp-l" onclick="openDay('+i+')">Détails ›</span></div></div>':'';
+    return statusBar()
+      +navbar('Carte du voyage',{right:'<button class="nav-btn" onclick="if(typeof openOffline===\'function\')openOffline()" aria-label="Hors-ligne">'+ico('download',18,1.6)+'</button>'})
+      +'<div class="ov-scroll"><div class="bigmap">'
+      +'<span class="map-coords">'+esc(ITINERARY.coords||ITINERARY.dest||'')+'</span>'
+      +'<span class="map-rose">'+rose(26,1.1)+'</span>'
+      +window.geoMapSVG(W,H,i)+pop
+      +'</div><div class="map-rail">'+(ITINERARY.plan||[]).map(function(d,j){
+        return '<button class="map-chip'+(j===i?' on':'')+'" onclick="mapSelect('+j+')">'
+          +'<div class="mc-d">Jour '+String(d.n).padStart(2,'0')+'</div><div class="mc-l">'+esc(d.loc||'')+'</div></button>';
+      }).join('')+'</div></div>';
+  };
+  window.mapSelect = function(i){
+    state.mapDay=i;
+    var el=ovStack[ovStack.length-1];
+    if(el&&el.dataset.ov==='map')el.innerHTML=window.mapView();
+  };
+
+  window.shareView = function(){
+    var it=ITINERARY;
+    return statusBar()+navbar('Partager le voyage')
+      +'<div class="ov-scroll px">'
+      +'<span class="eyebrow" style="display:block;margin-top:10px">'+esc(it.dest||'')+' · '+(it.days||'')+ ' jours</span>'
+      +'<h1 style="font-family:var(--serif);font-weight:600;font-size:28px;letter-spacing:-0.4px;margin-top:8px">Partager ce voyage</h1>'
+      +'<div class="row" onclick="copyShareLink()"><span class="r-ico">'+ico('link',19,1.5)+'</span><div class="r-main"><div class="r-t">Copier le lien</div><div class="r-s">Lecture seule</div></div><span class="r-chev">'+ico('chevron',17,1.6)+'</span></div>'
+      +'<div class="row" onclick="sendShareLink()"><span class="r-ico">'+ico('share',18,1.5)+'</span><div class="r-main"><div class="r-t">Envoyer par message</div><div class="r-s">iMessage · WhatsApp</div></div><span class="r-chev">'+ico('chevron',17,1.6)+'</span></div>'
+      +'<div class="row" onclick="exportPDF&&exportPDF()"><span class="r-ico">'+ico('doc',19,1.5)+'</span><div class="r-main"><div class="r-t">Exporter en PDF</div><div class="r-s">Itinéraire complet</div></div><span class="r-chev">'+ico('chevron',17,1.6)+'</span></div>'
+      +'</div>';
+  };
+  if(typeof copyShareLink==='undefined'||true){
+    window.copyShareLink = async function(){
+      try{ await navigator.clipboard.writeText('https://hic-suntapp.vercel.app/?voyage='+encodeURIComponent((ITINERARY.dest||'').toLowerCase().replace(/\s+/g,'-'))); toast('Lien copié'); }
+      catch(e){ toast('Impossible de copier'); }
+    };
+    window.sendShareLink = async function(){
+      var it=ITINERARY;
+      var url='https://hic-suntapp.vercel.app/?voyage='+encodeURIComponent((it.dest||'').toLowerCase().replace(/\s+/g,'-'));
+      var txt='Découvre cet itinéraire '+(it.dest||'')+' composé par Hic Sunt : '+url;
+      if(navigator.share){try{await navigator.share({title:'Hic Sunt · '+(it.dest||''),text:txt,url:url});}catch(e){}}
+      else{try{await navigator.clipboard.writeText(txt);toast('Lien copié');}catch(e){toast('Partage indisponible');}}
+    };
+  }
+
   playSplash(buildApp);
 });
