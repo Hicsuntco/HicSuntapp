@@ -570,7 +570,34 @@ async function loadSavedItinerary(id){
       };
     }).filter(Boolean);
 
-    /* ── 4. Reconstruction theme + palette ── */
+    /* ── 3bis. Recalculer les prix hébergements si tous identiques (bug ancien) ── */
+    if(ITINERARY.accommodations && ITINERARY.accommodations.length > 1){
+      const prices = ITINERARY.accommodations.map(function(a){ return a.price||0; });
+      const allSame = prices.every(function(p){ return p === prices[0]; });
+      if(allSame){
+        const level = ITINERARY.level || 'Confort';
+        const colFactor = (typeof _costOfLivingFactor==='function')
+          ? _costOfLivingFactor(ITINERARY.dest||'', ITINERARY.region||'', ITINERARY.country||'')
+          : 0.7;
+        const baseRanges = {'Éco':[25,70],'Confort':[60,140],'Luxe':[150,400],'Ultra':[350,1100]};
+        const base = baseRanges[level] || baseRanges['Confort'];
+        const lo = Math.round(base[0]*colFactor), hi = Math.round(base[1]*colFactor);
+        const mid = Math.round((lo+hi)/2);
+        const vary = [1, 0.85, 1.15, 0.92, 1.08, 0.78, 1.22, 0.88];
+        ITINERARY.accommodations = ITINERARY.accommodations.map(function(a, i){
+          const tl = (a.type||'').toLowerCase();
+          let price;
+          if(/villa|résidence|privée/.test(tl))             price = Math.round(hi*0.85);
+          else if(/luxe|resort|palace/.test(tl))            price = Math.round(hi*0.75);
+          else if(/lodge|boutique|charme|écolodge/.test(tl))price = Math.round(mid*1.15);
+          else if(/guesthouse|maison d|homestay/.test(tl))  price = Math.round(lo*1.3);
+          else if(/hostel|auberge/.test(tl))                price = lo;
+          else price = mid;
+          price = Math.max(lo, Math.min(hi, Math.round(price*(vary[i%vary.length]||1))));
+          return Object.assign({}, a, {price: price});
+        });
+      }
+    }
     if(typeof _themeForDestination === 'function'){
       const themeName = _themeForDestination(
         ITINERARY.dest, ITINERARY.region||'', ITINERARY.country||''

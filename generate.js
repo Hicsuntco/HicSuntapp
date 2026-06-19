@@ -264,10 +264,14 @@ function buildSkeletonPrompt(dc, batchSize, offset){
       '- EXEMPLE DE LOGIQUE GÉOGRAPHIQUE (Thaïlande 28j) : Bangkok(arr.) → Ayutthaya → Chiang Mai → Pai → Chiang Rai → Bangkok(transit) → Hua Hin → Surat Thani → Koh Samui → Krabi → Phuket. JAMAIS Chiang Mai → Bangkok → Chiang Rai.',
       '- EXEMPLE MAROC : Casablanca(arr.) → Fès → Merzouga → Ouarzazate → Marrakech → Essaouira → Agadir. JAMAIS Fès → Marrakech → Merzouga → Fès.',
       '- Applique cette même logique de circuit à toute destination.',
+      '- Chaque hébergement doit avoir un "price" RÉALISTE et DISTINCT (prix par nuit en €, pas 0) selon son type et sa localisation.',
+      '  · Guesthouse/homestay Thaïlande Confort: 40-80€ · Boutique-hôtel Bangkok: 70-130€ · Resort côte: 90-160€ · Villa privée: 150-300€',
+      '  · Maroc Confort: maison d\'hôtes 50-100€ · Riad 80-150€ · Camp désert 120-200€',
+      '  · Les prix DOIVENT être différents entre hébergements (refléter standing et localisation)',
       destLock ? '\nRappel final : "dest" doit être "'+state.destination+'". Ne propose AUCUNE autre destination.' : '',
       '',
-      'SCHÉMA (respecte les types et clés exactement) :',
-      '{"dest":"","country":"","tagline":"phrase poétique évocatrice","level":"Éco|Confort|Luxe|Ultra","dates":"ex: Août 2026 · '+dc+' jours","days_count":'+dc+',"budget":0,"season":"meilleure saison courte","coords":"ex: 6°55′N · 79°51′E","region":"région","stays":[{"name":"vrai nom hébergement","type":"ex: Lodge safari","loc":"ville","price":0,"nights":1,"blurb":"max 6 mots évocateurs"}],"plan":[{"title":"titre évocateur","loc":"ville / zone","night":"nom exact stays","sky":"sun","temp":"27°","hook":"accroche 1 phrase narrative"}]}',
+      'SCHÉMA (respecte les types et clés exactement, remplace les valeurs d\'exemple par de vraies données) :',
+      '{"dest":"","country":"","tagline":"phrase poétique évocatrice","level":"Éco|Confort|Luxe|Ultra","dates":"ex: Août 2026 · '+dc+' jours","days_count":'+dc+',"budget":0,"season":"meilleure saison courte","coords":"ex: 6°55′N · 79°51′E","region":"région","stays":[{"name":"vrai nom hébergement","type":"ex: Lodge safari","loc":"ville","price":85,"nights":3,"blurb":"max 6 mots évocateurs"},{"name":"autre hébergement","type":"ex: Villa privée","loc":"autre ville","price":120,"nights":2,"blurb":"description courte"}],"plan":[{"title":"titre évocateur","loc":"ville / zone","night":"nom exact stays","sky":"sun","temp":"27°","hook":"accroche 1 phrase narrative"}]}',
     ].filter(Boolean).join('\n');
   }
   /* batches suivants : continuer le plan uniquement, avec les stays déjà établis */

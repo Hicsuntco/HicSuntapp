@@ -426,12 +426,31 @@ async function exportPDF(){
   const dayMomentIcon = {plane:'\u2708',fork:'\u25CB',droplet:'\u2740',wave:'\u223C',peaks:'\u25B2',arch:'\u25A0',leaf:'\u2741',sun:'\u2600',moon:'\u263D',bed:'\u25A1',star:'\u2605',camera:'\u25C9',ticket:'\u25C8',pin:'\u25CF',compass:'\u25C7'};
 
   /* ── timeline du circuit (étapes consécutives regroupées par lieu) ── */
-  /* Normaliser le nom de lieu : garder seulement la partie avant la parenthèse ou la virgule
-     Ex: "Bangkok (Thonburi)" → "Bangkok", "Chiang Mai, nord" → "Chiang Mai"
-     Cela évite que Bangkok Thonburi et Bangkok Sukhumvit créent deux étapes séparées */
+  /* Normaliser le nom de lieu pour regrouper les variantes d'une même ville
+     Ex: "Bangkok (Thonburi)" → "Bangkok"
+         "Thonburi, Bangkok" → "Bangkok"
+         "Chiang Mai - vieille ville" → "Chiang Mai" */
   function normalizeLoc(loc){
     if(!loc) return '';
-    return loc.split(/[\(\,\/]/)[0].trim();
+    let s = loc.split(/[\(\,\/\-–]/)[0].trim();
+    /* Cas spécial : "Quartier, Ville" → prendre la ville (deuxième partie) */
+    const parts = loc.split(/[\,]/);
+    if(parts.length >= 2){
+      /* Si la première partie est un quartier connu, prendre la deuxième */
+      const last = parts[parts.length-1].trim();
+      if(last.length > 2 && last.length < 25) s = last;
+    }
+    /* Normaliser les grandes villes communes */
+    const cityNorm = {
+      'thonburi':'Bangkok','sukhumvit':'Bangkok','silom':'Bangkok','khao san':'Bangkok',
+      'old city':'Chiang Mai','nimman':'Chiang Mai','vieille ville':'Chiang Mai',
+      'ao noi':'Krabi','ao nang':'Krabi','railay':'Krabi',
+      'patong':'Phuket','kata':'Phuket','karon':'Phuket','kalim':'Phuket',
+      'medina':'Marrakech','guéliz':'Marrakech','mellah':'Marrakech',
+      'trastevere':'Rome','prati':'Rome','pigneto':'Rome',
+    };
+    const key = s.toLowerCase().trim();
+    return cityNorm[key] || s;
   }
 
   const stops = [];
