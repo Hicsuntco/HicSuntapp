@@ -1054,17 +1054,18 @@ document.addEventListener('DOMContentLoaded', function(){
 
     accs.forEach(function(a){
       var price=Number(a.price)||0, nights=Number(a.nights)||1;
-      var nameQ=encodeURIComponent(a.n||'');
+      var fullQ=encodeURIComponent((a.n||'')+', '+(a.loc||it.dest||''));
       var cityQ=encodeURIComponent(a.loc||it.dest||'');
+      var nameQ=encodeURIComponent(a.n||'');
       var checkin=it.dateFrom||'';
       var checkout=it.dateTo||'';
 
-      var bookingUrl='https://www.booking.com/searchresults.html?ss='+nameQ+'%2C%20'+cityQ+'&lang=fr&group_adults='+guests+'&no_rooms=1'
+      var bookingUrl='https://www.booking.com/searchresults.html?ss='+fullQ+'&lang=fr&group_adults='+guests+'&no_rooms=1&sb_travel_purpose=leisure'
         +(checkin?'&checkin='+checkin:'')+(checkout?'&checkout='+checkout:'')
         +(typeof AFFILIATE_TAGS!=='undefined'&&AFFILIATE_TAGS.booking?'&aid='+AFFILIATE_TAGS.booking:'');
       var airbnbUrl='https://www.airbnb.fr/s/'+cityQ+'/homes?query='+nameQ+'&adults='+guests
         +(checkin?'&checkin='+checkin:'')+(checkout?'&checkout='+checkout:'');
-      var hotelsUrl='https://fr.hotels.com/search.do?q-destination='+nameQ+'%20'+cityQ+'&q-rooms=1&q-room-0-adults='+guests
+      var hotelsUrl='https://fr.hotels.com/search.do?q-destination='+fullQ+'&q-rooms=1&q-room-0-adults='+guests
         +(checkin?'&q-check-in='+checkin:'')+(checkout?'&q-check-out='+checkout:'');
 
       html += '<div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px">'

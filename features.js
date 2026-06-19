@@ -426,11 +426,20 @@ async function exportPDF(){
   const dayMomentIcon = {plane:'\u2708',fork:'\u25CB',droplet:'\u2740',wave:'\u223C',peaks:'\u25B2',arch:'\u25A0',leaf:'\u2741',sun:'\u2600',moon:'\u263D',bed:'\u25A1',star:'\u2605',camera:'\u25C9',ticket:'\u25C8',pin:'\u25CF',compass:'\u25C7'};
 
   /* ── timeline du circuit (étapes consécutives regroupées par lieu) ── */
+  /* Normaliser le nom de lieu : garder seulement la partie avant la parenthèse ou la virgule
+     Ex: "Bangkok (Thonburi)" → "Bangkok", "Chiang Mai, nord" → "Chiang Mai"
+     Cela évite que Bangkok Thonburi et Bangkok Sukhumvit créent deux étapes séparées */
+  function normalizeLoc(loc){
+    if(!loc) return '';
+    return loc.split(/[\(\,\/]/)[0].trim();
+  }
+
   const stops = [];
-  it.plan.forEach(function(p, i){
+  (it.plan||[]).forEach(function(p, i){
+    const normLoc = normalizeLoc(p.loc);
     const last = stops[stops.length-1];
-    if (last && last.loc === p.loc) { last.nights++; last.endDay = p.n; }
-    else { stops.push({ loc:p.loc, nights:1, startDay:p.n, endDay:p.n, category:p.category }); }
+    if (last && normalizeLoc(last.loc) === normLoc) { last.nights++; last.endDay = p.n; }
+    else { stops.push({ loc:p.loc, normLoc:normLoc, nights:1, startDay:p.n, endDay:p.n, category:p.category }); }
   });
   const timelineHTML = stops.map(function(s, i){
     const color = palette[s.category] || sigColor;
