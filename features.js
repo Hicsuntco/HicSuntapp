@@ -286,13 +286,15 @@ function mapSelect(i){
 
 /* ── 13 · Budget ────────────────────────────────────────────────────── */
 function budgetView(){
-  const b = BUDGET;
+  const b = BUDGET || {total:0, spent:0, lines:[]};
+  if(!b.total && ITINERARY.budgetTotal) b.total = ITINERARY.budgetTotal;
+  if(!b.lines || !b.lines.length) b.lines = [{i:'wallet',n:'Budget estimé',sub:'tout compris',amount:b.total,paid:false}];
   const pct = Math.round(b.spent / b.total * 100);
   const rest = b.total - b.spent;
   const isGen = !!ITINERARY.generated;
   return statusBar() + navbar('Budget du voyage')
     + '<div class="ov-scroll has-foot px">'
-    +   '<div class="bud-card">' + contour()
+    +   '<div class="bud-card">'
     +     '<div class="bud-l">Total estimé · ' + esc(ITINERARY.dest) + '</div>'
     +     '<div class="bud-v">' + eur(b.total) + '</div>'
     +     '<div class="bud-s">' + travelerLabel() + ' · ' + ITINERARY.days + ' jours · estimation</div>'
@@ -421,7 +423,7 @@ function cercleView(){
   const pct = Math.round(CERCLE.progress * 100);
   return statusBar() + navbar('Cercle Hic Sunt')
     + '<div class="ov-scroll px">'
-    +   '<div class="cercle-card">' + contour()
+    +   '<div class="cercle-card">'
     +     '<div class="cc-tier">' + esc(CERCLE.tier) + '</div>'
     +     '<div class="cc-pts">' + CERCLE.points + ' points</div>'
     +     '<div class="cc-prog"><i data-cc-prog style="width:0%" data-target="' + pct + '"></i></div>'
