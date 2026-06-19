@@ -906,49 +906,105 @@ document.addEventListener('DOMContentLoaded', function(){
     if(!a) return statusBar()+navbar('Hébergement')+'<div class="ov-scroll px"><p style="padding:40px 0;text-align:center;color:var(--sub)">Hébergement introuvable.</p></div>';
     var price=Number(a.price)||0, nights=Number(a.nights)||1, total=price*nights;
     var accent=(it.palette&&(it.palette.culture||it.palette.beach))||'#C9A96E';
-    var isAirbnb=/villa|appartement|maison|airbnb|guesthouse|gîte|loft/.test((a.type||'').toLowerCase());
-    return '<div class="book-hero" style="position:relative;overflow:hidden;height:220px;background:linear-gradient(155deg,#1c1812,#0d0b08)">'
+    var guests=(state&&state.travelers)||2;
+    var checkin=it.dateFrom||'';
+    var checkout=it.dateTo||'';
+    var city=encodeURIComponent(a.loc||it.dest||'');
+    var name=encodeURIComponent((a.n||'')+' '+(a.loc||''));
+
+    /* Liens vers les 3 plateformes avec dates */
+    var bookingUrl='https://www.booking.com/searchresults.html?ss='+city+'&lang=fr&group_adults='+guests+'&no_rooms=1'
+      +(checkin?'&checkin='+checkin:'')+(checkout?'&checkout='+checkout:'')
+      +((typeof AFFILIATE_TAGS!=='undefined'&&AFFILIATE_TAGS.booking)?'&aid='+AFFILIATE_TAGS.booking:'');
+    var airbnbUrl='https://www.airbnb.fr/s/'+city+'/homes?adults='+guests
+      +(checkin?'&checkin='+checkin:'')+(checkout?'&checkout='+checkout:'');
+    var hotelsUrl='https://fr.hotels.com/search.do?destination-id=&q-destination='+city
+      +(checkin?'&q-check-in='+checkin:'')+(checkout?'&q-check-out='+checkout:'')+'&q-rooms=1&q-room-0-adults='+guests;
+
+    return '<div class="book-hero" style="position:relative;overflow:hidden;height:200px;background:linear-gradient(155deg,#1c1812,#0d0b08)">'
       +'<div style="position:absolute;inset:0;background:radial-gradient(120% 100% at 15% 0%,'+hexA(accent,0.25)+',transparent 60%)"></div>'
       +'<div class="navbar" style="position:absolute;top:54px;left:0;right:0;z-index:1"><button class="nav-btn" onclick="closeOverlay()" aria-label="Retour">'+ico('back',20,1.7)+'</button></div>'
       +'<span style="position:absolute;bottom:20px;right:24px;color:'+hexA(accent,0.9)+'">'+ico(a.i||'bed',32,1.3)+'</span>'
       +'</div>'
-      +'<div class="ov-scroll has-foot px">'
+      +'<div class="ov-scroll px">'
       +'<div class="book-h" style="margin-top:16px"><span>'+esc(a.n||'Hébergement')+'</span></div>'
       +'<div class="book-meta">'+esc(a.type||'')+' · '+esc(a.loc||'')+'</div>'
       +(a.blurb?'<p class="book-desc">'+esc(a.blurb)+'</p>':'')
       +'<div class="section-h"><h2>Votre séjour</h2></div>'
-      +'<div class="stay-row">'+ico('cal',18,1.5)+'<span class="sr-l">'+esc(it.dates||'')+'</span><span class="sr-v">'+nights+' nuit'+(nights>1?'s':'')+'</span></div>'
-      +'<div class="stay-row">'+ico('users',18,1.5)+'<span class="sr-l">Voyageurs</span><span class="sr-v">'+travelerLabel()+'</span></div>'
-      +'<div class="section-h"><h2>Estimation</h2></div>'
-      +'<div class="price-l"><span>'+eur(price)+' × '+nights+' nuit'+(nights>1?'s':'')+'</span><span>'+eur(total)+'</span></div>'
-      +'<p class="book-desc" style="margin-top:8px;color:var(--sub)">Prix indicatif. La disponibilité et le tarif définitif sont confirmés sur '+(isAirbnb?'Airbnb':'Booking.com')+'.</p>'
-      +'</div>'
-      +'<div class="ov-foot"><div class="foot-price">'
-      +'<div><div class="fp-v">'+eur(total)+'</div><div class="fp-l">'+nights+' nuit'+(nights>1?'s':'')+' · estimation</div></div>'
-      +'<button class="btn" onclick="if(typeof openAffiliate===\'function\')openAffiliate(\''+esc(a.id||'')+'\');else toast(\'Redirection...\')">Voir sur '+(isAirbnb?'Airbnb':'Booking.com')+'</button>'
-      +'</div></div>';
+      +'<div class="stay-row">'+ico('cal',18,1.5)+'<span class="sr-l">'+esc(it.dates||'')+' ('+nights+' nuit'+(nights>1?'s':'')+')</span></div>'
+      +'<div class="stay-row">'+ico('users',18,1.5)+'<span class="sr-l">'+guests+' voyageur'+(guests>1?'s':'')+'</span></div>'
+      +'<div class="section-h"><h2>Estimation Hic Sunt</h2></div>'
+      +'<div class="price-l"><span>'+eur(price)+' / nuit × '+nights+'</span><span>'+eur(total)+'</span></div>'
+      /* Section comparateur de prix */
+      +'<div class="section-h" style="margin-top:24px"><h2>Comparer les prix</h2><span class="meta">Meilleur tarif garanti</span></div>'
+      +'<p style="font-size:13px;color:var(--sub);margin-bottom:16px;line-height:1.5">Consultez les plateformes pour trouver le meilleur prix sur vos dates et choisir votre hébergement.</p>'
+      /* Booking.com */
+      +'<a href="'+bookingUrl+'" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:14px;padding:16px;background:var(--surface);border:1px solid var(--line);border-radius:14px;margin-bottom:10px;text-decoration:none;cursor:pointer">'
+      +'<div style="width:42px;height:42px;border-radius:12px;background:#003580;display:flex;align-items:center;justify-content:center;flex:none"><span style="color:white;font-weight:900;font-size:11px;font-family:var(--sans)">B.</span></div>'
+      +'<div style="flex:1"><div style="font-size:15px;font-weight:500;color:var(--ink)">Booking.com</div><div style="font-size:12px;color:var(--sub)">Hôtels · Remboursement gratuit</div></div>'
+      +'<span style="color:var(--sub)">'+ico('chevron',16,1.5)+'</span></a>'
+      /* Airbnb */
+      +'<a href="'+airbnbUrl+'" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:14px;padding:16px;background:var(--surface);border:1px solid var(--line);border-radius:14px;margin-bottom:10px;text-decoration:none;cursor:pointer">'
+      +'<div style="width:42px;height:42px;border-radius:12px;background:#FF5A5F;display:flex;align-items:center;justify-content:center;flex:none"><span style="color:white;font-weight:700;font-size:16px;font-family:var(--sans)">✦</span></div>'
+      +'<div style="flex:1"><div style="font-size:15px;font-weight:500;color:var(--ink)">Airbnb</div><div style="font-size:12px;color:var(--sub)">Maisons · Appartements · Villas</div></div>'
+      +'<span style="color:var(--sub)">'+ico('chevron',16,1.5)+'</span></a>'
+      /* Hotels.com */
+      +'<a href="'+hotelsUrl+'" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:14px;padding:16px;background:var(--surface);border:1px solid var(--line);border-radius:14px;margin-bottom:24px;text-decoration:none;cursor:pointer">'
+      +'<div style="width:42px;height:42px;border-radius:12px;background:#CC0000;display:flex;align-items:center;justify-content:center;flex:none"><span style="color:white;font-weight:700;font-size:10px;font-family:var(--sans)">Hotels</span></div>'
+      +'<div style="flex:1"><div style="font-size:15px;font-weight:500;color:var(--ink)">Hotels.com</div><div style="font-size:12px;color:var(--sub)">Prix exclusifs membres</div></div>'
+      +'<span style="color:var(--sub)">'+ico('chevron',16,1.5)+'</span></a>'
+      +'</div>';
   };
 
   /* ── Modifier l'itinéraire (IA) — version robuste ── */
   window.openAI = function(){
-    if(typeof aiView==='function'){
-      try{
-        var el=openOverlay('ai', aiView());
-        requestAnimationFrame(function(){ if(typeof aiScroll==='function') aiScroll(); });
-        return;
-      }catch(e){ console.warn('aiView crash',e); }
+    try{
+      var html = typeof aiView==='function' ? aiView() : null;
+      if(!html) throw new Error('aiView undefined');
+      var el=openOverlay('ai', html);
+      requestAnimationFrame(function(){ if(typeof aiScroll==='function') aiScroll(); });
+    }catch(e){
+      console.error('openAI crash:',e.message);
+      openOverlay('ai', statusBar()
+        +'<div class="chat-nav"><button class="nav-btn ghost" onclick="closeOverlay()" aria-label="Retour">'+ico('back',20,1.7)+'</button>'
+        +'<div class="chat-id"><span class="chat-av">'+ico('sparkle',18,1.6)+'<span class="on-dot"></span></span>'
+        +'<span><span class="chat-n">Cartographe</span><br><span class="chat-st">Assistant · en ligne</span></span></div></div>'
+        +'<div class="chat-scroll" data-ai-chat>'
+        +'<span class="day-sep">Assistant d\'itinéraire</span>'
+        +'<div class="bub them">Bonjour ! Je suis votre cartographe. Décrivez un changement — j\'ajuste l\'itinéraire, les étapes et le budget en direct.</div>'
+        +'</div>'
+        +'<div class="quick">'
+        +['Ajouter un jour','Changer un hébergement','Réduire le budget','Ajouter une activité'].map(function(p){
+          return '<button class="chip" onclick="window._aiSend(\''+p.replace(/'/g,"\\'")+'\')">' +p+ '</button>';
+        }).join('')
+        +'</div>'
+        +'<div class="composer">'
+        +'<input id="ai-fb" placeholder="Décrivez un changement…" onkeydown="if(event.key===\'Enter\')window._aiSend(this.value)">'
+        +'<button class="send-btn" onclick="window._aiSend(document.getElementById(\'ai-fb\').value)" aria-label="Envoyer">'+ico('arrowup',18,1.8)+'</button>'
+        +'</div>');
     }
-    /* Fallback minimal */
-    openOverlay('ai', statusBar()+navbar('Modifier l\'itinéraire')
-      +'<div class="ov-scroll px" style="padding-top:20px">'
-      +'<p style="color:var(--sub);font-size:14px;line-height:1.6">L\'assistant cartographe vous permet de modifier votre itinéraire. Rechargez la page et réessayez.</p>'
-      +'</div>');
+  };
+  window._aiSend = function(msg){
+    if(!msg||!msg.trim()) return;
+    if(typeof aiSend==='function'){try{aiSend(msg);return;}catch(e){}}
+    var chat=document.querySelector('[data-ai-chat]');
+    if(!chat) return;
+    chat.innerHTML+='<div class="bub us">'+esc(msg)+'</div>';
+    var inp=document.getElementById('ai-fb'); if(inp) inp.value='';
+    chat.scrollTop=chat.scrollHeight;
+    setTimeout(function(){
+      chat.innerHTML+='<div class="bub them">Modification notée. Pour l\'appliquer, recomposez l\'itinéraire depuis l\'onglet Créer avec cette indication.</div>';
+      chat.scrollTop=chat.scrollHeight;
+    },1200);
   };
 
-  /* ── Export PDF — déclenche la vraie fonction de features.js ── */
+  /* ── Export PDF ── */
   window.triggerPDF = function(){
-    if(typeof exportPDF==='function'){ exportPDF(); }
-    else{ toast('Export PDF indisponible — rechargez la page'); }
+    if(typeof exportPDF==='function'){
+      try{ exportPDF(); return; }
+      catch(e){ console.error('exportPDF:',e.message); toast('Erreur PDF : '+e.message.slice(0,60)); return; }
+    }
+    toast('Export PDF indisponible — rechargez la page');
   };
 
   /* ── Activités avec prix estimés ── */

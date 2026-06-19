@@ -274,13 +274,33 @@ function accGradient(a, it){
    Remplacer AFFILIATE_TAGS par les vrais identifiants d'affiliation
    une fois les programmes Booking.com / Airbnb actifs. ── */
 const AFFILIATE_TAGS = { booking:'', airbnb:'' };
-function affiliateLink(a){
+function affiliateLink(a, platform){
   const type=(a.type||'').toLowerCase();
+  const it=ITINERARY;
   const query=encodeURIComponent((a.n||'')+' '+(a.loc||''));
-  if(/villa|appartement|apparthotel|maison|airbnb|guesthouse|gîte|loft/.test(type)){
-    return 'https://www.airbnb.fr/s/'+query+'/homes'+(AFFILIATE_TAGS.airbnb?'?af='+AFFILIATE_TAGS.airbnb:'');
+  const cityQuery=encodeURIComponent(a.loc||it.dest||'');
+  const checkin=it.dateFrom||'';
+  const checkout=it.dateTo||'';
+  const guests=(state&&state.travelers)||2;
+
+  const isAirbnb=/villa|appartement|apparthotel|maison|airbnb|guesthouse|gîte|loft/.test(type);
+
+  if(platform==='booking'||(!isAirbnb&&platform!=='airbnb')){
+    let url='https://www.booking.com/searchresults.html?ss='+cityQuery+'&ac_langcode=fr&lang=fr';
+    if(checkin) url+='&checkin='+checkin;
+    if(checkout) url+='&checkout='+checkout;
+    url+='&group_adults='+guests+'&no_rooms=1&b_h4u_keep_filters=&from=searchresults';
+    if(AFFILIATE_TAGS&&AFFILIATE_TAGS.booking) url+='&aid='+AFFILIATE_TAGS.booking;
+    return url;
   }
-  return 'https://www.booking.com/searchresults.html?ss='+query+(AFFILIATE_TAGS.booking?'&aid='+AFFILIATE_TAGS.booking:'');
+  if(platform==='airbnb'||isAirbnb){
+    let url='https://www.airbnb.fr/s/'+cityQuery+'/homes?adults='+guests+'&place_id=&refinement_paths%5B%5D=%2Fhomes';
+    if(checkin) url+='&checkin='+checkin;
+    if(checkout) url+='&checkout='+checkout;
+    if(AFFILIATE_TAGS&&AFFILIATE_TAGS.airbnb) url+='?af='+AFFILIATE_TAGS.airbnb;
+    return url;
+  }
+  return 'https://www.booking.com/searchresults.html?ss='+cityQuery;
 }
 function openAffiliate(accId){
   const a = _accById(accId);
