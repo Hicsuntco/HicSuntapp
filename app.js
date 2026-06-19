@@ -706,7 +706,11 @@ document.addEventListener('DOMContentLoaded', function(){
     var g=_geoGet(dest);
     var vb=g.vb.split(' ').map(Number),vbW=vb[2],vbH=vb[3];
     var accent=(it.palette&&(it.palette.culture||it.palette.beach))||'#C9A96E';
-    var pts=_geoPts(it.plan||[],g);
+    /* Dédupliquer par lieu + max 8 pins */
+    var seen={},dedup=[];
+    (it.plan||[]).forEach(function(p){var k=(p.loc||'').split(/[\/\-,]/)[0].trim().toLowerCase();if(!seen[k]){seen[k]=true;dedup.push(p);}});
+    var disp=dedup.slice(0,8).map(function(p,i){return Object.assign({},p,{n:i+1});});
+    var pts=_geoPts(disp,g);
     var sc=Math.min(W/vbW,H/vbH)*0.88,ox=(W-vbW*sc)/2,oy=(H-vbH*sc)/2;
     var rp='';
     if(pts.length>1){

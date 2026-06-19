@@ -194,8 +194,18 @@ function geoMapSVG(W, H, activeIdx){
   const vbW=vbParts[2], vbH=vbParts[3];
   const accent=(it.palette&&(it.palette.culture||it.palette.beach))||'#C9A96E';
 
-  /* Coordonnées viewBox — même système que le path */
-  const pts=_cityPtsOnMap(it.plan||[], geo);
+  /* Dédupliquer le plan par lieu — on ne montre qu'une étape par ville */
+  const fullPlan = it.plan||[];
+  const seenLocs = {};
+  const dedupPlan = [];
+  fullPlan.forEach(function(p){
+    const key = (p.loc||'').split(/[\/\-,]/)[0].trim().toLowerCase();
+    if(!seenLocs[key]){ seenLocs[key]=true; dedupPlan.push(p); }
+  });
+  /* Limiter à 8 pins max sur la minimap */
+  const displayPlan = dedupPlan.slice(0,8).map(function(p,i){return Object.assign({},p,{n:i+1});});
+
+  const pts=_cityPtsOnMap(displayPlan, geo);
 
   const scale=Math.min(W/vbW, H/vbH)*0.88;
   const offX=(W-vbW*scale)/2;
