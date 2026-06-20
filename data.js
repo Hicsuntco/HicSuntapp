@@ -129,45 +129,9 @@ const OCCASIONS = [
 
 /* itinerary (Sri Lanka) */
 const ITINERARY = {
-  dest:'Sri Lanka', tag:'Là où le thé rencontre l\'océan',
-  dates:'12 – 22 mai 2026', days:10, level:'Confort',
-  plan:[
-    { n:1, title:'Arrivée à Colombo', loc:'Colombo', desc:'Transfert privé et première nuit en bord de lagune, dîner aux épices.',
-      tags:[['fork','Dîner'],['leaf','Détente']], night:{ acc:'a1' },
-      moments:[
-        ['15:00','plane','Atterrissage','Accueil à l\'aéroport de Bandaranaike et transfert privé vers la lagune de Negombo.'],
-        ['17:30','droplet','Lagune de Negombo','Balade en pirogue au coucher du soleil entre les filets de pêche.'],
-        ['20:00','fork','Dîner aux épices','Premier dîner sri-lankais, curry de poisson et riz au lait de coco.'] ] },
-    { n:2, title:'Triangle culturel', loc:'Sigiriya', desc:'Ascension du rocher du Lion au lever du jour, fresques et jardins royaux.',
-      tags:[['arch','Patrimoine'],['peaks','Marche']], night:{ n:'Lodge de Sigiriya', loc:'Sigiriya' },
-      moments:[
-        ['05:30','peaks','Rocher du Lion','Ascension à l\'aube des 1 200 marches, fresques des Demoiselles et jardins suspendus.'],
-        ['11:00','arch','Temple d\'or de Dambulla','Cinq grottes ornées de plus de 150 statues de Bouddha.'],
-        ['16:00','leaf','Safari à Minneriya','Rencontre avec les éléphants sauvages dans la réserve.'] ] },
-    { n:3, title:'Train pour Ella', loc:'Ella · Hauts plateaux', desc:'Le train mythique à travers les plantations de thé, fenêtres ouvertes.',
-      tags:[['peaks','Randonnée'],['droplet','Cascade']], night:{ acc:'a2' },
-      moments:[
-        ['08:30','arch','Départ de Kandy','Visite du temple de la Dent sacrée avant de rejoindre la gare.'],
-        ['09:45','peaks','Train panoramique','Sept heures à travers les plantations — l\'un des plus beaux trajets du monde.'],
-        ['17:00','droplet','Cascade de Ravana','Baignade au pied des chutes à l\'arrivée à Ella.'] ] },
-    { n:4, title:'Plantations & thé', loc:'Nuwara Eliya', desc:'Visite d\'une fabrique, dégustation et nuit dans un bungalow colonial.',
-      tags:[['leaf','Thé'],['fork','Table']], night:{ acc:'a2' },
-      moments:[
-        ['09:00','leaf','Fabrique de thé','Visite guidée du séchage à la dégustation, secrets du Ceylon.'],
-        ['12:30','peaks','Little Adam\'s Peak','Randonnée douce avec vue à 360° sur les vallées.'],
-        ['19:30','fork','Table du bungalow','Dîner colonial au coin du feu, produits du potager.'] ] },
-    { n:5, title:'Cap au sud', loc:'Mirissa', desc:'Route vers la côte, plage de cocotiers et observation des baleines bleues.',
-      tags:[['droplet','Océan'],['leaf','Détente']], night:{ acc:'a3' },
-      moments:[
-        ['06:00','wave','Baleines bleues','Sortie en mer à l\'aube à la rencontre des plus grands mammifères.'],
-        ['12:00','droplet','Plage de Mirissa','Après-midi libre, cocotiers et eaux turquoise.'],
-        ['18:30','fork','Poisson grillé','Dîner les pieds dans le sable face au coucher du soleil.'] ] },
-  ],
-  accommodations:[
-    { id:'a1', n:'Villa Lagune', i:'droplet', type:'Villa privée', loc:'Colombo', tag:'Coup de cœur', rate:'4,96', nights:1, price:240, am:['bed','wifi','pool'], blurb:'Villa contemporaine sur la lagune, piscine à débordement et personnel dédié.' },
-    { id:'a2', n:'Bungalow du Thé', i:'leaf', type:'Lodge de charme', loc:'Nuwara Eliya', tag:'Vue plantations', rate:'4,88', nights:2, price:185, am:['bed','wifi','fork'], blurb:'Ancien bungalow colonial au cœur des plantations, cheminée et grands jardins.' },
-    { id:'a3', n:'Maison de l\'Océan', i:'wave', type:'Hôtel-boutique', loc:'Mirissa', tag:'Front de mer', rate:'4,91', nights:2, price:210, am:['bed','wifi','pool'], blurb:'Sept chambres face à l\'océan, plage privée et table de poisson grillé.' },
-  ],
+  dest:'', tag:'', dates:'', days:0, level:'Confort',
+  plan:[], accommodations:[], gems:[], theme:'mediterranean', palette:{},
+  budgetTotal:0, coords:'', distance:'', season:'', region:'', country:'',
 };
 
 /* trips (Voyages) */
