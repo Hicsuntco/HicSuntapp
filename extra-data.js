@@ -63,65 +63,35 @@ const SEASON = {
 };
 
 /* per-day bookable activities (experiences) */
-const ACTIVITIES = [
-  { id:'ac1', day:1, i:'droplet', n:'Pirogue sur la lagune', loc:'Negombo', dur:'2 h', rate:'4,9', price:38, tag:'Coucher de soleil' },
-  { id:'ac2', day:2, i:'peaks', n:'Rocher du Lion à l’aube', loc:'Sigiriya', dur:'4 h', rate:'4,95', price:72, tag:'Lever du jour' },
-  { id:'ac3', day:2, i:'leaf', n:'Safari à Minneriya', loc:'Minneriya', dur:'3 h', rate:'4,8', price:65, tag:'Éléphants' },
-  { id:'ac4', day:3, i:'leaf', n:'Atelier de cueillette du thé', loc:'Ella', dur:'2 h', rate:'4,88', price:42, tag:'Artisanat' },
-  { id:'ac5', day:4, i:'wave', n:'Observation des baleines bleues', loc:'Mirissa', dur:'5 h', rate:'4,92', price:95, tag:'Au large' },
-  { id:'ac6', day:5, i:'fork', n:'Table de chef en bord de mer', loc:'Mirissa', dur:'3 h', rate:'4,97', price:120, tag:'Gastronomie' },
-];
+const ACTIVITIES = [];
 
-/* reviews / notes on stages */
 const REVIEWS = [
   { who:'Élodie R.', av:'É', when:'Mai 2025', rate:5, t:'Itinéraire taillé sur-mesure, du premier au dernier jour. La conciergerie a tout anticipé — un vrai luxe.' },
   { who:'Marc & Lila', av:'M', when:'Avril 2025', rate:5, t:'Les hébergements choisis étaient une merveille, personnel aux petits soins. Chaque étape avait du sens.' },
-  { who:'Thomas V.', av:'T', when:'Mars 2025', rate:4, t:'Voyage très bien rythmé et parfaitement organisé. Une journée de plus sur place n’aurait pas été de trop.' },
+  { who:'Thomas V.', av:'T', when:'Mars 2025', rate:4, t:'Voyage très bien rythmé et parfaitement organisé. Une journée de plus sur place n\'aurait pas été de trop.' },
 ];
 const RATING = { score:'4,93', count:128 };
 
-/* detailed budget breakdown */
-const BUDGET = {
-  total: 6240, spent: 3480,
-  lines: [
-    { i:'bed', n:'Hébergements', sub:'5 nuits · 3 adresses', amount:1835, paid:true },
-    { i:'plane', n:'Vols', sub:'CDG → CMB aller-retour · 2 pers.', amount:2360, paid:true },
-    { i:'ticket', n:'Activités & expériences', sub:'6 réservées', amount:864, paid:false },
-    { i:'fork', n:'Restauration', sub:'Estimation · demi-pension', amount:720, paid:false },
-    { i:'compass', n:'Transferts privés', sub:'Chauffeur dédié · 10 jours', amount:461, paid:true },
-  ],
-};
+const BUDGET = { total:0, spent:0, lines:[] };
 
-/* collaborative — travel companions */
-/* Cercle Hic Sunt — loyalty programme */
 const CERCLE = {
-  tier:'Découvreur', next:'Cartographe', progress: 0, points: 0, toNext: 1000,
-  perks: [
+  tier:'Découvreur', next:'Cartographe', progress:0, points:0, toNext:1000,
+  perks:[
     { i:'sparkle', n:'Itinéraires illimités', d:'Composez autant de voyages sur-mesure que vous le souhaitez.' },
-    { i:'bell', n:'Conciergerie Hansa', d:'Un assistant qui ajuste votre itinéraire en temps réel.' },
+    { i:'bell', n:'Cartographe IA', d:'Un assistant qui ajuste votre itinéraire en temps réel.' },
     { i:'doc', n:'Export PDF illimité', d:'Vos itinéraires complets, prêts à emporter.' },
     { i:'clock', n:'Accès anticipé', d:'Les nouvelles destinations et fonctionnalités avant tout le monde.' },
   ],
-  history: [],
+  history:[],
 };
 
-/* AI assistant — quick prompts + canned restructure replies */
 const AI_PROMPTS = [
-  'Ajoute une journée plage à Mirissa',
+  'Ajoute un jour de plus',
   'Rends le rythme plus lent',
   'Trouve une option plus économique',
   'Plus de gastronomie locale',
 ];
-const AI_INTRO = 'Je suis votre cartographe. Décrivez un changement — j’ajuste l’itinéraire, les nuits et le budget en direct.';
-function aiReply(t) {
-  const low = (t||'').toLowerCase();
-  if (low.includes('plage') || low.includes('mirissa'))
-    return { t:'C’est noté — j’ajoute une 6ᵉ journée à Mirissa : matinée libre sur la plage, déjeuner de poisson grillé, spa en fin d’après-midi. Le séjour passe à 11 jours (+1 nuit, +210 €).', chip:'Jour 6 ajouté · +210 €' };
-  if (low.includes('lent') || low.includes('rythme'))
-    return { t:'Je détends le rythme : je retire le safari de Minneriya du jour 2 et j’étale le triangle culturel sur deux journées. Vous gagnez deux matinées calmes.', chip:'Rythme · plus lent' };
-  if (low.includes('éco') || low.includes('econom') || low.includes('budget') || low.includes('cher'))
-    return { t:'Version plus accessible : Bungalow du Thé en chambre standard et transferts en train panoramique plutôt qu’en privé. Économie estimée de 740 €.', chip:'Budget · −740 €' };
-  if (low.includes('gastro') || low.includes('cuisine') || low.includes('table'))
-    return { t:'J’ajoute deux expériences culinaires : un cours de curry à Ella et une table de chef à Mirissa. Je place le tout sans bousculer vos nuits.', chip:'+2 expériences' };
-  return { t:'Bien reçu. J’ajuste l’itinéraire en conséquence et je vous montre la nouvelle version dans un instant.', chip:'Itinéraire mis à jour' };
+const AI_INTRO = 'Je suis votre cartographe. Décrivez un changement — j\'ajuste l\'itinéraire, les étapes et le budget en direct.';
+function aiReply(t){
+  return { t:'Bien reçu. J\'analyse votre demande et j\'ajuste l\'itinéraire en conséquence.', chip:'Itinéraire mis à jour' };
 }

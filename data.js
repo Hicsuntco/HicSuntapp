@@ -127,27 +127,15 @@ const OCCASIONS = [
   { id:'solo',         label:'En solo',        emoji:'🧭', desc:'Liberté totale, rencontres et découvertes' },
 ];
 
-/* itinerary (Sri Lanka) */
+/* itinerary — vide par défaut, chargé depuis Supabase */
 const ITINERARY = {
   dest:'', tag:'', dates:'', days:0, level:'Confort',
   plan:[], accommodations:[], gems:[], theme:'mediterranean', palette:{},
   budgetTotal:0, coords:'', distance:'', season:'', region:'', country:'',
 };
 
-/* trips (Voyages) */
-const TRIPS = {
-  upcoming:[
-    { n:'Sri Lanka', i:'leaf', bg:'linear-gradient(160deg,#dfe9df,#cfdccb)', d:'12 – 22 mai 2026', s:['ok','Confirmé'], days:'10 jours', itin:true },
-    { n:'Maroc', i:'arch', bg:'linear-gradient(160deg,#f0e4d2,#e6d3b8)', d:'Mars 2026', s:['prep','En préparation'], days:'8 jours' },
-  ],
-  past:[
-    { n:'Japon', i:'torii', bg:'linear-gradient(160deg,#ece2da,#ddd0c6)', d:'Avril 2024', s:['ok','Terminé'], days:'14 jours' },
-    { n:'Portugal', i:'wave', bg:'linear-gradient(160deg,#dce6ec,#cbdae4)', d:'Sept. 2023', s:['ok','Terminé'], days:'7 jours' },
-  ],
-  draft:[
-    { n:'Islande', i:'droplet', bg:'linear-gradient(160deg,#dfe4e8,#cdd6dc)', d:'Sans date', s:['draft','Brouillon'], days:'6 jours' },
-  ],
-};
+/* trips — alimenté dynamiquement depuis Supabase */
+const TRIPS = { upcoming:[], past:[], draft:[] };
 
 const AM_LABEL = { bed:'Chambres', wifi:'Wi-Fi', pool:'Piscine', fork:'Table' };
 
@@ -164,17 +152,11 @@ const PREFS = {
 
 /* documents */
 const DOCUMENTS = [
-  { i:'doc', n:'Passeport', s:'Valide jusqu\'en 2031', st:['ok','À jour'] },
-  { i:'doc', n:'Visa électronique Sri Lanka', s:'Demande à effectuer', st:['prep','À faire'] },
+  { i:'doc', n:'Passeport', s:'', st:['draft','À vérifier'] },
   { i:'card', n:'Assurance voyage', s:'Cercle Hic Sunt · incluse', st:['ok','Active'] },
   { i:'plane', n:'Billets d\'avion', s:'Non renseignés', st:['draft','Manquant'] },
 ];
 
 /* concierge thread */
-const MESSAGES = [
-  { who:'them', t:'Bonjour Charlotte ! Je suis Hansa, votre conciergère pour le Sri Lanka. Ravie de préparer ce voyage avec vous.' },
-  { who:'them', t:'J\'ai noté votre goût pour la gastronomie et les trains panoramiques. Souhaitez-vous que je réserve une table d\'exception à Ella ?' },
-  { who:'me', t:'Oui, avec plaisir — quelque chose avec vue sur les plantations.' },
-  { who:'them', t:'Parfait. Je vous propose une table privée au coucher du soleil. Je m\'en occupe et reviens vers vous.' },
-];
+const MESSAGES = [];
 const QUICK_REPLIES = ['Merci !', 'Une question sur les vols', 'Modifier une étape'];
