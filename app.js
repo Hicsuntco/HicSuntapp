@@ -1017,19 +1017,124 @@ document.addEventListener('DOMContentLoaded', function(){
         +'</div>');
     }
   };
-  window._aiSend = function(msg){
+  window._aiSend = async function(msg){
     if(!msg||!msg.trim()) return;
-    if(typeof aiSend==='function'){try{aiSend(msg);return;}catch(e){}}
-    var chat=document.querySelector('[data-ai-chat]');
+
+    /* Afficher le message utilisateur */
+    var chat = document.querySelector('[data-ai-chat]');
+    var inp = document.getElementById('ai-fb') || document.querySelector('[data-ai-input]');
     if(!chat) return;
-    chat.innerHTML+='<div class="bub us">'+esc(msg)+'</div>';
-    var inp=document.getElementById('ai-fb'); if(inp) inp.value='';
-    chat.scrollTop=chat.scrollHeight;
-    setTimeout(function(){
-      chat.innerHTML+='<div class="bub them">Modification notée. Pour l\'appliquer, recomposez l\'itinéraire depuis l\'onglet Créer avec cette indication.</div>';
-      chat.scrollTop=chat.scrollHeight;
-    },1200);
+    if(inp) inp.value = '';
+    chat.innerHTML += '<div class="bub us">'+esc(msg)+'</div>';
+    /* Indicateur de typing */
+    var typingId = 'typing-'+Date.now();
+    chat.innerHTML += '<div class="bub them" id="'+typingId+'"><div class="typing"><i></i><i></i><i></i></div></div>';
+    chat.scrollTop = chat.scrollHeight;
+
+    try{
+      var it = ITINERARY;
+      /* Résumé compact de l'itinéraire pour le contexte */
+      var itSummary = JSON.stringify({
+        dest: it.dest, days: it.days, level: it.level,
+        plan: (it.plan||[]).map(function(p){ return {n:p.n, loc:p.loc, title:p.title, category:p.category}; }),
+        stays: (it.accommodations||[]).map(function(a){ return {id:a.id, n:a.n, loc:a.loc, nights:a.nights, price:a.price}; }),
+        budget: it.budgetTotal,
+      });
+
+      var prompt = [
+        'Tu es le cartographe de Hic Sunt — assistant d\'itinéraire de voyage de luxe.',
+        '',
+        'ITINÉRAIRE ACTUEL (JSON résumé) :',
+        itSummary,
+        '',
+        'DEMANDE DU VOYAGEUR : "'+msg+'"',
+        '',
+        'Réponds en JSON UNIQUEMENT avec les modifications à appliquer :',
+        '{',
+        '  "reply": "Message naturel et élégant expliquant les changements (1-2 phrases, ton cartographe)",',
+        '  "changes": {',
+        '    "plan": [liste des jours modifiés avec TOUS leurs champs: {n, loc, title, category, desc, wx, tags, moments, tip}] ou null si pas de changement,',
+        '    "stays": [liste des hébergements modifiés {id, n, type, loc, price, nights, blurb}] ou null,',
+        '    "budgetTotal": nouveau budget total ou null,',
+        '    "days": nouveau nombre de jours ou null',
+        '  }',
+        '}',
+        '',
+        'RÈGLES :',
+        '- Ne retourner dans "plan" que les jours réellement modifiés (pas tous les jours)',
+        '- Si on ajoute un jour, l\'ajouter à la fin avec n = dernier_jour + 1',
+        '- Respecter la cohérence géographique — pas d\'allers-retours',
+        '- Les hébergements doivent avoir des prix réalistes et distincts',
+        '- Répondre UNIQUEMENT en JSON valide, sans markdown',
+      ].join('\n');
+
+      var result = await _callSupabase(prompt);
+      var parsed = parseItineraryJSON(result);
+
+      /* Supprimer le typing */
+      var typingEl = document.getElementById(typingId);
+      if(typingEl) typingEl.remove();
+
+      if(!parsed || !parsed.reply){
+        chat.innerHTML += '<div class="bub them">Je n\'ai pas pu traiter cette demande. Pouvez-vous reformuler ?</div>';
+        chat.scrollTop = chat.scrollHeight;
+        return;
+      }
+
+      /* Afficher la réponse */
+      chat.innerHTML += '<div class="bub them">'+esc(parsed.reply)+'</div>';
+
+      /* Appliquer les changements à ITINERARY */
+      var changes = parsed.changes || {};
+      var changed = false;
+
+      if(changes.days && typeof changes.days === 'number'){
+        ITINERARY.days = changes.days;
+        changed = true;
+      }
+      if(changes.budgetTotal && typeof changes.budgetTotal === 'number'){
+        ITINERARY.budgetTotal = changes.budgetTotal;
+        changed = true;
+      }
+      if(Array.isArray(changes.stays) && changes.stays.length){
+        changes.stays.forEach(function(newStay){
+          var idx = (ITINERARY.accommodations||[]).findIndex(function(a){ return a.id===newStay.id||a.n===newStay.n; });
+          if(idx >= 0) Object.assign(ITINERARY.accommodations[idx], newStay);
+          else (ITINERARY.accommodations = ITINERARY.accommodations||[]).push(newStay);
+        });
+        changed = true;
+      }
+      if(Array.isArray(changes.plan) && changes.plan.length){
+        changes.plan.forEach(function(newDay){
+          var idx = (ITINERARY.plan||[]).findIndex(function(p){ return p.n===newDay.n; });
+          if(idx >= 0) Object.assign(ITINERARY.plan[idx], newDay);
+          else (ITINERARY.plan = ITINERARY.plan||[]).push(newDay);
+        });
+        /* Retrier par numéro de jour */
+        ITINERARY.plan.sort(function(a,b){ return (a.n||0)-(b.n||0); });
+        changed = true;
+      }
+
+      if(changed){
+        /* Bouton pour voir les changements */
+        chat.innerHTML += '<button onclick="closeOverlay();setTimeout(function(){openItinerary();},200)" style="margin:8px 0 4px 40px;background:var(--ink);color:var(--bg);border:none;border-radius:12px;padding:10px 16px;font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer">Voir l\'itinéraire mis à jour →</button>';
+        /* Sauvegarder automatiquement */
+        if(typeof autoSaveItinerary==='function') try{ autoSaveItinerary(); }catch(e){}
+      }
+
+      chat.scrollTop = chat.scrollHeight;
+
+    }catch(err){
+      var typingEl2 = document.getElementById(typingId);
+      if(typingEl2) typingEl2.remove();
+      console.error('aiSend error:', err);
+      chat.innerHTML += '<div class="bub them">Une erreur est survenue. Réessayez dans un instant.</div>';
+      chat.scrollTop = chat.scrollHeight;
+    }
   };
+
+  /* Alias pour compatibilité features.js */
+  window.aiSend = window._aiSend;
 
   /* ── Export PDF ── */
   window.triggerPDF = function(){
