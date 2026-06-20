@@ -15,6 +15,88 @@ const TAG_MAP   = {
 };
 
 function _clampInt(v, lo, hi, dflt){ const n=Math.round(Number(v)); return isFinite(n)?Math.max(lo,Math.min(hi,n)):dflt; }
+
+/* ── Contrainte géographique dynamique ─────────────────────────────────
+   Calcule la zone couvrable selon : taille du pays/île + jours + rythme
+   Retourne une directive texte précise pour le prompt               ── */
+function _geoConstraintDirective(dest, dc, rythme){
+  const d = (dest||'').toLowerCase();
+  const r = (rythme||'Équilibré').toLowerCase();
+
+  /* Coefficient de rythme : km/jour selon rythme */
+  /* Sur une île, les distances sont courtes et le rythme plus lent */
+  const isIsland = /sardaigne|sicile|bali|sri lanka|islande|crète|corse|réunion|martinique|guadeloupe|malte|maldives|chypre/.test(d);
+  const rythmeKm = isIsland
+    ? {'intensif':50,'équilibré':35,'lent':20,'contemplati':15,'détente':12}
+    : {'intensif':120,'équilibré':80,'lent':45,'contemplati':30,'détente':25};
+  const kmPerDay = Object.entries(rythmeKm).find(function(e){ return r.includes(e[0]); });
+  const kmDay = kmPerDay ? kmPerDay[1] : (isIsland ? 35 : 80);
+  const totalKm = dc * kmDay;
+
+
+  /* Déterminer la contrainte selon km totaux et type de destination */
+  let directive = '';
+  const zones = Math.max(1, Math.min(dc, Math.round(totalKm / 80)));
+
+  if(isIsland){
+    /* Pour les îles : raisonner en km absolus, pas en ratio de l'île entière */
+    if(totalKm <= 80){
+      const zone = _suggestZone(d, dc, rythme);
+      directive = 'CONTRAINTE GÉOGRAPHIQUE STRICTE (île) : avec '+dc+' jours en rythme '+rythme+', rester dans UNE seule zone locale (~'+Math.round(totalKm)+'km max de déplacement). '
+        + 'Zone recommandée : '+zone+'. INTERDIT de traverser l\'île. Étapes à moins de 40km les unes des autres.';
+    } else if(totalKm <= 160){
+      directive = 'CONTRAINTE GÉOGRAPHIQUE (île) : avec '+dc+' jours en rythme '+rythme+', couvrir UNE zone principale + une excursion (~'+Math.round(totalKm)+'km). '
+        + 'Ex Sardaigne : rester dans le sud OU le nord. Pas de traversée complète.';
+    } else {
+      directive = 'CONTRAINTE GÉOGRAPHIQUE (île) : avec '+dc+' jours, traversée possible mais LINÉAIRE (~'+Math.round(totalKm)+'km). '
+        + 'Choisir un axe nord→sud OU côte est→côte ouest et s\'y tenir sans retour en arrière.';
+    }
+  } else {
+    const ratio = Math.min(1, totalKm / countrySize);
+    if(ratio <= 0.20){
+      const zone = _suggestZone(d, dc, rythme);
+      directive = 'CONTRAINTE GÉOGRAPHIQUE STRICTE : avec '+dc+' jours en rythme '+rythme+', couvrir UNE seule région (~'+Math.round(totalKm)+'km sur '+countrySize+'km de pays). '
+        + 'Zone recommandée : '+zone+'. INTERDIT de traverser tout le pays.';
+    } else if(ratio <= 0.45){
+      directive = 'CONTRAINTE GÉOGRAPHIQUE : avec '+dc+' jours, couvrir maximum 2 zones adjacentes (~'+Math.round(totalKm)+'km). '
+        + 'Axe logique (nord→sud OU est→ouest). Environ '+zones+' étapes. Pas de retour en arrière.';
+    } else if(ratio <= 0.70){
+      directive = 'CONTRAINTE GÉOGRAPHIQUE : traversée partielle possible (~'+Math.round(totalKm)+'km / '+countrySize+'km). '
+        + 'Progression LINÉAIRE sans zigzags. Chaque étape dans la même direction que la précédente.';
+    } else {
+      directive = 'CONTRAINTE GÉOGRAPHIQUE : circuit complet envisageable (~'+Math.round(totalKm)+'km). '
+        + 'Trajet CIRCULAIRE ou LINÉAIRE cohérent. Jamais revenir sur ses pas sauf aéroport départ.';
+    }
+  }
+
+  return directive;
+}
+
+/* Suggère une zone spécifique pour les courts séjours */
+function _suggestZone(d, dc, rythme){
+  if(d.includes('sardaigne')){
+    return dc<=4 ? 'sud (Cagliari, Chia, Villasimius, Teulada) OU nord (Olbia, Costa Smeralda, Palau, La Maddalena)' : 'sud+centre (Cagliari → Oristano) OU nord+centre (Olbia → Nuoro)';
+  }
+  if(d.includes('thaïlande')||d.includes('bangkok')){
+    return dc<=4 ? 'Bangkok et ses environs immédiats (Ayutthaya, Kanchanaburi)' : 'nord (Chiang Mai+Pai) OU sud (îles+plages)';
+  }
+  if(d.includes('bali')){
+    return 'Ubud+Seminyak+Canggu (centre-ouest) OU Ubud+Amed+Sidemen (centre-est)';
+  }
+  if(d.includes('maroc')){
+    return dc<=4 ? 'Marrakech et ses environs (Essaouira, Atlas, vallées)' : 'Marrakech+désert (Ouarzazate+Merzouga)';
+  }
+  if(d.includes('japon')){
+    return dc<=4 ? 'Tokyo et ses environs (Kamakura, Nikko, Hakone)' : 'Tokyo+Kyoto+Osaka (axe Shinkansen)';
+  }
+  if(d.includes('italie')){
+    return dc<=4 ? 'Rome et ses environs OU Toscane uniquement' : 'Rome+Naples+Amalfi OU Florence+Sienne+Cinque Terre';
+  }
+  if(d.includes('grèce')){
+    return dc<=4 ? 'Athènes+une île (Hydra ou Égine)' : 'Athènes+Santorin+Mykonos';
+  }
+  return 'une région cohérente géographiquement, étapes dans un rayon de 60-80km';
+}
 function _kind(x){ return GEN_KINDS.includes(x)?x:'pin'; }
 function _stayIcon(type){
   const t=(type||'').toLowerCase();
@@ -230,11 +312,12 @@ function buildSkeletonPrompt(dc, batchSize, offset){
   const b=buildBrief();
   const isFirst = offset === 0;
   const n = Math.min(batchSize, dc-offset);
+  const geoConstraint = _geoConstraintDirective(state.destination||'', dc, state.rythme||'Équilibré');
+
   const common=[
-    '- Étapes RÉELLES dans un ordre logique géographiquement — circuit cohérent SANS allers-retours ni zigzags.',
-    '- Le parcours doit avoir une logique claire : nord→sud, côte→intérieur, ou par régions distinctes. JAMAIS revenir en arrière.',
-    '- Chaque ville/zone doit être géographiquement proche de la précédente.',
-    '- ZONE COUVERTE selon la durée du voyage de '+dc+' jours : '+(dc<=4?'UNE seule région/zone (rayon max 80km). Ne pas traverser tout le pays/l\'île.':dc<=8?'2 zones adjacentes max. Progression logique.':dc<=14?'Traversée progressive possible.':'Circuit complet envisageable.')+' Rythme: '+(state.rythme||'Équilibré')+'.',
+    geoConstraint,
+    '- Tracé LINÉAIRE obligatoire : chaque étape doit être dans la même direction que la précédente. Penser à un trajet de voiture logique sans faire demi-tour.',
+    '- JAMAIS revenir sur une ville déjà visitée sauf si c\'est le point de départ/arrivée (aéroport).',
     '- "night" de chaque entrée "plan" = "name" EXACT d\'un hébergement de "stays".',
     '- sky dans [sun, cloud, rain].',
     '- Réponds UNIQUEMENT en JSON compact valide, sans texte ni markdown autour.',
@@ -262,16 +345,7 @@ function buildSkeletonPrompt(dc, batchSize, offset){
       '- Les hébergements doivent refléter les directives de personnalisation ci-dessus (style, occasion).',
       '- "budget" = fourchette totale réaliste en euros pour TOUS les voyageurs sur les '+dc+' jours (hébergements+repas+activités+transport local, hors vols).',
       '  · Éco: 60-100€/pers/j · Confort: 120-220€/pers/j · Luxe: 250-500€/pers/j · Ultra: 500€+/pers/j',
-      '- EXEMPLE DE LOGIQUE GÉOGRAPHIQUE (Thaïlande 28j) : Bangkok(arr.) → Ayutthaya → Chiang Mai → Pai → Chiang Rai → Bangkok(transit) → Hua Hin → Surat Thani → Koh Samui → Krabi → Phuket. JAMAIS Chiang Mai → Bangkok → Chiang Rai.',
-      '- EXEMPLE MAROC : Casablanca(arr.) → Fès → Merzouga → Ouarzazate → Marrakech → Essaouira → Agadir. JAMAIS Fès → Marrakech → Merzouga → Fès.',
-      '- RÈGLE DE DENSITÉ GÉOGRAPHIQUE — adapter la zone couverte au nombre de jours :',
-      '  · 1-4 jours : rester dans UNE seule zone/région (rayon max 80km). Ex: Sardaigne 4j = sud seulement (Cagliari+Chia+Villasimius) OU nord seulement (Olbia+Costa Smeralda+Palau). PAS nord+sud.',
-      '  · 5-8 jours : couvrir 2 zones adjacentes max. Ex: Sardaigne 7j = sud+centre (Cagliari → Oristano → Barumini) OU nord+centre (Olbia → Nuoro → Oristano).',
-      '  · 9-14 jours : traversée possible mais progressive. Ex: Sardaigne 10j = Cagliari → sud → centre → Alghero.',
-      '  · 15+ jours : circuit complet envisageable.',
-      '  · Même règle partout : Thaïlande 4j = Bangkok+environs uniquement. Maroc 5j = Marrakech+désert OU Fès+nord. JAMAIS tout le pays en peu de jours.',
-      '- EXEMPLE SARDAIGNE 4j (rythme Équilibré) : Cagliari(arr. J1) → Chia/Teulada(J2) → Villasimius/plages est(J3) → Cagliari départ(J4). Zone: extrême sud uniquement. Pas d\'Alghero, pas d\'Olbia.',
-      '- EXEMPLE SARDAIGNE 4j (nord) : Olbia(arr. J1) → Palau/La Maddalena(J2) → Costa Smeralda(J3) → Olbia départ(J4). Zone: extrême nord uniquement.',
+      geoConstraint,
       '- Chaque hébergement doit avoir un "price" RÉALISTE et DISTINCT (prix par nuit en €, pas 0) selon son type et sa localisation.',
       '  · Guesthouse/homestay Thaïlande Confort: 40-80€ · Boutique-hôtel Bangkok: 70-130€ · Resort côte: 90-160€ · Villa privée: 150-300€',
       '  · Maroc Confort: maison d\'hôtes 50-100€ · Riad 80-150€ · Camp désert 120-200€',
