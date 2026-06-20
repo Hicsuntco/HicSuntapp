@@ -1030,31 +1030,34 @@ document.addEventListener('DOMContentLoaded', function(){
 
   /* ── Modifier l'itinéraire (IA) — version robuste ── */
   window.openAI = function(){
-    try{
-      var html = typeof aiView==='function' ? aiView() : null;
-      if(!html) throw new Error('aiView undefined');
-      var el=openOverlay('ai', html);
-      requestAnimationFrame(function(){ if(typeof aiScroll==='function') aiScroll(); });
-    }catch(e){
-      console.error('openAI crash:',e.message);
-      openOverlay('ai', statusBar()
-        +'<div class="chat-nav"><button class="nav-btn ghost" onclick="closeOverlay()" aria-label="Retour">'+ico('back',20,1.7)+'</button>'
-        +'<div class="chat-id"><span class="chat-av">'+ico('sparkle',18,1.6)+'<span class="on-dot"></span></span>'
-        +'<span><span class="chat-n">Cartographe</span><br><span class="chat-st">Assistant · en ligne</span></span></div></div>'
-        +'<div class="chat-scroll" data-ai-chat>'
-        +'<span class="day-sep">Assistant d\'itinéraire</span>'
-        +'<div class="bub them">Bonjour ! Je suis votre cartographe. Décrivez un changement — j\'ajuste l\'itinéraire, les étapes et le budget en direct.</div>'
-        +'</div>'
-        +'<div class="quick">'
-        +['Ajouter un jour','Changer un hébergement','Réduire le budget','Ajouter une activité'].map(function(p){
-          return '<button class="chip" onclick="window._aiSend(\''+p.replace(/'/g,"\\'")+'\')">' +p+ '</button>';
-        }).join('')
-        +'</div>'
-        +'<div class="composer">'
-        +'<input id="ai-fb" placeholder="Décrivez un changement…" onkeydown="if(event.key===\'Enter\')window._aiSend(this.value)">'
-        +'<button class="send-btn" onclick="window._aiSend(document.getElementById(\'ai-fb\').value)" aria-label="Envoyer">'+ico('arrowup',18,1.8)+'</button>'
-        +'</div>');
-    }
+    var intro = typeof AI_INTRO !== 'undefined' ? AI_INTRO : "Je suis votre cartographe. Décrivez un changement — j'ajuste l'itinéraire, les étapes et le budget en direct.";
+    var prompts = typeof AI_PROMPTS !== 'undefined' ? AI_PROMPTS : ['Ajoute un jour','Rythme plus lent','Budget réduit','Plus de gastronomie'];
+    var chatHtml = statusBar(false)
+      +'<div style="display:flex;flex-direction:column;height:100%;background:var(--bg);overflow:hidden">'
+      +'<div style="display:flex;align-items:center;gap:12px;padding:10px 16px 14px;border-bottom:0.5px solid var(--line);flex:none">'
+      +'<button onclick="closeOverlay()" style="width:32px;height:32px;border-radius:50%;background:var(--surface);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;flex:none">'+ico('back',17,1.6)+'</button>'
+      +'<div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#2d1f0a,#5a3c1a);display:flex;align-items:center;justify-content:center;flex:none">'+ico('sparkle',17,1.4)+'</div>'
+      +'<div style="flex:1"><div style="font-size:15px;font-weight:600;color:var(--ink)">Cartographe</div>'
+      +'<div style="font-size:11px;color:#34C759;font-weight:500;letter-spacing:0.2px">● En ligne — prêt à ajuster</div></div>'
+      +'</div>'
+      +'<div data-ai-chat style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;-webkit-overflow-scrolling:touch">'
+      +'<div style="background:var(--surface);border:1px solid var(--line);border-radius:18px 18px 18px 4px;padding:14px 16px;max-width:84%;align-self:flex-start">'
+      +'<p style="font-size:15px;line-height:1.55;color:var(--ink);margin:0">'+esc(intro)+'</p></div>'
+      +'</div>'
+      +'<div style="padding:8px 12px 0;display:flex;gap:7px;overflow-x:auto;flex:none;scrollbar-width:none;-webkit-overflow-scrolling:touch">'
+      +prompts.map(function(p){
+        return '<button onclick="window._aiSend(\'' + p.replace(/'/g,"\'") + '\')" style="white-space:nowrap;padding:8px 14px;background:var(--surface);border:1px solid var(--line);border-radius:20px;font-family:var(--sans);font-size:13px;color:var(--ink);cursor:pointer;-webkit-tap-highlight-color:transparent;flex:none">'+esc(p)+'</button>';
+      }).join('')
+      +'</div>'
+      +'<div style="padding:10px 12px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));display:flex;gap:8px;align-items:center;flex:none;border-top:0.5px solid var(--line);background:var(--bg)">'
+      +'<input id="ai-fb" placeholder="Décrivez un changement…" '
+      +'onkeydown="if(event.key===\'Enter\'){event.preventDefault();window._aiSend(this.value)}" '
+      +'style="flex:1;padding:11px 16px;background:var(--surface);border:1px solid var(--line);border-radius:22px;font-family:var(--sans);font-size:15px;color:var(--ink);outline:none;-webkit-appearance:none;min-width:0">'
+      +'<button onclick="var i=document.getElementById(\'ai-fb\');window._aiSend(i.value)" '
+      +'style="width:40px;height:40px;border-radius:50%;background:var(--ink);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;flex:none">'+ico('arrowup',17,1.7)+'</button>'
+      +'</div>'
+      +'</div>';
+    openOverlay('ai', chatHtml);
   };
   window._aiSend = async function(msg){
     if(!msg||!msg.trim()) return;
@@ -1064,10 +1067,10 @@ document.addEventListener('DOMContentLoaded', function(){
     var inp = document.getElementById('ai-fb') || document.querySelector('[data-ai-input]');
     if(!chat) return;
     if(inp) inp.value = '';
-    chat.innerHTML += '<div class="bub us">'+esc(msg)+'</div>';
+    chat.innerHTML += '<div style="background:var(--ink);color:var(--bg);border-radius:18px 18px 4px 18px;padding:12px 16px;max-width:80%;align-self:flex-end;font-size:15px;line-height:1.5">'+esc(msg)+'</div>';
     /* Indicateur de typing */
     var typingId = 'typing-'+Date.now();
-    chat.innerHTML += '<div class="bub them" id="'+typingId+'"><div class="typing"><i></i><i></i><i></i></div></div>';
+    chat.innerHTML += '<div id="'+typingId+'" style="background:var(--surface);border:1px solid var(--line);border-radius:18px 18px 18px 4px;padding:14px 16px;max-width:80%;align-self:flex-start"><div style="display:flex;gap:5px;align-items:center"><span style="width:7px;height:7px;border-radius:50%;background:var(--sub);opacity:0.5;animation:typingDot 1.2s ease-in-out infinite"></span><span style="width:7px;height:7px;border-radius:50%;background:var(--sub);opacity:0.5;animation:typingDot 1.2s ease-in-out 0.2s infinite"></span><span style="width:7px;height:7px;border-radius:50%;background:var(--sub);opacity:0.5;animation:typingDot 1.2s ease-in-out 0.4s infinite"></span></div></div>';
     chat.scrollTop = chat.scrollHeight;
 
     try{
@@ -1135,8 +1138,15 @@ document.addEventListener('DOMContentLoaded', function(){
       }
       if(Array.isArray(changes.stays) && changes.stays.length){
         changes.stays.forEach(function(newStay){
+          /* Normaliser : l'IA retourne {name, type, loc, price, nights} → on veut {n, type, loc, price, nights} */
+          if(newStay.name && !newStay.n) newStay.n = newStay.name;
+          if(!newStay.id) newStay.id = 'a'+(ITINERARY.accommodations||[]).length+1;
+          if(!newStay.i) newStay.i = 'bed';
+          if(!newStay.tag) newStay.tag = 'Sélection';
+          if(!newStay.rate) newStay.rate = '4,9';
+          if(!newStay.blurb) newStay.blurb = '';
           var idx = (ITINERARY.accommodations||[]).findIndex(function(a){
-            return a.id===newStay.id || a.n===newStay.n;
+            return a.id===newStay.id || a.n===newStay.n || a.n===newStay.name;
           });
           if(idx >= 0) Object.assign(ITINERARY.accommodations[idx], newStay);
           else{ ITINERARY.accommodations = ITINERARY.accommodations||[]; ITINERARY.accommodations.push(newStay); }
@@ -1146,8 +1156,14 @@ document.addEventListener('DOMContentLoaded', function(){
       if(Array.isArray(changes.plan) && changes.plan.length){
         changes.plan.forEach(function(newDay){
           var idx = (ITINERARY.plan||[]).findIndex(function(p){ return p.n===newDay.n; });
+          /* Normaliser les moments : accepter {t,k,ti,d} ou [t,k,ti,d] */
+          if(Array.isArray(newDay.moments)){
+            newDay.moments = newDay.moments.map(function(m){
+              if(Array.isArray(m)) return m;
+              return [m.t||'—', m.k||m.icon||'pin', m.ti||m.title||'Moment', m.d||m.desc||''];
+            });
+          }
           if(idx >= 0){
-            /* Préserver les champs existants, merge seulement ce qui change */
             Object.assign(ITINERARY.plan[idx], newDay);
           } else {
             ITINERARY.plan = ITINERARY.plan||[];
