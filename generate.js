@@ -603,6 +603,7 @@ function applyGenerated(skel, daysDetail, hilites, flightInfo){
     region:skel.region||'', season:skel.season||'', generated:true,
     theme:themeName, palette:THEME_PALETTES[themeName],
     dateFrom:state.dateFrom||'', dateTo:state.dateTo||'',
+    _flightInfo:flightInfo||null, /* préservé pour recalcul budget après modif IA */
   });
 
   /* highlights */
@@ -1052,13 +1053,12 @@ function _showPaywall(genEl, days){
   pw.style.cssText = 'position:fixed;inset:0;z-index:9998;display:flex;flex-direction:column;background:var(--bg)';
   pw.setAttribute('data-paywall','');
 
-  pw.innerHTML = statusBar()
-    + '<div style="flex:1;overflow-y:auto;padding-bottom:160px">'
+  pw.innerHTML = '<div style="flex:1;overflow-y:auto;padding-bottom:180px">'
     /* Hero */
-    + '<div style="padding:20px 20px 0">'
+    + '<div style="padding:calc(20px + env(safe-area-inset-top,0px)) 20px 0">'
     + '<span style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:'+accent+'">Itinéraire composé · '+esc(it.dest||'')+'</span>'
     + '<h1 style="font-family:var(--serif);font-weight:600;font-size:32px;letter-spacing:-0.5px;margin-top:8px;margin-bottom:4px">'+esc(it.dest||'')+'</h1>'
-    + '<p style="font-family:var(--serif);font-style:italic;font-size:15px;color:var(--ink-soft);line-height:1.5">'+esc(it.tag||'')+'</p>'
+    + '<p style="font-family:var(--serif);font-style:italic;font-size:15px;color:var(--sub);line-height:1.5">'+esc(it.tag||'')+'</p>'
     + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">'
     + '<span style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;padding:6px 12px;border-radius:20px;border:1px solid '+hexA(accent,0.3)+';color:'+accent+';background:'+hexA(accent,0.07)+'">'+esc(it.dates||'')+'</span>'
     + '<span style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;padding:6px 12px;border-radius:20px;border:1px solid var(--line);color:var(--sub)">'+days+' jours</span>'
@@ -1072,38 +1072,43 @@ function _showPaywall(genEl, days){
     + '<span style="font-size:16px">✦</span>'
     + '<span style="font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:'+accent+'">'+days+' jours d\'itinéraire complet</span>'
     + '</div>'
-    + '<p style="font-size:13px;color:var(--sub);line-height:1.5;margin:0">'
-    + 'Activités, hébergements sélectionnés, restaurants secrets, pépites locales et budget détaillé — tout est prêt.'
-    + '</p>'
+    + '<p style="font-size:13px;color:var(--sub);line-height:1.5;margin:0">Activités, hébergements, restaurants secrets, pépites locales et budget détaillé — tout est prêt.</p>'
     + '</div></div>'
     /* Stats */
     + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:0 20px 20px">'
-    + _pwStat(days+' jours', 'planifiés')
-    + _pwStat((it.accommodations||[]).length+' héberg.', 'sélectionnés')
-    + _pwStat((it.gems||[]).length||'6'+' pépites', 'cachées')
+    + _pwStat(days+' jours','planifiés')
+    + _pwStat((it.accommodations||[]).length+' héberg.','sélectionnés')
+    + _pwStat(((it.gems||[]).length||'6')+' pépites','cachées')
     + '</div>'
     + '</div>'
-    /* Footer paywall */
-    + '<div style="position:absolute;bottom:0;left:0;right:0;padding:20px;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px));background:linear-gradient(to top, var(--bg) 80%, transparent);border-top:1px solid var(--line)">'
+    /* Footer */
+    + '<div id="pw-footer" style="position:absolute;bottom:0;left:0;right:0;padding:20px;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px));background:linear-gradient(to top, var(--bg) 85%, transparent)">'
     + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">'
     + '<div>'
     + '<div style="font-family:var(--serif);font-weight:600;font-size:26px;letter-spacing:-0.5px">'+price+'</div>'
     + '<div style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--sub)">Itinéraire '+label+' · accès définitif</div>'
     + '</div>'
-    + '<button onclick="document.querySelector(\'[data-paywall]\').remove()" style="width:36px;height:36px;border-radius:50%;background:var(--surface);border:1px solid var(--line);color:var(--sub);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>'
+    + '<button id="pw-close" style="width:36px;height:36px;border-radius:50%;background:var(--surface);border:1px solid var(--line);color:var(--sub);font-size:14px;cursor:pointer;-webkit-tap-highlight-color:transparent">✕</button>'
     + '</div>'
-    + '<a href="'+stripeUrl+'" target="_blank" rel="noopener" id="stripe-pay-btn" style="display:block;width:100%;padding:16px;background:var(--ink);color:var(--bg);border:none;border-radius:16px;font-family:var(--sans);font-size:16px;font-weight:600;text-align:center;text-decoration:none;cursor:pointer;box-sizing:border-box">Débloquer mon itinéraire — '+price+'</a>'
+    + '<a id="pw-pay" href="'+stripeUrl+'" target="_blank" rel="noopener" style="display:block;width:100%;padding:16px;background:var(--ink);color:var(--bg);border:none;border-radius:16px;font-family:var(--sans);font-size:16px;font-weight:600;text-align:center;text-decoration:none;cursor:pointer;box-sizing:border-box">Débloquer mon itinéraire — '+price+'</a>'
     + '<p style="text-align:center;font-size:11px;color:var(--sub);margin-top:10px">Paiement sécurisé · Stripe · Accès immédiat après paiement</p>'
-    + '<button onclick="window._checkStripeReturn()" style="display:block;width:100%;padding:10px;background:transparent;border:none;color:var(--sub);font-family:var(--sans);font-size:12px;cursor:pointer;margin-top:4px">J\'ai déjà payé →</button>'
+    + '<button id="pw-already" style="display:block;width:100%;padding:10px;background:transparent;border:none;color:var(--sub);font-family:var(--sans);font-size:12px;cursor:pointer;-webkit-tap-highlight-color:transparent">J\'ai déjà payé →</button>'
     + '</div>';
 
   document.body.appendChild(pw);
 
-  /* Vérification retour Stripe au clic "J'ai déjà payé" */
-  window._checkStripeReturn = function(){
+  /* Event listeners natifs — évite les problèmes de sanitisation innerHTML */
+  function closePw(){ pw.remove(); }
+  const closeBtn = document.getElementById('pw-close');
+  const alreadyBtn = document.getElementById('pw-already');
+  if(closeBtn){
+    closeBtn.addEventListener('click', closePw);
+    closeBtn.addEventListener('touchend', function(e){ e.preventDefault(); closePw(); });
+  }
+
+  function checkAlreadyPaid(){
     const pending = JSON.parse(localStorage.getItem('hs_pending_ref') || 'null');
     if(pending && (Date.now() - pending.ts) < 60*60*1000){
-      /* On fait confiance au retour — Stripe a redirigé l'utilisateur */
       _grantPayment(pending.dest, pending.days);
       localStorage.removeItem('hs_pending_ref');
       pw.remove();
@@ -1111,16 +1116,19 @@ function _showPaywall(genEl, days){
     } else {
       toast('Paiement non détecté. Contactez-nous si vous avez été débité.');
     }
-  };
+  }
+  if(alreadyBtn){
+    alreadyBtn.addEventListener('click', checkAlreadyPaid);
+    alreadyBtn.addEventListener('touchend', function(e){ e.preventDefault(); checkAlreadyPaid(); });
+  }
 
-  /* Vérifier si on revient d'un paiement Stripe (URL param) */
+  /* Vérifier retour Stripe via URL */
   const urlParams = new URLSearchParams(window.location.search);
   if(urlParams.get('paid') === 'true'){
     const pending = JSON.parse(localStorage.getItem('hs_pending_ref') || 'null');
     if(pending){ _grantPayment(pending.dest, pending.days); localStorage.removeItem('hs_pending_ref'); }
     pw.remove();
     _openItineraryAndSave();
-    /* Nettoyer l'URL */
     window.history.replaceState({}, '', window.location.pathname);
   }
 }

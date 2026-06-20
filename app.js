@@ -1123,35 +1123,51 @@ document.addEventListener('DOMContentLoaded', function(){
       /* Afficher la réponse */
       chat.innerHTML += '<div class="bub them">'+esc(parsed.reply)+'</div>';
 
-      /* Appliquer les changements à ITINERARY */
+      /* Appliquer les changements à ITINERARY en préservant les données existantes */
       var changes = parsed.changes || {};
       var changed = false;
 
       if(changes.days && typeof changes.days === 'number'){
-        ITINERARY.days = changes.days;
-        changed = true;
+        ITINERARY.days = changes.days; changed = true;
       }
       if(changes.budgetTotal && typeof changes.budgetTotal === 'number'){
-        ITINERARY.budgetTotal = changes.budgetTotal;
-        changed = true;
+        ITINERARY.budgetTotal = changes.budgetTotal; changed = true;
       }
       if(Array.isArray(changes.stays) && changes.stays.length){
         changes.stays.forEach(function(newStay){
-          var idx = (ITINERARY.accommodations||[]).findIndex(function(a){ return a.id===newStay.id||a.n===newStay.n; });
+          var idx = (ITINERARY.accommodations||[]).findIndex(function(a){
+            return a.id===newStay.id || a.n===newStay.n;
+          });
           if(idx >= 0) Object.assign(ITINERARY.accommodations[idx], newStay);
-          else (ITINERARY.accommodations = ITINERARY.accommodations||[]).push(newStay);
+          else{ ITINERARY.accommodations = ITINERARY.accommodations||[]; ITINERARY.accommodations.push(newStay); }
         });
         changed = true;
       }
       if(Array.isArray(changes.plan) && changes.plan.length){
         changes.plan.forEach(function(newDay){
           var idx = (ITINERARY.plan||[]).findIndex(function(p){ return p.n===newDay.n; });
-          if(idx >= 0) Object.assign(ITINERARY.plan[idx], newDay);
-          else (ITINERARY.plan = ITINERARY.plan||[]).push(newDay);
+          if(idx >= 0){
+            /* Préserver les champs existants, merge seulement ce qui change */
+            Object.assign(ITINERARY.plan[idx], newDay);
+          } else {
+            ITINERARY.plan = ITINERARY.plan||[];
+            ITINERARY.plan.push(newDay);
+          }
         });
-        /* Retrier par numéro de jour */
         ITINERARY.plan.sort(function(a,b){ return (a.n||0)-(b.n||0); });
         changed = true;
+      }
+
+      /* Recalculer le budget en préservant les vols */
+      if(changed && typeof deriveBudget === 'function'){
+        try{
+          deriveBudget(
+            ITINERARY.accommodations||[], ITINERARY.budgetTotal||0,
+            ITINERARY.dest||'', ITINERARY.region||'', ITINERARY.country||'',
+            state.travelers||2,
+            ITINERARY._flightInfo||null /* préserver les vols */
+          );
+        }catch(e){ console.warn('deriveBudget after AI change:', e); }
       }
 
       if(changed){
