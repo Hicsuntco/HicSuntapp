@@ -701,83 +701,63 @@ async function exportPDF(){
 
   /* ── Overlay PDF ── */
   const pdfOverlay = document.createElement('div');
-  pdfOverlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:#F8F4EC';
+  pdfOverlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:#F8F4EC;overflow:hidden';
   pdfOverlay.setAttribute('data-pdf-ov','');
 
-  /* Iframe plein écran */
   const pdfIframe = document.createElement('iframe');
   pdfIframe.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;border:none';
   pdfIframe.srcdoc = html;
 
-  /* Barre de contrôle fixée en bas, au-dessus de l'iframe */
-  const bar = document.createElement('div');
-  bar.style.cssText = [
-    'position:absolute',
-    'bottom:0','left:0','right:0',
-    'z-index:10',
-    'display:flex',
-    'align-items:center',
-    'gap:12px',
-    'padding:12px 20px',
-    'padding-bottom:calc(12px + env(safe-area-inset-bottom,0px))',
-    'background:rgba(26,22,16,0.94)',
-    'backdrop-filter:blur(20px)',
-    '-webkit-backdrop-filter:blur(20px)',
-  ].join(';');
+  /* Deux boutons flottants discrets — coin haut droit */
+  const top = document.createElement('div');
+  const safePad = 'calc(16px + env(safe-area-inset-top,0px))';
+  top.style.cssText = 'position:absolute;top:'+safePad+';right:16px;z-index:10;display:flex;align-items:center;gap:8px';
 
-  const closeBtn = document.createElement('button');
-  closeBtn.textContent = '✕ Fermer';
-  closeBtn.style.cssText = [
-    'flex:1','padding:14px 0',
-    'background:rgba(255,255,255,0.14)',
-    'color:white','border:none',
-    'border-radius:14px',
-    'font-family:Jost,sans-serif',
-    'font-size:15px','font-weight:500',
-    'cursor:pointer',
-    '-webkit-tap-highlight-color:transparent',
-  ].join(';');
-  closeBtn.addEventListener('touchend', function(e){
-    e.preventDefault();
-    pdfOverlay.remove();
-  });
-  closeBtn.addEventListener('click', function(){ pdfOverlay.remove(); });
+  function mkBtn(content, action){
+    const b = document.createElement('button');
+    b.innerHTML = content;
+    b.style.cssText = [
+      'width:36px','height:36px',
+      'border-radius:50%',
+      'background:rgba(26,22,16,0.55)',
+      'backdrop-filter:blur(12px)',
+      '-webkit-backdrop-filter:blur(12px)',
+      'color:white','border:none',
+      'display:flex','align-items:center','justify-content:center',
+      'cursor:pointer',
+      '-webkit-tap-highlight-color:transparent',
+      'font-size:15px',
+    ].join(';');
+    b.addEventListener('touchend', function(e){ e.preventDefault(); action(); });
+    b.addEventListener('click', action);
+    return b;
+  }
 
-  const printBtn = document.createElement('button');
-  printBtn.textContent = 'Imprimer / Enregistrer PDF';
-  printBtn.style.cssText = [
-    'flex:2','padding:14px 0',
-    'background:#C9A96E',
-    'color:#1a1610','border:none',
-    'border-radius:14px',
-    'font-family:Jost,sans-serif',
-    'font-size:15px','font-weight:700',
-    'cursor:pointer',
-    '-webkit-tap-highlight-color:transparent',
-  ].join(';');
   function doPrint(){
-    /* iOS : ouvrir dans nouvel onglet puis print */
     var w = window.open('', '_blank');
     if(w){ w.document.write(html); w.document.close(); setTimeout(function(){ w.print(); }, 600); }
     else {
-      /* Fallback téléchargement HTML */
       try{
-        var blob = new Blob([html], {type:'text/html'});
+        var blob = new Blob([html],{type:'text/html'});
         var url = URL.createObjectURL(blob);
         var a = document.createElement('a');
-        a.href = url; a.download = (it.dest||'itineraire').replace(/\s+/g,'-').toLowerCase()+'-hicsunt.html';
+        a.href=url; a.download=(it.dest||'itineraire').replace(/\s+/g,'-').toLowerCase()+'-hicsunt.html';
         document.body.appendChild(a); a.click(); document.body.removeChild(a);
-        setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+        setTimeout(function(){ URL.revokeObjectURL(url); },1000);
       }catch(e){ pdfIframe.contentWindow.print(); }
     }
   }
-  printBtn.addEventListener('touchend', function(e){ e.preventDefault(); doPrint(); });
-  printBtn.addEventListener('click', doPrint);
 
-  bar.appendChild(closeBtn);
-  bar.appendChild(printBtn);
+  /* ↓ icône télécharger SVG */
+  const dlIcon = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 2v8M5 7l3 3 3-3M3 13h10"/></svg>';
+  /* ✕ croix */
+  const closeIcon = '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="1" y1="1" x2="11" y2="11"/><line x1="11" y1="1" x2="1" y2="11"/></svg>';
+
+  top.appendChild(mkBtn(dlIcon, doPrint));
+  top.appendChild(mkBtn(closeIcon, function(){ pdfOverlay.remove(); }));
+
   pdfOverlay.appendChild(pdfIframe);
-  pdfOverlay.appendChild(bar);
+  pdfOverlay.appendChild(top);
   document.body.appendChild(pdfOverlay);
 }
 
