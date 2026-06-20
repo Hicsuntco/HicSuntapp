@@ -940,17 +940,208 @@ async function runFullGeneration(overlayAlreadyOpen){
   let ok=false;
   if(result){try{ok=applyGenerated(result.skel,result.days,result.hilites,result.flightInfo);}catch(e){ok=false;}}
   if(!ok) toast('Connexion limitée — itinéraire de démonstration');
+
+  /* ── PAYWALL ── Vérifier si l'utilisateur a déjà payé ou a un code ── */
   setTimeout(function(){
-    openItinerary();
-    saveItinerary();
-    state.deckIndex=0;
-    state._suggested=null; state._suggestedExcluded=null;
-    if(typeof initDeck==='function') initDeck();
-    setTimeout(function(){
-      const gi=ovStack.findIndex(function(o){return o.dataset.ov==='generating';});
-      if(gi>=0){const g=ovStack.splice(gi,1)[0];g.remove();}
-    },460);
+    const days = ITINERARY.days || 0;
+    const alreadyPaid = _checkPaymentToken(ITINERARY.dest, days);
+
+    if(alreadyPaid){
+      /* Déjà payé — ouvrir directement */
+      _openItineraryAndSave();
+    } else {
+      /* Afficher le paywall */
+      _showPaywall(el, days);
+    }
   },620);
+}
+
+/* ── Paliers tarifaires ── */
+const STRIPE_LINKS = {
+  escapade: 'https://buy.stripe.com/5kQfZi3eIfDB8RTepE5EY03', /* 1-7j : 4,99€ */
+  voyage:   'https://buy.stripe.com/eVq7sM9D69fd9VX6Xc5EY04', /* 8-14j : 9,99€ */
+  expedition:'https://buy.stripe.com/fZucN6cPidvt0ln4P45EY05', /* 15+j : 17,99€ */
+};
+const STRIPE_PRICES = { escapade:'4,99€', voyage:'9,99€', expedition:'17,99€' };
+const STRIPE_LABELS = { escapade:'Escapade', voyage:'Voyage', expedition:'Expédition' };
+
+function _getPalier(days){
+  if(days <= 7)  return 'escapade';
+  if(days <= 14) return 'voyage';
+  return 'expedition';
+}
+
+/* ── Vérification du token de paiement (localStorage) ── */
+function _checkPaymentToken(dest, days){
+  /* Code promo staff */
+  const staffCode = localStorage.getItem('hs_promo');
+  if(staffCode === 'HICSUNT-STAFF') return true;
+
+  /* Token de paiement Stripe (stocké après retour paiement) */
+  const paid = JSON.parse(localStorage.getItem('hs_paid_tokens') || '[]');
+  const palier = _getPalier(days);
+  /* Un token est valable 48h pour la même destination */
+  const now = Date.now();
+  return paid.some(function(t){
+    return t.palier === palier
+      && (t.dest === '' || t.dest === dest)
+      && (now - t.ts) < 48*3600*1000;
+  });
+}
+
+function _grantPayment(dest, days){
+  const palier = _getPalier(days);
+  const paid = JSON.parse(localStorage.getItem('hs_paid_tokens') || '[]');
+  paid.push({ palier:palier, dest:dest, ts:Date.now() });
+  /* Garder seulement les 20 derniers tokens */
+  if(paid.length > 20) paid.splice(0, paid.length - 20);
+  localStorage.setItem('hs_paid_tokens', JSON.stringify(paid));
+}
+
+function _openItineraryAndSave(){
+  openItinerary();
+  saveItinerary();
+  state.deckIndex=0;
+  state._suggested=null; state._suggestedExcluded=null;
+  if(typeof initDeck==='function') initDeck();
+  setTimeout(function(){
+    const gi=ovStack.findIndex(function(o){return o.dataset.ov==='generating';});
+    if(gi>=0){const g=ovStack.splice(gi,1)[0];g.remove();}
+  },460);
+}
+
+function _showPaywall(genEl, days){
+  const palier = _getPalier(days);
+  const price = STRIPE_PRICES[palier];
+  const label = STRIPE_LABELS[palier];
+  const it = ITINERARY;
+
+  /* Construire l'URL Stripe avec pré-remplissage */
+  const userId = (typeof USER !== 'undefined' && USER.full) ? USER.full : '';
+  const userEmail = localStorage.getItem('hs_email') || '';
+  let stripeUrl = STRIPE_LINKS[palier];
+  const params = [];
+  if(userEmail) params.push('prefilled_email='+encodeURIComponent(userEmail));
+  /* client_reference_id pour identifier le paiement côté Stripe */
+  const refId = 'hs_'+(Date.now().toString(36))+'_'+palier;
+  params.push('client_reference_id='+refId);
+  if(params.length) stripeUrl += '?' + params.join('&');
+
+  /* Stocker le refId pour vérification au retour */
+  localStorage.setItem('hs_pending_ref', JSON.stringify({refId:refId, dest:it.dest, days:days, palier:palier, ts:Date.now()}));
+
+  /* Preview — J1 visible, reste flou */
+  const previewDay = (it.plan && it.plan[0]) ? it.plan[0] : null;
+  const previewHtml = previewDay
+    ? '<div style="padding:16px 20px;border-bottom:1px solid var(--line)">'
+      + '<div style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--sub);margin-bottom:6px">Jour 01 · Aperçu</div>'
+      + '<div style="font-size:16px;font-weight:500;color:var(--ink);margin-bottom:4px">'+esc(previewDay.title||'')+'</div>'
+      + '<div style="font-family:var(--mono);font-size:10px;color:var(--sub);text-transform:uppercase;letter-spacing:0.8px">'+esc(previewDay.loc||'')+'</div>'
+      + '</div>'
+      + '<div style="padding:12px 20px;filter:blur(4px);opacity:0.5;pointer-events:none;user-select:none">'
+      + '<div style="height:14px;background:var(--line2);border-radius:4px;margin-bottom:8px;width:80%"></div>'
+      + '<div style="height:14px;background:var(--line2);border-radius:4px;margin-bottom:8px;width:60%"></div>'
+      + '<div style="height:14px;background:var(--line2);border-radius:4px;width:70%"></div>'
+      + '</div>'
+    : '';
+
+  const accent = (it.palette && it.palette.beach) || '#3A9EC9';
+
+  /* Overlay paywall */
+  const pw = document.createElement('div');
+  pw.style.cssText = 'position:fixed;inset:0;z-index:9998;display:flex;flex-direction:column;background:var(--bg)';
+  pw.setAttribute('data-paywall','');
+
+  pw.innerHTML = statusBar()
+    + '<div style="flex:1;overflow-y:auto;padding-bottom:160px">'
+    /* Hero */
+    + '<div style="padding:20px 20px 0">'
+    + '<span style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:'+accent+'">Itinéraire composé · '+esc(it.dest||'')+'</span>'
+    + '<h1 style="font-family:var(--serif);font-weight:600;font-size:32px;letter-spacing:-0.5px;margin-top:8px;margin-bottom:4px">'+esc(it.dest||'')+'</h1>'
+    + '<p style="font-family:var(--serif);font-style:italic;font-size:15px;color:var(--ink-soft);line-height:1.5">'+esc(it.tag||'')+'</p>'
+    + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">'
+    + '<span style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;padding:6px 12px;border-radius:20px;border:1px solid '+hexA(accent,0.3)+';color:'+accent+';background:'+hexA(accent,0.07)+'">'+esc(it.dates||'')+'</span>'
+    + '<span style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;padding:6px 12px;border-radius:20px;border:1px solid var(--line);color:var(--sub)">'+days+' jours</span>'
+    + '<span style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;padding:6px 12px;border-radius:20px;border:1px solid var(--line);color:var(--sub)">'+esc(it.level||'')+'</span>'
+    + '</div></div>'
+    /* Aperçu J1 + flou */
+    + '<div style="margin:20px;border-radius:16px;border:1px solid var(--line);background:var(--surface);overflow:hidden">'
+    + previewHtml
+    + '<div style="padding:16px 20px;background:'+hexA(accent,0.04)+';border-top:1px solid var(--line)">'
+    + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'
+    + '<span style="font-size:16px">✦</span>'
+    + '<span style="font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:'+accent+'">'+days+' jours d\'itinéraire complet</span>'
+    + '</div>'
+    + '<p style="font-size:13px;color:var(--sub);line-height:1.5;margin:0">'
+    + 'Activités, hébergements sélectionnés, restaurants secrets, pépites locales et budget détaillé — tout est prêt.'
+    + '</p>'
+    + '</div></div>'
+    /* Stats */
+    + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:0 20px 20px">'
+    + _pwStat(days+' jours', 'planifiés')
+    + _pwStat((it.accommodations||[]).length+' héberg.', 'sélectionnés')
+    + _pwStat((it.gems||[]).length||'6'+' pépites', 'cachées')
+    + '</div>'
+    + '</div>'
+    /* Footer paywall */
+    + '<div style="position:absolute;bottom:0;left:0;right:0;padding:20px;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px));background:linear-gradient(to top, var(--bg) 80%, transparent);border-top:1px solid var(--line)">'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">'
+    + '<div>'
+    + '<div style="font-family:var(--serif);font-weight:600;font-size:26px;letter-spacing:-0.5px">'+price+'</div>'
+    + '<div style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--sub)">Itinéraire '+label+' · accès définitif</div>'
+    + '</div>'
+    + '<button onclick="document.querySelector(\'[data-paywall]\').remove()" style="width:36px;height:36px;border-radius:50%;background:var(--surface);border:1px solid var(--line);color:var(--sub);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>'
+    + '</div>'
+    + '<a href="'+stripeUrl+'" target="_blank" rel="noopener" id="stripe-pay-btn" style="display:block;width:100%;padding:16px;background:var(--ink);color:var(--bg);border:none;border-radius:16px;font-family:var(--sans);font-size:16px;font-weight:600;text-align:center;text-decoration:none;cursor:pointer;box-sizing:border-box">Débloquer mon itinéraire — '+price+'</a>'
+    + '<p style="text-align:center;font-size:11px;color:var(--sub);margin-top:10px">Paiement sécurisé · Stripe · Accès immédiat après paiement</p>'
+    + '<button onclick="window._checkStripeReturn()" style="display:block;width:100%;padding:10px;background:transparent;border:none;color:var(--sub);font-family:var(--sans);font-size:12px;cursor:pointer;margin-top:4px">J\'ai déjà payé →</button>'
+    + '</div>';
+
+  document.body.appendChild(pw);
+
+  /* Vérification retour Stripe au clic "J'ai déjà payé" */
+  window._checkStripeReturn = function(){
+    const pending = JSON.parse(localStorage.getItem('hs_pending_ref') || 'null');
+    if(pending && (Date.now() - pending.ts) < 60*60*1000){
+      /* On fait confiance au retour — Stripe a redirigé l'utilisateur */
+      _grantPayment(pending.dest, pending.days);
+      localStorage.removeItem('hs_pending_ref');
+      pw.remove();
+      _openItineraryAndSave();
+    } else {
+      toast('Paiement non détecté. Contactez-nous si vous avez été débité.');
+    }
+  };
+
+  /* Vérifier si on revient d'un paiement Stripe (URL param) */
+  const urlParams = new URLSearchParams(window.location.search);
+  if(urlParams.get('paid') === 'true'){
+    const pending = JSON.parse(localStorage.getItem('hs_pending_ref') || 'null');
+    if(pending){ _grantPayment(pending.dest, pending.days); localStorage.removeItem('hs_pending_ref'); }
+    pw.remove();
+    _openItineraryAndSave();
+    /* Nettoyer l'URL */
+    window.history.replaceState({}, '', window.location.pathname);
+  }
+}
+
+function _pwStat(val, label){
+  return '<div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;text-align:center">'
+    + '<div style="font-family:var(--serif);font-weight:600;font-size:16px;color:var(--ink)">'+val+'</div>'
+    + '<div style="font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:var(--sub);margin-top:2px">'+label+'</div>'
+    + '</div>';
+}
+
+function _openItineraryFallback(){
+  openItinerary();
+  saveItinerary();
+  state.deckIndex=0;
+  state._suggested=null; state._suggestedExcluded=null;
+  if(typeof initDeck==='function') initDeck();
+  setTimeout(function(){
+    const gi=ovStack.findIndex(function(o){return o.dataset.ov==='generating';});
+    if(gi>=0){const g=ovStack.splice(gi,1)[0];g.remove();}
+  },460);
 }
 
 /* ── Cartographe IA — contextuel à la destination ───────────────────── */

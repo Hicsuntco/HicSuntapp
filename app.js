@@ -773,17 +773,30 @@ function buildApp(){
 }
 
 document.addEventListener('DOMContentLoaded', function(){
-  /* Masquer la barre Safari en bas — scroll down 1px puis revenir */
-  if(/iPhone|iPad|iPod/.test(navigator.userAgent) && !window.navigator.standalone){
-    setTimeout(function(){
-      document.documentElement.style.height = (window.innerHeight + 60) + 'px';
-      window.scrollTo(0, 1);
-      setTimeout(function(){
-        document.documentElement.style.height = '';
-        window.scrollTo(0, 0);
-      }, 100);
-    }, 200);
+  /* ── Vérification retour paiement Stripe ── */
+  const urlParams = new URLSearchParams(window.location.search);
+  if(urlParams.get('paid') === 'true'){
+    const pending = JSON.parse(localStorage.getItem('hs_pending_ref') || 'null');
+    if(pending && typeof _grantPayment === 'function'){
+      _grantPayment(pending.dest, pending.days);
+      localStorage.removeItem('hs_pending_ref');
+    }
+    window.history.replaceState({}, '', window.location.pathname);
+    toast('Paiement confirmé — votre itinéraire est débloqué ✓');
   }
+
+  /* ── Code promo staff ── */
+  window.applyPromoCode = function(code){
+    const c = (code||'').trim().toUpperCase();
+    if(c === 'HICSUNT-STAFF' || c === 'HICSUNT-TEAM'){
+      localStorage.setItem('hs_promo', 'HICSUNT-STAFF');
+      toast('Code appliqué — accès illimité activé ✓');
+      return true;
+    }
+    /* Codes promo client (50%, etc.) — délégués à Stripe directement */
+    toast('Ce code s\'applique lors du paiement sur la page Stripe.');
+    return false;
+  };
   /* ── Réassignation forcée post-chargement de tous les scripts ──
      features.js (chargé avant app.js) définit mapSVG/mapView avec contour()
      et graticule() — les ronds abstraits et la spirale. On les écrase ici,
