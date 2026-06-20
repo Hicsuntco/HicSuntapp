@@ -698,52 +698,81 @@ async function exportPDF(){
     + '<p>'+esc(it.dest)+' \u00B7 '+esc(it.dates)+' \u00B7 Hic Sunt \u00B7 Beyond the Known</p></div>'
     + '</body></html>';
 
-  /* ── Overlay PDF avec barre de contrôle en bas ── */
+
+  /* ── Overlay PDF ── */
   const pdfOverlay = document.createElement('div');
-  pdfOverlay.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;background:#F8F4EC';
+  pdfOverlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:#F8F4EC';
   pdfOverlay.setAttribute('data-pdf-ov','');
 
+  /* Iframe plein écran */
   const pdfIframe = document.createElement('iframe');
-  pdfIframe.style.cssText = 'flex:1;border:none;width:100%;display:block';
+  pdfIframe.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;border:none';
   pdfIframe.srcdoc = html;
 
-  /* Barre de contrôle en bas — au-dessus du safe area */
+  /* Barre de contrôle fixée en bas, au-dessus de l'iframe */
   const bar = document.createElement('div');
   bar.style.cssText = [
+    'position:absolute',
+    'bottom:0','left:0','right:0',
+    'z-index:10',
     'display:flex',
     'align-items:center',
-    'justify-content:space-between',
+    'gap:12px',
     'padding:12px 20px',
     'padding-bottom:calc(12px + env(safe-area-inset-bottom,0px))',
-    'background:rgba(26,22,16,0.92)',
-    'backdrop-filter:blur(16px)',
-    '-webkit-backdrop-filter:blur(16px)',
-    'flex:none',
-    'gap:12px',
+    'background:rgba(26,22,16,0.94)',
+    'backdrop-filter:blur(20px)',
+    '-webkit-backdrop-filter:blur(20px)',
   ].join(';');
 
   const closeBtn = document.createElement('button');
-  closeBtn.innerHTML = '✕ Fermer';
-  closeBtn.style.cssText = 'background:rgba(255,255,255,0.15);color:white;border:none;border-radius:12px;padding:10px 18px;font-family:Jost,sans-serif;font-size:14px;font-weight:500;cursor:pointer;flex:1;text-align:center';
-  closeBtn.onclick = function(){ pdfOverlay.remove(); };
+  closeBtn.textContent = '✕ Fermer';
+  closeBtn.style.cssText = [
+    'flex:1','padding:14px 0',
+    'background:rgba(255,255,255,0.14)',
+    'color:white','border:none',
+    'border-radius:14px',
+    'font-family:Jost,sans-serif',
+    'font-size:15px','font-weight:500',
+    'cursor:pointer',
+    '-webkit-tap-highlight-color:transparent',
+  ].join(';');
+  closeBtn.addEventListener('touchend', function(e){
+    e.preventDefault();
+    pdfOverlay.remove();
+  });
+  closeBtn.addEventListener('click', function(){ pdfOverlay.remove(); });
 
   const printBtn = document.createElement('button');
-  printBtn.innerHTML = '⎙ Imprimer / PDF';
-  printBtn.style.cssText = 'background:#C9A96E;color:#1a1610;border:none;border-radius:12px;padding:10px 18px;font-family:Jost,sans-serif;font-size:14px;font-weight:700;cursor:pointer;flex:2;text-align:center';
-  /* Imprimer en ouvrant le HTML dans un nouvel onglet — seule méthode fiable sur iOS */
-  printBtn.onclick = function(){
+  printBtn.textContent = 'Imprimer / Enregistrer PDF';
+  printBtn.style.cssText = [
+    'flex:2','padding:14px 0',
+    'background:#C9A96E',
+    'color:#1a1610','border:none',
+    'border-radius:14px',
+    'font-family:Jost,sans-serif',
+    'font-size:15px','font-weight:700',
+    'cursor:pointer',
+    '-webkit-tap-highlight-color:transparent',
+  ].join(';');
+  function doPrint(){
+    /* iOS : ouvrir dans nouvel onglet puis print */
     var w = window.open('', '_blank');
-    if(w){ w.document.write(html); w.document.close(); setTimeout(function(){ w.print(); }, 800); }
+    if(w){ w.document.write(html); w.document.close(); setTimeout(function(){ w.print(); }, 600); }
     else {
-      /* Fallback : copier le lien data URI */
-      var blob = new Blob([html], {type:'text/html'});
-      var url = URL.createObjectURL(blob);
-      var a = document.createElement('a');
-      a.href = url; a.download = (it.dest||'itineraire')+'-hicsunt.html';
-      a.click();
-      setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+      /* Fallback téléchargement HTML */
+      try{
+        var blob = new Blob([html], {type:'text/html'});
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url; a.download = (it.dest||'itineraire').replace(/\s+/g,'-').toLowerCase()+'-hicsunt.html';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+      }catch(e){ pdfIframe.contentWindow.print(); }
     }
-  };
+  }
+  printBtn.addEventListener('touchend', function(e){ e.preventDefault(); doPrint(); });
+  printBtn.addEventListener('click', doPrint);
 
   bar.appendChild(closeBtn);
   bar.appendChild(printBtn);
