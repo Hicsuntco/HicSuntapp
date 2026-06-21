@@ -39,6 +39,7 @@ function discoverView(){
     +   '<div class="disc-top"><span class="eyebrow">Atlas personnel</span>'
     +     '<button class="bell-btn" onclick="openOverlay(\'notifications\', notificationsView())" aria-label="Notifications">' + ico('bell', 19, 1.5) + (NOTIFS.some(function(n){return n.unread;}) ? '<span class="dot"></span>' : '') + '</button></div>'
     +   '<hr class="hairline gold" style="margin-top:14px">'
+    +   _inTripDashboard()
     +   '<div class="disc-hello">Bonjour, ' + esc(USER.name) + '</div>'
     +   '<h1 class="disc-hero">Où mène votre<br><em>boussole&nbsp;?</em></h1>'
     +   '<div class="muse">'
@@ -55,6 +56,88 @@ function discoverView(){
     +   '<div class="section-h"><h2>Mes voyages</h2><span class="meta">À venir</span></div>'
     +   '<div data-disc-trips><div style="text-align:center;padding:24px 0"><div class="notif-load"><i></i></div></div></div>'
     + '</div>';
+}
+
+/* ── Tableau de bord voyage en cours ───────────────────────────────── */
+function _inTripDashboard(){
+  var it = ITINERARY;
+  if(!it || !it.dest || !it.dateFrom || !it.dateTo || !it.plan || !it.plan.length) return '';
+
+  var today = new Date();
+  today.setHours(0,0,0,0);
+  var from = new Date(it.dateFrom); from.setHours(0,0,0,0);
+  var to   = new Date(it.dateTo);   to.setHours(0,0,0,0);
+  if(today < from || today > to) return '';
+
+  /* Jour actuel dans le plan */
+  var dayNum = Math.floor((today - from) / 86400000); /* 0-indexed */
+  var plan = it.plan;
+  var todayPlan = plan[dayNum] || plan[plan.length-1];
+  var tomorrowPlan = plan[dayNum+1] || null;
+  var dayLabel = 'Jour '+(dayNum+1)+' · '+_days(it)+' jours';
+
+  /* Hébergement du soir */
+  var acc = (it.accommodations||[]).find(function(a){ return a.n === todayPlan.night || a.id === todayPlan.night; });
+
+  /* Météo */
+  var wxIcon = todayPlan.wx === 'rain' ? '🌧' : todayPlan.wx === 'cloud' ? '⛅' : '☀️';
+  var wxTemp = (todayPlan.wx&&todayPlan.wx[1]) ? todayPlan.wx[1] : (todayPlan.temp||'');
+
+  /* Moments du jour */
+  var moments = Array.isArray(todayPlan.moments) ? todayPlan.moments.slice(0,3) : [];
+
+  /* Palette */
+  var palette = it.palette || {};
+  var accent = palette.beach || palette.culture || '#C9A96E';
+
+  /* Jours restants */
+  var daysLeft = Math.max(0, Math.floor((to - today) / 86400000));
+
+  var html = '<div class="trip-board" onclick="openItinerary()" style="cursor:pointer">'
+    /* Header */
+    + '<div class="tb-head" style="background:'+hexA(accent,0.10)+';border-bottom:1px solid '+hexA(accent,0.18)+'">'
+    +   '<div style="display:flex;align-items:center;justify-content:space-between">'
+    +     '<div>'
+    +       '<div class="tb-eyebrow">En voyage · '+esc(it.dest)+'</div>'
+    +       '<div class="tb-day">'+dayLabel+'</div>'
+    +     '</div>'
+    +     '<div class="tb-wx">'+wxIcon+(wxTemp?' <span>'+esc(typeof wxTemp==='string'?wxTemp:'')+'</span>':'')+'</div>'
+    +   '</div>'
+    /* Titre du jour */
+    +   '<div class="tb-title">'+esc(todayPlan.title||'')+'</div>'
+    +   '<div class="tb-loc">'+esc(todayPlan.loc||'')+'</div>'
+    + '</div>'
+    /* Corps — moments + hébergement */
+    + '<div class="tb-body">'
+    /* Moments clés */
+    + (moments.length ? '<div class="tb-section-label">Programme du jour</div>'
+    +   moments.map(function(m){
+        var time = Array.isArray(m) ? m[0] : m.t;
+        var title = Array.isArray(m) ? m[2] : (m.ti||m.title);
+        var desc = Array.isArray(m) ? m[3] : (m.d||m.desc);
+        return '<div class="tb-moment">'
+          + '<span class="tb-time">'+esc(time||'')+'</span>'
+          + '<div><div class="tb-mti">'+esc(title||'')+'</div>'
+          + (desc?'<div class="tb-mdesc">'+esc(desc)+'</div>':'')
+          + '</div></div>';
+      }).join('') : '')
+    /* Hébergement ce soir */
+    + (acc ? '<div class="tb-section-label" style="margin-top:12px">Ce soir</div>'
+    +   '<div class="tb-acc">'
+    +     '<span style="color:'+accent+'">'+ico('bed',16,1.3)+'</span>'
+    +     '<div><div class="tb-mti">'+esc(acc.n||'')+'</div><div class="tb-mdesc">'+esc(acc.loc||'')+'</div></div>'
+    +   '</div>' : '')
+    /* Demain */
+    + (tomorrowPlan ? '<div class="tb-tomorrow">Demain : <strong>'+esc(tomorrowPlan.title||tomorrowPlan.loc||'')+'</strong></div>' : '')
+    /* Footer */
+    + '<div class="tb-footer">'
+    +   '<span class="tb-days-left">'+daysLeft+' jour'+(daysLeft>1?'s':'')+' restant'+(daysLeft>1?'s':'')+'</span>'
+    +   '<span class="tb-cta">Voir l\'itinéraire '+ico('chevron',11,1.4)+'</span>'
+    + '</div>'
+    + '</div>'
+    + '</div>';
+
+  return html;
 }
 async function loadDiscoverTrips(){
   const items = await loadItineraries();
