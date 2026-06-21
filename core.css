@@ -24,13 +24,11 @@
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 button,a{color:inherit;font:inherit;text-decoration:none}
 button{background:none;border:none}
-html,body{margin:0;padding:0;background:#ece7da;height:100%;overflow:hidden}
-body{position:fixed;inset:0;font-family:var(--sf);color:var(--ink);
-  height:100vh;height:100dvh;
-  background:
-    radial-gradient(1200px 600px at 80% -10%, rgba(156,124,68,0.07), transparent 60%),
-    radial-gradient(900px 500px at 0% 110%, rgba(156,124,68,0.06), transparent 55%),
-    #ece7da;
+html,body{margin:0;padding:0;overflow:hidden;background:var(--bg)}
+body{
+  position:fixed;inset:0;
+  font-family:var(--sf);color:var(--ink);
+  background:var(--bg);
 }
 ::selection{background:rgba(156,124,68,0.22)}
 
@@ -45,21 +43,21 @@ body{position:fixed;inset:0;font-family:var(--sf);color:var(--ink);
 .phone::after{content:'';position:absolute;top:21px;left:50%;transform:translateX(-50%);width:118px;height:32px;background:#0d0b08;border-radius:18px;z-index:200;pointer-events:none}
 .screen{width:100%;height:100%;background:var(--bg);border-radius:46px;overflow:hidden;position:relative;isolation:isolate}
 @media (max-width:500px){
-  html,body{margin:0;padding:0;height:100%;overflow:hidden;background:var(--bg) !important}
   .studio-head{display:none}
-  .stage{padding:0;margin:0;display:block;background:transparent}
+  .stage{padding:0;margin:0;display:block}
   .phone{
-    position:fixed;top:0;left:0;right:0;bottom:0;
-    width:100%;height:100%;
-    border-radius:0 !important;padding:0 !important;
-    box-shadow:none !important;background:var(--bg);
+    position:fixed;inset:0;
+    width:auto;height:auto;
+    border-radius:0 !important;
+    padding:0 !important;
+    box-shadow:none !important;
+    background:var(--bg);
   }
   .phone::after{display:none}
   .screen{
+    position:absolute;inset:0;
     border-radius:0;
-    position:absolute;top:0;left:0;right:0;bottom:0;
-    width:100%;height:100%;
-    overflow:hidden;
+    width:auto;height:auto;
   }
 }
 @media (prefers-reduced-motion:reduce){
@@ -72,15 +70,7 @@ body{position:fixed;inset:0;font-family:var(--sf);color:var(--ink);
    car la vraie barre Safari est déjà visible au-dessus */
 @media not all and (display-mode: standalone){
   .statusbar{display:none}
-  /* Sur mobile Safari : padding sur .screen pour ne pas créer d'espace en bas du .phone */
-  @media (max-width:500px){
-    .screen{padding-top:env(safe-area-inset-top,0px)}
-    .phone{padding-top:0}
-  }
-  /* Desktop : safe-area sur phone */
-  @media (min-width:501px){
-    .phone{padding-top:env(safe-area-inset-top,0px)}
-  }
+  .phone{padding-top:env(safe-area-inset-top,0px)}
 }
 .sb-time{font-size:14.5px;font-weight:600;letter-spacing:0.2px}
 .sb-right{display:flex;align-items:center;gap:6px}
