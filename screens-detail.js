@@ -464,17 +464,18 @@ function dayDetailView(idx){
     : '<button class="btn" onclick="closeOverlay()">Retour à l\'itinéraire</button>';
 
   const restaurantHTML = p.restaurant ? '<div class="section-h"><h2>À table</h2></div>'
-    + '<div class="row" style="cursor:default"><span class="r-ico">' + ico('fork',19,1.5) + '</span>'
-    + '<div class="r-main"><div class="r-t">' + esc(p.restaurant.name) + '</div>'
-    + '<div class="r-s">' + esc(p.restaurant.type||'') + (p.restaurant.price ? ' · ' + esc(p.restaurant.price) : '') + '</div>'
-    + (p.restaurant.note ? '<div class="r-s" style="margin-top:2px;font-style:italic">' + esc(p.restaurant.note) + '</div>' : '')
+    + '<div class="row" style="cursor:default;align-items:flex-start"><span class="r-ico">' + ico('fork',19,1.5) + '</span>'
+    + '<div class="r-main"><div class="r-t">' + esc(p.restaurant.name||'') + (p.restaurant.rating?' <span style="font-size:11px;font-weight:400;color:var(--gold)">'+esc(p.restaurant.rating)+'</span>':'') + '</div>'
+    + '<div class="r-s">' + esc(p.restaurant.type||'') + (p.restaurant.price?' · '+esc(p.restaurant.price):'') + '</div>'
+    + (p.restaurant.note?'<div class="r-s" style="margin-top:2px;font-style:italic">'+esc(p.restaurant.note)+'</div>':'')
+    + (p.restaurant.review?'<div class="r-s" style="margin-top:4px;color:var(--sub);font-size:11px">"'+esc(p.restaurant.review)+'"</div>':'')
     + '</div></div>' : '';
 
   const wellnessHTML = p.wellness ? '<div class="section-h"><h2>Bien-être</h2></div>'
-    + '<div class="row" style="cursor:default"><span class="r-ico">' + ico('droplet',19,1.5) + '</span>'
-    + '<div class="r-main"><div class="r-t">' + esc(p.wellness.name) + '</div>'
-    + '<div class="r-s">' + esc(p.wellness.type||'') + (p.wellness.price ? ' · ' + esc(p.wellness.price) : '') + '</div>'
-    + (p.wellness.note ? '<div class="r-s" style="margin-top:2px;font-style:italic">' + esc(p.wellness.note) + '</div>' : '')
+    + '<div class="row" style="cursor:default;align-items:flex-start"><span class="r-ico">' + ico('droplet',19,1.5) + '</span>'
+    + '<div class="r-main"><div class="r-t">' + esc(p.wellness.name||'') + '</div>'
+    + '<div class="r-s">' + esc(p.wellness.type||'') + (p.wellness.price?' · '+esc(p.wellness.price):'') + '</div>'
+    + (p.wellness.note?'<div class="r-s" style="margin-top:2px;font-style:italic">'+esc(p.wellness.note)+'</div>':'')
     + '</div></div>' : '';
 
   const tipHTML = p.tip ? '<div class="day-tip" style="border-left:3px solid '+catColor+';background:'+hexA(catColor,0.08)+';border-radius:0 8px 8px 0;padding:12px 14px;margin-top:14px;font-size:13.5px;font-style:italic;color:var(--ink)">'

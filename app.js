@@ -104,15 +104,24 @@ function geoMapSVG(W,H,activeIdx){
   var g=_geoGet(dest);
   var vb=g.vb.split(' ').map(Number),vbW=vb[2],vbH=vb[3];
   var accent=(it.palette&&(it.palette.culture||it.palette.beach))||'#C9A96E';
-  var pts=_geoPts(it.plan||[],g);
+  /* Dédupliquer par lieu, garder l'ordre exact du plan */
+  var seen={},ordered=[];
+  (it.plan||[]).forEach(function(p){
+    var k=(p.loc||'').split(/[\/(,]/)[0].trim().toLowerCase();
+    if(!seen[k]){seen[k]=true;ordered.push(p);}
+  });
+  var disp=ordered.slice(0,8).map(function(p,i){return Object.assign({},p,{n:i+1});});
+  var pts=_geoPts(disp,g);
   var sc=Math.min(W/vbW,H/vbH)*0.88,ox=(W-vbW*sc)/2,oy=(H-vbH*sc)/2;
+  /* Tracé dans l'ordre exact */
   var rp='';
   if(pts.length>1){
     rp='M'+pts[0].vx.toFixed(1)+' '+pts[0].vy.toFixed(1);
     for(var ri=1;ri<pts.length;ri++){
       var mx=((pts[ri-1].vx+pts[ri].vx)/2).toFixed(1),my=((pts[ri-1].vy+pts[ri].vy)/2).toFixed(1);
-      rp+=' Q'+pts[ri-1].vx.toFixed(1)+' '+pts[ri-1].vy.toFixed(1)+' '+mx+' '+my+' T'+pts[ri].vx.toFixed(1)+' '+pts[ri].vy.toFixed(1);
+      rp+=' Q'+pts[ri-1].vx.toFixed(1)+' '+pts[ri-1].vy.toFixed(1)+' '+mx+' '+my;
     }
+    rp+=' L'+pts[pts.length-1].vx.toFixed(1)+' '+pts[pts.length-1].vy.toFixed(1);
   }
   var pr=7/sc,pro=10/sc,fs=6/sc,fso=8/sc;
   var pins=pts.map(function(p,i){

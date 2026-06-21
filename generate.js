@@ -316,66 +316,82 @@ function buildSkeletonPrompt(dc, batchSize, offset){
 
   const common=[
     geoConstraint,
-    '- Tracé LINÉAIRE obligatoire : chaque étape doit être dans la même direction que la précédente. Penser à un trajet de voiture logique sans faire demi-tour.',
-    '- JAMAIS revenir sur une ville déjà visitée sauf si c\'est le point de départ/arrivée (aéroport).',
-    '- HÉBERGEMENTS : 1 hébergement par zone géographique distincte. Même zone = même hébergement tout le séjour dans cette zone. Ne pas changer d\'hôtel si on reste dans le même secteur (rayon < 30km).',
-    '- "night" de chaque entrée "plan" = "name" EXACT d\'un hébergement de "stays".',
-    '- sky dans [sun, cloud, rain].',
-    '- Réponds UNIQUEMENT en JSON compact valide, sans texte ni markdown autour.',
+    '- Tracé LINÉAIRE : chaque étape géographiquement proche de la précédente. Circuit logique comme un vrai trajet routier.',
+    '- JAMAIS revenir sur une ville déjà visitée sauf aéroport de départ/arrivée.',
+    '- HÉBERGEMENTS : 1 hébergement par zone (< 30km). Même zone = même hébergement.',
+    '- "night" = "name" EXACT d\'un hébergement de "stays".',
+    '- sky dans [sun, cloud, rain]. Réponds UNIQUEMENT en JSON compact valide.',
   ];
+
   if(isFirst){
     const directives=[_antiTouristDirective(),_interestsDirective(),_rythmeDirective(),_occasionDirective(),_styleDirective(),_dreamDirective()].filter(Boolean);
     const destLock = (!b.surprise && state.destination)
-      ? '\n⚠️ DESTINATION IMPOSÉE PAR LE CLIENT (non négociable, ne PAS en choisir une autre) : "'+state.destination+'". Tout le voyage doit se dérouler dans cette destination exacte ou sa région immédiate. Le champ "dest" de ta réponse DOIT être "'+state.destination+'" (ou son nom complet usuel), jamais une autre destination.\n'
+      ? '\n⚠️ DESTINATION IMPOSÉE : "'+state.destination+'". Le champ "dest" DOIT être "'+state.destination+'". Aucune autre destination.\n'
       : '';
+
     return [
-      'Tu es le cartographe senior de Hic Sunt, maison de voyages haut de gamme avec une exigence éditoriale absolue.',
-      destLock,
-      'Compose l\'OSSATURE d\'un itinéraire RÉEL, DÉSIRABLE et PRÉCIS de '+dc+' jours au total.',
+      '╔══════════════════════════════════════════════════════════╗',
+      '  CARTOGRAPHE SENIOR — HIC SUNT · BEYOND THE KNOWN',
+      '  Maison de voyages d\'exception. Exigence : celle d\'un',
+      '  directeur artistique de palace qui voyage 200 jours/an.',
+      '╚══════════════════════════════════════════════════════════╝',
       '',
+      destLock,
       '═══ BRIEF CLIENT ═══',
       b.lines,
       '',
-      '═══ DIRECTIVES PERSONNALISATION (à respecter dans le choix des étapes et hébergements) ═══',
-      directives.length?directives.join('\n'):'Aucune contrainte spécifique au-delà du brief ci-dessus.',
+      '═══ PERSONNALISATION ═══',
+      directives.length?directives.join('\n'):'Standard confort, ouvert aux découvertes.',
+      '',
+      '═══ PHILOSOPHIE ÉDITORIALE HICSUNT ═══',
+      '- AUTHENTICITÉ ABSOLUE : noms RÉELS d\'hébergements qui existent vraiment (ex: "Su Gologone" en Sardaigne, "Riad Dar Anika" à Marrakech, "Amansala" à Tulum). Pas de noms inventés.',
+      '- RESTAURANTS RÉELS avec nom exact, quartier, spécialité signature et note Google (ex: "Sa Cardiga e su Schironi, Capoterra — anguille du lac, 4,4⭐").',
+      '- EXPÉRIENCES NOMMÉES : excursions avec leur vrai nom commercial ou le nom du guide local (ex: "Sortie en kayak avec Sardinia Kayak Tours — tél. +39 347 xxx"). Si inconnu, décrire précisément (ex: "Marché nocturne de Sineu, mercredi soir").',
+      '- HÉBERGEMENTS AVEC STANDING : indiquer étoiles ou équivalent (ex: "Relais & Châteaux", "5 étoiles", "Charme certifié", "Boutique-hôtel 4⭐", "Agriturisimo bio").',
+      '- ANCRAGE LOCAL : mentionner producteurs, artisans, familles qui tiennent les adresses. "Trattoria tenue par la famille Manca depuis 1962".',
+      '- HORAIRES ET PRATIQUE : ouvrir/fermer, meilleur moment de la journée pour visiter, réservation conseillée.',
+      '- ANTI-TOURISTIQUE : fuir les spots Instagram surexploités. Privilégier ce que connaît un habitant cultivé.',
       '',
       '═══ CONSIGNES STRICTES ═══',
       common.join('\n'),
-      '- "plan" doit contenir EXACTEMENT '+n+' entrées : les jours 1 à '+n+' de ce voyage de '+dc+' jours (les jours suivants seront détaillés séparément).',
-      '- "stays" doit couvrir TOUT le voyage de '+dc+' jours (pas seulement ces '+n+' premiers jours) — prévoir tous les hébergements nécessaires pour les '+dc+' jours. Pas plus de '+Math.min(8,Math.max(3,Math.ceil(dc/3)))+' hébergements différents.',
-      '- Les hébergements doivent refléter les directives de personnalisation ci-dessus (style, occasion).',
-      '- "budget" = fourchette totale réaliste en euros pour TOUS les voyageurs sur les '+dc+' jours (hébergements+repas+activités+transport local, hors vols).',
-      '  · Éco: 60-100€/pers/j · Confort: 120-220€/pers/j · Luxe: 250-500€/pers/j · Ultra: 500€+/pers/j',
-      geoConstraint,
-      '- Chaque hébergement doit avoir un "price" RÉALISTE et DISTINCT (prix par nuit en €, pas 0) selon son type et sa localisation.',
-      '  · Guesthouse/homestay Thaïlande Confort: 40-80€ · Boutique-hôtel Bangkok: 70-130€ · Resort côte: 90-160€ · Villa privée: 150-300€',
-      '  · Maroc Confort: maison d\'hôtes 50-100€ · Riad 80-150€ · Camp désert 120-200€',
-      '  · Les prix DOIVENT être différents entre hébergements (refléter standing et localisation)',
-      '- LOGIQUE DES HÉBERGEMENTS : un hébergement = une zone géographique distincte. Si le circuit reste dans la même zone (ex: Costa Smeralda 4j), UN SEUL hébergement suffit. Ne proposer plusieurs hébergements QUE si le circuit change vraiment de zone (ex: Cagliari puis Alghero). Nombre max d\'hébergements = nombre de zones géographiques distinctes du circuit.',
-      destLock ? '\nRappel final : "dest" doit être "'+state.destination+'". Ne propose AUCUNE autre destination.' : '',
+      '- "plan" : EXACTEMENT '+n+' entrées (jours 1 à '+n+' sur '+dc+').',
+      '- "stays" : couvre TOUT le voyage ('+dc+' jours). Max '+Math.min(6,Math.max(1,Math.ceil(dc/4)))+' hébergements (1 par zone distincte).',
+      '- Prix hébergements RÉALISTES et DISTINCTS selon le type :',
+      '  Sardaigne Confort: agriturismo 60-90€, boutique 90-140€, resort 130-200€, villa 180-350€',
+      '  Thaïlande Confort: guesthouse 35-70€, boutique-hôtel 70-130€, resort plage 100-180€',
+      '  Maroc Confort: riad médina 80-150€, maison d\'hôtes 50-90€, camp désert 120-220€',
+      '- Budget total réaliste pour '+dc+' jours, TOUS voyageurs (hors vols) :',
+      '  Éco: 60-90€/pers/j · Confort: 110-200€/pers/j · Luxe: 220-450€/pers/j · Ultra: 450€+/pers/j',
+      '- LOGIQUE HÉBERGEMENTS : zones distinctes = hébergements distincts. Même zone = 1 seul hébergement.',
+      destLock ? 'Rappel : dest = "'+state.destination+'" uniquement.' : '',
       '',
-      'SCHÉMA (respecte les types et clés exactement, remplace les valeurs d\'exemple par de vraies données) :',
-      '{"dest":"","country":"","tagline":"phrase poétique évocatrice","level":"Éco|Confort|Luxe|Ultra","dates":"ex: Août 2026 · '+dc+' jours","days_count":'+dc+',"budget":0,"season":"meilleure saison courte","coords":"ex: 6°55′N · 79°51′E","region":"région","stays":[{"name":"vrai nom hébergement","type":"ex: Lodge safari","loc":"ville","price":85,"nights":3,"blurb":"max 6 mots évocateurs"},{"name":"autre hébergement","type":"ex: Villa privée","loc":"autre ville","price":120,"nights":2,"blurb":"description courte"}],"plan":[{"title":"titre évocateur","loc":"ville / zone","night":"nom exact stays","sky":"sun","temp":"27°","hook":"accroche 1 phrase narrative"}]}',
+      'SCHÉMA JSON (vraies données — noms réels — aucune invention) :',
+      '{"dest":"","country":"","tagline":"accroche poétique 8-12 mots","level":"Confort","dates":"Août 2026 · '+dc+' jours","days_count":'+dc+',"budget":0,"season":"saison idéale courte","coords":"39°13\'N · 9°07\'E","region":"région","stays":['
+      +'{"name":"Su Gologone","type":"Relais & Châteaux · 4⭐","loc":"Oliena / Nuoro","price":145,"nights":3,"blurb":"Source naturelle, jardins secrets, cuisine locale"},'
+      +'{"name":"Agriturismo Mandra Edera","type":"Agriturismo bio · charme","loc":"Chia / Sud","price":85,"nights":5,"blurb":"Crique privée, production fromagère, couchers de soleil"}],'
+      +'"plan":[{"title":"Arrivée et premiers souffles","loc":"Cagliari / aéroport","night":"Agriturismo Mandra Edera","sky":"sun","temp":"28°","hook":"Poser les valises, descendre vers la mer : la Sardaigne commence ici."}]}',
     ].filter(Boolean).join('\n');
   }
-  /* batches suivants : continuer le plan uniquement, avec les stays déjà établis */
+
+  /* Batches suivants */
   const staysList=(state._genStays||[]).map(function(s){return '- "'+s.name+'" ('+s.type+', '+s.loc+')';}).join('\n');
   return [
-    'Tu es le cartographe senior de Hic Sunt. Tu CONTINUES l\'itinéraire de '+dc+' jours déjà commencé.',
+    'CARTOGRAPHE SENIOR HICSUNT — SUITE de l\'itinéraire '+dc+' jours.',
+    'Même exigence : noms réels, adresses vérifiables, ancrage local.',
     '',
     '═══ BRIEF CLIENT ═══',
     b.lines,
     '',
-    'Hébergements déjà établis pour ce voyage (réutilise EXACTEMENT ces noms dans "night", n\'en crée pas de nouveaux) :',
+    'Hébergements établis (utilise EXACTEMENT ces noms dans "night") :',
     staysList,
     '',
-    '═══ CONSIGNES STRICTES ═══',
+    '═══ CONSIGNES ═══',
     common.join('\n'),
-    '- "plan" doit contenir EXACTEMENT '+n+' entrées : les jours '+(offset+1)+' à '+(offset+n)+' de ce voyage de '+dc+' jours.',
-    '- Continue logiquement depuis l\'étape précédente (même région ou étape suivante du circuit).',
+    '- EXACTEMENT '+n+' entrées : jours '+(offset+1)+' à '+(offset+n)+'.',
+    '- Continue logiquement depuis l\'étape précédente.',
+    '- Mêmes standards qualitatifs : noms réels, horaires, téléphones si pertinents.',
     '',
-    'Réponds UNIQUEMENT avec :',
-    '{"plan":[{"title":"titre évocateur","loc":"ville / zone","night":"nom exact stays","sky":"sun","temp":"27°","hook":"accroche 1 phrase narrative"}]}',
+    '{"plan":[{"title":"","loc":"ville","night":"nom exact stays","sky":"sun","temp":"25°","hook":"phrase narrative évocatrice"}]}',
   ].join('\n');
 }
 
@@ -386,30 +402,36 @@ function buildDaysPrompt(skel, planSteps, offset){
   const directives=[_antiTouristDirective(),_interestsDirective(),_rythmeDirective(),_occasionDirective(),_styleDirective(),_dreamDirective()].filter(Boolean);
   const steps=planSteps.map(function(p,i){return (offset+i+1)+'. '+p.title+' — '+p.loc+(p.hook?' ('+p.hook+')':'');}).join('\n');
   return [
-    'Tu es le cartographe de Hic Sunt. Tu rédiges les détails éditoriaux de ces étapes (jours '+(offset+1)+' à '+(offset+planSteps.length)+' du voyage de '+skel.dest+').',
+    'CARTOGRAPHE SENIOR HICSUNT — Détails éditoriaux pour '+skel.dest+', jours '+(offset+1)+' à '+(offset+planSteps.length)+'.',
+    'EXIGENCE : niveau d\'un guide Condé Nast Traveller ou Wallpaper City Guide. Noms RÉELS et VÉRIFIABLES.',
     '',
     '═══ BRIEF CLIENT ═══',
     b.lines,
     '',
-    '═══ DIRECTIVES PERSONNALISATION ═══',
-    directives.length?directives.join('\n'):'Aucune contrainte spécifique au-delà du brief ci-dessus.',
+    '═══ PERSONNALISATION ═══',
+    directives.length?directives.join('\n'):'Standard confort.',
     '',
-    'ÉTAPES (dans l\'ordre, même ordre dans ta réponse) :',
+    'ÉTAPES À DÉTAILLER :',
     steps,
     '',
-    '═══ CONSIGNES ÉDITORIALES STRICTES ═══',
-    'Pour CHAQUE étape, donne :',
-    '- "desc" : 2 phrases narratives et évocatrices (max 25 mots), style guide de voyage haut de gamme — refléter le rythme et l\'occasion ci-dessus.',
-    '- "moments" : EXACTEMENT '+nMoments+' moments réels et spécifiques à ce lieu — vrais noms de sites, restaurants, activités, cohérents avec le rythme et les intérêts du client',
-    '  · moment = {t:"heure", k:"icône", ti:"nom précis du lieu/activité", d:"détail local en 6 mots max"}',
+    '═══ STANDARDS QUALITATIFS ═══',
+    'Pour CHAQUE étape, produire :',
+    '- "desc" : 2 phrases narratives (max 30 mots), ton luxe éditorial. Évoquer les sensations, pas les faits.',
+    '- "moments" : '+nMoments+' moments RÉELS avec vrais noms :',
+    '  · Restaurants : nom exact + quartier + spécialité signature + note Google (ex: "Ristorante Da Tonino, Cagliari — suppa cuata, 4,5⭐")',
+    '  · Excursions : nom commercial ou guide local + téléphone si disponible (ex: "Kayak Cala Luna avec Gonario Guides — +39 347 123 456")',
+    '  · Sites : heure idéale + conseil pratique (ex: "Nuraghe Su Nuraxi, Barumini — arriver à 8h avant les cars")',
+    '  · Spas/massages : nom + prix + type de soin (ex: "Hotelito Desconocido Spa — Massage basalte 90min, 95€")',
+    '  · format moment : {t:"heure", k:"icône", ti:"NOM RÉEL précis", d:"détail local 6 mots"}',
     '  · k dans ['+GEN_KINDS.join(',')+']',
-    '  · Inclure au moins 1 repas avec VRAI nom de restaurant local, et des activités cohérentes avec les intérêts/occasion du client',
-    '- "tip" : conseil d\'initié spécifique à cette étape (ex: "arriver avant 7h pour éviter les groupes")',
-    '- "restaurant" : {"name":"vrai nom","type":"ex: Rice & curry local","price":"ex: €€","note":"1 phrase"}',
-    '- "wellness" : si intérêts/occasion incluent spa/bien-être/lune de miel, un vrai spa/massage local avec nom et prix. Sinon null.',
+    '- "tip" : conseil d\'initié hyper-spécifique à ce lieu ("Éviter les 11h-14h. Mercredi = marché de producteurs à 200m")',
+    '- "restaurant" : VRAI restaurant local avec note et avis',
+    '  · {"name":"Vrai Nom","type":"spécialité signature","price":"€|€€|€€€","note":"1 raison d\'y aller","rating":"4,3⭐","review":"témoignage type client"}',
+    '- "wellness" : si spa/lune de miel dans les intérêts, VRAI établissement avec prix. Sinon null.',
+    '  · {"name":"Nom spa réel","type":"type de soin","price":"prix","note":"ambiance"}',
     '',
     'Réponds UNIQUEMENT en JSON compact valide, EXACTEMENT '+planSteps.length+' entrées dans "days" :',
-    '{"days":[{"desc":"","tip":"","restaurant":{"name":"","type":"","price":"","note":""},"wellness":null,"moments":[{"t":"07:30","k":"peaks","ti":"nom lieu","d":"détail court"}]}]}',
+    '{"days":[{"desc":"narrative évocatrice","tip":"conseil expert spécifique","restaurant":{"name":"Sa Cardiga e Su Schironi","type":"Anguille du lac grillée","price":"€€","note":"Institution de 70 ans, clientèle locale","rating":"4,4⭐","review":"Authentique, hors des sentiers"},"wellness":null,"moments":[{"t":"07:30","k":"peaks","ti":"Nuraghe Su Nuraxi, Barumini","d":"Arriver tôt, site Unesco désert"}]}]}',
   ].join('\n');
 }
 
@@ -1156,7 +1178,6 @@ function _showPaywall(genEl, days){
     + '</div>'
     + '<a id="pw-pay" href="'+stripeUrl+'" target="_blank" rel="noopener" style="display:block;width:100%;padding:16px;background:var(--ink);color:var(--bg);border:none;border-radius:16px;font-family:var(--sans);font-size:16px;font-weight:600;text-align:center;text-decoration:none;cursor:pointer;box-sizing:border-box">Débloquer mon itinéraire — '+price+'</a>'
     + '<p style="text-align:center;font-size:11px;color:var(--sub);margin-top:10px">Paiement sécurisé · Stripe · Accès immédiat après paiement</p>'
-    + '<button id="pw-already" style="display:block;width:100%;padding:10px;background:transparent;border:none;color:var(--sub);font-family:var(--sans);font-size:12px;cursor:pointer;-webkit-tap-highlight-color:transparent">J\'ai déjà payé →</button>'
     + '</div>';
 
   document.body.appendChild(pw);
