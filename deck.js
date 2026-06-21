@@ -5,6 +5,7 @@ function deckQuestions(){
   const surprise = state.createTab === 'surprise';
   const q = [];
 
+  /* Q1 — Mode */
   q.push({ id:'mode', t:'Par où <em>commençons</em>-nous ?', s:'Deux façons de composer votre voyage.',
     body: function(){
       return '<button class="mode-btn" onclick="deckMode(\'known\')"><span class="m-i">' + ico('pin',22,1.5) + '</span>'
@@ -13,25 +14,23 @@ function deckQuestions(){
         + '<span><span class="m-t">Surprenez-moi</span><br><span class="m-d">Le cartographe choisit une destination inattendue, taillée pour vous.</span></span></button>';
     }, noFoot:true });
 
-  if (!surprise) q.push({ id:'destination', t:'Quelle <em>destination</em> vous appelle ?', s:'Un pays, une ville, une région du monde.',
+  /* Q2 — Destination */
+  if(!surprise) q.push({ id:'destination', t:'Quelle <em>destination</em> vous appelle ?', s:'Un pays, une région, une île — même vague, c\'est bien.',
     body: function(){
       return '<div class="field"><label>Destination</label>'
-        + '<input class="input italic" placeholder="Tapez une ville, un pays…" value="' + esc(state.destination) + '" oninput="state.destination=this.value"></div>';
+        + '<input class="input italic" placeholder="Sardaigne, Japon, Maroc…" value="' + esc(state.destination) + '" oninput="state.destination=this.value"></div>';
     }});
 
-  q.push({ id:'origin', t:'D\'où <em>partez</em>-vous ?', s:'Votre ville de départ, pour les vols et transferts.',
-    body: function(){
-      return '<div class="field"><label>Ville de départ</label>'
-        + '<input class="input" placeholder="Paris" value="' + esc(state.origin) + '" oninput="state.origin=this.value"></div>';
-    }});
-
-  q.push({ id:'dates', t:'Quand <em>partir</em> ?', s:'Des dates souples donnent de meilleurs itinéraires.',
+  /* Q3 — Dates + durée sur une même carte */
+  q.push({ id:'dates', t:'Quand <em>partez</em>-vous ?', s:'Les dates cadrent la saison, les durées et les prix.',
     body: function(){
       return '<div class="field"><label>Départ</label><input class="input" type="date" value="' + esc(state.dateFrom) + '" onchange="state.dateFrom=this.value"></div>'
-        + '<div class="field"><label>Retour</label><input class="input" type="date" value="' + esc(state.dateTo) + '" onchange="state.dateTo=this.value"></div>';
+        + '<div class="field"><label>Retour</label><input class="input" type="date" value="' + esc(state.dateTo) + '" onchange="state.dateTo=this.value"></div>'
+        + '<div class="field"><label>Ville de départ</label><input class="input" placeholder="Paris, Lyon, Bordeaux…" value="' + esc(state.origin) + '" oninput="state.origin=this.value"></div>';
     }});
 
-  q.push({ id:'travelers', t:'Qui <em>voyage</em> ?', s:'Le nombre de voyageurs ajuste hébergements et budget.',
+  /* Q4 — Voyageurs */
+  q.push({ id:'travelers', t:'Qui <em>voyage</em> ?', s:'Le nombre ajuste hébergements, activités et budget.',
     body: function(){
       return '<div class="stepper">'
         + '<button onclick="stepTravelers(-1)" aria-label="Moins">' + ico('minus',20,1.7) + '</button>'
@@ -40,7 +39,18 @@ function deckQuestions(){
         + '</div>';
     }});
 
-  q.push({ id:'budget', t:'Quel <em>niveau</em> de confort ?', s:'Nous calibrons adresses et expériences en conséquence.',
+  /* Q5 — Occasion */
+  q.push({ id:'occasion', t:'Une <em>occasion</em> particulière ?', s:'Facultatif — nous soignons chaque détail qui compte.',
+    body: function(){
+      return '<div class="occ-grid">' + OCCASIONS.map(function(o){
+        const on = state.occasion === o.id;
+        return '<button class="occ' + (on?' on':'') + '" onclick="deckOccasion(\'' + o.id + '\')">'
+          + '<span class="o-e">' + o.emoji + '</span><div class="o-t">' + o.label + '</div><div class="o-d">' + o.desc + '</div></button>';
+      }).join('') + '</div>';
+    }, footLabel:'Passer' });
+
+  /* Q6 — Budget */
+  q.push({ id:'budget', t:'Quel <em>niveau</em> de confort ?', s:'Calibre les adresses, les expériences et le standing.',
     body: function(){
       const opts = [['Éco','L\'essentiel, bien choisi'],['Confort','Belles adresses, sans excès'],['Luxe','Adresses d\'exception'],['Ultra','Sans aucune limite']];
       return opts.map(function(o){
@@ -50,16 +60,14 @@ function deckQuestions(){
       }).join('');
     }, noFoot:true });
 
-  q.push({ id:'styles', t:'Votre <em>style</em> de voyage ?', s:'Choisissez-en autant que vous voulez.',
-    body: function(){
-      return '<div class="chips">' + TRAVEL_STYLES.map(function(s){
-        return '<button class="chip' + (state.styles.indexOf(s)>=0?' on':'') + '" onclick="deckToggle(\'styles\',\'' + s.replace(/'/g,"\\'") + '\',this)">' + s + '</button>';
-      }).join('') + '</div>';
-    }});
-
+  /* Q7 — Rythme */
   q.push({ id:'rythme', t:'À quel <em>rythme</em> ?', s:'Le tempo des journées, des transferts, des pauses.',
     body: function(){
-      const opts = [['Lent','Peu d\'étapes, du temps partout'],['Équilibré','Le juste milieu'],['Intense','Voir le maximum']];
+      const opts = [
+        ['Lent','Peu d\'étapes, du temps partout, s\'imprégner'],
+        ['Équilibré','Alternance activités et temps libre'],
+        ['Intense','Voir le maximum, journées denses'],
+      ];
       return opts.map(function(o){
         const on = state.rythme === o[0];
         return '<button class="radio-it' + (on?' on':'') + '" onclick="deckRadio(\'rythme\',\'' + o[0] + '\')">'
@@ -67,6 +75,15 @@ function deckQuestions(){
       }).join('');
     }, noFoot:true });
 
+  /* Q8 — Styles */
+  q.push({ id:'styles', t:'Votre <em>style</em> de voyage ?', s:'Choisissez-en autant que vous voulez.',
+    body: function(){
+      return '<div class="chips">' + TRAVEL_STYLES.map(function(s){
+        return '<button class="chip' + (state.styles.indexOf(s)>=0?' on':'') + '" onclick="deckToggle(\'styles\',\'' + s.replace(/'/g,"\\'") + '\',this)">' + s + '</button>';
+      }).join('') + '</div>';
+    }});
+
+  /* Q9 — Intérêts */
   q.push({ id:'interests', t:'Vos <em>envies</em> sur place ?', s:'Ce qui doit absolument figurer dans l\'itinéraire.',
     body: function(){
       return '<div class="chips">' + INTERESTS.map(function(s){
@@ -74,27 +91,13 @@ function deckQuestions(){
       }).join('') + '</div>';
     }});
 
-  q.push({ id:'occasion', t:'Une <em>occasion</em> particulière ?', s:'Facultatif — nous soignons les détails qui comptent.',
-    body: function(){
-      return '<div class="occ-grid">' + OCCASIONS.map(function(o){
-        const on = state.occasion === o.id;
-        return '<button class="occ' + (on?' on':'') + '" onclick="deckOccasion(\'' + o.id + '\')">'
-          + '<span class="o-e">' + o.emoji + '</span><div class="o-t">' + o.label + '</div><div class="o-d">' + o.desc + '</div></button>';
-      }).join('') + '</div>';
-    }, footLabel:'Passer' });
-
-  q.push({ id:'flights', t:'Des <em>vols</em> déjà réservés ?', s:'Facultatif — nous calons l\'itinéraire sur vos horaires.',
-    body: function(){
-      return '<div class="field"><label>Vol aller</label><input class="input" placeholder="ex : AF 270 · CDG 10:35" value="' + esc(state.flightOut) + '" oninput="state.flightOut=this.value"></div>'
-        + '<div class="field"><label>Vol retour</label><input class="input" placeholder="ex : AF 271 · 21:50" value="' + esc(state.flightIn) + '" oninput="state.flightIn=this.value"></div>';
-    }});
-
+  /* Q10 — Rêve (libre, toujours en dernier) */
   q.push({ id:'dream', surprise:surprise,
-    t: surprise ? 'À <em>éviter</em> absolument ?' : 'Votre voyage de <em>rêve</em> ?',
-    s: surprise ? 'Destinations déjà vues, contraintes, saisons à fuir.' : 'Décrivez-le librement — le cartographe lit tout.',
+    t: surprise ? 'À <em>éviter</em> absolument ?' : 'Votre voyage de <em>rêve</em> en quelques mots ?',
+    s: surprise ? 'Destinations déjà vues, contraintes, saisons à fuir.' : 'Zone, ambiance, expérience incontournable… le cartographe lit tout.',
     body: function(){
-      return '<div class="field"><label>' + (surprise ? 'Vos contraintes' : 'En quelques mots') + '</label>'
-        + '<textarea class="input" placeholder="' + (surprise ? 'ex : pas d\'Asie, éviter la haute saison…' : 'ex : des criques sans foule, un train de légende, une table inoubliable…') + '" oninput="state.dream=this.value">' + esc(state.dream) + '</textarea></div>';
+      return '<div class="field"><label>' + (surprise ? 'Vos contraintes' : 'Décrivez librement') + '</label>'
+        + '<textarea class="input" rows="4" placeholder="' + (surprise ? 'ex : pas d\'Asie, éviter la haute saison…' : 'ex : criques sans foule dans le sud, un vieux port le matin tôt, une table familiale introuvable en ligne…') + '" oninput="state.dream=this.value">' + esc(state.dream) + '</textarea></div>';
     },
     footHTML: function(){
       return '<button class="btn gold" onclick="runGeneration()">' + ico('sparkle',18,1.7)
