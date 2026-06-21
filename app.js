@@ -230,10 +230,17 @@ const TAB_DEFS = [
   ['profile','person','Profil'],
 ];
 function tabbarHTML(){
-  return '<div class="tabbar">' + TAB_DEFS.map(function(t){
-    return '<button class="tab-it" data-tabbtn="' + t[0] + '" onclick="setTab(\'' + t[0] + '\')">'
-      + ico(t[1], 21, 1.5) + '<span>' + t[2] + '</span></button>';
-  }).join('') + '</div>';
+  return '<div class="tabbar">'
+    + '<div class="tabbar-pill">'
+    + TAB_DEFS.map(function(t){
+      return '<button class="tab-it" data-tabbtn="' + t[0] + '" onclick="setTab(\'' + t[0] + '\')">'
+        + '<div class="tab-inner">'
+        + '<span class="tab-ico">' + ico(t[1], 19, 1.5) + '</span>'
+        + '<span class="tab-lbl">' + t[2] + '</span>'
+        + '</div>'
+        + '</button>';
+    }).join('')
+    + '</div></div>';
 }
 function setTab(name){
   state.tab = name;

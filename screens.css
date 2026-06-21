@@ -4,45 +4,76 @@
 .tabs{position:absolute;inset:0}
 .tabview{
   position:absolute;inset:0;overflow-y:auto;overscroll-behavior:contain;
-  padding-bottom:118px;opacity:0;pointer-events:none;
+  padding-bottom:calc(100px + env(safe-area-inset-bottom,0px));
+  opacity:0;pointer-events:none;
   transition:opacity 0.22s ease;scrollbar-width:none;
 }
 .tabview::-webkit-scrollbar{display:none}
 .tabview.active{opacity:1;pointer-events:auto}
 
 /* ── tab bar — iOS native ── */
+/* ── Tab bar flottante ─────────────────────────────────────────────── */
 .tabbar{
   position:absolute;bottom:0;left:0;right:0;
-  height:calc(68px + env(safe-area-inset-bottom,0px));
-  background:rgba(255,253,247,0.92);
-  backdrop-filter:blur(24px) saturate(180%);
-  -webkit-backdrop-filter:blur(24px) saturate(180%);
-  border-top:0.5px solid rgba(230,220,203,0.7);
-  display:flex;z-index:50;
+  height:calc(80px + env(safe-area-inset-bottom,0px));
   padding-bottom:env(safe-area-inset-bottom,0px);
+  display:flex;align-items:flex-start;justify-content:center;
+  padding-top:10px;
+  z-index:50;
+  /* Fondu vers le bas depuis le fond de l'app */
+  background:linear-gradient(to top,var(--bg) 55%,transparent);
+  pointer-events:none;
 }
-/* iOS tab item — 44px tap zone, centered icon + label */
+.tabbar-pill{
+  display:flex;align-items:center;
+  background:rgba(22,18,12,0.88);
+  backdrop-filter:blur(28px) saturate(180%);
+  -webkit-backdrop-filter:blur(28px) saturate(180%);
+  border-radius:100px;
+  padding:5px;
+  gap:2px;
+  pointer-events:all;
+  box-shadow:0 8px 32px rgba(0,0,0,0.22),0 2px 8px rgba(0,0,0,0.14),inset 0 1px 0 rgba(255,255,255,0.06);
+}
 .tab-it{
-  flex:1;display:flex;flex-direction:column;align-items:center;
-  justify-content:center;gap:4px;padding:8px 4px;
-  border:none;background:transparent;color:var(--sub);
-  cursor:pointer;
-  transition:transform 0.12s cubic-bezier(0.34,1.2,0.4,1),color 0.18s;
+  flex:none;display:flex;align-items:center;justify-content:center;
+  border:none;background:transparent;cursor:pointer;
+  border-radius:100px;
+  padding:0;
+  transition:transform 0.15s cubic-bezier(0.34,1.4,0.4,1);
+  -webkit-tap-highlight-color:transparent;
   -webkit-user-select:none;user-select:none;
-  min-height:44px;
 }
-/* iOS tap: icon bounces slightly */
-.tab-it:active{transform:scale(0.86)}
-.tab-it span{
-  font-family:var(--sf);font-size:10px;font-weight:500;letter-spacing:0.1px;
-  /* overrides old mono uppercase */
-  text-transform:none;
+.tab-it:active{transform:scale(0.88)}
+.tab-inner{
+  display:flex;align-items:center;gap:6px;
+  padding:9px 16px;
+  border-radius:100px;
+  transition:background 0.2s ease, padding 0.2s ease;
 }
-.tab-it.on{color:var(--ink)}
-.tab-it.on .ico{color:var(--gold)}
-/* Selected icon gets a tiny scale-up */
-.tab-it.on{transform:none}
-
+.tab-ico{
+  display:flex;align-items:center;justify-content:center;
+  color:rgba(246,240,228,0.45);
+  transition:color 0.2s ease;
+}
+.tab-lbl{
+  font-family:var(--sf);font-size:13px;font-weight:500;
+  color:rgba(246,240,228,0.45);
+  max-width:0;overflow:hidden;
+  white-space:nowrap;
+  transition:max-width 0.25s cubic-bezier(0.4,0,0.2,1), color 0.2s ease, opacity 0.2s ease;
+  opacity:0;
+}
+/* Onglet actif */
+.tab-it.on .tab-inner{
+  background:rgba(246,240,228,0.12);
+}
+.tab-it.on .tab-ico{ color:var(--gold); }
+.tab-it.on .tab-lbl{
+  max-width:80px;
+  opacity:1;
+  color:rgba(246,240,228,0.92);
+}
 /* ── discover header ── */
 .disc-head{padding-top:6px}
 .disc-top{display:flex;align-items:center;justify-content:space-between}
