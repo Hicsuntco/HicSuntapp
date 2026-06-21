@@ -395,7 +395,7 @@ function itineraryView(){
     +     '<div class="itin-tag">' + esc(it.tag) + '</div>'
     +     '<div class="itin-pills">'
     +       '<span class="pill" style="color:'+primaryColor+';border-color:'+hexA(primaryColor,0.3)+';background:'+hexA(primaryColor,0.07)+'">' + esc(it.dates) + '</span>'
-    +       '<span class="pill">' + it.days + ' jours</span>'
+    +       '<span class="pill">' + (it.plan&&it.plan.length?it.plan.length:it.days) + ' jours</span>'
     +       '<span class="pill">' + esc(it.level) + '</span>'
     +     '</div>'
     +   '</div>'
@@ -415,7 +415,7 @@ function itineraryView(){
     +     '<span><span class="ab-k">Cartographe · assistant</span><br><span class="ab-t">Modifier l\'itinéraire</span></span>'
     +     '<span class="ico chev">' + ico('chevron',20,1.7) + '</span>'
     +   '</div>'
-    +   '<div class="section-h"><h2>Jour par jour</h2><span class="meta">' + it.days + ' jours</span></div>'
+    +   '<div class="section-h"><h2>Jour par jour</h2><span class="meta">' + (it.plan&&it.plan.length?it.plan.length:it.days) + ' jours</span></div>'
     +   it.plan.map(function(p, i){
         if(!p) return '';
         const catColor = (palette[p.category]) || primaryColor;

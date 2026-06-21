@@ -1030,7 +1030,7 @@ async function runFullGeneration(overlayAlreadyOpen){
 
   /* ── PAYWALL ── Vérifier si l'utilisateur a déjà payé ou a un code ── */
   setTimeout(function(){
-    const days = ITINERARY.days || 0;
+    const days = (ITINERARY.plan&&ITINERARY.plan.length) ? ITINERARY.plan.length : (ITINERARY.days || 0);
     const alreadyPaid = _checkPaymentToken(ITINERARY.dest, days);
 
     if(alreadyPaid){
