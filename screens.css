@@ -12,67 +12,69 @@
 .tabview.active{opacity:1;pointer-events:auto}
 
 /* ── tab bar — iOS native ── */
-/* ── Tab bar flottante ─────────────────────────────────────────────── */
+/* ── Tab bar flottante pleine largeur ──────────────────────────────── */
 .tabbar{
   position:absolute;bottom:0;left:0;right:0;
-  height:calc(80px + env(safe-area-inset-bottom,0px));
+  height:calc(82px + env(safe-area-inset-bottom,0px));
   padding-bottom:env(safe-area-inset-bottom,0px);
   display:flex;align-items:flex-start;justify-content:center;
   padding-top:10px;
   z-index:50;
-  /* Fondu vers le bas depuis le fond de l'app */
-  background:linear-gradient(to top,var(--bg) 55%,transparent);
+  background:linear-gradient(to top,var(--bg) 60%,transparent);
   pointer-events:none;
+  padding-left:16px;
+  padding-right:16px;
 }
 .tabbar-pill{
   display:flex;align-items:center;
-  background:rgba(236,231,218,0.82);
-  backdrop-filter:blur(28px) saturate(200%);
-  -webkit-backdrop-filter:blur(28px) saturate(200%);
-  border-radius:100px;
-  padding:8px;
-  gap:3px;
+  width:100%;
+  background:rgba(236,231,218,0.85);
+  backdrop-filter:blur(32px) saturate(200%);
+  -webkit-backdrop-filter:blur(32px) saturate(200%);
+  border-radius:28px;
+  padding:6px;
+  gap:2px;
   pointer-events:all;
-  box-shadow:0 8px 32px rgba(0,0,0,0.10),0 2px 8px rgba(0,0,0,0.07),inset 0 1px 0 rgba(255,255,255,0.55);
+  box-shadow:0 4px 24px rgba(0,0,0,0.08),0 1px 4px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.6);
 }
 .tab-it{
-  flex:none;display:flex;align-items:center;justify-content:center;
+  flex:1;display:flex;align-items:center;justify-content:center;
   border:none;background:transparent;cursor:pointer;
-  border-radius:100px;
+  border-radius:22px;
   padding:0;
   transition:transform 0.15s cubic-bezier(0.34,1.4,0.4,1);
   -webkit-tap-highlight-color:transparent;
   -webkit-user-select:none;user-select:none;
 }
-.tab-it:active{transform:scale(0.88)}
+.tab-it:active{transform:scale(0.90)}
 .tab-inner{
-  display:flex;align-items:center;gap:7px;
-  padding:13px 20px;
-  border-radius:100px;
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  padding:13px 10px;
+  width:100%;
+  border-radius:22px;
   transition:background 0.2s ease;
 }
 .tab-ico{
   display:flex;align-items:center;justify-content:center;
-  color:rgba(26,22,16,0.35);
+  color:rgba(26,22,16,0.32);
   transition:color 0.2s ease;
 }
 .tab-lbl{
   font-family:var(--sf);font-size:13px;font-weight:500;
-  color:rgba(26,22,16,0.35);
+  color:rgba(26,22,16,0.32);
   max-width:0;overflow:hidden;
   white-space:nowrap;
-  transition:max-width 0.25s cubic-bezier(0.4,0,0.2,1), color 0.2s ease, opacity 0.2s ease;
+  transition:max-width 0.28s cubic-bezier(0.4,0,0.2,1),opacity 0.2s ease,color 0.2s ease;
   opacity:0;
 }
-/* Onglet actif */
 .tab-it.on .tab-inner{
-  background:rgba(26,22,16,0.09);
+  background:rgba(26,22,16,0.08);
 }
 .tab-it.on .tab-ico{ color:var(--gold); }
 .tab-it.on .tab-lbl{
-  max-width:80px;
+  max-width:90px;
   opacity:1;
-  color:rgba(26,22,16,0.85);
+  color:rgba(26,22,16,0.82);
 }
 /* ── discover header ── */
 .disc-head{padding-top:6px}
