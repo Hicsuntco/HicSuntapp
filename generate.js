@@ -165,6 +165,25 @@ function _dreamDirective(){
   return (surprise?'CONTRAINTES / À ÉVITER (impératif) : ':'ENVIE PRIORITAIRE DU CLIENT (à intégrer absolument) : ')+state.dream;
 }
 
+/* Extraire une contrainte de zone depuis le dream si mentionnée */
+function _zoneFromDream(dest, dream){
+  if(!dream) return '';
+  const d=dream.toLowerCase(), dest_l=(dest||'').toLowerCase();
+  /* Contraintes directionnelles */
+  if(/sud\b|south\b|méridional/.test(d)) return '⚠️ ZONE IMPOSÉE PAR LE CLIENT : SUD uniquement. Aucune étape au nord ou au centre.';
+  if(/nord\b|north\b|septentrion/.test(d)) return '⚠️ ZONE IMPOSÉE PAR LE CLIENT : NORD uniquement. Aucune étape au sud ou au centre.';
+  if(/\best\b|orient/.test(d)) return '⚠️ ZONE IMPOSÉE PAR LE CLIENT : EST uniquement. Côte est.';
+  if(/\bouest\b|west\b|occident/.test(d)) return '⚠️ ZONE IMPOSÉE PAR LE CLIENT : OUEST uniquement. Côte ouest.';
+  /* Zones nommées Sardaigne */
+  if(dest_l.includes('sardaigne')){
+    if(/cagliari|chia|villasimius|sulcis|campidano|iglesiente/.test(d)) return '⚠️ ZONE : Extrême SUD Sardaigne (Cagliari, Chia, Villasimius, Sulcis). Aucune étape au-delà de Carbonia/Oristano.';
+    if(/alghero|sassari|castelsardo|bosa|nurra/.test(d)) return '⚠️ ZONE : NORD-OUEST Sardaigne (Alghero, Sassari, Bosa). Aucune étape au sud.';
+    if(/olbia|costa smeralda|gallura|palau|maddalena/.test(d)) return '⚠️ ZONE : NORD-EST Sardaigne / Gallura (Olbia, Costa Smeralda, Palau). Aucune étape au sud.';
+    if(/nuoro|barbagia|ogliastra|oliena|orgosolo/.test(d)) return '⚠️ ZONE : CENTRE-EST Sardaigne (Nuoro, Barbagia, Ogliastra). Pas de côte.';
+  }
+  return '';
+}
+
 /* ── catégories thématiques & palettes adaptatives ───────────────────── */
 /* chaque "kind" de moment appartient à une catégorie thématique */
 const KIND_CATEGORY={
@@ -315,6 +334,7 @@ function buildSkeletonPrompt(dc, batchSize, offset){
   const rythme = state.rythme||'Équilibré';
   const dest = state.destination||'';
   const geoConstraint = _geoConstraintDirective(dest, dc, rythme);
+  const zoneConstraint = _zoneFromDream(dest, state.dream||'');
 
   /* Vitesse de déplacement selon rythme */
   const maxKm = rythme.includes('lent')||rythme.includes('déten')?80
@@ -322,6 +342,7 @@ function buildSkeletonPrompt(dc, batchSize, offset){
 
   const common=[
     geoConstraint,
+    zoneConstraint ? zoneConstraint : '',
     '━━━ RÈGLES LOGISTIQUES ABSOLUES (violations = itinéraire invalide) ━━━',
     '1. TRACÉ LINÉAIRE : chaque étape dans la même direction générale. Visualise la carte — le tracé doit avoir du sens.',
     '2. DISTANCES RÉALISTES : max '+maxKm+'km entre deux étapes consécutives (rythme '+rythme+'). Mentionner le trajet si > 45min.',
@@ -346,6 +367,7 @@ function buildSkeletonPrompt(dc, batchSize, offset){
       '╚═══════════════════════════════════════════════════════════════╝',
       '',
       destLock,
+      zoneConstraint ? zoneConstraint+'\n' : '',
       '━━━ BRIEF CLIENT ━━━',
       b.lines,
       '',
