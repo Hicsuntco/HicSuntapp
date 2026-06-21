@@ -117,7 +117,7 @@ function initDeck(){
     const foot = qd.footHTML ? qd.footHTML()
       : (qd.noFoot ? '' : '<button class="btn sm" onclick="deckNext()">' + (qd.footLabel || 'Continuer') + '</button>');
     return '<div class="dcard" data-card="' + i + '">'
-      + '<span class="eyebrow">Question ' + String(i+1).padStart(2,'0') + '</span>'
+      + '<div class="d-num">Question ' + String(i+1).padStart(2,'0') + '</div>'
       + '<div class="d-q">' + qd.t + '</div>'
       + '<div class="d-s">' + qd.s + '</div>'
       + '<div class="d-body">' + qd.body() + '</div>'

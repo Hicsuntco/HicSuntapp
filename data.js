@@ -117,18 +117,18 @@ const DEST_ORDER = ['Sri Lanka','Japon','Maroc','Portugal','Islande','Pérou','T
 
 /* generator vocabulary (aligned with hicsunt.com) */
 const TRAVEL_STYLES = [
-  'Aventure','Culture','Détente','Gastronomie','Nature','Luxe',
+  'Aventure','Culture & Histoire','Gastronomie','Nature','Luxe',
   'Slow travel','Famille','Bien-être & Spa','Plage & Mer',
-  'Art & Architecture','Road trip','Randonnée','Off the beaten track',
-  'Oenotourisme','Surf & Nautisme','Photographie','Vie nocturne',
+  'Art & Architecture','Road trip','Off the beaten track',
+  'Oenotourisme','Surf & Nautisme','Vie nocturne','Photographie',
 ];
 const INTERESTS = [
-  'Randonnée','Plages cachées','Safari','Temples & spiritualité',
-  'Marchés locaux','Gastronomie locale','Photographie','Architecture',
-  'Vin & vignobles','Bien-être & spa','Plongée & snorkeling','Vie nocturne',
-  'Sports nautiques','Artisanat local','Musées & galeries','Musique & festivals',
-  'Vélo & cycling','Équitation','Astronomie','Yoga & méditation',
-  'Cuisine & cours de cuisine','Faune & ornithologie','Thermes & bains',
+  'Randonnée','Plages cachées','Safari & Faune','Temples & spiritualité',
+  'Marchés locaux','Cours de cuisine','Plongée & snorkeling',
+  'Vin & vignobles','Yoga & méditation','Vélo & trails',
+  'Artisanat local','Musées & galeries','Musique & festivals',
+  'Équitation','Astronomie','Thermes & sources',
+  'Ornithologie','Sports d\'hiver',
 ];
 const OCCASIONS = [
   { id:'lune-de-miel', label:'Lune de miel',  emoji:'💍', desc:'Romance, intimité, tables aux chandelles' },
