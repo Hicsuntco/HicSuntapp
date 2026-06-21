@@ -149,166 +149,164 @@
 .trip-del:active{background:rgba(27,22,16,0.8)}
 
 /* ── deck (questionnaire) ── */
-/* ── Deck questionnaire — design premium ──────────────────────────── */
-.deck-head{padding-top:8px}
-.deck-prog{display:flex;align-items:center;gap:13px;margin-top:14px}
+/* ── Deck questionnaire ─────────────────────────────────────────────── */
+.deck-head{padding-top:6px}
+.deck-prog{display:flex;align-items:center;gap:12px;margin-top:12px}
 .deck-back{
   width:40px;height:40px;border-radius:12px;border:1px solid var(--line);
-  background:var(--surface);color:var(--ink);
-  display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none;
-  transition:opacity 0.2s,transform 0.12s cubic-bezier(0.34,1.2,0.4,1);
+  background:var(--surface);color:var(--ink);flex:none;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  transition:opacity 0.2s,transform 0.12s var(--spring);
   -webkit-tap-highlight-color:transparent;
 }
 .deck-back:active{transform:scale(0.88)}
-.deck-back[disabled]{opacity:0.3;pointer-events:none}
+.deck-back[disabled]{opacity:0.28;pointer-events:none}
 .deck-bar{flex:1;height:1.5px;background:var(--line);border-radius:2px;overflow:hidden}
-.deck-bar i{display:block;height:100%;background:var(--gold);border-radius:2px;transition:width 0.5s cubic-bezier(0.4,0,0.2,1)}
+.deck-bar i{display:block;height:100%;background:var(--gold);transition:width 0.5s ease}
 .deck-count{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:1px;color:var(--sub);flex:none}
 
-/* Conteneur — pleine hauteur sans hauteur fixe */
-#deck{position:relative;margin-top:20px;padding:0 20px;min-height:480px}
+/* Pile de cards — hauteur fixe, overflow caché */
+#deck{
+  position:relative;
+  margin-top:18px;
+  padding:0 20px;
+  height:calc(100dvh - 200px);
+  max-height:580px;
+  min-height:420px;
+}
 .dcard{
-  position:absolute;left:20px;right:20px;top:0;
+  position:absolute;inset:0;
   background:var(--surface);
   border:1px solid var(--line);
-  border-radius:24px;
-  box-shadow:0 8px 40px rgba(26,22,16,0.09),0 2px 8px rgba(26,22,16,0.05);
-  padding:28px 24px 22px;
+  border-radius:22px;
+  box-shadow:0 2px 12px rgba(26,22,16,0.07),0 1px 3px rgba(26,22,16,0.05);
+  padding:26px 22px 20px;
   display:flex;flex-direction:column;
-  transition:transform 0.48s cubic-bezier(0.34,1.2,0.4,1),opacity 0.36s ease;
+  overflow:hidden;
+  transition:transform 0.45s var(--spring),opacity 0.35s ease;
   will-change:transform,opacity;
   color:var(--ink);
-  min-height:460px;
 }
 
-/* Numéro de question — très discret */
+/* Numéro question */
 .dcard .d-num{
-  font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:1.8px;
-  text-transform:uppercase;color:var(--gold);margin-bottom:12px;
+  font-family:var(--mono);font-size:9px;font-weight:700;
+  letter-spacing:1.8px;text-transform:uppercase;color:var(--gold);
+  margin-bottom:10px;flex:none;
 }
 /* Titre */
 .dcard .d-q{
-  font-family:var(--serif);font-weight:600;font-size:28px;
-  line-height:1.16;letter-spacing:-0.5px;color:var(--ink);
+  font-family:var(--serif);font-weight:600;font-size:26px;
+  line-height:1.18;letter-spacing:-0.4px;color:var(--ink);flex:none;
 }
 .dcard .d-q em{font-style:italic;color:var(--gold)}
 /* Sous-titre */
 .dcard .d-s{
   font-size:13px;font-weight:300;color:var(--sub);
-  line-height:1.55;margin-top:8px;
+  line-height:1.5;margin-top:6px;flex:none;
 }
-.dcard .d-body{flex:1;margin-top:22px;overflow-y:auto;scrollbar-width:none;padding-bottom:4px}
+/* Corps scrollable */
+.dcard .d-body{
+  flex:1;margin-top:18px;overflow-y:auto;
+  scrollbar-width:none;-webkit-overflow-scrolling:touch;
+  min-height:0;
+}
 .dcard .d-body::-webkit-scrollbar{display:none}
-.dcard .d-foot{margin-top:16px;flex:none}
+/* Pied fixe */
+.dcard .d-foot{margin-top:12px;flex:none}
 
-/* ── Mode buttons ── */
+/* ── Boutons mode ── */
 .mode-btn{
-  width:100%;text-align:left;background:transparent;
-  border:1px solid var(--line);
-  border-radius:18px;padding:18px 20px;margin-bottom:10px;
-  cursor:pointer;display:flex;align-items:center;gap:16px;color:var(--ink);
-  transition:transform 0.12s cubic-bezier(0.34,1.2,0.4,1),border-color 0.18s,background 0.18s;
+  width:100%;text-align:left;background:var(--surface2);
+  border:1px solid var(--line);border-radius:16px;
+  padding:16px 18px;margin-bottom:10px;
+  cursor:pointer;display:flex;align-items:center;gap:14px;color:var(--ink);
+  transition:transform 0.12s var(--spring),border-color 0.18s;
   -webkit-tap-highlight-color:transparent;
 }
 .mode-btn:active{transform:scale(0.97)}
-.mode-btn:hover{border-color:var(--gold);background:var(--surface2)}
 .mode-btn .m-i{
-  width:44px;height:44px;border-radius:14px;
-  background:linear-gradient(135deg,rgba(201,169,110,0.15),rgba(201,169,110,0.06));
+  width:42px;height:42px;border-radius:12px;
+  background:rgba(156,124,68,0.12);
   color:var(--gold);display:flex;align-items:center;justify-content:center;flex:none;
 }
-.mode-btn .m-t{font-family:var(--serif);font-weight:600;font-size:17px;color:var(--ink)}
-.mode-btn .m-d{font-size:12px;font-weight:300;color:var(--sub);margin-top:3px;line-height:1.4}
+.mode-btn .m-t{font-family:var(--serif);font-weight:600;font-size:16px;color:var(--ink)}
+.mode-btn .m-d{font-size:12px;font-weight:300;color:var(--sub);margin-top:2px;line-height:1.4}
 
-/* ── Radio items (budget, rythme) ── */
+/* ── Radio (budget, rythme) ── */
 .radio-it{
   width:100%;display:flex;align-items:center;justify-content:space-between;
-  background:transparent;border:1px solid var(--line);border-radius:16px;
-  padding:16px 18px;margin-bottom:9px;cursor:pointer;text-align:left;color:var(--ink);
-  transition:transform 0.12s cubic-bezier(0.34,1.2,0.4,1),background 0.18s,border-color 0.18s;
+  background:var(--surface2);border:1px solid var(--line);border-radius:14px;
+  padding:14px 16px;margin-bottom:8px;
+  cursor:pointer;text-align:left;color:var(--ink);
+  transition:transform 0.12s var(--spring),background 0.18s,border-color 0.18s;
   -webkit-tap-highlight-color:transparent;
 }
 .radio-it:active{transform:scale(0.97)}
 .radio-it.on{border-color:var(--ink);background:var(--ink);color:var(--onink)}
-.radio-it .ra-t{font-family:var(--serif);font-weight:600;font-size:17px;color:inherit}
-.radio-it .ra-d{font-size:12px;font-weight:300;color:var(--sub);margin-top:3px;line-height:1.3}
+.radio-it .ra-t{font-family:var(--serif);font-weight:600;font-size:16px;color:inherit}
+.radio-it .ra-d{font-size:12px;font-weight:300;color:var(--sub);margin-top:2px}
 .radio-it.on .ra-d{color:rgba(246,240,228,0.55)}
-.radio-it .ra-dot{
-  width:20px;height:20px;border-radius:50%;
-  border:1.5px solid var(--line2);flex:none;
-  transition:background 0.18s,border-color 0.18s;
-}
+.radio-it .ra-dot{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--line2);flex:none;transition:background 0.18s,border-color 0.18s}
 .radio-it.on .ra-dot{border-color:var(--gold);background:var(--gold)}
 
 /* ── Stepper ── */
-.stepper{display:flex;align-items:center;justify-content:center;gap:28px;padding:28px 0}
+.stepper{display:flex;align-items:center;justify-content:center;gap:24px;padding:20px 0}
 .stepper button{
-  width:52px;height:52px;border-radius:50%;border:1px solid var(--line);
-  background:var(--surface);color:var(--ink);
+  width:48px;height:48px;border-radius:50%;border:1px solid var(--line);
+  background:var(--surface2);color:var(--ink);
   display:flex;align-items:center;justify-content:center;cursor:pointer;
-  transition:transform 0.12s cubic-bezier(0.34,1.2,0.4,1);
-  -webkit-tap-highlight-color:transparent;
+  transition:transform 0.12s var(--spring);-webkit-tap-highlight-color:transparent;
 }
 .stepper button:active{transform:scale(0.86)}
-.stepper .st-v{text-align:center;min-width:100px}
-.stepper .st-n{font-family:var(--serif);font-weight:600;font-size:58px;line-height:1;color:var(--ink)}
-.stepper .st-l{font-family:var(--mono);font-size:8.5px;letter-spacing:1.8px;text-transform:uppercase;color:var(--sub);margin-top:8px}
+.stepper .st-v{text-align:center;min-width:90px}
+.stepper .st-n{font-family:var(--serif);font-weight:600;font-size:56px;line-height:1;color:var(--ink)}
+.stepper .st-l{font-family:var(--mono);font-size:8px;letter-spacing:1.8px;text-transform:uppercase;color:var(--sub);margin-top:6px}
 
-/* ── Occasion grid ── */
-.occ-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+/* ── Occasion ── */
+.occ-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
 .occ{
-  background:transparent;border:1px solid var(--line);border-radius:18px;
-  padding:16px 14px;cursor:pointer;text-align:left;color:var(--ink);
-  transition:transform 0.12s cubic-bezier(0.34,1.2,0.4,1),background 0.18s,border-color 0.18s;
+  background:var(--surface2);border:1px solid var(--line);border-radius:16px;
+  padding:14px 12px;cursor:pointer;text-align:left;color:var(--ink);
+  transition:transform 0.12s var(--spring),background 0.18s,border-color 0.18s;
   -webkit-tap-highlight-color:transparent;
 }
 .occ:active{transform:scale(0.95)}
 .occ.on{border-color:var(--ink);background:var(--ink);color:var(--onink)}
-.occ .o-e{font-size:24px;line-height:1}
-.occ .o-t{font-family:var(--serif);font-weight:600;font-size:14px;margin-top:10px;color:inherit;line-height:1.2}
-.occ .o-d{font-size:11px;font-weight:300;color:var(--sub);margin-top:4px;line-height:1.4}
+.occ .o-e{font-size:22px;line-height:1}
+.occ .o-t{font-family:var(--serif);font-weight:600;font-size:13px;margin-top:8px;color:inherit;line-height:1.2}
+.occ .o-d{font-size:10px;font-weight:300;color:var(--sub);margin-top:3px;line-height:1.4}
 .occ.on .o-d{color:rgba(246,240,228,0.55)}
 
-/* ── Chips (styles + intérêts) ── */
-.chips{display:flex;flex-wrap:wrap;gap:8px;padding:2px 0}
+/* ── Chips ── */
+.chips{display:flex;flex-wrap:wrap;gap:7px;padding:2px 0}
 .chip{
-  padding:9px 16px;
-  background:transparent;
-  border:1px solid var(--line);
-  border-radius:100px;
-  font-family:var(--sf);font-size:13px;font-weight:400;
-  color:var(--ink);cursor:pointer;
-  transition:transform 0.1s cubic-bezier(0.34,1.2,0.4,1),background 0.18s,border-color 0.18s,color 0.18s;
+  padding:8px 15px;background:var(--surface2);
+  border:1px solid var(--line);border-radius:100px;
+  font-family:var(--sf);font-size:13px;font-weight:400;color:var(--ink);
+  cursor:pointer;white-space:nowrap;
+  transition:transform 0.1s var(--spring),background 0.15s,border-color 0.15s;
   -webkit-tap-highlight-color:transparent;
-  white-space:nowrap;
 }
 .chip:active{transform:scale(0.93)}
-.chip.on{
-  background:var(--ink);border-color:var(--ink);color:var(--onink);
-  font-weight:500;
-}
+.chip.on{background:var(--ink);border-color:var(--ink);color:var(--onink);font-weight:500}
 
-/* ── Inputs & textarea ── */
-.field{margin-bottom:16px}
+/* ── Inputs ── */
+.field{margin-bottom:14px}
 .field label{
-  display:block;
-  font-family:var(--mono);font-size:8.5px;font-weight:700;
-  letter-spacing:1.6px;text-transform:uppercase;
-  color:var(--gold);margin-bottom:8px;
+  display:block;font-family:var(--mono);font-size:8px;font-weight:700;
+  letter-spacing:1.6px;text-transform:uppercase;color:var(--gold);margin-bottom:7px;
 }
 .input{
   width:100%;box-sizing:border-box;
-  background:var(--surface2);border:1px solid var(--line);border-radius:14px;
-  padding:13px 16px;
-  font-family:var(--sf);font-size:15px;color:var(--ink);
-  outline:none;-webkit-appearance:none;
-  transition:border-color 0.18s;
+  background:var(--surface2);border:1px solid var(--line);border-radius:12px;
+  padding:12px 14px;font-family:var(--sf);font-size:15px;color:var(--ink);
+  outline:none;-webkit-appearance:none;transition:border-color 0.18s;
 }
 .input:focus{border-color:var(--gold)}
-.input.italic{font-family:var(--serif);font-style:italic;font-size:17px}
+.input.italic{font-family:var(--serif);font-style:italic;font-size:18px}
 .input::placeholder{color:var(--ph)}
-textarea.input{resize:none;min-height:110px;line-height:1.55}
-
+textarea.input{resize:none;min-height:100px;line-height:1.55}
 
 
 /* ── voyages ── */
