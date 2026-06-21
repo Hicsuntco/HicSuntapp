@@ -116,8 +116,20 @@ const DESTS = {
 const DEST_ORDER = ['Sri Lanka','Japon','Maroc','Portugal','Islande','Pérou','Thaïlande','Kenya'];
 
 /* generator vocabulary (aligned with hicsunt.com) */
-const TRAVEL_STYLES = ['Aventure','Culture','Détente','Gastronomie','Nature','Luxe','Slow travel','Famille'];
-const INTERESTS = ['Randonnée','Plages cachées','Safari','Temples & spiritualité','Marchés locaux','Gastronomie locale','Photographie','Architecture','Vin & vignobles','Bien-être & spa','Sous-marin','Vie nocturne'];
+const TRAVEL_STYLES = [
+  'Aventure','Culture','Détente','Gastronomie','Nature','Luxe',
+  'Slow travel','Famille','Bien-être & Spa','Plage & Mer',
+  'Art & Architecture','Road trip','Randonnée','Off the beaten track',
+  'Oenotourisme','Surf & Nautisme','Photographie','Vie nocturne',
+];
+const INTERESTS = [
+  'Randonnée','Plages cachées','Safari','Temples & spiritualité',
+  'Marchés locaux','Gastronomie locale','Photographie','Architecture',
+  'Vin & vignobles','Bien-être & spa','Plongée & snorkeling','Vie nocturne',
+  'Sports nautiques','Artisanat local','Musées & galeries','Musique & festivals',
+  'Vélo & cycling','Équitation','Astronomie','Yoga & méditation',
+  'Cuisine & cours de cuisine','Faune & ornithologie','Thermes & bains',
+];
 const OCCASIONS = [
   { id:'lune-de-miel', label:'Lune de miel',  emoji:'💍', desc:'Romance, intimité, tables aux chandelles' },
   { id:'anniversaire', label:'Anniversaire',  emoji:'✦',  desc:'Célébration mémorable, surprises locales' },

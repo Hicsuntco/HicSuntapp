@@ -111,11 +111,6 @@ function _occasionLabel(id){
   const o=(typeof OCCASIONS!=='undefined')&&OCCASIONS.find(function(x){return x.id===id;});
   return o?o.label:null;
 }
-function _interestsDirective(){
-  const interests=(state.interests||[]);
-  if(!interests.length) return '';
-  return 'INTÉRÊTS DU CLIENT (impératif — CHAQUE jour doit refléter au moins un de ces intérêts dans ses moments/activités, et la majorité des moments du voyage doivent s\'y rattacher) : '+interests.join(', ')+'. Ne propose PAS d\'activités hors de ces thèmes sauf nécessité logistique (transferts, repas).';
-}
 function _antiTouristDirective(){
   return 'EXIGENCE ÉDITORIALE HIC SUNT (non négociable, prioritaire sur tout le reste) : Hic Sunt signifie "Beyond the Known" — chaque étape doit éviter le circuit touristique de masse. '
     + 'AUTO-VÉRIFICATION OBLIGATOIRE avant de valider chaque lieu : "Ce nom apparaît-il dans le top 5 des résultats Google Images, TripAdvisor ou Instagram pour cette destination ?" Si oui, c\'est interdit — trouve une alternative réelle et moins connue. '
@@ -152,12 +147,51 @@ function _styleDirective(){
   if(!styles.length) return '';
   const lower=styles.join(' ').toLowerCase();
   const notes=[];
-  if(lower.includes('luxe')) notes.push('hébergements haut de gamme, services premium, adresses signature');
-  if(lower.includes('authentique')||lower.includes('local')) notes.push('guesthouses et adresses tenues par des locaux, immersion culturelle');
-  if(lower.includes('nature')||lower.includes('aventure')) notes.push('lodges nature, accès direct aux sentiers/sites naturels');
-  if(lower.includes('détente')||lower.includes('bien-être')) notes.push('hébergements avec spa/piscine, journées avec temps de repos');
-  if(lower.includes('gastro')||lower.includes('culinaire')) notes.push('hébergements proches de bonnes tables, expériences culinaires locales');
-  return notes.length ? 'STYLE DE VOYAGE ('+styles.join(', ')+') : '+notes.join(' ; ')+'.' : '';
+  if(lower.includes('luxe'))              notes.push('hébergements haut de gamme, services premium, adresses signature');
+  if(lower.includes('nature')||lower.includes('aventure')) notes.push('lodges nature, accès direct sentiers/sites naturels, activités outdoor');
+  if(lower.includes('détente')||lower.includes('bien-être')||lower.includes('spa')) notes.push('hébergements avec spa/piscine, massages inclus si possible, journées avec temps libre');
+  if(lower.includes('gastro')||lower.includes('culinaire')) notes.push('tables d\'exception locales, marchés producteurs, cours de cuisine');
+  if(lower.includes('plage')||lower.includes('mer'))  notes.push('hébergements en front de mer ou accès direct plage/crique, activités nautiques');
+  if(lower.includes('art')||lower.includes('architecture')) notes.push('musées, ateliers d\'artistes, quartiers historiques et bâtiments remarquables');
+  if(lower.includes('road')||lower.includes('route')) notes.push('itinéraire en voiture/moto, haltes spontanées, hébergements variés le long du trajet');
+  if(lower.includes('randonnée'))         notes.push('sentiers de randonnée, hébergements avec accès direct aux trails');
+  if(lower.includes('off')||lower.includes('beaten')) notes.push('destinations peu fréquentées, zéro touristique, immersion totale');
+  if(lower.includes('oenot')||lower.includes('vin')) notes.push('visites de domaines viticoles, dégustations, tables gastronomiques de vignobles');
+  if(lower.includes('surf')||lower.includes('nautisme')) notes.push('spots de surf/kite, locations d\'équipement nautique, hébergements surfers-friendly');
+  if(lower.includes('photo'))             notes.push('golden hours programmés, accès aux points de vue secrets, lumière naturelle privilégiée');
+  if(lower.includes('nocturn')||lower.includes('nightl')) notes.push('bars locaux, concerts, scène culturelle nocturne authentique');
+  if(lower.includes('slow'))              notes.push('rythme très lent, longues haltes, répéter les mêmes lieux pour s\'y ancrer vraiment');
+  if(lower.includes('famille'))           notes.push('activités adaptées aux enfants, hébergements spacieux, rythme doux');
+  if(lower.includes('culture')||lower.includes('authenticité')) notes.push('rencontres locales, artisans, patrimoine vivant loin des circuits');
+  return notes.length ? 'STYLE DE VOYAGE ('+styles.join(', ')+') : '+notes.join(' · ')+'.' : 'Styles : '+styles.join(', ')+'.';
+}
+
+function _interestsDirective(){
+  const interests=(state.interests||[]);
+  if(!interests.length) return '';
+  const lower=interests.join(' ').toLowerCase();
+  const notes=[];
+  if(lower.includes('randonnée')||lower.includes('hike')) notes.push('planifier des randonnées avec noms des sentiers et niveaux de difficulté');
+  if(lower.includes('plage')||lower.includes('crique'))   notes.push('accès à des plages secrètes et criques peu fréquentées');
+  if(lower.includes('safari')||lower.includes('faune'))   notes.push('sorties safari avec guides locaux, faune endémique');
+  if(lower.includes('temple')||lower.includes('spiritua')) notes.push('sites spirituels authentiques, heures de visite calmes');
+  if(lower.includes('marché'))                            notes.push('marchés de producteurs locaux, étals authentiques');
+  if(lower.includes('gastro')||lower.includes('cuisine')) notes.push('tables locales réputées, cours de cuisine, spécialités régionales');
+  if(lower.includes('photo'))                             notes.push('moments golden hour et blue hour, accès aux belvédères secrets');
+  if(lower.includes('architect'))                         notes.push('patrimoine architectural, bâtiments remarquables, quartiers historiques');
+  if(lower.includes('vin')||lower.includes('vignoble')||lower.includes('oenot')) notes.push('domaines viticoles et caves à visiter, dégustations producteurs');
+  if(lower.includes('bien-être')||lower.includes('spa')||lower.includes('yoga')||lower.includes('médita')) notes.push('spas et centres de bien-être locaux avec noms et tarifs, séances yoga/méditation');
+  if(lower.includes('plongée')||lower.includes('snorkel')||lower.includes('sous-marin')||lower.includes('nautique')) notes.push('spots de plongée et snorkeling avec prestataires locaux');
+  if(lower.includes('nocturn')||lower.includes('nightl')) notes.push('bars locaux, concerts, scène nocturne authentique et non-touristique');
+  if(lower.includes('vélo')||lower.includes('cycl'))      notes.push('pistes cyclables, locations de vélo, itinéraires à deux-roues');
+  if(lower.includes('équitat')||lower.includes('cheval')) notes.push('randonnées équestres avec prestataires locaux');
+  if(lower.includes('artisan')||lower.includes('craft'))  notes.push('ateliers d\'artisans, coopératives, savoir-faire local');
+  if(lower.includes('musée')||lower.includes('galerie'))  notes.push('musées insolites et galeries d\'art contemporain local');
+  if(lower.includes('festival')||lower.includes('musique')) notes.push('festivals locaux et concerts si disponibles sur la période');
+  if(lower.includes('astrono'))                           notes.push('spots d\'observation astronomique, nuits sous les étoiles');
+  if(lower.includes('therme')||lower.includes('bain'))    notes.push('thermes et bains naturels locaux');
+  if(lower.includes('ornith')||lower.includes('oiseau'))  notes.push('réserves ornithologiques, sorties observation avec guide');
+  return notes.length ? 'INTÉRÊTS PRIORITAIRES ('+interests.join(', ')+') : intégrer dans chaque journée : '+notes.join(' · ')+'.' : '';
 }
 function _dreamDirective(){
   if(!state.dream) return '';
