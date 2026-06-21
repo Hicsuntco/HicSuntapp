@@ -337,22 +337,52 @@ function accThemeAccent(a, it){
 function accCard(a){
   const it = ITINERARY;
   const accent = accThemeAccent(a, it);
-  return '<div class="acc" onclick="openBooking(\'' + a.id + '\')">'
-    + '<div class="a-img" style="position:relative;overflow:hidden;height:145px;background:radial-gradient(120% 100% at 15% 0%,'+hexA(accent,0.28)+',transparent 60%),linear-gradient(155deg,#1c1812,#0d0b08 55%,#000)">'
-    +   '<svg style="position:absolute;inset:0;width:100%;height:100%" viewBox="0 0 345 188" preserveAspectRatio="none" fill="none" stroke="'+hexA(accent,0.4)+'" stroke-width="0.5">'
-    +     [0,1,2,3,4,5,6].map(function(i){ return '<line x1="'+(i*57.5)+'" y1="0" x2="'+(i*57.5)+'" y2="188"/>'; }).join('')
-    +     [0,1,2,3,4].map(function(i){ return '<line x1="0" y1="'+(i*47)+'" x2="345" y2="'+(i*47)+'"/>'; }).join('')
-    +   '</svg>'
-    +   '<span style="position:absolute;top:11px;left:11px;z-index:1;font-family:var(--mono);font-size:8.5px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;background:rgba(15,12,9,0.65);border:1px solid '+hexA(accent,0.4)+';color:rgba(246,240,228,0.92);padding:6px 10px;border-radius:20px">' + esc(a.tag) + '</span>'
-    +   '<button class="a-fav" style="position:absolute;top:9px;right:9px;z-index:1;width:34px;height:34px;border-radius:50%;border:none;background:rgba(15,12,9,0.5);color:rgba(246,240,228,0.85);display:flex;align-items:center;justify-content:center;cursor:pointer" onclick="event.stopPropagation();this.classList.toggle(\'on\')" aria-label="Favori">' + ico('heart', 16, 1.6) + '</button>'
-    +   '<span style="position:absolute;bottom:14px;right:14px;z-index:1;color:'+hexA(accent,0.9)+';display:flex;opacity:0.95">' + ico(a.i, 24, 1.4) + '</span>'
-    +   '<span style="position:absolute;left:14px;right:14px;bottom:13px;height:1px;z-index:0;background:'+hexA(accent,0.25)+'"></span>'
+  const price = Number(a.price)||0;
+  const nights = Number(a.nights)||1;
+  const rate = a.rate||'';
+  const rateNum = rate ? parseFloat(rate.replace(',','.')) : 0;
+
+  /* Étoiles de notation */
+  function stars(n){
+    const full = Math.floor(n), half = n%1>=0.3?1:0;
+    let s='';
+    for(var i=0;i<full;i++) s+='<span style="color:var(--gold)">★</span>';
+    if(half) s+='<span style="color:var(--gold);opacity:0.5">★</span>';
+    return s;
+  }
+
+  /* Couleur de fond selon type */
+  const typeLower=(a.type||'').toLowerCase();
+  const bgColor = /villa|luxe|relais|palace/.test(typeLower) ? hexA(accent,0.10)
+    : /resort|boutique/.test(typeLower) ? hexA(accent,0.07)
+    : 'var(--surface)';
+
+  return '<div class="acc" onclick="openBooking(\'' + a.id + '\')" style="background:var(--surface-raised,#fff);border:1px solid var(--line);border-radius:18px;overflow:hidden;cursor:pointer;-webkit-tap-highlight-color:transparent">'
+    /* Header coloré avec icône */
+    + '<div style="background:'+bgColor+';padding:20px 20px 16px;display:flex;align-items:flex-start;justify-content:space-between;border-bottom:1px solid var(--line2)">'
+    +   '<div style="flex:1;min-width:0">'
+    +     '<div style="font-family:var(--mono);font-size:8.5px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:'+accent+';margin-bottom:6px">' + esc(a.type||'Hébergement') + '</div>'
+    +     '<div style="font-family:var(--serif);font-size:19px;font-weight:600;color:var(--ink);line-height:1.2;margin-bottom:4px">' + esc(a.n||'') + '</div>'
+    +     '<div style="font-family:var(--mono);font-size:9.5px;letter-spacing:0.5px;text-transform:uppercase;color:var(--sub)">' + esc(a.loc||'') + '</div>'
+    +   '</div>'
+    +   '<div style="width:48px;height:48px;border-radius:14px;background:'+hexA(accent,0.14)+';display:flex;align-items:center;justify-content:center;flex:none;margin-left:12px;color:'+accent+'">' + ico(a.i||'bed', 22, 1.3) + '</div>'
     + '</div>'
-    + '<div class="a-body">'
-    +   '<div class="a-top"><span class="a-n">' + esc(a.n) + '</span><span class="a-rate">' + ico('star', 11) + a.rate + '</span></div>'
-    +   '<div class="a-meta">' + esc(a.type) + ' · ' + esc(a.loc) + '</div>'
-    +   '<div class="a-price"><b>' + eur(a.price) + '</b> / nuit · ' + a.nights + ' nuit' + (a.nights > 1 ? 's' : '') + '</div>'
-    + '</div></div>';
+    /* Body — prix + étoiles + nuits */
+    + '<div style="padding:14px 20px;display:flex;align-items:center;justify-content:space-between">'
+    +   '<div>'
+    +     '<div style="font-family:var(--serif);font-size:22px;font-weight:600;color:var(--ink);letter-spacing:-0.3px">' + eur(price) + '<span style="font-size:13px;font-weight:400;color:var(--sub);margin-left:3px">/ nuit</span></div>'
+    +     '<div style="font-size:12px;color:var(--sub);margin-top:2px">' + nights + ' nuit' + (nights>1?'s':'') + (a.blurb?' · '+esc(a.blurb.slice(0,32)):'') + '</div>'
+    +   '</div>'
+    +   '<div style="text-align:right">'
+    +     (rateNum>0 ? '<div style="font-size:13px;line-height:1">'+stars(rateNum)+'</div><div style="font-family:var(--mono);font-size:9px;font-weight:700;color:var(--sub);margin-top:3px">'+esc(rate)+'</div>' : '')
+    +   '</div>'
+    + '</div>'
+    /* Footer CTA */
+    + '<div style="margin:0 16px 14px;background:var(--ink);border-radius:12px;padding:11px 16px;display:flex;align-items:center;justify-content:center;gap:8px">'
+    +   '<span style="font-family:var(--sans);font-size:13px;font-weight:600;color:var(--bg)">Voir les disponibilités</span>'
+    +   '<span style="color:var(--bg);opacity:0.7">' + ico('chevron',12,1.5) + '</span>'
+    + '</div>'
+    + '</div>';
 }
 
 /* ── 6 · Itinéraire ─────────────────────────────────────────────────── */
