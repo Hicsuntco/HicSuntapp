@@ -804,14 +804,6 @@ function buildApp(){
 }
 
 document.addEventListener('DOMContentLoaded', function(){
-  /* Sur mobile : sortir le .phone du .stage et l'attacher directement au body
-     pour éviter que display:none sur .stage le masque */
-  if(window.innerWidth <= 500){
-    var phone = document.querySelector('.phone');
-    if(phone && phone.parentElement !== document.body){
-      document.body.appendChild(phone);
-    }
-  }
   /* ── Vérification retour paiement Stripe ── */
   const urlParams = new URLSearchParams(window.location.search);
   if(urlParams.get('paid') === 'true'){
