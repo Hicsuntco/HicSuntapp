@@ -230,8 +230,11 @@ function generationView(){
     +   '<div class="gen-map">' + graticule(220, 220, 40) + route + '</div>'
     +   '<p class="gen-status" data-gen-status>Lecture de vos envies…</p>'
     +   '<div class="gen-progress">'
-    +     '<div class="gen-progress-track"><div class="gen-progress-fill" data-gen-bar style="width:8%"></div></div>'
-    +     '<span class="gen-progress-pct" data-gen-pct>8%</span>'
+    +     '<div class="gen-progress-track"><div class="gen-progress-fill" data-gen-bar style="width:2%;transition:none"></div></div>'
+    +     '<div style="display:flex;align-items:center;gap:8px">'
+    +     '<span class="gen-progress-pct" data-gen-pct>0%</span>'
+    +     '<span class="gen-progress-time" data-gen-time>~16s</span>'
+    +     '</div>'
     +   '</div>'
     + '</div></div>';
 }

@@ -908,38 +908,100 @@ async function runFullGeneration(overlayAlreadyOpen){
   const gen=el.querySelector('.gen');
   if(!overlayAlreadyOpen) requestAnimationFrame(function(){gen.classList.add('run');});
   const statusEl=el.querySelector('[data-gen-status]');
-  const steps=[
-    'Lecture de vos envies…','Choix des étapes…',"Tracé de l'itinéraire…",
-    'Rédaction des étapes…','Sélection des adresses locales…','Recherche des pépites cachées…',
-    'Calibrage du budget…','Derniers ajustements…',
+
+  /* ── Barre de progression basée sur le temps réel ──
+     Durée moyenne mesurée : ~15s (3 passes API + traitement)
+     On progresse de façon continue avec ralentissement vers 90%
+     pour toujours attendre la vraie fin avant d'afficher 100%  ── */
+  const EST_DURATION = 16000; /* ms — durée estimée totale */
+  const startTime = Date.now();
+  let currentPct = 0;
+  let rafId = null;
+  let done = false;
+
+  const PHASES = [
+    { until: 0.08, label: 'Lecture de vos envies…' },
+    { until: 0.20, label: 'Composition du circuit…' },
+    { until: 0.38, label: "Tracé de l'itinéraire…" },
+    { until: 0.52, label: 'Rédaction des étapes…' },
+    { until: 0.65, label: 'Sélection des hébergements…' },
+    { until: 0.76, label: 'Recherche des pépites cachées…' },
+    { until: 0.86, label: 'Estimation du budget…' },
+    { until: 0.93, label: 'Derniers ajustements…' },
+    { until: 1.00, label: 'Finalisation…' },
   ];
-  /* Pourcentages progressifs alignés sur la durée réelle (~10-15s) */
-  const stepPcts=[8, 18, 32, 48, 62, 74, 86, 94];
-  let si=0;
-  function _setProgress(pct, label){
-    if(statusEl){
-      statusEl.style.opacity=0;
-      setTimeout(function(){statusEl.textContent=label;statusEl.style.opacity=1;},240);
+
+  function getLabel(pct){
+    const p = pct / 100;
+    for(var i=0;i<PHASES.length;i++){
+      if(p <= PHASES[i].until) return PHASES[i].label;
     }
-    const barI=el.querySelector('[data-gen-bar]');
-    const barPct=el.querySelector('[data-gen-pct]');
-    if(barI) barI.style.width=pct+'%';
-    if(barPct) barPct.textContent=pct+'%';
+    return PHASES[PHASES.length-1].label;
   }
-  _setProgress(stepPcts[0], steps[0]);
-  const cycle=setInterval(function(){
-    si=(si+1)%steps.length;
-    _setProgress(stepPcts[si], steps[si]);
-  },1300);
+
+  let lastLabel = '';
+  function tick(){
+    if(done) return;
+    const elapsed = Date.now() - startTime;
+    /* Courbe easing : progresse vite au début, ralentit vers 90% */
+    const linear = Math.min(elapsed / EST_DURATION, 1);
+    /* Fonction : rapide→90% en ~70% du temps, puis très lent jusqu'à 93% */
+    let target;
+    if(linear < 0.70) target = (linear / 0.70) * 90;
+    else target = 90 + ((linear - 0.70) / 0.30) * 3; /* max 93% tant que pas fini */
+
+    /* Progression fluide — jamais en arrière */
+    if(target > currentPct) currentPct = Math.min(target, 93);
+
+    const barI = el.querySelector('[data-gen-bar]');
+    const barPct = el.querySelector('[data-gen-pct]');
+    const timeLeft = el.querySelector('[data-gen-time]');
+
+    if(barI) barI.style.width = currentPct.toFixed(1) + '%';
+    if(barPct) barPct.textContent = Math.round(currentPct) + '%';
+
+    /* Temps restant estimé */
+    if(timeLeft){
+      const remaining = Math.max(0, EST_DURATION - elapsed);
+      const secs = Math.ceil(remaining / 1000);
+      timeLeft.textContent = currentPct >= 90 ? 'Finalisation…' : secs + 's';
+    }
+
+    /* Label — mise à jour fluide sans flash */
+    const newLabel = getLabel(currentPct);
+    if(newLabel !== lastLabel){
+      lastLabel = newLabel;
+      if(statusEl){
+        statusEl.style.opacity=0;
+        setTimeout(function(){ if(!done){ statusEl.textContent=newLabel; statusEl.style.opacity=1; } },180);
+      }
+    }
+
+    rafId = requestAnimationFrame(tick);
+  }
+
+  /* Initialisation */
+  if(statusEl){ statusEl.textContent='Lecture de vos envies…'; statusEl.style.opacity=1; }
+  const barI0=el.querySelector('[data-gen-bar]');
+  if(barI0){ barI0.style.transition='none'; barI0.style.width='2%'; }
+  rafId = requestAnimationFrame(tick);
+
   const minShow=new Promise(function(r){setTimeout(r,2200);});
   let result=null;
   try{const res=await Promise.all([callCartographe(),minShow]);result=res[0];}catch(e){await minShow;}
-  clearInterval(cycle);
+
+  /* Fin réelle — compléter à 100% */
+  done = true;
+  if(rafId) cancelAnimationFrame(rafId);
+
   const barI=el.querySelector('[data-gen-bar]');
   const barPct=el.querySelector('[data-gen-pct]');
-  if(barI){ barI.style.transition='width 0.5s ease'; barI.style.width='100%'; }
+  const timeLeft=el.querySelector('[data-gen-time]');
+  if(barI){ barI.style.transition='width 0.6s cubic-bezier(0.4,0,0.2,1)'; barI.style.width='100%'; }
   if(barPct) barPct.textContent='100%';
-  if(statusEl){statusEl.style.opacity=0;setTimeout(function(){statusEl.textContent='Votre voyage est prêt.';statusEl.style.opacity=1;},200);}
+  if(timeLeft) timeLeft.textContent='';
+  if(statusEl){statusEl.style.opacity=0;setTimeout(function(){statusEl.textContent='Votre voyage est prêt ✦';statusEl.style.opacity=1;},250);}
+
   let ok=false;
   if(result){try{ok=applyGenerated(result.skel,result.days,result.hilites,result.flightInfo);}catch(e){ok=false;}}
   if(!ok) toast('Connexion limitée — itinéraire de démonstration');
