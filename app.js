@@ -416,6 +416,14 @@ async function checkProfile(){
   const token = localStorage.getItem('sb_token');
   const userId = _getUserId();
   if(!token || !userId) return true;
+
+  /* Extraire et stocker l'email depuis le JWT pour la vérification d'exemption */
+  try{
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const email = payload.email || payload.user_metadata?.email || '';
+    if(email) localStorage.setItem('hs_email', email);
+  }catch(e){}
+
   if(localStorage.getItem('hs_profile_done')) return true;
   try{
     const res = await fetch(SUPABASE_URL+'/rest/v1/profiles?id=eq.'+userId+'&select=first_name,last_name',{
@@ -802,16 +810,11 @@ document.addEventListener('DOMContentLoaded', function(){
   }
 
   /* ── Code promo staff ── */
+  /* Code promo — Stripe gère les réductions directement sur le Payment Link.
+     Le code HICSUNT-STAFF ne peut être activé que depuis la console Supabase,
+     pas depuis le front-end accessible au public. */
   window.applyPromoCode = function(code){
-    const c = (code||'').trim().toUpperCase();
-    if(c === 'HICSUNT-STAFF' || c === 'HICSUNT-TEAM'){
-      localStorage.setItem('hs_promo', 'HICSUNT-STAFF');
-      toast('Code appliqué — accès illimité activé ✓');
-      return true;
-    }
-    /* Codes promo client (50%, etc.) — délégués à Stripe directement */
-    toast('Ce code s\'applique lors du paiement sur la page Stripe.');
-    return false;
+    toast('Les codes promo s\'appliquent directement sur la page de paiement Stripe.');
   };
   /* ── Réassignation forcée post-chargement de tous les scripts ──
      features.js (chargé avant app.js) définit mapSVG/mapView avec contour()
