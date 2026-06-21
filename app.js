@@ -212,8 +212,10 @@ function closeAllOverlays(){
 /* ── toast ── */
 let _toastTimer = null;
 function toast(msg){
-  let t = screenEl().querySelector('.toast');
-  if (!t){ t = document.createElement('div'); t.className = 'toast'; screenEl().appendChild(t); }
+  /* Afficher dans l'overlay actif ou le body — pas dans .screen qui reste sous les overlays */
+  const container = (ovStack && ovStack.length) ? ovStack[ovStack.length-1] : (screenEl() || document.body);
+  let t = container.querySelector('.toast');
+  if(!t){ t = document.createElement('div'); t.className = 'toast'; container.appendChild(t); }
   t.textContent = msg;
   requestAnimationFrame(function(){ t.classList.add('show'); });
   clearTimeout(_toastTimer);
