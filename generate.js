@@ -1183,7 +1183,17 @@ function _showPaywall(genEl, days){
   document.body.appendChild(pw);
 
   /* Event listeners natifs — évite les problèmes de sanitisation innerHTML */
-  function closePw(){ pw.remove(); }
+  function closePw(){
+    pw.remove();
+    /* Fermer aussi l'overlay de génération pour revenir à l'écran principal */
+    const genOv = document.querySelector('.ov[data-ov="generating"]');
+    if(genOv){ genOv.classList.remove('in'); setTimeout(function(){ genOv.remove(); }, 380); }
+    /* Retirer du stack d'overlays */
+    if(typeof ovStack !== 'undefined'){
+      var gi = ovStack.findIndex(function(o){ return o.dataset&&o.dataset.ov==='generating'; });
+      if(gi >= 0) ovStack.splice(gi, 1);
+    }
+  }
   const closeBtn = document.getElementById('pw-close');
   const alreadyBtn = document.getElementById('pw-already');
   if(closeBtn){
