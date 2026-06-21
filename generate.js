@@ -710,7 +710,13 @@ function applyGenerated(skel, daysDetail, hilites, flightInfo){
   const themeName=_themeForDestination(dest, skel.region, skel.country);
   Object.assign(ITINERARY,{
     dest:dest, country:skel.country||'', tag:skel.tagline||'Itinéraire composé pour vous',
-    dates:skel.dates||'Sur-mesure', days:plan.length, level:level,
+    dates:(function(){
+      var raw=skel.dates||'Sur-mesure';
+      var realN=plan.length;
+      // Corriger le nombre de jours dans la string dates
+      raw=raw.replace(/\d+\s*jours?/i, realN+' jours');
+      return raw;
+    })(), days:plan.length, level:level,
     budgetTotal:budgetTotal, coords:skel.coords||dest, distance:plan.length+' jours',
     region:skel.region||'', season:skel.season||'', generated:true,
     theme:themeName, palette:THEME_PALETTES[themeName],
@@ -1339,7 +1345,7 @@ function _openItineraryFallback(){
 function aiItinerarySummary(){
   const it=ITINERARY;
   const days=it.plan.map(function(p){return 'J'+p.n+' '+p.loc+' : '+p.title;}).join(' · ');
-  return it.dest+' · '+it.days+' jours · '+it.level+' · budget ~'+it.budgetTotal+'€ — '+days;
+  return it.dest+' · '+_days(it)+' jours · '+it.level+' · budget ~'+it.budgetTotal+'€ — '+days;
 }
 async function aiCartographeReply(text){
   const prompt=[

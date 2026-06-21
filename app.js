@@ -2,6 +2,9 @@
 
 const USER = { name:'Voyageur', full:'', initials:'', since:'' };
 
+/* Source de vérité unique pour le nombre de jours */
+function _days(it){ it = it||ITINERARY; return (it.plan&&it.plan.length) ? it.plan.length : (_days(it)||0); }
+
 const state = {
   createTab:'known',
   destination:'', origin:'',
@@ -458,7 +461,7 @@ async function saveItinerary(){
     await fetch(SUPABASE_URL+'/rest/v1/itineraries',{
       method:'POST',
       headers:{'content-type':'application/json','apikey':SUPABASE_ANON,'Authorization':'Bearer '+token,'Prefer':'return=minimal'},
-      body:JSON.stringify({user_id:userId,destination:ITINERARY.dest,dates:ITINERARY.dates,days:ITINERARY.days,budget:ITINERARY.budgetTotal,data:ITINERARY})
+      body:JSON.stringify({user_id:userId,destination:ITINERARY.dest,dates:ITINERARY.dates,days:_days(),budget:ITINERARY.budgetTotal,data:ITINERARY})
     });
     toast('Voyage sauvegardé');
   }catch(e){ toast('Erreur de sauvegarde'); }
@@ -493,7 +496,7 @@ function _classifyItinerary(it){
 
   if(dateFrom){
     const from = new Date(dateFrom); from.setHours(0,0,0,0);
-    const to   = dateTo ? new Date(dateTo) : new Date(from.getTime() + (it.days||7)*86400000);
+    const to   = dateTo ? new Date(dateTo) : new Date(from.getTime() + (_days(it)||7)*86400000);
     to.setHours(23,59,59,999);
     if(to < today) return 'past';
     return 'upcoming';
@@ -577,7 +580,9 @@ async function loadSavedItinerary(id){
     /* ── 3. Champs critiques avec fallbacks ── */
     if(!ITINERARY.dest)         ITINERARY.dest         = saved.destination || 'Destination';
     if(!ITINERARY.dates)        ITINERARY.dates        = saved.dates || '';
-    if(!ITINERARY.days)         ITINERARY.days         = saved.days || (ITINERARY.plan||[]).length || 7;
+    if(!_days())         ITINERARY.days = saved.days || (ITINERARY.plan||[]).length || 7;
+    /* Synchroniser toujours days avec plan.length — source de vérité */
+    if(ITINERARY.plan && ITINERARY.plan.length) ITINERARY.days = ITINERARY.plan.length;
     if(!ITINERARY.budgetTotal)  ITINERARY.budgetTotal  = saved.budget || 0;
     if(!ITINERARY.level)        ITINERARY.level        = saved.level || 'Confort';
     if(!ITINERARY.tag)          ITINERARY.tag          = '';
@@ -891,7 +896,7 @@ document.addEventListener('DOMContentLoaded', function(){
     var it=ITINERARY;
     return statusBar()+navbar('Partager le voyage')
       +'<div class="ov-scroll px">'
-      +'<span class="eyebrow" style="display:block;margin-top:10px">'+esc(it.dest||'')+' · '+(it.days||'')+' jours</span>'
+      +'<span class="eyebrow" style="display:block;margin-top:10px">'+esc(it.dest||'')+' · '+(_days(it)||'')+' jours</span>'
       +'<h1 style="font-family:var(--serif);font-weight:600;font-size:28px;letter-spacing:-0.4px;margin-top:8px">Partager ce voyage</h1>'
       +'<div class="row" onclick="window.copyShareLink&&window.copyShareLink()"><span class="r-ico">'+ico('link',19,1.5)+'</span><div class="r-main"><div class="r-t">Copier le lien</div><div class="r-s">Lecture seule</div></div><span class="r-chev">'+ico('chevron',17,1.6)+'</span></div>'
       +'<div class="row" onclick="window.sendShareLink&&window.sendShareLink()"><span class="r-ico">'+ico('share',18,1.5)+'</span><div class="r-main"><div class="r-t">Envoyer par message</div><div class="r-s">iMessage · WhatsApp</div></div><span class="r-chev">'+ico('chevron',17,1.6)+'</span></div>'
@@ -936,7 +941,7 @@ document.addEventListener('DOMContentLoaded', function(){
       +'<div class="bud-card">'
       +'<div class="bud-l">Total estimé · '+esc(it.dest||'')+'</div>'
       +'<div class="bud-v">'+eur(displayTotal)+'</div>'
-      +'<div class="bud-s">'+travelerLabel()+' · '+(it.days||'')+' jours · estimation</div>'
+      +'<div class="bud-s">'+travelerLabel()+' · '+(_days(it)||'')+' jours · estimation</div>'
       +'</div>'
       +'<div class="section-h"><h2>Répartition</h2><span class="meta">estimation</span></div>'
       +b.lines.map(function(l){return '<div class="bline">'+ico(l.i,20,1.5)
