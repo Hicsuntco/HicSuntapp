@@ -310,91 +310,113 @@ function buildBrief(){
 const SKEL_BATCH_SIZE = 7;
 function buildSkeletonPrompt(dc, batchSize, offset){
   const b=buildBrief();
-  const isFirst = offset === 0;
+  const isFirst = offset===0;
   const n = Math.min(batchSize, dc-offset);
-  const geoConstraint = _geoConstraintDirective(state.destination||'', dc, state.rythme||'Équilibré');
+  const rythme = state.rythme||'Équilibré';
+  const dest = state.destination||'';
+  const geoConstraint = _geoConstraintDirective(dest, dc, rythme);
+
+  /* Vitesse de déplacement selon rythme */
+  const maxKm = rythme.includes('lent')||rythme.includes('déten')?80
+    : rythme.includes('intensif')?250 : 150;
 
   const common=[
     geoConstraint,
-    '- Tracé LINÉAIRE : chaque étape géographiquement proche de la précédente. Circuit logique comme un vrai trajet routier.',
-    '- JAMAIS revenir sur une ville déjà visitée sauf aéroport de départ/arrivée.',
-    '- LOGIQUE TRANSPORT OBLIGATOIRE : si une étape nécessite un ferry/bateau (île secondaire, presqu\'île isolée), prévoir EXPLICITEMENT le retour. Ex: J3 ferry Calasetta→Carloforte, J4 visite île, J5 ferry retour→continent puis route vers étape suivante. Ne JAMAIS laisser le voyageur bloqué sur une île sans retour planifié.',
-    '- COHÉRENCE GÉOGRAPHIQUE STRICTE : chaque étape doit être atteignable depuis la précédente en temps raisonnable selon le rythme. Rythme lent = max 1h30 de route. Équilibré = max 2h30. Intensif = max 4h. Mentionner le temps de trajet si > 45min.',
-    '- ÎLES SECONDAIRES : ne proposer une île secondaire (San Pietro, Asinara, Maddalena...) QUE si le circuit y consacre au moins 2 nuits ET prévoit ferry aller + ferry retour dans le plan.',
-    '- "night" = "name" EXACT d\'un hébergement de "stays".',
-    '- sky dans [sun, cloud, rain]. Réponds UNIQUEMENT en JSON compact valide.',
+    '━━━ RÈGLES LOGISTIQUES ABSOLUES (violations = itinéraire invalide) ━━━',
+    '1. TRACÉ LINÉAIRE : chaque étape dans la même direction générale. Visualise la carte — le tracé doit avoir du sens.',
+    '2. DISTANCES RÉALISTES : max '+maxKm+'km entre deux étapes consécutives (rythme '+rythme+'). Mentionner le trajet si > 45min.',
+    '3. JOURS DE TRANSFERT : si le trajet excède 2h, dédier ce jour au trajet + arrivée. Ne pas charger un jour de transfert avec des activités.',
+    '4. FERRIES/BATEAUX : toujours planifier aller ET retour avec dates précises. Jamais quitter le continent pour une île sans prévoir le retour dans le plan.',
+    '5. UN HÉBERGEMENT PAR ZONE : ne changer d\'hébergement QUE si on change de zone géographique (>30km). Pas de changement d\'hôtel inutile.',
+    '6. COHÉRENCE "night" : le champ "night" de chaque jour = "name" EXACT d\'un hébergement de "stays". Obligatoire.',
+    '7. SKY : sun, cloud, ou rain uniquement.',
+    '8. JSON valide compact. Zéro texte autour.',
   ];
 
   if(isFirst){
     const directives=[_antiTouristDirective(),_interestsDirective(),_rythmeDirective(),_occasionDirective(),_styleDirective(),_dreamDirective()].filter(Boolean);
-    const destLock = (!b.surprise && state.destination)
-      ? '\n⚠️ DESTINATION IMPOSÉE : "'+state.destination+'". Le champ "dest" DOIT être "'+state.destination+'". Aucune autre destination.\n'
-      : '';
+    const destLock = (!b.surprise&&dest)
+      ? '⚠️ DESTINATION IMPOSÉE : "'+dest+'". "dest" DOIT être "'+dest+'". Absolument aucune autre destination.' : '';
 
     return [
-      '╔══════════════════════════════════════════════════════════╗',
-      '  CARTOGRAPHE SENIOR — HIC SUNT · BEYOND THE KNOWN',
-      '  Maison de voyages d\'exception. Exigence : celle d\'un',
-      '  directeur artistique de palace qui voyage 200 jours/an.',
-      '╚══════════════════════════════════════════════════════════╝',
+      '╔═══════════════════════════════════════════════════════════════╗',
+      '║  HIC SUNT · BEYOND THE KNOWN — CARTOGRAPHE SENIOR            ║',
+      '║  Standard : directeur d\'une agence de voyage ultra-luxe       ║',
+      '║  Exigence : cohérence logistique absolue + authenticité       ║',
+      '╚═══════════════════════════════════════════════════════════════╝',
       '',
       destLock,
-      '═══ BRIEF CLIENT ═══',
+      '━━━ BRIEF CLIENT ━━━',
       b.lines,
       '',
-      '═══ PERSONNALISATION ═══',
-      directives.length?directives.join('\n'):'Standard confort, ouvert aux découvertes.',
+      '━━━ PERSONNALISATION ━━━',
+      directives.length?directives.join('\n'):'Confort, ouvert aux découvertes authentiques.',
       '',
-      '═══ PHILOSOPHIE ÉDITORIALE HICSUNT ═══',
-      '- TRANSPORT ET LOGISTIQUE : chaque déplacement doit être physiquement possible. Ferry obligatoire pour les îles secondaires = aller ET retour planifiés. Temps de route réaliste mentionné quand > 1h.',
-    '- AUTHENTICITÉ ABSOLUE : noms RÉELS d\'hébergements qui existent vraiment (ex: "Su Gologone" en Sardaigne, "Riad Dar Anika" à Marrakech). Pas de noms inventés.',
-      '- RESTAURANTS RÉELS avec nom exact, quartier, spécialité signature et note Google (ex: "Sa Cardiga e su Schironi, Capoterra — anguille du lac, 4,4⭐").',
-      '- EXPÉRIENCES NOMMÉES : excursions avec leur vrai nom commercial ou le nom du guide local (ex: "Sortie en kayak avec Sardinia Kayak Tours — tél. +39 347 xxx"). Si inconnu, décrire précisément (ex: "Marché nocturne de Sineu, mercredi soir").',
-      '- HÉBERGEMENTS AVEC STANDING : indiquer étoiles ou équivalent (ex: "Relais & Châteaux", "5 étoiles", "Charme certifié", "Boutique-hôtel 4⭐", "Agriturisimo bio").',
-      '- ANCRAGE LOCAL : mentionner producteurs, artisans, familles qui tiennent les adresses. "Trattoria tenue par la famille Manca depuis 1962".',
-      '- HORAIRES ET PRATIQUE : ouvrir/fermer, meilleur moment de la journée pour visiter, réservation conseillée.',
-      '- ANTI-TOURISTIQUE : fuir les spots Instagram surexploités. Privilégier ce que connaît un habitant cultivé.',
+      '━━━ PHILOSOPHIE ÉDITORIALE ━━━',
+      '• NOMS RÉELS UNIQUEMENT : hébergements, restaurants, guides, excursions — tout doit exister et être vérifiable.',
+      '• STANDING HÉBERGEMENTS : toujours indiquer la classification (Relais & Châteaux / 5⭐ / Boutique 4⭐ / Agriturismo bio / Maison d\'hôtes charme).',
+      '• RESTAURANTS : nom exact + quartier + spécialité signature + fourchette de prix + note Google si connue.',
+      '• EXCURSIONS : nom du prestataire ou du guide local + contact si disponible.',
+      '• ANCRAGE LOCAL : familles, producteurs, artisans. "Trattoria tenue par la même famille depuis 1974."',
+      '• HORAIRES PRATIQUES : meilleur moment, réservation conseillée, à éviter si surpeuplé.',
+      '• ANTI-TOURISTIQUE : pas de spots Instagram saturés. Penser comme un habitant cultivé, pas comme un guide Lonely Planet.',
+      '• LOGISTIQUE RÉALISTE : si le trajet d\'un jour dépasse 2h, c\'est un jour de route — pas de visite intensive ce jour-là.',
       '',
-      '═══ CONSIGNES STRICTES ═══',
+      '━━━ CONSIGNES STRICTES ━━━',
       common.join('\n'),
-      '- "plan" : EXACTEMENT '+n+' entrées (jours 1 à '+n+' sur '+dc+').',
-      '- "stays" : couvre TOUT le voyage ('+dc+' jours). Max '+Math.min(6,Math.max(1,Math.ceil(dc/4)))+' hébergements (1 par zone distincte).',
-      '- Prix hébergements RÉALISTES et DISTINCTS selon le type :',
-      '  Sardaigne Confort: agriturismo 60-90€, boutique 90-140€, resort 130-200€, villa 180-350€',
-      '  Thaïlande Confort: guesthouse 35-70€, boutique-hôtel 70-130€, resort plage 100-180€',
-      '  Maroc Confort: riad médina 80-150€, maison d\'hôtes 50-90€, camp désert 120-220€',
-      '- Budget total réaliste pour '+dc+' jours, TOUS voyageurs (hors vols) :',
-      '  Éco: 60-90€/pers/j · Confort: 110-200€/pers/j · Luxe: 220-450€/pers/j · Ultra: 450€+/pers/j',
-      '- LOGIQUE HÉBERGEMENTS : zones distinctes = hébergements distincts. Même zone = 1 seul hébergement.',
-      destLock ? 'Rappel : dest = "'+state.destination+'" uniquement.' : '',
       '',
-      'SCHÉMA JSON (vraies données — noms réels — aucune invention) :',
-      '{"dest":"","country":"","tagline":"accroche poétique 8-12 mots","level":"Confort","dates":"Août 2026 · '+dc+' jours","days_count":'+dc+',"budget":0,"season":"saison idéale courte","coords":"39°13\'N · 9°07\'E","region":"région","stays":['
-      +'{"name":"Su Gologone","type":"Relais & Châteaux · 4⭐","loc":"Oliena / Nuoro","price":145,"nights":3,"blurb":"Source naturelle, jardins secrets, cuisine locale"},'
-      +'{"name":"Agriturismo Mandra Edera","type":"Agriturismo bio · charme","loc":"Chia / Sud","price":85,"nights":5,"blurb":"Crique privée, production fromagère, couchers de soleil"}],'
-      +'"plan":[{"title":"Arrivée et premiers souffles","loc":"Cagliari / aéroport","night":"Agriturismo Mandra Edera","sky":"sun","temp":"28°","hook":"Poser les valises, descendre vers la mer : la Sardaigne commence ici."}]}',
+      '• "plan" : EXACTEMENT '+n+' entrées numérotées (jours 1→'+n+' sur '+dc+').',
+      '• "stays" : couvre les '+dc+' JOURS complets. Max '+Math.min(5,Math.max(1,Math.ceil(dc/4)))+' hébergements (1 par zone géographique distincte > 30km).',
+      '• Hébergement J1 = lieu d\'arrivée (aéroport proche). Dernier hébergement = près de l\'aéroport de départ.',
+      '• Prix hébergements RÉALISTES et DISTINCTS par type :',
+      '  Sardaigne/Corse: agriturismo 65-95€ · boutique 95-145€ · resort 140-210€ · villa/charme 190-380€',
+      '  Thaïlande: guesthouse 35-75€ · boutique-hôtel 75-135€ · resort plage 110-200€ · villa privée 180-400€',
+      '  Maroc: maison d\'hôtes 55-95€ · riad médina 90-160€ · camp désert 130-230€ · resort Atlas 150-280€',
+      '  Japon: ryokan 120-280€ · business hotel 80-130€ · boutique 100-200€',
+      '  Ajuster × colFactor selon la destination',
+      '• Budget TOTAL réaliste pour '+dc+' jours × TOUS voyageurs (héberg+repas+activités+transport local, hors vols) :',
+      '  Éco 60-90€/pers/j · Confort 110-190€/pers/j · Luxe 220-450€/pers/j · Ultra 450€+/pers/j',
+      '',
+      '━━━ AUTO-VALIDATION AVANT DE RÉPONDRE ━━━',
+      'Avant de générer le JSON, vérifier mentalement :',
+      '✓ Chaque trajet est-il physiquement possible en 1 journée (< '+maxKm+'km) ?',
+      '✓ Si ferry prévu pour une île, le retour est-il dans le plan ?',
+      '✓ Les jours lourds en trajet sont-ils allégés en activités ?',
+      '✓ Tous les "night" correspondent à un nom exact de "stays" ?',
+      '✓ Les hébergements ne changent pas si on reste dans la même zone ?',
+      '✓ L\'itinéraire finit logiquement près de l\'aéroport de retour ?',
+      '',
+      destLock?'Rappel final : dest = "'+dest+'" sans exception.':'',
+      '',
+      'SCHÉMA (utilise des vraies données à la place des exemples) :',
+      '{"dest":"Sardaigne","country":"Italie","tagline":"Criques secrètes et maquis odorant sous le soleil d\'août","level":"Confort","dates":"14-22 août 2026 · '+dc+' jours","days_count":'+dc+',"budget":'+Math.round(dc*140*2)+',"season":"Août chaud, idéal mer — éviter mi-août pour Cagliari","coords":"39°13\'N · 9°07\'E","region":"Sardaigne","stays":['
+      +'{"name":"Agriturismo Mandra Edera","type":"Agriturismo bio · charme","loc":"Chia / Extrême Sud","price":88,"nights":4,"blurb":"Crique privée à 800m, production fromagère, couchers de soleil sur l\'archipel"},'
+      +'{"name":"Su Gologone","type":"Relais & Châteaux · 4⭐","loc":"Oliena / Nuoro — centre","price":148,"nights":4,"blurb":"Source naturelle, jardins secrets, cuisine barbaricina authentique"}],'
+      +'"plan":[{"title":"Arrivée Cagliari — premiers pas dans le sud sauvage","loc":"Cagliari / Aéroport","night":"Agriturismo Mandra Edera","sky":"sun","temp":"29°","hook":"45min de route depuis l\'aéroport : la Sardaigne commence au premier virage côtier."}]}',
     ].filter(Boolean).join('\n');
   }
 
-  /* Batches suivants */
-  const staysList=(state._genStays||[]).map(function(s){return '- "'+s.name+'" ('+s.type+', '+s.loc+')';}).join('\n');
+  /* Batches suivants — contexte complet */
+  const staysList=(state._genStays||[]).map(function(s){return '"'+s.name+'" ('+s.type+', '+s.loc+') — '+s.nights+' nuits';}).join('\n');
+  const lastSteps=(state._genLastSteps||[]).slice(-2).map(function(p){return p.n+'. '+p.loc+' ('+p.title+')';}).join(' → ');
   return [
-    'CARTOGRAPHE SENIOR HICSUNT — SUITE de l\'itinéraire '+dc+' jours.',
-    'Même exigence : noms réels, adresses vérifiables, ancrage local.',
+    'HIC SUNT — SUITE itinéraire '+dest+', '+dc+'j. Jours '+(offset+1)+'→'+(offset+n)+'.',
+    'MÊMES EXIGENCES : noms réels, logistique rigoureuse, ancrage local.',
     '',
-    '═══ BRIEF CLIENT ═══',
+    '━━━ BRIEF CLIENT ━━━',
     b.lines,
     '',
-    'Hébergements établis (utilise EXACTEMENT ces noms dans "night") :',
+    '━━━ CONTEXTE ━━━',
+    'Dernières étapes : '+lastSteps,
+    'Hébergements établis (utiliser "name" EXACT dans "night") :',
     staysList,
     '',
-    '═══ CONSIGNES ═══',
     common.join('\n'),
-    '- EXACTEMENT '+n+' entrées : jours '+(offset+1)+' à '+(offset+n)+'.',
-    '- Continue logiquement depuis l\'étape précédente.',
-    '- Mêmes standards qualitatifs : noms réels, horaires, téléphones si pertinents.',
+    '• EXACTEMENT '+n+' entrées : jours '+(offset+1)+'→'+(offset+n)+'.',
+    '• Continuer géographiquement depuis la dernière étape.',
+    '• Vérifier : trajet réaliste ? ferry retour prévu ? nuits cohérentes ?',
     '',
-    '{"plan":[{"title":"","loc":"ville","night":"nom exact stays","sky":"sun","temp":"25°","hook":"phrase narrative évocatrice"}]}',
+    '{"plan":[{"title":"","loc":"ville précise","night":"nom exact stays","sky":"sun","temp":"26°","hook":"phrase évocatrice 10 mots max"}]}',
   ].join('\n');
 }
 
@@ -837,9 +859,11 @@ async function callCartographe(){
         }
       }
       state._genStays=skel.stays||[];
+      state._genLastSteps=skel.plan.slice(-2); /* contexte pour batches suivants */
     } else {
       const morePlan=(batchResult&&Array.isArray(batchResult.plan))?batchResult.plan:[];
       skel.plan=skel.plan.concat(morePlan);
+      state._genLastSteps=skel.plan.slice(-2);
     }
   }
   /* sécurité : si la génération par lots n'atteint pas dc, on tronque proprement */
