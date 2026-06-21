@@ -235,7 +235,7 @@ function tabbarHTML(){
     + TAB_DEFS.map(function(t){
       return '<button class="tab-it" data-tabbtn="' + t[0] + '" onclick="setTab(\'' + t[0] + '\')">'
         + '<div class="tab-inner">'
-        + '<span class="tab-ico">' + ico(t[1], 19, 1.5) + '</span>'
+        + '<span class="tab-ico">' + ico(t[1], 23, 1.8) + '</span>'
         + '<span class="tab-lbl">' + t[2] + '</span>'
         + '</div>'
         + '</button>';
