@@ -1061,18 +1061,15 @@ function _getPalier(days){
 /* ── Vérification du token de paiement (localStorage) ── */
 function _checkPaymentToken(dest, days){
   /* Code promo staff */
-  const staffCode = localStorage.getItem('hs_promo');
-  if(staffCode === 'HICSUNT-STAFF') return true;
-
-  /* Token de paiement Stripe (stocké après retour paiement) */
-  const paid = JSON.parse(localStorage.getItem('hs_paid_tokens') || '[]');
-  const palier = _getPalier(days);
-  /* Un token est valable 48h pour la même destination */
-  const now = Date.now();
+  if(localStorage.getItem('hs_promo')==='HICSUNT-STAFF') return true;
+  /* Email exempt */
+  const email = localStorage.getItem('hs_email')||'';
+  if(email==='charlottegperret@gmail.com') return true;
+  /* Token Stripe 48h */
+  const paid=JSON.parse(localStorage.getItem('hs_paid_tokens')||'[]');
+  const palier=_getPalier(days), now=Date.now();
   return paid.some(function(t){
-    return t.palier === palier
-      && (t.dest === '' || t.dest === dest)
-      && (now - t.ts) < 48*3600*1000;
+    return t.palier===palier&&(t.dest===''||t.dest===dest)&&(now-t.ts)<48*3600*1000;
   });
 }
 
