@@ -67,14 +67,23 @@ function _inTripDashboard(){
   today.setHours(0,0,0,0);
   var from = new Date(it.dateFrom); from.setHours(0,0,0,0);
   var to   = new Date(it.dateTo);   to.setHours(0,0,0,0);
-  if(today < from || today > to) return '';
+
+  /* Voyage actif entre les dates */
+  var isActive = today >= from && today <= to;
+  /* Voyage à venir dans moins de 7 jours — afficher un aperçu */
+  var daysUntil = Math.floor((from - today) / 86400000);
+  var isUpcoming = daysUntil >= 0 && daysUntil <= 7;
+
+  if(!isActive && !isUpcoming) return '';
 
   /* Jour actuel dans le plan */
-  var dayNum = Math.floor((today - from) / 86400000); /* 0-indexed */
+  var dayNum = isActive ? Math.floor((today - from) / 86400000) : 0;
   var plan = it.plan;
-  var todayPlan = plan[dayNum] || plan[plan.length-1];
+  var todayPlan = plan[Math.min(dayNum, plan.length-1)];
   var tomorrowPlan = plan[dayNum+1] || null;
-  var dayLabel = 'Jour '+(dayNum+1)+' · '+_days(it)+' jours';
+  var dayLabel = isActive
+    ? 'Jour '+(dayNum+1)+' · '+_days(it)+' jours'
+    : 'Départ dans '+daysUntil+' jour'+(daysUntil>1?'s':'');
 
   /* Hébergement du soir */
   var acc = (it.accommodations||[]).find(function(a){ return a.n === todayPlan.night || a.id === todayPlan.night; });
