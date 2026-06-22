@@ -216,10 +216,28 @@
 .gen-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 36px;gap:34px}
 .gen-logo{font-family:var(--serif);font-weight:600;font-size:28px;letter-spacing:-0.3px}
 .gen-logo em{font-style:italic;color:var(--gold-soft)}
-.gen-map{width:220px;height:220px;position:relative;border:1px solid rgba(179,154,100,0.25);border-radius:18px;overflow:hidden}
-.gen-map .grat{opacity:0.35}
+.gen-map{width:220px;height:220px;position:relative;border:1px solid rgba(189,162,104,0.22);border-radius:var(--card-radius);overflow:hidden;background:rgba(189,162,104,0.03)}
+.gen-map .grat{opacity:0.3}
 .gen-route{position:absolute;inset:0;pointer-events:none}
-.gen-route path{stroke:var(--gold-soft);stroke-width:1.6;fill:none;stroke-dasharray:5 6;animation:genDash 2.6s linear infinite}
+.gen-route path{stroke:var(--gold-soft);stroke-width:1.8;fill:none;stroke-linecap:round;stroke-dasharray:300;stroke-dashoffset:300;animation:genDraw 3s var(--ease-out) infinite}
+@keyframes genDraw{
+  0%{stroke-dashoffset:300}
+  55%{stroke-dashoffset:0}
+  80%{stroke-dashoffset:0;opacity:1}
+  100%{stroke-dashoffset:0;opacity:0}
+}
+.gen-route circle{fill:var(--gold);opacity:0;animation:genPin 3s var(--ease-out) infinite}
+.gen-route circle:nth-of-type(1){animation-delay:0.3s}
+.gen-route circle:nth-of-type(2){animation-delay:0.9s}
+.gen-route circle:nth-of-type(3){animation-delay:1.5s}
+.gen-route circle:nth-of-type(4){animation-delay:2.1s}
+@keyframes genPin{
+  0%,15%{opacity:0;r:2}
+  25%{opacity:1;r:5}
+  35%{r:4}
+  80%{opacity:1}
+  100%{opacity:0}
+}
 @keyframes genDash{to{stroke-dashoffset:-44}}
 .gen-route circle{fill:var(--gold);animation:none}
 /* Bloquer toute animation sur les SVG de carte géographique */

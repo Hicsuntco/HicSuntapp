@@ -746,18 +746,18 @@ function splashHTML(){
     +     [0,1,2,3,4,5,6].map(function(i){ return '<line class="sg-line" x1="'+(i*65.5)+'" y1="0" x2="'+(i*65.5)+'" y2="852"/>'; }).join('')
     +     [0,1,2,3,4,5,6,7,8,9,10,11,12].map(function(i){ return '<line class="sg-line" x1="0" y1="'+(i*71)+'" x2="393" y2="'+(i*71)+'"/>'; }).join('')
     +   '</svg>'
-    +   '<svg class="splash-compass" viewBox="0 0 120 120" fill="none">'
-    +     '<circle class="sc-ring" cx="60" cy="60" r="46"/>'
-    +     '<circle class="sc-ring sc-ring2" cx="60" cy="60" r="58"/>'
-    +     '<g class="sc-needle"><path d="M60 18 L67 60 L60 102 L53 60 Z"/></g>'
-    +     '<text class="sc-n" x="60" y="11" text-anchor="middle">N</text>'
-    +   '</svg>'
-    +   '<span class="splash-coord splash-coord-1">48°51′N</span>'
-    +   '<span class="splash-coord splash-coord-2">2°21′E</span>'
     +   '<div class="splash-core">'
-    +     '<div class="splash-mark">'
-    +       '<span class="splash-word">Hic</span><span class="splash-word splash-em"><em>Sunt</em></span>'
-    +     '</div>'
+    +     '<svg class="splash-globe" viewBox="0 0 120 120" fill="none">'
+    +       '<circle class="sg-ring" cx="60" cy="60" r="54"/>'
+    +       '<ellipse class="sg-mer" cx="60" cy="60" rx="26" ry="54"/>'
+    +       '<ellipse class="sg-mer sg-mer2" cx="60" cy="60" rx="48" ry="54"/>'
+    +       '<line class="sg-eq" x1="6" y1="60" x2="114" y2="60"/>'
+    +       '<line class="sg-tick" x1="60" y1="2" x2="60" y2="13"/>'
+    +       '<line class="sg-tick" x1="60" y1="107" x2="60" y2="118"/>'
+    +       '<line class="sg-tick" x1="2" y1="60" x2="13" y2="60"/>'
+    +       '<line class="sg-tick" x1="107" y1="60" x2="118" y2="60"/>'
+    +     '</svg>'
+    +     '<div class="splash-h"><span>H</span></div>'
     +     '<div class="splash-rule"></div>'
     +     '<div class="splash-tag">Beyond the Known</div>'
     +   '</div>'
@@ -775,8 +775,8 @@ function playSplash(next){
     setTimeout(function(){
       if (splash.parentNode) splash.parentNode.removeChild(splash);
       next();
-    }, 480);
-  }, 2000);
+    }, 620);
+  }, 1500);
 }
 
 /* ── boot ── */

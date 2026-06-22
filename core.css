@@ -261,34 +261,29 @@ textarea.input{height:auto;min-height:110px;padding:14px 16px;resize:none;line-h
 .ico{display:block;flex:none}
 
 /* ── splash de lancement · cartographique ── */
-.splash{position:absolute;inset:0;z-index:600;background:var(--ink);display:flex;align-items:center;justify-content:center;opacity:1;overflow:hidden;transition:opacity 0.5s ease}
+.splash{position:absolute;inset:0;z-index:600;background:var(--bg);display:flex;align-items:center;justify-content:center;opacity:1;overflow:hidden;transition:opacity 0.6s var(--ease-out)}
 .splash.out{opacity:0}
-
 .splash-grid{position:absolute;inset:0;width:100%;height:100%;stroke:var(--gold-soft)}
-.sg-line{stroke-dasharray:4 6;stroke-width:0.6;opacity:0;stroke-dashoffset:140;transition:opacity 1.1s ease,stroke-dashoffset 1.4s cubic-bezier(.22,.68,.2,1)}
-.splash.run .sg-line{opacity:0.16;stroke-dashoffset:0}
+.sg-line{opacity:0;transition:opacity 1.2s ease}
+.splash.run .sg-line{opacity:0.08}
 
-.splash-compass{position:absolute;width:230px;height:230px;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.82) rotate(-26deg);opacity:0;transition:opacity 0.8s ease,transform 1.3s cubic-bezier(.22,.68,.2,1)}
-.splash.run .splash-compass{opacity:0.5;transform:translate(-50%,-50%) scale(1) rotate(0deg)}
-.sc-ring{stroke:var(--gold-soft);stroke-width:0.6;fill:none}
-.sc-ring2{stroke-dasharray:2 5;opacity:0.6}
-.sc-needle path{fill:var(--gold-soft)}
-.sc-n{font-family:var(--mono);font-size:7px;font-weight:700;fill:var(--sub);letter-spacing:1px}
+.splash-core{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:0}
+/* Globe cartographique qui se dessine */
+.splash-globe{width:150px;height:150px;stroke:var(--gold);fill:none;opacity:0;transform:scale(0.9) rotate(-8deg);transition:opacity 0.9s var(--ease-out),transform 1.4s var(--ease-out)}
+.splash.run .splash-globe{opacity:0.7;transform:scale(1) rotate(0deg)}
+.splash-globe .sg-ring,.splash-globe .sg-mer,.splash-globe .sg-eq{stroke-width:0.75;stroke-dasharray:380;stroke-dashoffset:380;transition:stroke-dashoffset 1.5s var(--ease-out) 0.2s}
+.splash.run .splash-globe .sg-ring,.splash.run .splash-globe .sg-mer,.splash.run .splash-globe .sg-eq{stroke-dashoffset:0}
+.splash-globe .sg-tick{stroke-width:1.5;stroke:var(--gold);opacity:0;transition:opacity 0.5s ease 1s}
+.splash.run .splash-globe .sg-tick{opacity:0.8}
 
-.splash-coord{position:absolute;font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--sub);opacity:0;transition:opacity 0.7s ease}
-.splash.run .splash-coord{opacity:0.55}
-.splash-coord-1{top:18%;left:9%;transition-delay:0.5s}
-.splash-coord-2{bottom:20%;right:9%;transition-delay:0.7s}
+/* H au centre du globe */
+.splash-h{position:absolute;top:75px;left:50%;transform:translate(-50%,-50%) scale(0.7);opacity:0;transition:opacity 0.7s var(--spring) 0.5s,transform 0.7s var(--spring) 0.5s}
+.splash.run .splash-h{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.splash-h span{font-family:var(--serif);font-weight:600;font-size:62px;color:var(--ink);letter-spacing:-2px}
 
-.splash-core{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:14px}
-.splash-mark{font-family:var(--serif);font-weight:600;font-size:34px;letter-spacing:-0.4px;color:var(--onink);display:flex;gap:10px;overflow:hidden}
-.splash-word{display:inline-block;opacity:0;transform:translateY(14px);transition:opacity 0.7s cubic-bezier(.22,.68,.2,1.1),transform 0.7s cubic-bezier(.22,.68,.2,1.1)}
-.splash-em em{font-style:italic;color:var(--gold-soft)}
-.splash.run .splash-word{opacity:1;transform:translateY(0);transition-delay:0.35s}
-.splash.run .splash-word.splash-em{transition-delay:0.47s}
-.splash-rule{width:0;height:1px;background:var(--gold-soft);transition:width 0.9s cubic-bezier(.22,.68,.2,1) 0.7s}
-.splash.run .splash-rule{width:120px}
-.splash-tag{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:var(--sub);opacity:0;transition:opacity 0.6s ease 0.95s}
+.splash-rule{width:0;height:1px;background:var(--gold-soft);transition:width 0.9s var(--ease-out) 0.9s;margin-top:88px}
+.splash.run .splash-rule{width:100px}
+.splash-tag{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:var(--sub);opacity:0;transition:opacity 0.6s ease 1.15s;margin-top:14px}
 .splash.run .splash-tag{opacity:1}
 
 /* ── cascade d'apparition des cartes de voyages ── */
