@@ -280,7 +280,6 @@ function profileView(){
 
   const rows = [
     ['compass','Mes préférences de voyage','Styles, budget et rythme par défaut', "openOverlay('prefs', prefsView())"],
-    ['map','Mes itinéraires','Voyages composés et sauvegardés', "setTab('voyages')"],
     ['bell','Notifications', (NOTIFS.filter(function(n){return n.unread;}).length || 'Aucune') + ' non lue' + (NOTIFS.filter(function(n){return n.unread;}).length>1?'s':''), "openOverlay('notifications', notificationsView())"],
   ];
   if(connected) rows.push(['logout','Déconnexion','', 'logout()']);
