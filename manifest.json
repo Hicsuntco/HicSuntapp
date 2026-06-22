@@ -1,0 +1,15 @@
+{
+  "name": "Hic Sunt · Beyond the Known",
+  "short_name": "Hic Sunt",
+  "description": "Itinéraires de voyage sur-mesure — cartographe IA",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f6f0e4",
+  "theme_color": "#f6f0e4",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icons/icon-1024.png", "sizes": "1024x1024", "type": "image/png" }
+  ]
+}
