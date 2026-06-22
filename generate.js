@@ -409,7 +409,7 @@ function buildSkeletonPrompt(dc, batchSize, offset){
       directives.length?directives.join('\n'):'Confort, ouvert aux découvertes authentiques.',
       '',
       '━━━ PHILOSOPHIE ÉDITORIALE ━━━',
-      '• NOMS RÉELS UNIQUEMENT : hébergements, restaurants, guides, excursions — tout doit exister et être vérifiable.',
+      '• NOMS RÉELS : restaurants, guides, excursions — décris-les précisément. Pour les HÉBERGEMENTS, propose un nom plausible et le bon standing : ils seront ensuite remplacés par de vrais établissements vérifiés.',
       '• STANDING HÉBERGEMENTS : toujours indiquer la classification (Relais & Châteaux / 5⭐ / Boutique 4⭐ / Agriturismo bio / Maison d\'hôtes charme).',
       '• RESTAURANTS : nom exact + quartier + spécialité signature + fourchette de prix + note Google si connue.',
       '• EXCURSIONS : nom du prestataire ou du guide local + contact si disponible.',
@@ -880,7 +880,44 @@ async function _fetchFlightPriceFromWeb(dest, country, dateFrom, dateTo, travele
   }catch(e){ return null; }
 }
 
-/* ── validation : la destination renvoyée correspond-elle à celle demandée ? ──
+/* ── recherche web de VRAIS hébergements par zone (anti-hallucination) ── */
+function buildStaySearchPrompt(dest, zones, level){
+  const lvl = (level||'Confort');
+  const lvlGuide = lvl.indexOf('Éco')>=0?'auberges, guesthouses, agriturismi simples'
+    : (lvl.indexOf('Luxe')>=0||lvl.indexOf('Ultra')>=0)?'hôtels 4-5 étoiles, Relais & Châteaux, villas de luxe, boutique-hôtels haut de gamme'
+    : 'boutique-hôtels, agriturismi de charme, maisons d\'hôtes 3-4 étoiles';
+  return [
+    'Cherche sur le web des hébergements RÉELS et ACTUELLEMENT EN ACTIVITÉ pour un séjour à '+(dest||'')+'.',
+    'Pour chacune de ces zones, trouve 1 hébergement réel et vérifiable ('+lvlGuide+') :',
+    zones.map(function(z,i){return (i+1)+'. '+z;}).join('\n'),
+    '',
+    'EXIGENCES STRICTES :',
+    '- Uniquement des établissements qui EXISTENT VRAIMENT (vérifiables sur Booking, Google Maps, ou leur site officiel).',
+    '- Nom EXACT tel qu il apparait en ligne. Aucune invention, aucune approximation.',
+    '- Si tu n es pas certain qu un établissement existe dans une zone, mets "name":"" pour cette zone.',
+    '- Prix indicatif par nuit réaliste en euros pour 2 personnes.',
+    '',
+    'Réponds UNIQUEMENT en JSON compact valide, sans texte autour :',
+    '{"stays":[{"zone":"nom de la zone","name":"nom exact reel","type":"type/standing","price":0,"blurb":"description courte basee sur des infos reelles"}]}',
+  ].join('\n');
+}
+async function _fetchRealStays(dest, zones, level){
+  try{
+    const res = await fetch(SUPABASE_ENDPOINT,{
+      method:'POST',
+      headers:{'content-type':'application/json'},
+      body:JSON.stringify({prompt:buildStaySearchPrompt(dest, zones, level), webSearch:true})
+    });
+    if(!res.ok) return null;
+    const data = await res.json();
+    if(data.error) return null;
+    const j = parseItineraryJSON(data.result||'');
+    if(!j || !Array.isArray(j.stays)) return null;
+    return j.stays.filter(function(s){ return s.name && s.name.trim(); });
+  }catch(e){ return null; }
+}
+
+/* ── validation : la destination renvoyee correspond-elle a celle demandee ? ──
    Comparaison volontairement souple (accents/casse ignorés, sous-chaîne dans
    un sens ou l'autre) car le client peut taper "Sardaigne" et l'IA répondre
    "Sardaigne, Italie" ou l'inverse — ce n'est pas une erreur. ── */
@@ -941,6 +978,38 @@ async function callCartographe(){
 
   /* recherche web du prix de vol — lancée en parallèle, dès que la destination est connue */
   const flightPromise=_fetchFlightPriceFromWeb(skel.dest, skel.country, state.dateFrom, state.dateTo, state.travelers);
+
+  /* recherche web de VRAIS hébergements — remplace les noms potentiellement inventés */
+  if(Array.isArray(skel.stays) && skel.stays.length){
+    const zones = skel.stays.map(function(s){ return s.loc || s.zone || skel.dest; });
+    const realStays = await _fetchRealStays(skel.dest, zones, skel.level);
+    if(realStays && realStays.length){
+      /* remplacer chaque hébergement par le vrai trouvé pour la même zone (ordre) */
+      skel.stays = skel.stays.map(function(orig, i){
+        const real = realStays[i];
+        if(real && real.name){
+          return {
+            name: real.name,
+            type: real.type || orig.type,
+            loc: orig.loc || real.zone,
+            price: real.price || orig.price,
+            nights: orig.nights,
+            blurb: real.blurb || orig.blurb,
+          };
+        }
+        return orig; /* garder l'original si pas de vrai trouvé pour cette zone */
+      });
+      /* mettre à jour les "night" du plan pour pointer vers les nouveaux noms */
+      const nameMap = {};
+      (state._genStays||[]).forEach(function(old, i){
+        if(skel.stays[i]) nameMap[old.name] = skel.stays[i].name;
+      });
+      skel.plan.forEach(function(p){
+        if(p && p.night && nameMap[p.night]) p.night = nameMap[p.night];
+      });
+      state._genStays = skel.stays;
+    }
+  }
 
   /* Passe 2 — détail éditorial des jours, par lots de 7 pour les longs voyages */
   const allDays=[];
