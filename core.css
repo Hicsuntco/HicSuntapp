@@ -1,22 +1,31 @@
 /* ── HIC SUNT · Sillage — core: tokens, chrome, overlays, primitives ── */
-@import url('https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Hanken+Grotesk:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Space+Mono:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;0,6..96,600;0,6..96,700;1,6..96,400;1,6..96,500;1,6..96,600&family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500&family=Jost:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap');
 
 :root{
-  --bg:#f7f4ec; --surface:#fffdf7; --surface2:#f1ece1;
-  --ink:#1b1610; --ink-soft:#4a4136; --sub:#8c8173;
-  --line:#e6dccb; --line2:#efe7d8;
-  --gold:#9c7c44; --gold-soft:#b39a64; --gold-deep:#7d602e;
-  --onink:#f6f0e4; --ph:#c9bda4; --ok:#5d7a4e;
-  --serif:'Spectral',Georgia,serif;
-  --sf:'Hanken Grotesk',-apple-system,'Helvetica Neue',sans-serif;
+  /* Surfaces — ivoire chaud profond, plus de matière */
+  --bg:#f5efe3; --surface:#fffdf8; --surface2:#efe8da; --surface-raised:#fffefb;
+  /* Encre — brun-noir profond, jamais pur noir (plus chaud, plus luxe) */
+  --ink:#1c1712; --ink-soft:#4a4136; --sub:#8a7f6f;
+  /* Lignes */
+  --line:#e4d9c6; --line2:#eee6d6;
+  /* Or — patiné, profond, signature de la marque */
+  --gold:#9c7c44; --gold-soft:#bda268; --gold-deep:#7a5d2e; --gold-bright:#c9a96e;
+  /* Divers */
+  --onink:#f5efe3; --ph:#c5b9a0; --ok:#5d7a4e;
+  /* Typographie — Bodoni pour le luxe éditorial, Jost pour l'utilitaire */
+  --serif:'Bodoni Moda',Georgia,'Times New Roman',serif;
+  --serif-text:'Spectral',Georgia,serif;
+  --sf:'Jost',-apple-system,'Helvetica Neue',sans-serif;
+  --sans:'Jost',-apple-system,sans-serif;
   --mono:'Space Mono','SF Mono',monospace;
-  --card-radius:20px; --btn-radius:14px;
-  --shadow-card:0 1px 2px rgba(30,22,12,0.04),0 3px 8px rgba(30,22,12,0.05),0 24px 50px -30px rgba(30,22,12,0.4);
-  --shadow-float:0 30px 70px -30px rgba(28,20,10,0.5);
+  /* Géométrie — radius plus généreux et cohérent */
+  --card-radius:22px; --btn-radius:15px;
+  /* Ombres — plus subtiles, plus précises (luxe = discrétion) */
+  --shadow-card:0 1px 2px rgba(28,20,12,0.03),0 4px 16px rgba(28,20,12,0.05),0 20px 48px -28px rgba(28,20,12,0.28);
+  --shadow-float:0 24px 64px -28px rgba(28,20,10,0.42);
+  --shadow-raised:0 2px 8px rgba(28,20,12,0.05),0 12px 32px -16px rgba(28,20,12,0.18);
   --tile-bg:linear-gradient(160deg,#efe9da,#e4dac6);
-  /* iOS native spacing — minimum tap 44px, comfortable 52px */
   --tap-min:44px; --tap-comfortable:52px;
-  /* iOS spring easing */
   --spring:cubic-bezier(0.34,1.2,0.4,1);
   --ease-out:cubic-bezier(0.22,1,0.36,1);
   --ease-in-out:cubic-bezier(0.4,0,0.2,1);

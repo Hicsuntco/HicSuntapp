@@ -90,7 +90,7 @@
 .bell-btn .dot{position:absolute;top:10px;right:10px;width:7px;height:7px;border-radius:50%;background:var(--gold);border:1.5px solid var(--surface)}
 .disc-hello{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:2.4px;text-transform:uppercase;color:var(--gold);margin-top:14px}
 /* iOS Large Title — biggest and boldest in the hierarchy */
-.disc-hero{font-family:var(--serif);font-weight:600;font-size:44px;line-height:1.06;letter-spacing:-1px;margin-top:10px}
+.disc-hero{font-family:var(--serif);font-weight:500;font-size:46px;line-height:1.04;letter-spacing:-1.5px;margin-top:10px}
 .disc-hero em{font-style:italic;color:var(--gold)}
 
 /* ── muse card ── */
@@ -125,7 +125,7 @@
 .tile .wm{position:absolute;top:12px;right:10px;color:var(--ink);opacity:0.2}
 .tile .code{position:absolute;top:13px;left:14px;font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:1.2px;color:var(--gold-deep)}
 .tile .t-cap{position:absolute;left:14px;right:12px;bottom:13px}
-.tile .t-n{font-family:var(--serif);font-weight:600;font-size:22px;letter-spacing:-0.3px;color:var(--ink)}
+.tile .t-n{font-family:var(--serif-text);font-weight:600;font-size:22px;letter-spacing:-0.3px;color:var(--ink)}
 .tile .t-rule{width:26px;height:1.5px;background:var(--gold);margin:7px 0 6px}
 .tile .t-r{font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft);opacity:0.75}
 
@@ -141,7 +141,7 @@
 .trip .th{height:100px;border-radius:14px;position:relative;overflow:hidden;border:1px solid var(--line2)}
 .trip .th .wm{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--ink);opacity:0.22}
 /* iOS Title2 size for card name */
-.trip .ti-n{font-family:var(--serif);font-weight:600;font-size:20px;letter-spacing:-0.3px}
+.trip .ti-n{font-family:var(--serif-text);font-weight:600;font-size:20px;letter-spacing:-0.3px}
 .trip .ti-d{font-family:var(--mono);font-size:9px;letter-spacing:0.8px;text-transform:uppercase;color:var(--sub);margin-top:6px}
 .trip .ti-days{font-family:var(--mono);font-size:8px;letter-spacing:0.8px;text-transform:uppercase;color:var(--gold-deep);margin-top:4px}
 .trip .ti-st{margin-top:10px}
@@ -196,7 +196,7 @@
 }
 /* Titre */
 .dcard .d-q{
-  font-family:var(--serif);font-weight:600;font-size:26px;
+  font-family:var(--serif);font-weight:500;font-size:28px;
   line-height:1.18;letter-spacing:-0.4px;color:var(--ink);flex:none;
 }
 .dcard .d-q em{font-style:italic;color:var(--gold)}
@@ -230,7 +230,7 @@
   background:rgba(156,124,68,0.12);
   color:var(--gold);display:flex;align-items:center;justify-content:center;flex:none;
 }
-.mode-btn .m-t{font-family:var(--serif);font-weight:600;font-size:16px;color:var(--ink)}
+.mode-btn .m-t{font-family:var(--serif-text);font-weight:600;font-size:16px;color:var(--ink)}
 .mode-btn .m-d{font-size:12px;font-weight:300;color:var(--sub);margin-top:2px;line-height:1.4}
 
 /* ── Radio (budget, rythme) ── */
@@ -244,7 +244,7 @@
 }
 .radio-it:active{transform:scale(0.97)}
 .radio-it.on{border-color:var(--ink);background:var(--ink);color:var(--onink)}
-.radio-it .ra-t{font-family:var(--serif);font-weight:600;font-size:16px;color:inherit}
+.radio-it .ra-t{font-family:var(--serif-text);font-weight:600;font-size:16px;color:inherit}
 .radio-it .ra-d{font-size:12px;font-weight:300;color:var(--sub);margin-top:2px}
 .radio-it.on .ra-d{color:rgba(246,240,228,0.55)}
 .radio-it .ra-dot{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--line2);flex:none;transition:background 0.18s,border-color 0.18s}
@@ -274,7 +274,7 @@
 .occ:active{transform:scale(0.95)}
 .occ.on{border-color:var(--ink);background:var(--ink);color:var(--onink)}
 .occ .o-e{font-size:22px;line-height:1}
-.occ .o-t{font-family:var(--serif);font-weight:600;font-size:13px;margin-top:8px;color:inherit;line-height:1.2}
+.occ .o-t{font-family:var(--serif-text);font-weight:600;font-size:13px;margin-top:8px;color:inherit;line-height:1.2}
 .occ .o-d{font-size:10px;font-weight:300;color:var(--sub);margin-top:3px;line-height:1.4}
 .occ.on .o-d{color:rgba(246,240,228,0.55)}
 
@@ -310,13 +310,13 @@ textarea.input{resize:none;min-height:100px;line-height:1.55}
 
 
 /* ── voyages ── */
-.voy-title{font-family:var(--serif);font-weight:600;font-size:32px;letter-spacing:-0.5px;margin-top:8px}
+.voy-title{font-family:var(--serif);font-weight:500;font-size:34px;letter-spacing:-0.8px;margin-top:8px}
 .voy-seg{margin-top:18px;margin-bottom:20px}
 
 /* ── profile ── */
 .prof-card{margin-top:10px;background:var(--surface);border:1px solid var(--line);border-radius:var(--card-radius);box-shadow:var(--shadow-card);padding:20px;position:relative;overflow:hidden}
 .prof-id{display:flex;align-items:center;gap:15px;position:relative}
-.prof-n{font-family:var(--serif);font-weight:600;font-size:22px;letter-spacing:-0.3px}
+.prof-n{font-family:var(--serif-text);font-weight:600;font-size:22px;letter-spacing:-0.3px}
 .prof-m{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--sub);margin-top:4px}
 .prof-cercle{margin-top:18px;position:relative}
 .prof-tier{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase}

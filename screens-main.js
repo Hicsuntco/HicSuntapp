@@ -197,7 +197,7 @@ function createView(){
     +   '<div class="deck-prog">'
     +     '<button class="deck-back" data-deck-back onclick="deckBack()" aria-label="Question précédente">' + ico('back', 18, 1.7) + '</button>'
     +     '<div class="deck-bar"><i data-deck-fill></i></div>'
-    +     '<span class="deck-count" data-deck-count>01 / 12</span>'
+    +     '<span class="deck-count" data-deck-count>01 / 10</span>'
     +   '</div>'
     + '</div>'
     + '<div id="deck"></div>';
@@ -275,22 +275,24 @@ function voySeg(k){
 
 /* ── Profil ─────────────────────────────────────────────────────────── */
 function profileView(){
+  const connected = !!localStorage.getItem('sb_token');
+  const email = localStorage.getItem('hs_email') || '';
+
   const rows = [
-    ['sliders','Préférences de voyage','Styles · budget · rythme', "openOverlay('prefs', prefsView())"],
-    ['doc','Passeport & documents','1 action requise', "openOverlay('documents', documentsView())"],
-    ['compass','Cercle Hic Sunt', CERCLE.tier + ' · ' + CERCLE.points + ' pts', "openCercle()"],
-    ['bell','Conciergerie','Hansa · en ligne', "openOverlay('concierge', conciergeView())"],
-    ['help','Notifications','2 non lues', "openOverlay('notifications', notificationsView())"],
-    ['logout','Déconnexion','', 'logout()'],
+    ['compass','Mes préférences de voyage','Styles, budget et rythme par défaut', "openOverlay('prefs', prefsView())"],
+    ['map','Mes itinéraires','Voyages composés et sauvegardés', "setTab('voyages')"],
+    ['bell','Notifications', (NOTIFS.filter(function(n){return n.unread;}).length || 'Aucune') + ' non lue' + (NOTIFS.filter(function(n){return n.unread;}).length>1?'s':''), "openOverlay('notifications', notificationsView())"],
   ];
+  if(connected) rows.push(['logout','Déconnexion','', 'logout()']);
+
   return statusBar()
     + '<div class="px">'
-    +   '<div class="prof-card">' + contour()
-    +     '<div class="prof-id"><span class="avatar" style="width:60px;height:60px;font-size:20px">' + USER.initials + '</span>'
-    +       '<div><div class="prof-n">' + esc(USER.full) + '</div><div class="prof-m">' + esc(USER.since) + '</div></div></div>'
-    +     '<div class="prof-cercle">'
-    +       '<div class="prof-tier"><b>' + esc(CERCLE.tier) + '</b><span>' + CERCLE.points + ' pts</span></div>'
-    +       '<div class="prog"><i style="width:' + Math.round(CERCLE.progress * 100) + '%"></i></div>'
+    +   '<h1 class="voy-title" style="margin-bottom:20px">Profil</h1>'
+    +   '<div class="prof-card">'
+    +     '<div class="prof-id">'
+    +       '<span class="avatar" style="width:64px;height:64px;font-size:22px">' + (USER.initials || '✦') + '</span>'
+    +       '<div><div class="prof-n">' + esc(USER.full || USER.name || 'Voyageur') + '</div>'
+    +         '<div class="prof-m">' + (email ? esc(email) : 'Composez votre premier itinéraire') + '</div></div>'
     +     '</div>'
     +   '</div>'
     +   '<div class="prof-list">' + rows.map(function(r){
@@ -299,5 +301,7 @@ function profileView(){
             + '<div class="r-main"><div class="r-t">' + r[1] + '</div>' + (r[2] ? '<div class="r-s">' + r[2] + '</div>' : '') + '</div>'
             + '<span class="r-chev">' + ico('chevron', 17, 1.6) + '</span></div>';
         }).join('') + '</div>'
+    +   (connected ? '' : '<button class="btn" style="width:100%;margin-top:20px" onclick="openOverlay(\'welcome\', welcomeView(), {modal:true})">Se connecter</button>')
+    +   '<p style="text-align:center;font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub);margin-top:32px">Hic Sunt · Beyond the Known</p>'
     + '</div>';
 }
