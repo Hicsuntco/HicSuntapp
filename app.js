@@ -776,7 +776,7 @@ function playSplash(next){
       if (splash.parentNode) splash.parentNode.removeChild(splash);
       next();
     }, 620);
-  }, 1500);
+  }, 2200);
 }
 
 /* ── boot ── */
