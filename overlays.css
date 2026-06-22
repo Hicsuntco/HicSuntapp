@@ -291,10 +291,10 @@
 .chat-id{display:flex;align-items:center;gap:10px;flex:1}
 .chat-av{
   width:40px;height:40px;border-radius:50%;
-  background:linear-gradient(135deg,#C9A96E 0%,#8A6A3A 100%);
+  background:linear-gradient(135deg,var(--gold-bright) 0%,var(--gold-deep) 100%);
   color:white;display:flex;align-items:center;justify-content:center;
   position:relative;flex:none;
-  box-shadow:0 2px 10px rgba(156,124,68,0.40);
+  box-shadow:0 2px 12px rgba(122,93,46,0.35);
 }
 .on-dot{position:absolute;bottom:1px;right:1px;width:10px;height:10px;border-radius:50%;background:#34C759;border:2px solid var(--bg)}
 .chat-n{font-size:15px;font-weight:600;letter-spacing:-0.2px;color:var(--ink)}
