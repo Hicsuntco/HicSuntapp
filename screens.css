@@ -81,12 +81,13 @@
 .disc-head{padding-top:6px}
 .disc-top{display:flex;align-items:center;justify-content:space-between}
 .bell-btn{
-  width:44px;height:44px;border-radius:14px;border:1px solid var(--line);
-  background:var(--surface);color:var(--ink);
+  width:40px;height:40px;border-radius:13px;border:1px solid var(--line);
+  background:var(--surface);color:var(--ink-soft);
   display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;
-  transition:transform 0.12s cubic-bezier(0.34,1.2,0.4,1);
+  transition:transform 0.12s var(--spring),border-color 0.18s;
 }
 .bell-btn:active{transform:scale(0.88)}
+.bell-btn:hover{border-color:var(--gold-soft)}
 .bell-btn .dot{position:absolute;top:10px;right:10px;width:7px;height:7px;border-radius:50%;background:var(--gold);border:1.5px solid var(--surface)}
 .disc-hello{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:2.4px;text-transform:uppercase;color:var(--gold);margin-top:14px}
 /* iOS Large Title — biggest and boldest in the hierarchy */
@@ -94,11 +95,12 @@
 .disc-hero em{font-style:italic;color:var(--gold)}
 
 /* ── muse card ── */
-.muse{margin-top:22px;background:var(--surface);border:1px solid var(--line);border-radius:var(--card-radius);box-shadow:var(--shadow-card);padding:18px;position:relative;overflow:hidden}
+.muse{margin-top:22px;background:var(--surface-raised);border:1px solid var(--line);border-radius:var(--card-radius);box-shadow:var(--shadow-raised);padding:20px;position:relative;overflow:hidden}
+.muse::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(to right,transparent,var(--gold-soft),transparent);opacity:0.5}
 .muse-top{display:flex;justify-content:space-between;align-items:center}
 .muse-nsew{font-family:var(--mono);font-size:8.5px;letter-spacing:2px;color:var(--gold-soft)}
-.muse-row{display:flex;align-items:flex-end;gap:12px;margin-top:14px}
-.muse-input{flex:1;border:none;background:transparent;outline:none;font-family:var(--serif);font-style:italic;font-size:27px;color:var(--ink);min-width:0}
+.muse-row{display:flex;align-items:flex-end;gap:12px;margin-top:16px}
+.muse-input{flex:1;border:none;background:transparent;outline:none;font-family:var(--serif);font-style:italic;font-size:28px;font-weight:400;color:var(--ink);min-width:0}
 .muse-input::placeholder{color:var(--ph)}
 /* iOS: minimum 44×44 tap target */
 .muse-go{
@@ -116,10 +118,12 @@
 
 /* ── destination grid ── */
 .dest-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-top:16px}
-.tile{height:168px;border-radius:var(--card-radius);border:1px solid var(--line);position:relative;overflow:hidden;cursor:pointer;
-  transition:transform 0.15s cubic-bezier(0.34,1.2,0.4,1),opacity 0.12s;
+.tile{height:172px;border-radius:var(--card-radius);border:1px solid var(--line);position:relative;overflow:hidden;cursor:pointer;
+  box-shadow:0 1px 3px rgba(28,20,12,0.04);
+  transition:transform 0.18s var(--spring),box-shadow 0.18s ease;
 }
-.tile:active{transform:scale(0.96);opacity:0.9}
+.tile:active{transform:scale(0.96)}
+.tile:hover{box-shadow:var(--shadow-raised)}
 .tile .wash{position:absolute;inset:0}
 .tile .contour{opacity:0.1}
 .tile .wm{position:absolute;top:12px;right:10px;color:var(--ink);opacity:0.2}
