@@ -90,7 +90,7 @@
 .bell-btn .dot{position:absolute;top:10px;right:10px;width:7px;height:7px;border-radius:50%;background:var(--gold);border:1.5px solid var(--surface)}
 .disc-hello{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:2.4px;text-transform:uppercase;color:var(--gold);margin-top:14px}
 /* iOS Large Title — biggest and boldest in the hierarchy */
-.disc-hero{font-family:var(--serif);font-weight:500;font-size:46px;line-height:1.04;letter-spacing:-1.5px;margin-top:10px}
+.disc-hero{font-family:var(--serif);font-weight:600;font-size:44px;line-height:1.06;letter-spacing:-1px;margin-top:10px}
 .disc-hero em{font-style:italic;color:var(--gold)}
 
 /* ── muse card ── */
@@ -196,7 +196,7 @@
 }
 /* Titre */
 .dcard .d-q{
-  font-family:var(--serif);font-weight:500;font-size:28px;
+  font-family:var(--serif);font-weight:600;font-size:26px;
   line-height:1.18;letter-spacing:-0.4px;color:var(--ink);flex:none;
 }
 .dcard .d-q em{font-style:italic;color:var(--gold)}
@@ -310,7 +310,7 @@ textarea.input{resize:none;min-height:100px;line-height:1.55}
 
 
 /* ── voyages ── */
-.voy-title{font-family:var(--serif);font-weight:500;font-size:34px;letter-spacing:-0.8px;margin-top:8px}
+.voy-title{font-family:var(--serif);font-weight:600;font-size:32px;letter-spacing:-0.5px;margin-top:8px}
 .voy-seg{margin-top:18px;margin-bottom:20px}
 
 /* ── profile ── */
