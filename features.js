@@ -222,7 +222,7 @@ function budgetView(){
     +   '<div class="bud-card">'
     +     '<div class="bud-l">Total estimé · ' + esc(ITINERARY.dest) + '</div>'
     +     '<div class="bud-v">' + eur(b.total) + '</div>'
-    +     '<div class="bud-s">' + travelerLabel() + ' · ' + ITINERARY.days + ' jours · estimation</div>'
+    +     '<div class="bud-s">' + travelerLabel() + ' · ' + _days() + ' jours · estimation</div>'
     +     (isGen ? '' : '<div class="bud-prog"><i style="width:' + pct + '%"></i></div>'
         + '<div class="bud-leg"><span>Réglé · <b>' + eur(b.spent) + '</b></span><span>Restant · ' + eur(rest) + '</span></div>')
     +   '</div>'

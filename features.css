@@ -26,10 +26,11 @@
 .map-chip.on .mc-l{color:var(--onink)}
 
 /* ── budget ── */
-.bud-card{margin-top:12px;background:var(--surface);border:1px solid var(--line);border-radius:var(--card-radius);box-shadow:var(--shadow-card);padding:20px;position:relative;overflow:hidden}
-.bud-card .contour{opacity:0.08}
-.bud-l{font-family:var(--serif);font-size:14px;color:var(--ink-soft);position:relative}
-.bud-v{font-family:var(--serif);font-weight:600;font-size:44px;letter-spacing:-1px;margin-top:6px;position:relative}
+.bud-card{margin-top:12px;background:var(--surface-raised);border:1px solid var(--line);border-radius:var(--card-radius);box-shadow:var(--shadow-raised);padding:24px;position:relative;overflow:hidden}
+.bud-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(to right,transparent,var(--gold-soft),transparent);opacity:0.5}
+.bud-card .contour{opacity:0.06}
+.bud-l{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:var(--gold);position:relative}
+.bud-v{font-family:var(--serif);font-weight:600;font-size:48px;letter-spacing:-1.5px;margin-top:10px;position:relative;line-height:1}
 .bud-s{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--sub);margin-top:7px;position:relative}
 .bud-prog{height:4px;background:var(--line2);border-radius:4px;margin-top:18px;overflow:hidden;position:relative}
 .bud-prog i{display:block;height:100%;background:var(--gold);border-radius:4px}
