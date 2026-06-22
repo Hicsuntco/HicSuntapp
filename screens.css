@@ -4,6 +4,7 @@
 .tabs{position:absolute;inset:0}
 .tabview{
   position:absolute;inset:0;overflow-y:auto;overscroll-behavior:contain;
+  padding-top:env(safe-area-inset-top,0px);
   padding-bottom:calc(100px + env(safe-area-inset-bottom,0px));
   opacity:0;pointer-events:none;
   transition:opacity 0.22s ease;scrollbar-width:none;
