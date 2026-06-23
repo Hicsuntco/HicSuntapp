@@ -804,8 +804,16 @@ function buildApp(){
 }
 
 document.addEventListener('DOMContentLoaded', function(){
-  /* ── Vérification retour paiement Stripe ── */
+  /* ── Déblocage propriétaire (tests) : ?hs=carto-perret-2026 ──
+     Stocke l'email exempté. À usage personnel uniquement. */
   const urlParams = new URLSearchParams(window.location.search);
+  if(urlParams.get('hs') === 'carto-perret-2026'){
+    localStorage.setItem('hs_email', 'charlottegperret@gmail.com');
+    window.history.replaceState({}, '', window.location.pathname);
+    if(typeof toast === 'function') setTimeout(function(){ toast('Accès propriétaire activé ✓'); }, 600);
+  }
+
+  /* ── Vérification retour paiement Stripe ── */
   if(urlParams.get('paid') === 'true'){
     const pending = JSON.parse(localStorage.getItem('hs_pending_ref') || 'null');
     if(pending && typeof _grantPayment === 'function'){
