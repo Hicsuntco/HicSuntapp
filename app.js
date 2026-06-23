@@ -350,20 +350,27 @@ function loginGoogle(){
   window.location.href = SUPABASE_URL + '/auth/v1/authorize?provider=google&redirect_to=' + encodeURIComponent(redirectTo);
 }
 async function loginEmail(){
-  const email = document.getElementById('authEmail').value.trim();
-  const password = document.getElementById('authPassword').value;
+  const scope = (typeof ovStack!=='undefined' && ovStack.length) ? ovStack[ovStack.length-1] : document;
+  const emailEl = scope.querySelector('#authEmail') || document.getElementById('authEmail');
+  const passEl = scope.querySelector('#authPassword') || document.getElementById('authPassword');
+  const email = (emailEl ? emailEl.value : '').trim();
+  const password = passEl ? passEl.value : '';
   if (!email || !password){ toast('Email et mot de passe requis'); return; }
   try{
     const res = await fetch(SUPABASE_URL+'/auth/v1/token?grant_type=password',{method:'POST',headers:{'content-type':'application/json','apikey':SUPABASE_ANON},body:JSON.stringify({email,password})});
     const data = await res.json();
+    /* Supabase renvoie l'erreur sous plusieurs formes selon le cas */
     if(data.error_description) throw new Error(data.error_description);
+    if(data.error) throw new Error((data.error.message)||data.error||'Erreur');
+    if(data.msg) throw new Error(data.msg);
+    if(!data.access_token) throw new Error('Identifiants incorrects');
+
     localStorage.setItem('sb_token', data.access_token);
-    /* Stocker l'email directement pour l'exemption de paiement */
     if(email) localStorage.setItem('hs_email', email.toLowerCase());
     _applyUser(data.user);
     closeAllOverlays(); setTab('discover');
-    /* Rafraîchir profil + voyages avec le nouvel état connecté */
     if(typeof refreshAuthTabs === 'function') refreshAuthTabs();
+    toast('Connecté ✓');
     checkProfile().then(function(done){
       if(typeof refreshAuthTabs === 'function') refreshAuthTabs();
       if(!done) openOverlay('welcome', welcomeView(), { modal:true });
@@ -371,8 +378,11 @@ async function loginEmail(){
   }catch(e){ toast(e.message||'Erreur de connexion'); }
 }
 async function signupEmail(){
-  const email = document.getElementById('authEmail').value.trim();
-  const password = document.getElementById('authPassword').value;
+  const scope = (typeof ovStack!=='undefined' && ovStack.length) ? ovStack[ovStack.length-1] : document;
+  const emailEl = scope.querySelector('#authEmail') || document.getElementById('authEmail');
+  const passEl = scope.querySelector('#authPassword') || document.getElementById('authPassword');
+  const email = (emailEl ? emailEl.value : '').trim();
+  const password = passEl ? passEl.value : '';
   if (!email || !password){ toast('Email et mot de passe requis'); return; }
   try{
     const res = await fetch(SUPABASE_URL+'/auth/v1/signup',{method:'POST',headers:{'content-type':'application/json','apikey':SUPABASE_ANON},body:JSON.stringify({email,password})});
