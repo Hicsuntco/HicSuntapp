@@ -362,7 +362,12 @@ async function loginEmail(){
     if(email) localStorage.setItem('hs_email', email.toLowerCase());
     _applyUser(data.user);
     closeAllOverlays(); setTab('discover');
-    checkProfile().then(function(done){ if(!done) openOverlay('welcome', welcomeView(), { modal:true }); });
+    /* Rafraîchir profil + voyages avec le nouvel état connecté */
+    if(typeof refreshAuthTabs === 'function') refreshAuthTabs();
+    checkProfile().then(function(done){
+      if(typeof refreshAuthTabs === 'function') refreshAuthTabs();
+      if(!done) openOverlay('welcome', welcomeView(), { modal:true });
+    });
   }catch(e){ toast(e.message||'Erreur de connexion'); }
 }
 async function signupEmail(){
@@ -375,8 +380,10 @@ async function signupEmail(){
     if(data.error) throw new Error(data.error.message||data.error);
     if(data.access_token){
       localStorage.setItem('sb_token', data.access_token);
+      if(email) localStorage.setItem('hs_email', email.toLowerCase());
       _applyUser(data.user);
       closeAllOverlays(); setTab('discover');
+      if(typeof refreshAuthTabs==='function') refreshAuthTabs();
       openOverlay('welcome', welcomeView(), { modal:true });
     } else {
       toast('Vérifiez vos emails pour confirmer votre compte');
@@ -393,6 +400,17 @@ function _applyUser(user){
   USER.full = name;
   USER.initials = parts.map(function(p){ return p[0] || ''; }).join('').toUpperCase().slice(0,2) || '??';
   USER.since = 'Membre depuis ' + new Date().getFullYear();
+}
+
+/* Re-rend les onglets dépendants de l'état connecté (profil, voyages) */
+function refreshAuthTabs(){
+  const views = screenEl() ? screenEl().querySelectorAll('.tabview') : [];
+  for(let i=0;i<views.length;i++){
+    const v = views[i];
+    const tab = v.dataset.tab;
+    if(tab==='profile'){ v.innerHTML = profileView(); }
+    if(tab==='voyages'){ v.innerHTML = voyagesView(); if(typeof loadVoyagesTab==='function') loadVoyagesTab(); }
+  }
 }
 
 /* ── profil voyageur (nom, naissance, adresse) ──────────────────────── */
@@ -437,9 +455,11 @@ async function checkProfile(){
       headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+token}
     });
     if(res.status===401){
-      /* token expiré : on déconnecte proprement plutôt que de boucler sur "Bienvenue" */
-      localStorage.removeItem('sb_token');
-      localStorage.removeItem('hs_profile_done');
+      /* 401 sur la table profiles = souvent RLS/permissions, PAS forcément
+         une session invalide. On garde le token (la session reste valide pour
+         le paiement et la génération) et on considère le profil comme complet
+         pour ne pas bloquer l'utilisateur. */
+      localStorage.setItem('hs_profile_done','1');
       return true;
     }
     const rows = await res.json();
