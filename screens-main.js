@@ -301,9 +301,6 @@ function profileView(){
             + '<div class="r-main"><div class="r-t">' + r[1] + '</div>' + (r[2] ? '<div class="r-s">' + r[2] + '</div>' : '') + '</div>'
             + '<span class="r-chev">' + ico('chevron', 17, 1.6) + '</span></div>';
         }).join('') + '</div>'
-    +   '<div style="margin-top:16px;padding:12px;background:var(--surface2);border-radius:12px;font-family:var(--mono);font-size:10px;color:var(--sub);line-height:1.6">'
-    +     'Diagnostic : token=' + (token ? 'présent ('+token.slice(0,12)+'…)' : 'ABSENT') + ' · email=' + (email || 'absent')
-    +   '</div>'
     +   (connected ? '' : '<button class="btn" style="width:100%;margin-top:20px" onclick="openOverlay(\'welcome\', welcomeView(), {modal:true})">Se connecter</button>')
     +   '<p style="text-align:center;font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub);margin-top:32px">Hic Sunt · Beyond the Known</p>'
     + '</div>';
