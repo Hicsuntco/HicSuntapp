@@ -396,8 +396,12 @@ async function signupEmail(){
       if(typeof refreshAuthTabs==='function') refreshAuthTabs();
       openOverlay('welcome', welcomeView(), { modal:true });
     } else {
-      toast('Vérifiez vos emails pour confirmer votre compte');
+      /* Confirmation email activée côté Supabase : pas de token immédiat.
+         On stocke quand même l'email pour l'exemption de paiement propriétaire. */
+      if(email) localStorage.setItem('hs_email', email.toLowerCase());
+      toast('Compte créé — vérifiez vos emails pour confirmer la connexion');
       closeAllOverlays(); setTab('discover');
+      if(typeof refreshAuthTabs==='function') refreshAuthTabs();
     }
   }catch(e){ toast(e.message||'Erreur lors de la création du compte'); }
 }
