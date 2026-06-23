@@ -1352,12 +1352,18 @@ document.addEventListener('DOMContentLoaded', function(){
       var hotelsUrl='https://fr.hotels.com/search.do?q-destination='+fullQ+'&q-rooms=1&q-room-0-adults='+guests
         +(checkin?'&q-check-in='+checkin:'')+(checkout?'&q-check-out='+checkout:'');
 
+      var googleQ=encodeURIComponent((a.n||'')+' '+(a.loc||it.dest||''));
+      var googleUrl='https://www.google.com/search?q='+googleQ;
+
       html += '<div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px">'
         /* En-tête hébergement */
         +'<div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:12px">'
         +'<div style="width:38px;height:38px;border-radius:10px;background:'+hexA(accent,0.12)+';display:flex;align-items:center;justify-content:center;flex:none;color:'+accent+'">'+ico(a.i||'bed',20,1.3)+'</div>'
         +'<div style="flex:1">'
-        +'<div style="font-family:var(--serif);font-size:16px;font-weight:600;color:var(--ink)">'+esc(a.n||'Hébergement')+'</div>'
+        +'<a href="'+googleUrl+'" target="_blank" rel="noopener" style="font-family:var(--serif);font-size:16px;font-weight:600;color:var(--ink);display:inline-flex;align-items:center;gap:5px;text-decoration:none">'
+          +esc(a.n||'Hébergement')
+          +'<span style="color:var(--gold);display:inline-flex;flex:none">'+ico('external',12,1.6)+'</span>'
+        +'</a>'
         +'<div style="font-family:var(--mono);font-size:9px;letter-spacing:0.8px;text-transform:uppercase;color:var(--sub);margin-top:3px">'+esc(a.type||'')+' · '+esc(a.loc||'')+'</div>'
         +'</div>'
         +'<div style="text-align:right;flex:none">'

@@ -31,6 +31,7 @@ const I = {
   star:'<path d="M12 3.5l2.5 5.2 5.7 0.7-4.2 3.9 1.1 5.6L12 16.9l-5.1 2.9 1.1-5.6-4.2-3.9 5.7-0.7z" fill="currentColor" stroke="none"/>',
   heart:'<path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.5-7 10-7 10z"/>',
   share:'<circle cx="6" cy="12" r="2.4"/><circle cx="17" cy="6" r="2.4"/><circle cx="17" cy="18" r="2.4"/><path d="M8.1 11l6.8-4M8.1 13l6.8 4"/>',
+  external:'<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/>',
   pin:'<path d="M12 21s7-6 7-11a7 7 0 0 0-14 0c0 5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/>',
   bed:'<path d="M3 18V9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v9"/><path d="M3 14h18M3 18v2M21 18v2"/><path d="M7 9V7"/>',
   wifi:'<path d="M2 8.5c5.5-4.5 14.5-4.5 20 0"/><path d="M5 12c4-3.2 10-3.2 14 0"/><path d="M8 15.4c2.4-1.9 5.6-1.9 8 0"/><circle cx="12" cy="18.5" r="0.8" fill="currentColor" stroke="none"/>',

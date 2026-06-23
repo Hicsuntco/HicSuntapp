@@ -560,7 +560,7 @@ function bookingView(accId){
     + '</div>'
     + '<div class="ov-scroll has-foot px">'
     +   '<span class="eyebrow" style="display:block;margin-top:16px">' + esc(a.tag) + '</span>'
-    +   '<div class="book-h"><span>' + esc(a.n) + '</span><span class="a-rate" style="font-family:var(--mono);font-size:11px;display:inline-flex;align-items:center;gap:4px">' + ico('star',12) + a.rate + '</span></div>'
+    +   '<div class="book-h"><a href="https://www.google.com/search?q='+encodeURIComponent((a.n||'')+' '+(a.loc||''))+'" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:6px">' + esc(a.n) + '<span style="color:var(--gold);display:inline-flex;flex:none">'+ico('external',15,1.6)+'</span></a><span class="a-rate" style="font-family:var(--mono);font-size:11px;display:inline-flex;align-items:center;gap:4px">' + ico('star',12) + a.rate + '</span></div>'
     +   '<div class="book-meta">' + esc(a.type) + ' · ' + esc(a.loc) + '</div>'
     +   '<p class="book-desc">' + esc(a.blurb) + '</p>'
     +   '<div class="chips" style="margin-top:16px">' + a.am.map(function(k){
