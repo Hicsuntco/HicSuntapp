@@ -1234,8 +1234,8 @@ function _getPalier(days){
 
 /* ── Vérification du token de paiement (localStorage) ── */
 function _checkPaymentToken(dest, days){
-  /* Seule exemption : email propriétaire */
-  const email = localStorage.getItem('hs_email')||'';
+  /* Seule exemption : email propriétaire (insensible à la casse) */
+  const email = (localStorage.getItem('hs_email')||'').toLowerCase().trim();
   if(email==='charlottegperret@gmail.com') return true;
 
   /* Token Stripe valide 48h */

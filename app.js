@@ -358,6 +358,8 @@ async function loginEmail(){
     const data = await res.json();
     if(data.error_description) throw new Error(data.error_description);
     localStorage.setItem('sb_token', data.access_token);
+    /* Stocker l'email directement pour l'exemption de paiement */
+    if(email) localStorage.setItem('hs_email', email.toLowerCase());
     _applyUser(data.user);
     closeAllOverlays(); setTab('discover');
     checkProfile().then(function(done){ if(!done) openOverlay('welcome', welcomeView(), { modal:true }); });
