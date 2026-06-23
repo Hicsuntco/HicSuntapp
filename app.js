@@ -1057,16 +1057,21 @@ document.addEventListener('DOMContentLoaded', function(){
     var guests=(state&&state.travelers)||2;
     var checkin=it.dateFrom||'';
     var checkout=it.dateTo||'';
-    var nameQ=encodeURIComponent(a.n||'');
-    var cityQ=encodeURIComponent(a.loc||it.dest||'');
+    var name=(a.n||'').trim();
+    var loc=(a.loc||it.dest||'').trim();
+    var nameQ=encodeURIComponent(name);
+    var cityQ=encodeURIComponent(loc);
+    var fullQ=encodeURIComponent(name+(loc?', '+loc:''));
+    var nameLoc=encodeURIComponent(name+(loc?' '+loc:''));
 
-    /* Liens directs avec nom exact + dates */
-    var bookingUrl='https://www.booking.com/searchresults.html?ss='+nameQ+'%2C%20'+cityQ+'&lang=fr&group_adults='+guests+'&no_rooms=1'
+    /* Liens recherche pré-remplie nom + ville + dates */
+    var bookingUrl='https://www.booking.com/searchresults.html?ss='+fullQ+'&ssne='+cityQ+'&ssne_untouched='+cityQ
+      +'&dest_type=hotel&lang=fr&group_adults='+guests+'&no_rooms=1&sb_travel_purpose=leisure'
       +(checkin?'&checkin='+checkin:'')+(checkout?'&checkout='+checkout:'')
       +(typeof AFFILIATE_TAGS!=='undefined'&&AFFILIATE_TAGS.booking?'&aid='+AFFILIATE_TAGS.booking:'');
-    var airbnbUrl='https://www.airbnb.fr/s/'+cityQ+'/homes?query='+nameQ+'&adults='+guests
+    var airbnbUrl='https://www.airbnb.fr/s/'+cityQ+'/homes?query='+nameLoc+'&adults='+guests+'&search_type=autocomplete_click'
       +(checkin?'&checkin='+checkin:'')+(checkout?'&checkout='+checkout:'');
-    var hotelsUrl='https://fr.hotels.com/search.do?q-destination='+nameQ+'%20'+cityQ+'&q-rooms=1&q-room-0-adults='+guests
+    var hotelsUrl='https://fr.hotels.com/search.do?q-destination='+fullQ+'&q-rooms=1&q-room-0-adults='+guests
       +(checkin?'&q-check-in='+checkin:'')+(checkout?'&q-check-out='+checkout:'');
 
     function platformRow(url, logo, color, title, subtitle){
@@ -1338,17 +1343,24 @@ document.addEventListener('DOMContentLoaded', function(){
 
     accs.forEach(function(a){
       var price=Number(a.price)||0, nights=Number(a.nights)||1;
-      var fullQ=encodeURIComponent((a.n||'')+', '+(a.loc||it.dest||''));
-      var cityQ=encodeURIComponent(a.loc||it.dest||'');
-      var nameQ=encodeURIComponent(a.n||'');
+      var name=(a.n||'').trim();
+      var loc=(a.loc||it.dest||'').trim();
+      var fullQ=encodeURIComponent(name+(loc?', '+loc:''));
+      var nameLoc=encodeURIComponent(name+(loc?' '+loc:''));
+      var cityQ=encodeURIComponent(loc);
       var checkin=it.dateFrom||'';
       var checkout=it.dateTo||'';
 
-      var bookingUrl='https://www.booking.com/searchresults.html?ss='+fullQ+'&lang=fr&group_adults='+guests+'&no_rooms=1&sb_travel_purpose=leisure'
+      /* Booking : ss = nom + ville, dest_type=hotel pour cibler l'établissement,
+         ac_click_type pousse la résolution directe vers la fiche si elle existe */
+      var bookingUrl='https://www.booking.com/searchresults.html?ss='+fullQ+'&ssne='+cityQ+'&ssne_untouched='+cityQ
+        +'&dest_type=hotel&lang=fr&group_adults='+guests+'&no_rooms=1&sb_travel_purpose=leisure'
         +(checkin?'&checkin='+checkin:'')+(checkout?'&checkout='+checkout:'')
         +(typeof AFFILIATE_TAGS!=='undefined'&&AFFILIATE_TAGS.booking?'&aid='+AFFILIATE_TAGS.booking:'');
-      var airbnbUrl='https://www.airbnb.fr/s/'+cityQ+'/homes?query='+nameQ+'&adults='+guests
+      /* Airbnb : recherche nom + ville dans la query pour cibler le bon logement */
+      var airbnbUrl='https://www.airbnb.fr/s/'+cityQ+'/homes?query='+nameLoc+'&adults='+guests+'&search_type=autocomplete_click'
         +(checkin?'&checkin='+checkin:'')+(checkout?'&checkout='+checkout:'');
+      /* Hotels.com : destination = nom + ville */
       var hotelsUrl='https://fr.hotels.com/search.do?q-destination='+fullQ+'&q-rooms=1&q-room-0-adults='+guests
         +(checkin?'&q-check-in='+checkin:'')+(checkout?'&q-check-out='+checkout:'');
 
