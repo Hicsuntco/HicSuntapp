@@ -1096,13 +1096,6 @@ async function callCartographe(){
     });
     if(places.length){
       const realRestos = await _fetchRealRestos(skel.dest, places, skel.level);
-      /* Diagnostic visible dans l'app */
-      window._restoDiag = {
-        demandes: places.length,
-        recus: realRestos ? realRestos.length : 0,
-        noms: realRestos ? realRestos.map(function(r){return r.name;}).filter(Boolean).slice(0,4) : [],
-        echec: !realRestos
-      };
       if(realRestos && realRestos.length){
         /* normaliser pour matcher par lieu */
         var norm=function(s){return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();};
