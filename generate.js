@@ -1084,14 +1084,28 @@ async function callCartographe(){
     });
     if(places.length){
       const realRestos = await _fetchRealRestos(skel.dest, places, skel.level);
+      console.log('[restos] demandés:', places.length, '· reçus:', realRestos?realRestos.length:0, realRestos);
       if(realRestos && realRestos.length){
+        /* normaliser pour matcher par lieu */
+        var norm=function(s){return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();};
+        var used={};
         restoIdx.forEach(function(dayI, k){
-          const real = realRestos[k];
-          /* Valider le nom : texte réel, pas un nombre, ≥3 caractères */
-          const validName = real && real.name && typeof real.name==='string'
+          var place = places[k];
+          /* 1) chercher un resto dont le "place" correspond au lieu, non déjà utilisé */
+          var real = null;
+          for(var m=0;m<realRestos.length;m++){
+            if(used[m]) continue;
+            var rp = norm(realRestos[m].place);
+            if(rp && (rp===norm(place) || rp.indexOf(norm(place))>=0 || norm(place).indexOf(rp)>=0)){
+              real = realRestos[m]; used[m]=true; break;
+            }
+          }
+          /* 2) fallback : même index si pas de match par lieu */
+          if(!real && realRestos[k] && !used[k]){ real = realRestos[k]; used[k]=true; }
+          var validName = real && real.name && typeof real.name==='string'
             && real.name.trim().length>=3 && !/^\d+$/.test(real.name.trim());
           if(validName && allDays[dayI] && allDays[dayI].restaurant){
-            const r = allDays[dayI].restaurant;
+            var r = allDays[dayI].restaurant;
             r.name = real.name.trim();
             if(real.type) r.type = real.type;
             if(real.price) r.price = real.price;
@@ -1101,7 +1115,7 @@ async function callCartographe(){
         });
       }
     }
-  }catch(e){}
+  }catch(e){ console.warn('[restos] exception', e); }
 
   /* Passe 3 — adresses, gems, highlights */
   const hilites=await _completeJSON(buildHighlightsPrompt(skel, daysDetail));
