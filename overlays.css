@@ -129,6 +129,19 @@
 .foot-price{display:flex;align-items:center;justify-content:space-between;gap:14px}
 .foot-price .fp-v{font-family:var(--serif);font-weight:600;font-size:24px;letter-spacing:-0.3px}
 .foot-price .fp-l{font-family:var(--mono);font-size:8.5px;letter-spacing:1px;text-transform:uppercase;color:var(--sub);margin-top:2px}
+/* Trois actions : Garder · Affiner · PDF */
+.foot-actions{display:flex;gap:8px;flex:none}
+.fa-btn{
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  background:var(--surface-raised);border:1px solid var(--line);
+  border-radius:14px;padding:9px 12px;min-width:58px;cursor:pointer;
+  color:var(--ink);
+  transition:transform 0.12s var(--spring),border-color 0.18s,background 0.18s;
+}
+.fa-btn:active{transform:scale(0.92)}
+.fa-btn:hover{border-color:var(--gold-soft);background:var(--surface)}
+.fa-btn span{display:flex;color:var(--gold-deep)}
+.fa-btn i{font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;color:var(--ink-soft);font-style:normal}
 .foot-price .btn{width:auto;flex:1;max-width:220px}
 
 /* ── day detail — moments with iOS minimum tap height ── */

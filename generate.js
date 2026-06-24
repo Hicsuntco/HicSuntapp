@@ -908,22 +908,18 @@ async function _fetchRealStays(dest, zones, level){
       headers:{'content-type':'application/json'},
       body:JSON.stringify({prompt:buildStaySearchPrompt(dest, zones, level), webSearch:true})
     });
-    if(!res.ok){ console.warn('[stays] HTTP', res.status); return null; }
+    if(!res.ok) return null;
     const data = await res.json();
-    if(data.error){ console.warn('[stays] erreur:', data.error); return null; }
+    if(data.error) return null;
     const raw = data.result || '';
-    /* Extraction robuste : chercher le bloc JSON contenant "stays" */
     let j = parseItineraryJSON(raw);
     if(!j || !Array.isArray(j.stays)){
-      /* fallback : isoler le JSON autour de "stays" */
       const m = raw.match(/\{[^]*"stays"[^]*\}/);
       if(m){ try{ j = JSON.parse(m[0]); }catch(e){} }
     }
-    if(!j || !Array.isArray(j.stays)){ console.warn('[stays] JSON introuvable:', raw.slice(0,200)); return null; }
-    const real = j.stays.filter(function(s){ return s.name && s.name.trim(); });
-    console.log('[stays] '+real.length+' vrais hébergements trouvés');
-    return real;
-  }catch(e){ console.warn('[stays] exception:', e); return null; }
+    if(!j || !Array.isArray(j.stays)) return null;
+    return j.stays.filter(function(s){ return s.name && s.name.trim(); });
+  }catch(e){ return null; }
 }
 
 /* ── validation : la destination renvoyee correspond-elle a celle demandee ? ──

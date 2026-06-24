@@ -22,6 +22,7 @@ const I = {
   plus:'<path d="M12 5v14M5 12h14"/>',
   cal:'<rect x="4" y="5" width="16" height="16" rx="2.5"/><path d="M4 9h16M9 3v4M15 3v4"/>',
   doc:'<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/>',
+  bookmark:'<path d="M6 4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v17l-6-4-6 4V4z"/>',
   card:'<rect x="3" y="6" width="18" height="12" rx="2.5"/><path d="M3 10h18M6.5 14.5h3"/>',
   bell:'<path d="M6 9a6 6 0 0 1 12 0c0 4 1.6 5.4 2 5.8H4c0.4-0.4 2-1.8 2-5.8z"/><path d="M10 19a2 2 0 0 0 4 0"/>',
   help:'<circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.4 2.4 0 0 1 4.6 1c0 1.6-2 2-2 3.4"/><circle cx="12" cy="17" r="0.6" fill="currentColor" stroke="none"/>',

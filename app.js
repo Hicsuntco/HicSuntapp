@@ -492,15 +492,27 @@ async function checkProfile(){
 async function saveItinerary(){
   const token = localStorage.getItem('sb_token');
   const userId = _getUserId();
-  if(!token || !userId) return;
+  /* Sauvegarde locale systématique (fonctionne sans compte) */
   try{
-    await fetch(SUPABASE_URL+'/rest/v1/itineraries',{
-      method:'POST',
-      headers:{'content-type':'application/json','apikey':SUPABASE_ANON,'Authorization':'Bearer '+token,'Prefer':'return=minimal'},
-      body:JSON.stringify({user_id:userId,destination:ITINERARY.dest,dates:ITINERARY.dates,days:_days(),budget:ITINERARY.budgetTotal,data:ITINERARY})
-    });
-    toast('Voyage sauvegardé');
-  }catch(e){ toast('Erreur de sauvegarde'); }
+    const local = JSON.parse(localStorage.getItem('hs_saved_trips')||'[]');
+    /* éviter les doublons : même destination + mêmes dates */
+    const exists = local.some(function(t){ return t.dest===ITINERARY.dest && t.dates===ITINERARY.dates; });
+    if(!exists){
+      local.unshift({dest:ITINERARY.dest,dates:ITINERARY.dates,days:_days(),budget:ITINERARY.budgetTotal,data:ITINERARY,savedAt:Date.now()});
+      localStorage.setItem('hs_saved_trips', JSON.stringify(local.slice(0,50)));
+    }
+  }catch(e){}
+  /* Sauvegarde cloud si connecté */
+  if(token && userId){
+    try{
+      await fetch(SUPABASE_URL+'/rest/v1/itineraries',{
+        method:'POST',
+        headers:{'content-type':'application/json','apikey':SUPABASE_ANON,'Authorization':'Bearer '+token,'Prefer':'return=minimal'},
+        body:JSON.stringify({user_id:userId,destination:ITINERARY.dest,dates:ITINERARY.dates,days:_days(),budget:ITINERARY.budgetTotal,data:ITINERARY})
+      });
+    }catch(e){}
+  }
+  toast('Voyage enregistré ✓');
 }
 async function loadItineraries(){
   const token = localStorage.getItem('sb_token');
