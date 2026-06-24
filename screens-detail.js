@@ -506,7 +506,7 @@ function dayDetailView(idx){
 
   const restaurantHTML = p.restaurant ? '<div class="section-h"><h2>À table</h2></div>'
     + '<div class="row" style="cursor:default;align-items:flex-start"><span class="r-ico">' + ico('fork',19,1.5) + '</span>'
-    + '<div class="r-main"><div class="r-t">' + esc(p.restaurant.name||'') + (p.restaurant.rating?' <span style="font-size:11px;font-weight:400;color:var(--gold)">'+esc(p.restaurant.rating)+'</span>':'') + '</div>'
+    + '<div class="r-main"><div class="r-t"><a href="https://www.google.com/search?q='+encodeURIComponent((p.restaurant.name||'')+' '+(p.loc||ITINERARY.dest||'')+' restaurant')+'" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:5px">' + esc(p.restaurant.name||'') + '<span style="color:var(--gold);display:inline-flex;flex:none">'+ico('external',11,1.6)+'</span></a>' + (p.restaurant.rating?' <span style="font-size:11px;font-weight:400;color:var(--gold)">'+esc(p.restaurant.rating)+'</span>':'') + '</div>'
     + '<div class="r-s">' + esc(p.restaurant.type||'') + (p.restaurant.price?' · '+esc(p.restaurant.price):'') + '</div>'
     + (p.restaurant.note?'<div class="r-s" style="margin-top:2px;font-style:italic">'+esc(p.restaurant.note)+'</div>':'')
     + (p.restaurant.review?'<div class="r-s" style="margin-top:4px;color:var(--sub);font-size:11px">"'+esc(p.restaurant.review)+'"</div>':'')

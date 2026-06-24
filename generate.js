@@ -922,6 +922,48 @@ async function _fetchRealStays(dest, zones, level){
   }catch(e){ return null; }
 }
 
+/* ── recherche web de VRAIS restaurants par lieu (anti-hallucination) ── */
+function buildRestoSearchPrompt(dest, places, level){
+  const lvl=(level||'Confort');
+  const guide = lvl.indexOf('Éco')>=0?'trattorias familiales, tables locales authentiques, bon rapport qualité-prix'
+    : (lvl.indexOf('Luxe')>=0||lvl.indexOf('Ultra')>=0)?'tables gastronomiques, restaurants étoilés ou réputés, chefs reconnus'
+    : 'bonnes tables locales, cuisine régionale soignée, adresses appréciées';
+  return [
+    'Cherche sur le web de VRAIS restaurants actuellement en activité à '+(dest||'')+'.',
+    'Pour chacun de ces lieux/étapes, trouve 1 restaurant réel et vérifiable ('+guide+') :',
+    places.map(function(p,i){return (i+1)+'. '+p;}).join('\n'),
+    '',
+    'EXIGENCES STRICTES :',
+    '- Uniquement des restaurants qui EXISTENT VRAIMENT (vérifiables sur Google Maps, TheFork, TripAdvisor).',
+    '- Nom EXACT tel qu il apparait en ligne. Aucune invention.',
+    '- Si tu n es pas certain pour un lieu, mets "name":"" pour ce lieu.',
+    '- Indique une spécialité réelle et une fourchette de prix (€, €€, €€€).',
+    '',
+    'Réponds UNIQUEMENT en JSON compact valide, sans texte autour :',
+    '{"restos":[{"place":"nom du lieu","name":"nom exact reel","type":"specialite/cuisine","price":"€€","note":"detail reel court","review":"ce qui rend ce lieu special"}]}',
+  ].join('\n');
+}
+async function _fetchRealRestos(dest, places, level){
+  try{
+    const res = await fetch(SUPABASE_ENDPOINT,{
+      method:'POST',
+      headers:{'content-type':'application/json'},
+      body:JSON.stringify({prompt:buildRestoSearchPrompt(dest, places, level), webSearch:true})
+    });
+    if(!res.ok) return null;
+    const data = await res.json();
+    if(data.error) return null;
+    const raw = data.result || '';
+    let j = parseItineraryJSON(raw);
+    if(!j || !Array.isArray(j.restos)){
+      const m = raw.match(/\{[^]*"restos"[^]*\}/);
+      if(m){ try{ j = JSON.parse(m[0]); }catch(e){} }
+    }
+    if(!j || !Array.isArray(j.restos)) return null;
+    return j.restos;
+  }catch(e){ return null; }
+}
+
 /* ── validation : la destination renvoyee correspond-elle a celle demandee ? ──
    Comparaison volontairement souple (accents/casse ignorés, sous-chaîne dans
    un sens ou l'autre) car le client peut taper "Sardaigne" et l'IA répondre
@@ -1030,6 +1072,36 @@ async function callCartographe(){
     for(let i=0;i<batch.length;i++){ allDays.push(batchDays[i]||null); }
   }
   const daysDetail={days:allDays};
+
+  /* Passe 2.5 — vérification web des restaurants (anti-hallucination, premium) */
+  try{
+    const restoIdx=[]; const places=[];
+    allDays.forEach(function(dd, i){
+      if(dd && dd.restaurant && dd.restaurant.name){
+        const place = (skel.plan[i] && skel.plan[i].loc) || skel.dest;
+        restoIdx.push(i); places.push(place);
+      }
+    });
+    if(places.length){
+      const realRestos = await _fetchRealRestos(skel.dest, places, skel.level);
+      if(realRestos && realRestos.length){
+        restoIdx.forEach(function(dayI, k){
+          const real = realRestos[k];
+          /* Valider le nom : texte réel, pas un nombre, ≥3 caractères */
+          const validName = real && real.name && typeof real.name==='string'
+            && real.name.trim().length>=3 && !/^\d+$/.test(real.name.trim());
+          if(validName && allDays[dayI] && allDays[dayI].restaurant){
+            const r = allDays[dayI].restaurant;
+            r.name = real.name.trim();
+            if(real.type) r.type = real.type;
+            if(real.price) r.price = real.price;
+            if(real.note && real.note.length>4) r.note = real.note;
+            if(real.review && real.review.length>4) r.review = real.review;
+          }
+        });
+      }
+    }
+  }catch(e){}
 
   /* Passe 3 — adresses, gems, highlights */
   const hilites=await _completeJSON(buildHighlightsPrompt(skel, daysDetail));
