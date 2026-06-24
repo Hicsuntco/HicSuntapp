@@ -992,17 +992,22 @@ async function callCartographe(){
       /* remplacer chaque hébergement par le vrai trouvé pour la même zone (ordre) */
       skel.stays = skel.stays.map(function(orig, i){
         const real = realStays[i];
-        if(real && real.name){
+        /* Valider que le nom réel est exploitable : non vide, pas un simple nombre,
+           au moins 3 caractères. Sinon on garde l'original. */
+        const validName = real && real.name && typeof real.name === 'string'
+          && real.name.trim().length >= 3
+          && !/^\d+$/.test(real.name.trim());
+        if(validName){
           return {
-            name: real.name,
+            name: real.name.trim(),
             type: real.type || orig.type,
             loc: orig.loc || real.zone,
-            price: real.price || orig.price,
+            price: (typeof real.price==='number' && real.price>0) ? real.price : orig.price,
             nights: orig.nights,
-            blurb: real.blurb || orig.blurb,
+            blurb: (real.blurb && real.blurb.length>5) ? real.blurb : orig.blurb,
           };
         }
-        return orig; /* garder l'original si pas de vrai trouvé pour cette zone */
+        return orig; /* garder l'original si pas de vrai nom valide */
       });
       /* mettre à jour les "night" du plan pour pointer vers les nouveaux noms */
       const nameMap = {};

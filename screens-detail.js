@@ -342,6 +342,14 @@ function accCard(a){
   const rate = a.rate||'';
   const rateNum = rate ? parseFloat(rate.replace(',','.')) : 0;
 
+  /* Nom propre : si a.n est vide ou un simple numéro, tenter d'extraire
+     le vrai nom depuis le blurb (souvent "Nom — description"), sinon fallback. */
+  var dispName = (a.n||'').trim();
+  if(!dispName || /^\d+$/.test(dispName)){
+    var fromBlurb = (a.blurb||'').split(/[—–\-,]/)[0].trim();
+    dispName = (fromBlurb && fromBlurb.length>2 && !/^\d+$/.test(fromBlurb)) ? fromBlurb : (a.type||'Hébergement');
+  }
+
   /* Étoiles de notation */
   function stars(n){
     const full = Math.floor(n), half = n%1>=0.3?1:0;
@@ -362,7 +370,7 @@ function accCard(a){
     + '<div style="background:'+bgColor+';padding:20px 20px 16px;display:flex;align-items:flex-start;justify-content:space-between;border-bottom:1px solid var(--line2)">'
     +   '<div style="flex:1;min-width:0">'
     +     '<div style="font-family:var(--mono);font-size:8.5px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:'+accent+';margin-bottom:6px">' + esc(a.type||'Hébergement') + '</div>'
-    +     '<div style="font-family:var(--serif);font-size:19px;font-weight:600;color:var(--ink);line-height:1.2;margin-bottom:4px">' + esc(a.n||'') + '</div>'
+    +     '<div style="font-family:var(--serif);font-size:19px;font-weight:600;color:var(--ink);line-height:1.2;margin-bottom:4px">' + esc(dispName) + '</div>'
     +     '<div style="font-family:var(--mono);font-size:9.5px;letter-spacing:0.5px;text-transform:uppercase;color:var(--sub)">' + esc(a.loc||'') + '</div>'
     +   '</div>'
     +   '<div style="width:48px;height:48px;border-radius:14px;background:'+hexA(accent,0.14)+';display:flex;align-items:center;justify-content:center;flex:none;margin-left:12px;color:'+accent+'">' + ico(a.i||'bed', 22, 1.3) + '</div>'
@@ -377,8 +385,8 @@ function accCard(a){
     +     (rateNum>0 ? '<div style="font-size:13px;line-height:1">'+stars(rateNum)+'</div><div style="font-family:var(--mono);font-size:9px;font-weight:700;color:var(--sub);margin-top:3px">'+esc(rate)+'</div>' : '')
     +   '</div>'
     + '</div>'
-    /* Footer CTA */
-    + '<div style="margin:0 16px 14px;background:var(--ink);border-radius:12px;padding:11px 16px;display:flex;align-items:center;justify-content:center;gap:8px">'
+    /* Footer CTA — handler explicite pour fiabilité */
+    + '<div onclick="event.stopPropagation();openBooking(\'' + a.id + '\')" style="margin:0 16px 14px;background:var(--ink);border-radius:12px;padding:11px 16px;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer">'
     +   '<span style="font-family:var(--sans);font-size:13px;font-weight:600;color:var(--bg)">Voir les disponibilités</span>'
     +   '<span style="color:var(--bg);opacity:0.7">' + ico('chevron',12,1.5) + '</span>'
     + '</div>'
