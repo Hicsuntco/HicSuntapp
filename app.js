@@ -289,6 +289,24 @@ function openItinerary(){
   const el = openOverlay('itinerary', itineraryView());
   requestAnimationFrame(function(){ requestAnimationFrame(function(){ revealOnScroll(el); }); });
 }
+/* Ferme le chat et rafraîchit la vue itinéraire sous-jacente (ou l'ouvre) */
+function _returnToUpdatedItinerary(){
+  closeOverlay(); /* ferme le chat */
+  setTimeout(function(){
+    /* Chercher un overlay itinéraire déjà ouvert dans la pile */
+    var existing = null;
+    for(var i=0;i<ovStack.length;i++){
+      if(ovStack[i].dataset && ovStack[i].dataset.ov==='itinerary'){ existing = ovStack[i]; break; }
+    }
+    if(existing){
+      /* Rafraîchir son contenu en place */
+      existing.innerHTML = itineraryView();
+      requestAnimationFrame(function(){ requestAnimationFrame(function(){ revealOnScroll(existing); }); });
+    } else {
+      openItinerary();
+    }
+  }, 220);
+}
 function revealOnScroll(container){
   const rows = container.querySelectorAll('.dayrow');
   if(!rows.length) return;
@@ -489,6 +507,31 @@ async function checkProfile(){
 }
 
 /* ── Supabase itinéraires ── */
+/* Met à jour la sauvegarde existante d'un itinéraire (après modif cartographe)
+   sans créer de doublon. Met à jour la copie locale et la copie cloud si connecté. */
+async function updateSavedItinerary(){
+  /* Local : retrouver l'entrée par destination + dates et la remplacer */
+  try{
+    var local = JSON.parse(localStorage.getItem('hs_saved_trips')||'[]');
+    var i = local.findIndex(function(t){ return t.dest===ITINERARY.dest && t.dates===ITINERARY.dates; });
+    var entry = {dest:ITINERARY.dest,dates:ITINERARY.dates,days:_days(),budget:ITINERARY.budgetTotal,data:ITINERARY,savedAt:Date.now()};
+    if(i>=0){ local[i]=entry; } else { local.unshift(entry); }
+    localStorage.setItem('hs_saved_trips', JSON.stringify(local.slice(0,50)));
+  }catch(e){}
+  /* Cloud : upsert si connecté */
+  var token = localStorage.getItem('sb_token');
+  var userId = _getUserId();
+  if(token && userId){
+    try{
+      await fetch(SUPABASE_URL+'/rest/v1/itineraries?on_conflict=user_id,destination,dates',{
+        method:'POST',
+        headers:{'content-type':'application/json','apikey':SUPABASE_ANON,'Authorization':'Bearer '+token,'Prefer':'resolution=merge-duplicates,return=minimal'},
+        body:JSON.stringify({user_id:userId,destination:ITINERARY.dest,dates:ITINERARY.dates,days:_days(),budget:ITINERARY.budgetTotal,data:ITINERARY})
+      });
+    }catch(e){}
+  }
+}
+
 async function saveItinerary(){
   const token = localStorage.getItem('sb_token');
   const userId = _getUserId();
@@ -1278,10 +1321,12 @@ document.addEventListener('DOMContentLoaded', function(){
       }
 
       if(changed){
+        /* Marquer l'itinéraire comme modifié pour re-render au retour */
+        ITINERARY._dirty = true;
         /* Bouton pour voir les changements */
-        chat.innerHTML += '<button onclick="closeOverlay();setTimeout(function(){openItinerary();},200)" style="margin:8px 0 4px 40px;background:var(--ink);color:var(--bg);border:none;border-radius:12px;padding:10px 16px;font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer">Voir l\'itinéraire mis à jour →</button>';
-        /* Sauvegarder automatiquement */
-        if(typeof autoSaveItinerary==='function') try{ autoSaveItinerary(); }catch(e){}
+        chat.innerHTML += '<button onclick="_returnToUpdatedItinerary()" style="margin:8px 0 4px 40px;background:var(--ink);color:var(--bg);border:none;border-radius:12px;padding:10px 16px;font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer">Voir l\'itinéraire mis à jour →</button>';
+        /* Persister la mise à jour (met à jour la sauvegarde existante) */
+        try{ updateSavedItinerary(); }catch(e){}
       }
 
       chat.scrollTop = chat.scrollHeight;
