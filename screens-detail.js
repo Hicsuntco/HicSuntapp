@@ -469,6 +469,12 @@ function itineraryView(){
       }).join('')
     +   '<div class="section-h"><h2>Hébergements</h2><span class="meta">' + it.accommodations.length + ' étapes</span></div>'
     +   it.accommodations.map(accCard).join('')
+    +   (window._restoDiag ? '<div style="margin:20px 4px 0;padding:12px;background:var(--surface2);border-radius:12px;font-family:var(--mono);font-size:10px;color:var(--sub);line-height:1.6">'
+          + 'DIAGNOSTIC RESTOS<br>'
+          + 'demandés : ' + window._restoDiag.demandes + '<br>'
+          + 'reçus du web : ' + window._restoDiag.recus + (window._restoDiag.echec ? ' (ÉCHEC appel)' : '') + '<br>'
+          + 'noms trouvés : ' + (window._restoDiag.noms.length ? esc(window._restoDiag.noms.join(', ')) : 'aucun')
+          + '</div>' : '')
     + '</div>'
     + '<div class="ov-foot"><div class="foot-price">'
     +   '<div><div class="fp-v">' + eur(it.budgetTotal) + '</div><div class="fp-l">tout compris · ' + travelerLabel() + '</div></div>'
