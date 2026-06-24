@@ -902,24 +902,29 @@ function buildStaySearchPrompt(dest, zones, level){
   ].join('\n');
 }
 async function _fetchRealStays(dest, zones, level){
-  try{
-    const res = await fetch(SUPABASE_ENDPOINT,{
-      method:'POST',
-      headers:{'content-type':'application/json'},
-      body:JSON.stringify({prompt:buildStaySearchPrompt(dest, zones, level), webSearch:true})
-    });
-    if(!res.ok) return null;
-    const data = await res.json();
-    if(data.error) return null;
-    const raw = data.result || '';
-    let j = parseItineraryJSON(raw);
-    if(!j || !Array.isArray(j.stays)){
-      const m = raw.match(/\{[^]*"stays"[^]*\}/);
-      if(m){ try{ j = JSON.parse(m[0]); }catch(e){} }
-    }
-    if(!j || !Array.isArray(j.stays)) return null;
-    return j.stays.filter(function(s){ return s.name && s.name.trim(); });
-  }catch(e){ return null; }
+  for(var attempt=0; attempt<2; attempt++){
+    if(attempt>0){ await new Promise(function(r){ setTimeout(r, 1500); }); }
+    try{
+      const res = await fetch(SUPABASE_ENDPOINT,{
+        method:'POST',
+        headers:{'content-type':'application/json'},
+        body:JSON.stringify({prompt:buildStaySearchPrompt(dest, zones, level), webSearch:true})
+      });
+      if(!res.ok) continue;
+      const data = await res.json();
+      if(data.error) continue;
+      const raw = data.result || '';
+      if(!raw) continue;
+      let j = parseItineraryJSON(raw);
+      if(!j || !Array.isArray(j.stays)){
+        const m = raw.match(/\{[^]*"stays"[^]*\}/);
+        if(m){ try{ j = JSON.parse(m[0]); }catch(e){} }
+      }
+      if(!j || !Array.isArray(j.stays)) continue;
+      return j.stays.filter(function(s){ return s.name && s.name.trim(); });
+    }catch(e){}
+  }
+  return null;
 }
 
 /* ── recherche web de VRAIS restaurants par lieu (anti-hallucination) ── */
@@ -944,24 +949,31 @@ function buildRestoSearchPrompt(dest, places, level){
   ].join('\n');
 }
 async function _fetchRealRestos(dest, places, level){
-  try{
-    const res = await fetch(SUPABASE_ENDPOINT,{
-      method:'POST',
-      headers:{'content-type':'application/json'},
-      body:JSON.stringify({prompt:buildRestoSearchPrompt(dest, places, level), webSearch:true})
-    });
-    if(!res.ok) return null;
-    const data = await res.json();
-    if(data.error) return null;
-    const raw = data.result || '';
-    let j = parseItineraryJSON(raw);
-    if(!j || !Array.isArray(j.restos)){
-      const m = raw.match(/\{[^]*"restos"[^]*\}/);
-      if(m){ try{ j = JSON.parse(m[0]); }catch(e){} }
-    }
-    if(!j || !Array.isArray(j.restos)) return null;
-    return j.restos;
-  }catch(e){ return null; }
+  /* 2 tentatives : la recherche web échoue parfois (rate limit/timeout transitoire) */
+  for(var attempt=0; attempt<2; attempt++){
+    if(attempt>0){ await new Promise(function(r){ setTimeout(r, 1500); }); }
+    try{
+      const res = await fetch(SUPABASE_ENDPOINT,{
+        method:'POST',
+        headers:{'content-type':'application/json'},
+        body:JSON.stringify({prompt:buildRestoSearchPrompt(dest, places, level), webSearch:true})
+      });
+      if(!res.ok){ window._restoErr='HTTP '+res.status+(attempt?' (2e essai)':''); continue; }
+      const data = await res.json();
+      if(data.error){ window._restoErr=String(data.error).slice(0,120); continue; }
+      const raw = data.result || '';
+      if(!raw){ window._restoErr='réponse vide'; continue; }
+      let j = parseItineraryJSON(raw);
+      if(!j || !Array.isArray(j.restos)){
+        const m = raw.match(/\{[^]*"restos"[^]*\}/);
+        if(m){ try{ j = JSON.parse(m[0]); }catch(e){} }
+      }
+      if(!j || !Array.isArray(j.restos)){ window._restoErr='JSON sans restos'; continue; }
+      window._restoErr=null;
+      return j.restos;
+    }catch(e){ window._restoErr='exception: '+(e&&e.message||e); }
+  }
+  return null;
 }
 
 /* ── validation : la destination renvoyee correspond-elle a celle demandee ? ──
