@@ -466,7 +466,6 @@ function itineraryView(){
     +   '<div><div class="fp-v">' + eur(it.budgetTotal) + '</div><div class="fp-l">tout compris · ' + travelerLabel() + '</div></div>'
     +   '<div class="foot-actions">'
     +     '<button class="fa-btn" onclick="saveItinerary()" aria-label="Enregistrer"><span>' + ico('bookmark',20,1.6) + '</span><i>Garder</i></button>'
-    +     '<button class="fa-btn" onclick="openAI()" aria-label="Affiner"><span>' + ico('sparkle',20,1.6) + '</span><i>Affiner</i></button>'
     +     '<button class="fa-btn" onclick="window.triggerPDF&&window.triggerPDF()" aria-label="Exporter"><span>' + ico('doc',20,1.6) + '</span><i>PDF</i></button>'
     +   '</div>'
     + '</div></div>';
