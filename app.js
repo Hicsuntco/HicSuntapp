@@ -452,21 +452,32 @@ async function saveWelcomeProfile(){
   const birth = document.getElementById('wBirth').value;
   const address = document.getElementById('wAddress').value.trim();
   if(!first || !last){ toast('Prénom et nom requis'); return; }
+
+  /* Mise à jour locale immédiate (fonctionne avec ou sans compte) */
+  USER.name = first;
+  USER.full = first+' '+last;
+  USER.initials = (first[0]+last[0]).toUpperCase();
+  try{
+    localStorage.setItem('hs_profile', JSON.stringify({first_name:first,last_name:last,birth_date:birth||null,address:address||null}));
+    localStorage.setItem('hs_profile_done','1');
+  }catch(e){}
+
+  /* Sauvegarde cloud si connecté */
   const token = localStorage.getItem('sb_token');
   const userId = _getUserId();
-  if(!token || !userId){ toast('Erreur de session'); return; }
-  try{
-    await fetch(SUPABASE_URL+'/rest/v1/profiles',{
-      method:'POST',
-      headers:{'content-type':'application/json','apikey':SUPABASE_ANON,'Authorization':'Bearer '+token,'Prefer':'resolution=merge-duplicates'},
-      body:JSON.stringify({id:userId,first_name:first,last_name:last,birth_date:birth||null,address:address||null})
-    });
-    USER.name = first;
-    USER.full = first+' '+last;
-    USER.initials = (first[0]+last[0]).toUpperCase();
-    localStorage.setItem('hs_profile_done','1');
-    closeAllOverlays(); setTab('discover');
-  }catch(e){ toast('Erreur de sauvegarde'); }
+  if(token && userId){
+    try{
+      await fetch(SUPABASE_URL+'/rest/v1/profiles',{
+        method:'POST',
+        headers:{'content-type':'application/json','apikey':SUPABASE_ANON,'Authorization':'Bearer '+token,'Prefer':'resolution=merge-duplicates'},
+        body:JSON.stringify({id:userId,first_name:first,last_name:last,birth_date:birth||null,address:address||null})
+      });
+    }catch(e){}
+  }
+
+  closeAllOverlays(); setTab('discover');
+  if(typeof refreshAuthTabs==='function') refreshAuthTabs();
+  toast('Bienvenue, '+first+' ✓');
 }
 
 async function checkProfile(){
@@ -884,6 +895,16 @@ function buildApp(){
   const token = localStorage.getItem('sb_token');
   const hasEmail = !!localStorage.getItem('hs_email');
   const onboarded = localStorage.getItem('hs_onboarded') === '1';
+
+  /* Charger le profil local (nom) s'il existe */
+  try{
+    const lp = JSON.parse(localStorage.getItem('hs_profile')||'null');
+    if(lp && lp.first_name){
+      USER.name = lp.first_name;
+      USER.full = lp.first_name + ' ' + (lp.last_name||'');
+      USER.initials = ((lp.first_name[0]||'') + (lp.last_name?lp.last_name[0]:'')).toUpperCase() || '✦';
+    }
+  }catch(e){}
 
   setTab('discover');
 
