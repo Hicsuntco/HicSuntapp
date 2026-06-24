@@ -839,14 +839,18 @@ function buildApp(){
 
   const loggedIn = handleAuthCallback();
   const token = localStorage.getItem('sb_token');
+  const hasEmail = !!localStorage.getItem('hs_email');
+  const onboarded = localStorage.getItem('hs_onboarded') === '1';
 
   setTab('discover');
 
   if (loggedIn || token) {
     checkProfile().then(function(done){
-      if (!done) openOverlay('welcome', welcomeView(), { modal:true });
+      if (!done && !onboarded) openOverlay('welcome', welcomeView(), { modal:true });
     });
-  } else {
+  } else if (!onboarded && !hasEmail) {
+    /* Onboarding uniquement au tout premier lancement, jamais après */
+    localStorage.setItem('hs_onboarded','1');
     openOverlay('onboarding', onboardingView(), { modal:true });
   }
 }
