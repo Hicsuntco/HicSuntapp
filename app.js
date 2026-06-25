@@ -518,6 +518,58 @@ async function checkProfile(){
 }
 
 /* ── Supabase itinéraires ── */
+/* Demande à l'utilisateur : remplacer l'itinéraire existant ou garder les deux */
+function _promptSaveModified(){
+  /* Le voyage existe-t-il déjà dans les sauvegardes ? */
+  var existing = false;
+  try{
+    var local = JSON.parse(localStorage.getItem('hs_saved_trips')||'[]');
+    existing = local.some(function(t){ return t.dest===ITINERARY.dest && t.dates===ITINERARY.dates; });
+  }catch(e){}
+
+  if(!existing){
+    /* Premier enregistrement : pas de choix nécessaire */
+    saveItinerary();
+    return;
+  }
+
+  /* Petite modale de choix */
+  var ov = document.createElement('div');
+  ov.className = 'ov modal in';
+  ov.dataset.ov = 'savechoice';
+  ov.style.cssText = 'background:rgba(20,16,12,0.4);display:flex;align-items:flex-end;justify-content:center;z-index:300';
+  ov.innerHTML = '<div style="background:var(--surface-raised);border-radius:24px 24px 0 0;padding:28px 22px calc(28px + env(safe-area-inset-bottom,0px));width:100%;max-width:520px">'
+    + '<div style="font-family:var(--serif);font-size:22px;font-weight:600;color:var(--ink);margin-bottom:6px">Enregistrer les changements</div>'
+    + '<div style="font-family:var(--sans);font-size:14px;color:var(--sub);line-height:1.5;margin-bottom:22px">Cet itinéraire est déjà enregistré. Que souhaitez-vous faire ?</div>'
+    + '<button onclick="_doSaveModified(\'replace\')" style="width:100%;background:var(--ink);color:var(--bg);border:none;border-radius:14px;padding:15px;font-family:var(--sans);font-size:15px;font-weight:500;cursor:pointer;margin-bottom:10px">Remplacer l\'ancienne version</button>'
+    + '<button onclick="_doSaveModified(\'both\')" style="width:100%;background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:15px;font-family:var(--sans);font-size:15px;font-weight:500;cursor:pointer;margin-bottom:10px">Garder les deux versions</button>'
+    + '<button onclick="_closeSaveChoice()" style="width:100%;background:transparent;color:var(--sub);border:none;padding:12px;font-family:var(--sans);font-size:14px;cursor:pointer">Annuler</button>'
+    + '</div>';
+  screenEl().appendChild(ov);
+  ovStack.push(ov);
+}
+function _closeSaveChoice(){
+  var ov = ovStack[ovStack.length-1];
+  if(ov && ov.dataset.ov==='savechoice'){ ovStack.pop(); ov.remove(); }
+}
+async function _doSaveModified(mode){
+  _closeSaveChoice();
+  if(mode==='replace'){
+    await updateSavedItinerary();
+    toast('Itinéraire mis à jour ✓');
+  } else {
+    /* Garder les deux : sauvegarder comme nouvelle version datée */
+    try{
+      var local = JSON.parse(localStorage.getItem('hs_saved_trips')||'[]');
+      var label = ITINERARY.dest + ' (modifié)';
+      local.unshift({dest:label,dates:ITINERARY.dates,days:_days(),budget:ITINERARY.budgetTotal,data:Object.assign({},ITINERARY,{dest:label}),savedAt:Date.now()});
+      localStorage.setItem('hs_saved_trips', JSON.stringify(local.slice(0,50)));
+    }catch(e){}
+    toast('Nouvelle version enregistrée ✓');
+  }
+  if(typeof refreshAuthTabs==='function') refreshAuthTabs();
+}
+
 /* Met à jour la sauvegarde existante d'un itinéraire (après modif cartographe)
    sans créer de doublon. Met à jour la copie locale et la copie cloud si connecté. */
 async function updateSavedItinerary(){
@@ -1342,12 +1394,13 @@ document.addEventListener('DOMContentLoaded', function(){
       }
 
       if(changed){
-        /* Marquer l'itinéraire comme modifié pour re-render au retour */
         ITINERARY._dirty = true;
-        /* Bouton pour voir les changements */
-        chat.innerHTML += '<button onclick="_returnToUpdatedItinerary()" style="margin:8px 0 4px 40px;background:var(--ink);color:var(--bg);border:none;border-radius:12px;padding:10px 16px;font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer">Voir l\'itinéraire mis à jour →</button>';
-        /* Persister la mise à jour (met à jour la sauvegarde existante) */
-        try{ updateSavedItinerary(); }catch(e){}
+        /* Bloc d'actions : voir + enregistrer (avec choix remplacer/garder les deux) */
+        var actionsHTML = '<div style="margin:10px 0 4px 40px;display:flex;flex-direction:column;gap:8px;align-items:flex-start">'
+          + '<button onclick="_returnToUpdatedItinerary()" style="background:var(--ink);color:var(--bg);border:none;border-radius:12px;padding:10px 16px;font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer">Voir l\'itinéraire mis à jour →</button>'
+          + '<button onclick="_promptSaveModified()" style="background:transparent;color:var(--gold-deep);border:1px solid var(--gold-soft);border-radius:12px;padding:9px 16px;font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer">Enregistrer les changements</button>'
+          + '</div>';
+        chat.innerHTML += actionsHTML;
       }
 
       chat.scrollTop = chat.scrollHeight;
