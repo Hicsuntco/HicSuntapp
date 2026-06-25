@@ -885,12 +885,27 @@ async function loadSavedItinerary(id){
   }
 }
 async function deleteSavedItinerary(id){
-  const token = localStorage.getItem('sb_token');
-  if(!token) return;
   if(!id || typeof id !== 'string' || !id.trim()){
     toast('Erreur : voyage non identifié');
     return;
   }
+
+  /* Voyage local (id commence par "local-") */
+  if(id.indexOf('local-')===0){
+    try{
+      var local = JSON.parse(localStorage.getItem('hs_saved_trips')||'[]');
+      local = local.filter(function(t){ return ('local-'+(t.savedAt||'')) !== id; });
+      localStorage.setItem('hs_saved_trips', JSON.stringify(local));
+    }catch(e){}
+    toast('Voyage supprimé');
+    if(document.querySelector('[data-trips]')) loadVoyagesTab();
+    if(document.querySelector('[data-disc-trips]')) loadDiscoverTrips();
+    return;
+  }
+
+  /* Voyage cloud */
+  const token = localStorage.getItem('sb_token');
+  if(!token){ toast('Voyage supprimé'); return; }
   try{
     await fetch(SUPABASE_URL+'/rest/v1/itineraries?id=eq.'+encodeURIComponent(id),{
       method:'DELETE',
