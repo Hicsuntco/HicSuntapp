@@ -830,6 +830,29 @@ function buildDestinationSuggestPrompt(excluded){
   const b=buildBrief();
   const directives=[_antiTouristDirective(),_interestsDirective(),_rythmeDirective(),_occasionDirective(),_styleDirective(),_dreamDirective()].filter(Boolean);
   const excludeLine=(excluded&&excluded.length)?('Ne propose AUCUNE des destinations déjà suggérées et refusées : '+excluded.join(', ')+'.'):'';
+
+  /* Contrainte de distance selon la durée du séjour */
+  const days = b.daysCount || 7;
+  const origin = state.origin || 'Paris';
+  var distConstraint = '';
+  if(days <= 4){
+    distConstraint = 'CONTRAINTE ABSOLUE DE DISTANCE : séjour de '+days+' jours seulement. '
+      +'Vol aller-retour depuis '+origin+' max 3h. Destinations autorisées : Europe occidentale, Méditerranée, Afrique du Nord. '
+      +'INTERDIT : tout vol > 3h (pas d\'Asie, pas d\'Afrique subsaharienne, pas d\'Amériques, pas de Moyen-Orient lointain).';
+  } else if(days <= 7){
+    distConstraint = 'CONTRAINTE ABSOLUE DE DISTANCE : séjour de '+days+' jours. '
+      +'Vol aller-retour depuis '+origin+' max 5h. Destinations autorisées : Europe, Méditerranée, Afrique du Nord, Afrique de l\'Ouest proche, Canaries, Açores, Turquie, Jordanie, Égypte. '
+      +'INTERDIT : Asie du Sud-Est, Asie de l\'Est, Amériques, Océanie, Asie centrale. Un vol de 10h pour 7 jours est inadapté.';
+  } else if(days <= 10){
+    distConstraint = 'CONTRAINTE DE DISTANCE : séjour de '+days+' jours. '
+      +'Vol aller-retour depuis '+origin+' max 8h. Destinations autorisées : Europe, Maghreb, Afrique de l\'Est, Moyen-Orient, Inde, Sri Lanka, îles de l\'océan Indien, Asie centrale. '
+      +'Éviter l\'Asie du Sud-Est et les Amériques sauf si fortement justifié.';
+  } else if(days <= 14){
+    distConstraint = 'CONTRAINTE DE DISTANCE : séjour de '+days+' jours. '
+      +'Vol aller-retour depuis '+origin+' max 12h. Toutes destinations possibles sauf l\'Océanie et le Pacifique Sud lointain.';
+  }
+  /* Au-delà de 14 jours : aucune restriction de distance */
+
   return [
     'Tu es le cartographe senior de Hic Sunt, maison de voyages haut de gamme spécialisée dans les destinations hors des sentiers battus.',
     'Propose UNE SEULE destination (pays ou région), la plus désirable et la plus adaptée à ce profil.',
@@ -837,13 +860,14 @@ function buildDestinationSuggestPrompt(excluded){
     '═══ BRIEF CLIENT ═══',
     b.lines,
     '',
+    distConstraint ? ('═══ CONTRAINTE DISTANCE ═══\n'+distConstraint+'\n') : '',
     '═══ DIRECTIVES ═══',
     directives.length?directives.join('\n'):'Aucune contrainte spécifique au-delà du brief ci-dessus.',
     excludeLine,
     '',
     'Réponds UNIQUEMENT en JSON compact valide :',
     '{"dest":"nom du pays/région","country":"pays","tagline":"phrase poétique évocatrice (max 12 mots)","teaser":"2 phrases qui donnent envie, en lien avec le brief (max 35 mots)","coords":"ex: 6°55′N · 79°51′E"}',
-  ].join('\n');
+  ].filter(Boolean).join('\n');
 }
 async function suggestDestination(excluded){
   return await _completeJSON(buildDestinationSuggestPrompt(excluded));
