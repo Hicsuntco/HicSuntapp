@@ -662,10 +662,10 @@ async function loadItineraries(){
 }
 /* ── Filtrage des itinéraires par onglet ─────────────────────────────── */
 function _classifyItinerary(it){
-  /* Classifie un itinéraire selon ses dates en : upcoming / past / draft */
   const data = it.data || {};
-  const dateFrom = data.dateFrom || it.date_from || '';
-  const dateTo   = data.dateTo   || it.date_to   || '';
+  /* Les voyages locaux stockent les dates dans data.dateFrom/dateTo */
+  const dateFrom = it.date_from || data.dateFrom || it.dateFrom || '';
+  const dateTo   = it.date_to   || data.dateTo   || it.dateTo   || '';
   const today = new Date(); today.setHours(0,0,0,0);
 
   /* Brouillon = généré sans dates précises */
@@ -741,18 +741,32 @@ async function loadVoyagesTab(){
 }
 
 async function loadSavedItinerary(id){
-  const token = localStorage.getItem('sb_token');
-  if(!token) return;
-  try{
-    /* ── 1. Fetch depuis Supabase ── */
-    const res = await fetch(SUPABASE_URL+'/rest/v1/itineraries?id=eq.'+id,{
-      headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+token}
-    });
-    if(!res.ok) throw new Error('HTTP '+res.status);
-    const rows = await res.json();
-    if(!rows||!rows.length){ toast('Itinéraire introuvable'); return; }
-    const saved = rows[0];
-    const data = saved.data || {};
+  var saved = null;
+
+  /* Voyage local */
+  if(id && id.indexOf('local-')===0){
+    try{
+      var local = JSON.parse(localStorage.getItem('hs_saved_trips')||'[]');
+      var match = local.find(function(t){ return ('local-'+(t.savedAt||''))===id; });
+      if(match) saved = {data: match.data||match, destination:match.dest, dates:match.dates};
+    }catch(e){}
+    if(!saved){ toast('Itinéraire introuvable'); return; }
+  } else {
+    /* Voyage cloud */
+    const token = localStorage.getItem('sb_token');
+    if(!token){ toast('Connexion requise'); return; }
+    try{
+      const res = await fetch(SUPABASE_URL+'/rest/v1/itineraries?id=eq.'+id,{
+        headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+token}
+      });
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      const rows = await res.json();
+      if(!rows||!rows.length){ toast('Itinéraire introuvable'); return; }
+      saved = rows[0];
+    }catch(e){ toast('Erreur de chargement'); return; }
+  }
+
+  const data = saved.data || {};
 
     /* ── 2. Reset propre de l'ITINERARY avant de remplir ── */
     /* On vide d'abord pour éviter des résidus d'un itinéraire précédent */
@@ -877,12 +891,6 @@ async function loadSavedItinerary(id){
       console.error('[itineraryView] crash:', e2.message, e2.stack);
       toast('Vue : ' + (e2.message||'?').slice(0,80));
     }
-
-  }catch(e){
-    console.error('[loadSavedItinerary] crash:', e.message, e.stack);
-    const msg = e && e.message ? e.message.slice(0, 80) : 'inconnue';
-    toast('Fetch : ' + msg);
-  }
 }
 async function deleteSavedItinerary(id){
   if(!id || typeof id !== 'string' || !id.trim()){
