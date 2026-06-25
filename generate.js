@@ -1188,11 +1188,10 @@ async function runDestinationSuggestion(excluded){
   }
   state._suggested=suggestion;
   state._suggestedExcluded=excluded;
-  gen.classList.remove('run');
   setTimeout(function(){
-    gen.outerHTML = destinationSuggestView(suggestion);
+    el.innerHTML = destinationSuggestView(suggestion);
     const newGen=el.querySelector('.gen');
-    requestAnimationFrame(function(){requestAnimationFrame(function(){newGen.classList.add('run');});});
+    requestAnimationFrame(function(){requestAnimationFrame(function(){if(newGen) newGen.classList.add('run');});});
   },280);
 }
 async function retrySuggestion(){
@@ -1204,17 +1203,16 @@ async function confirmSuggestedDestination(){
   if(!s) return;
   state.destination=s.dest;
   state._suggestedTagline=s.tagline||'';
-  const el=document.querySelector('.ov[data-ov="generating"] .gen');
-  if(el){
-    el.classList.remove('run');
-    setTimeout(function(){
-      el.outerHTML = generationView();
-      const newGen=document.querySelector('.ov[data-ov="generating"] .gen');
-      requestAnimationFrame(function(){requestAnimationFrame(function(){newGen.classList.add('run');});});
-      runFullGeneration(true);
-    },280);
-  } else {
+  const ovEl=document.querySelector('.ov[data-ov="generating"]');
+  if(ovEl){
+    ovEl.innerHTML = generationView();
+    const newGen=ovEl.querySelector('.gen');
+    requestAnimationFrame(function(){requestAnimationFrame(function(){
+      if(newGen) newGen.classList.add('run');
+    });});
     runFullGeneration(true);
+  } else {
+    runFullGeneration(false);
   }
 }
 
