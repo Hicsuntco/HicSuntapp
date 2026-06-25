@@ -621,16 +621,44 @@ async function saveItinerary(){
   toast('Voyage enregistré ✓');
 }
 async function loadItineraries(){
-  const token = localStorage.getItem('sb_token');
-  if(!token) return null;
+  /* Voyages locaux (sauvegardés sans compte) */
+  var localTrips = [];
   try{
-    const res = await fetch(SUPABASE_URL+'/rest/v1/itineraries?select=*&order=created_at.desc',{
-      headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+token}
+    var raw = JSON.parse(localStorage.getItem('hs_saved_trips')||'[]');
+    localTrips = raw.map(function(t){
+      return {
+        id: 'local-'+(t.savedAt||Math.random()),
+        destination: t.dest, dates: t.dates, days: t.days,
+        budget: t.budget, data: t.data || t, created_at: new Date(t.savedAt||Date.now()).toISOString(),
+        _local: true
+      };
     });
-    if(!res.ok) return null;
-    const data = await res.json();
-    return Array.isArray(data) ? data : null;
-  }catch(e){ return null; }
+  }catch(e){}
+
+  /* Voyages cloud si connecté */
+  const token = localStorage.getItem('sb_token');
+  if(token){
+    try{
+      const res = await fetch(SUPABASE_URL+'/rest/v1/itineraries?select=*&order=created_at.desc',{
+        headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+token}
+      });
+      if(res.ok){
+        const data = await res.json();
+        if(Array.isArray(data)){
+          /* Fusionner : cloud + local, en évitant les doublons (même dest+dates) */
+          var merged = data.slice();
+          localTrips.forEach(function(lt){
+            var dup = merged.some(function(c){ return c.destination===lt.destination && c.dates===lt.dates; });
+            if(!dup) merged.push(lt);
+          });
+          return merged;
+        }
+      }
+    }catch(e){}
+  }
+
+  /* Pas de cloud : renvoyer les locaux (ou tableau vide, jamais null si on a du local) */
+  return localTrips.length ? localTrips : (token ? [] : null);
 }
 /* ── Filtrage des itinéraires par onglet ─────────────────────────────── */
 function _classifyItinerary(it){
@@ -672,17 +700,18 @@ async function loadVoyagesTab(){
   if(!host) return;
 
   if(items===null){
-    /* Non connecté — inviter à se connecter */
+    /* Non connecté ET aucun voyage local — inviter à se connecter */
     const token = localStorage.getItem('sb_token');
-    if(!token){
+    const email = localStorage.getItem('hs_email');
+    if(!token && !email){
       host.innerHTML = '<div style="text-align:center;padding:60px 24px">'
         + '<div style="font-size:32px;margin-bottom:16px">✦</div>'
         + '<p style="font-family:var(--serif);font-size:20px;font-weight:600;color:var(--ink);margin-bottom:8px">Vos voyages vous attendent</p>'
-        + '<p style="color:var(--sub);font-size:14px;line-height:1.6;margin-bottom:24px">Connectez-vous pour retrouver vos itinéraires sauvegardés et accéder à votre atlas personnel.</p>'
-        + '<button onclick="openOverlay(\'welcome\', welcomeView(), {modal:true})" style="background:var(--ink);color:var(--bg);border:none;border-radius:14px;padding:14px 28px;font-family:var(--sans);font-size:15px;font-weight:500;cursor:pointer">Se connecter</button>'
+        + '<p style="color:var(--sub);font-size:14px;line-height:1.6;margin-bottom:24px">Composez votre premier itinéraire — il apparaîtra ici dès que vous l\'aurez enregistré.</p>'
+        + '<button onclick="setTab(\'discover\')" style="background:var(--ink);color:var(--bg);border:none;border-radius:14px;padding:14px 28px;font-family:var(--sans);font-size:15px;font-weight:500;cursor:pointer">Composer un itinéraire</button>'
         + '</div>';
     } else {
-      host.innerHTML = '<p style="text-align:center;padding:40px 0;color:var(--sub);font-size:14px;font-style:italic">Erreur de chargement. Réessayez.</p>';
+      host.innerHTML = '<p style="text-align:center;padding:40px 0;color:var(--sub);font-size:14px;font-style:italic">Aucun voyage enregistré pour le moment.</p>';
     }
     return;
   }

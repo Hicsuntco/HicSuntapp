@@ -276,8 +276,9 @@ function voySeg(k){
 /* ── Profil ─────────────────────────────────────────────────────────── */
 function profileView(){
   const token = localStorage.getItem('sb_token');
-  const connected = !!token;
   const email = localStorage.getItem('hs_email') || '';
+  /* Connecté si token présent OU email stocké (auth Google réussie) */
+  const connected = !!token || !!email;
 
   const rows = [
     ['compass','Mes préférences de voyage','Styles, budget et rythme par défaut', "openOverlay('prefs', prefsView())"],
