@@ -1297,20 +1297,28 @@ async function runFullGeneration(overlayAlreadyOpen){
   if(statusEl){statusEl.style.opacity=0;setTimeout(function(){statusEl.textContent='Votre voyage est prêt ✦';statusEl.style.opacity=1;},250);}
 
   let ok=false;
-  if(result){try{ok=applyGenerated(result.skel,result.days,result.hilites,result.flightInfo);}catch(e){ok=false;}}
+  if(result){try{ok=applyGenerated(result.skel,result.days,result.hilites,result.flightInfo);}catch(e){
+    console.error('[applyGenerated]', e);
+    ok=false;
+  }}
   if(!ok) toast('Connexion limitée — itinéraire de démonstration');
 
-  /* ── PAYWALL ── Vérifier si l'utilisateur a déjà payé ou a un code ── */
+  /* ── PAYWALL ── */
   setTimeout(function(){
-    const days = (ITINERARY.plan&&ITINERARY.plan.length) ? ITINERARY.plan.length : (ITINERARY.days || 0);
-    const alreadyPaid = _checkPaymentToken(ITINERARY.dest, days);
-
-    if(alreadyPaid){
-      /* Déjà payé — ouvrir directement */
-      _openItineraryAndSave();
-    } else {
-      /* Afficher le paywall */
-      _showPaywall(el, days);
+    try{
+      const days = (ITINERARY.plan&&ITINERARY.plan.length) ? ITINERARY.plan.length : (ITINERARY.days || 0);
+      const alreadyPaid = _checkPaymentToken(ITINERARY.dest, days);
+      if(alreadyPaid){
+        _openItineraryAndSave();
+      } else {
+        _showPaywall(el, days);
+      }
+    }catch(e){
+      console.error('[paywall/open]', e);
+      /* En cas d'erreur, fermer quand même l'écran de génération */
+      const gi=ovStack.findIndex(function(o){return o.dataset&&o.dataset.ov==='generating';});
+      if(gi>=0){const g=ovStack.splice(gi,1)[0];g.remove();}
+      toast('Erreur : '+String(e.message||e).slice(0,60));
     }
   },620);
 }
@@ -1356,11 +1364,14 @@ function _grantPayment(dest, days){
 }
 
 function _openItineraryAndSave(){
-  openItinerary();
-  saveItinerary();
+  try{ openItinerary(); }catch(e){
+    console.error('[openItinerary]', e);
+    toast('Erreur affichage : '+String(e.message||e).slice(0,60));
+  }
+  try{ saveItinerary(); }catch(e){}
   state.deckIndex=0;
   state._suggested=null; state._suggestedExcluded=null;
-  if(typeof initDeck==='function') initDeck();
+  if(typeof initDeck==='function') try{ initDeck(); }catch(e){}
   setTimeout(function(){
     const gi=ovStack.findIndex(function(o){return o.dataset.ov==='generating';});
     if(gi>=0){const g=ovStack.splice(gi,1)[0];g.remove();}
