@@ -596,18 +596,32 @@ async function updateSavedItinerary(){
 }
 
 async function saveItinerary(){
+  /* Vérifier que l'itinéraire est complet (moments chargés) */
+  var hasDetails = ITINERARY.plan && ITINERARY.plan.length > 0
+    && ITINERARY.plan.some(function(p){ return p && p.moments && p.moments.length > 0; });
+  if(!hasDetails){
+    toast('Itinéraire en cours de chargement, réessayez dans un instant');
+    return;
+  }
   const token = localStorage.getItem('sb_token');
   const userId = _getUserId();
   /* Sauvegarde locale systématique (fonctionne sans compte) */
   try{
     const local = JSON.parse(localStorage.getItem('hs_saved_trips')||'[]');
-    /* éviter les doublons : même destination + mêmes dates */
     const exists = local.some(function(t){ return t.dest===ITINERARY.dest && t.dates===ITINERARY.dates; });
     if(!exists){
-      local.unshift({dest:ITINERARY.dest,dates:ITINERARY.dates,days:_days(),budget:ITINERARY.budgetTotal,data:ITINERARY,savedAt:Date.now()});
+      /* Copie profonde pour éviter les problèmes de référence */
+      const snapshot = JSON.parse(JSON.stringify(ITINERARY));
+      local.unshift({dest:ITINERARY.dest,dates:ITINERARY.dates,days:_days(),budget:ITINERARY.budgetTotal,data:snapshot,savedAt:Date.now()});
+      localStorage.setItem('hs_saved_trips', JSON.stringify(local.slice(0,50)));
+    } else {
+      /* Mettre à jour si existe déjà */
+      const snapshot = JSON.parse(JSON.stringify(ITINERARY));
+      const idx = local.findIndex(function(t){ return t.dest===ITINERARY.dest && t.dates===ITINERARY.dates; });
+      if(idx>=0){ local[idx].data = snapshot; local[idx].savedAt = Date.now(); }
       localStorage.setItem('hs_saved_trips', JSON.stringify(local.slice(0,50)));
     }
-  }catch(e){}
+  }catch(e){ console.warn('saveItinerary local error:', e); }
   /* Sauvegarde cloud si connecté */
   if(token && userId){
     try{
