@@ -860,17 +860,49 @@ function buildDestinationSuggestPrompt(excluded){
     '═══ BRIEF CLIENT ═══',
     b.lines,
     '',
-    distConstraint ? ('═══ CONTRAINTE DISTANCE ═══\n'+distConstraint+'\n') : '',
+    distConstraint ? ('═══ CONTRAINTE DISTANCE — RESPECTE IMPÉRATIVEMENT ═══\n'+distConstraint+'\n') : '',
     '═══ DIRECTIVES ═══',
     directives.length?directives.join('\n'):'Aucune contrainte spécifique au-delà du brief ci-dessus.',
     excludeLine,
+    '',
+    distConstraint ? ('RAPPEL FINAL — CONTRAINTE RÉDHIBITOIRE : '+distConstraint.split('.')[0]+'. Toute destination hors de cette zone est INVALIDE.') : '',
     '',
     'Réponds UNIQUEMENT en JSON compact valide :',
     '{"dest":"nom du pays/région","country":"pays","tagline":"phrase poétique évocatrice (max 12 mots)","teaser":"2 phrases qui donnent envie, en lien avec le brief (max 35 mots)","coords":"ex: 6°55′N · 79°51′E"}',
   ].filter(Boolean).join('\n');
 }
 async function suggestDestination(excluded){
+  /* 3 tentatives max pour obtenir une destination cohérente avec la durée */
+  const days = buildBrief().daysCount || 7;
+  for(var attempt=0; attempt<3; attempt++){
+    const result = await _completeJSON(buildDestinationSuggestPrompt(excluded));
+    if(!result || !result.dest) continue;
+    /* Valider la distance selon les jours */
+    if(_isDestinationValid(result.dest, result.country, days)){
+      return result;
+    }
+    /* Destination invalide : on retire de la liste et on réessaie */
+    excluded = (excluded||[]).concat([result.dest]);
+  }
   return await _completeJSON(buildDestinationSuggestPrompt(excluded));
+}
+
+/* Vérifie que la destination est atteignable depuis Paris pour la durée donnée */
+function _isDestinationValid(dest, country, days){
+  if(days > 10) return true; /* Pas de restriction pour les longs séjours */
+  const tooFar5 = ['yémen','yemen','oman','arabie','pakistan','inde','sri lanka',
+    'thaïlande','vietnam','cambodge','laos','myanmar','birmanie','malaisie',
+    'indonésie','philippines','japon','corée','chine','mongolie',
+    'australie','nouvelle-zélande','afrique du sud','mozambique','tanzanie',
+    'kenya','éthiopie','mexique','cuba','états-unis','canada','brésil',
+    'pérou','colombie','argentine','chili','équateur','bolivia','paraguay','uruguay'];
+  const tooFar8 = ['japon','corée','chine','mongolie','australie','nouvelle-zélande',
+    'indonésie','philippines','mexique','cuba','brésil','pérou','colombie',
+    'argentine','chili','équateur'];
+  const d = ((dest||'')+(country||'')).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  if(days <= 7 && tooFar5.some(function(c){ return d.indexOf(c)>=0; })) return false;
+  if(days <= 10 && tooFar8.some(function(c){ return d.indexOf(c)>=0; })) return false;
+  return true;
 }
 
 /* ── recherche web du prix de vol (appel séparé, avec fallback statique) ── */
