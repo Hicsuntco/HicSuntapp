@@ -250,17 +250,42 @@ function destinationView(key){
 
 /* ── 5 · Génération (modal sombre) ──────────────────────────────────── */
 function generationView(){
+  /* Globe animé centré — même identité que le splash */
+  const globe = '<svg class="gen-globe" viewBox="0 0 120 120" fill="none">'
+    + '<circle class="sg-ring" cx="60" cy="60" r="54"/>'
+    + '<ellipse class="sg-mer" cx="60" cy="60" rx="22" ry="54"/>'
+    + '<ellipse class="sg-mer sg-mer2" cx="60" cy="60" rx="44" ry="54"/>'
+    + '<line class="sg-eq" x1="6" y1="60" x2="114" y2="60"/>'
+    + '<line class="sg-tick" x1="60" y1="2" x2="60" y2="12"/>'
+    + '<line class="sg-tick" x1="60" y1="108" x2="60" y2="118"/>'
+    + '<line class="sg-tick" x1="2" y1="60" x2="12" y2="60"/>'
+    + '<line class="sg-tick" x1="108" y1="60" x2="118" y2="60"/>'
+    + '</svg>';
+
+  /* Route qui se trace — plus grande, 4 villes */
   const route = '<svg class="gen-route" viewBox="0 0 220 220" fill="none">'
-    + '<path d="M34 176 Q66 120 96 132 T148 84 Q170 64 188 42"/>'
-    + '<circle cx="34" cy="176" r="4"/><circle cx="96" cy="132" r="4"/><circle cx="148" cy="84" r="4"/><circle cx="188" cy="42" r="4"/></svg>';
+    + '<path d="M28 188 Q55 148 88 142 Q118 136 140 108 Q162 80 192 36"/>'
+    + '<circle cx="28" cy="188" r="3.5"/>'
+    + '<circle cx="88" cy="142" r="3.5"/>'
+    + '<circle cx="140" cy="108" r="3.5"/>'
+    + '<circle cx="192" cy="36" r="3.5"/>'
+    + '</svg>';
+
   return '<div class="gen">' + statusBar(true)
     + '<div class="gen-body">'
+    /* Logo discret en haut */
     +   '<div class="gen-logo">Hic <em>Sunt</em></div>'
-    +   '<div class="gen-map">' + graticule(220, 220, 40) + route + '</div>'
+    /* Globe + carte superposés */
+    +   '<div class="gen-visual">'
+    +     '<div class="gen-globe-wrap">' + globe + '</div>'
+    +     '<div class="gen-map">' + graticule(220, 220, 40) + route + '</div>'
+    +   '</div>'
+    /* Statut en grand italic Spectral */
     +   '<p class="gen-status" data-gen-status>Lecture de vos envies…</p>'
+    /* Barre de progression ultra-fine */
     +   '<div class="gen-progress">'
     +     '<div class="gen-progress-track"><div class="gen-progress-fill" data-gen-bar style="width:2%;transition:none"></div></div>'
-    +     '<div style="display:flex;align-items:center;gap:8px">'
+    +     '<div class="gen-progress-nums">'
     +     '<span class="gen-progress-pct" data-gen-pct>0%</span>'
     +     '<span class="gen-progress-time" data-gen-time>~16s</span>'
     +     '</div>'
