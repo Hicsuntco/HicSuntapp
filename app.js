@@ -3,7 +3,7 @@
 const USER = { name:'Voyageur', full:'', initials:'', since:'' };
 
 /* Source de vérité unique pour le nombre de jours */
-function _days(it){ it = it||ITINERARY; return (it.plan&&it.plan.length) ? it.plan.length : (_days(it)||0); }
+function _days(it){ it = it||ITINERARY; return (it.plan&&it.plan.length) ? it.plan.length : (Number(it.days)||0); }
 
 const state = {
   createTab:'known',

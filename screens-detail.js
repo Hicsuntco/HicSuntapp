@@ -485,14 +485,13 @@ function itineraryView(){
   const minimapBg = 'linear-gradient(135deg,' + hexA(c1,0.09) + ' 0%,' + hexA(c2,0.05) + ' 100%),var(--surface)';
   const nDays = it.plan && it.plan.length ? it.plan.length : _days(it);
 
-  return statusBar()
-    /* ── Hero immersif ── */
-    + '<div style="position:relative;overflow:hidden;background:'+heroBg+';padding:0 0 28px">'
+  /* statusBar intégré dans le hero pour que tout le fond sombre couvre
+     y compris la zone de la status bar */
+  return '<div style="position:relative;overflow:hidden;background:'+heroBg+';padding:0 0 28px">'
+    +   statusBar(true)   /* true = texte clair pour fond sombre */
     +   heroMotif(sig.motif, c1, c2)
-    +   /* Gradient de fondu en bas vers le fond de l'app */
     +   '<div style="position:absolute;bottom:0;left:0;right:0;height:60px;background:linear-gradient(to bottom,transparent,'+heroBg+')"></div>'
     +   '<div style="position:relative;z-index:2">'
-    +     /* Navbar transparente sur le hero */
     +     '<div class="navbar" style="background:transparent">'
     +       '<button class="nav-btn" style="color:rgba(246,240,228,0.85)" onclick="closeOverlay()" aria-label="Retour">' + ico('back',20,1.7) + '</button>'
     +       '<button class="nav-btn" style="color:rgba(246,240,228,0.85)" onclick="openOverlay(\'share\', shareView())" aria-label="Partager">' + ico('share',18,1.5) + '</button>'
@@ -618,8 +617,8 @@ function dayDetailView(idx){
 
   return /* Hero thématique du jour */
     '<div style="position:relative;overflow:hidden;background:'+heroBg+';padding-bottom:24px">'
+    + statusBar(true)
     + '<div style="position:absolute;inset:0;background:radial-gradient(ellipse at 80% 20%,'+hexA(catColor,0.20)+',transparent 65%),radial-gradient(ellipse at 20% 80%,'+hexA(secColor,0.12)+',transparent 50%)"></div>'
-    /* fine grille cartographique */
     + '<svg style="position:absolute;inset:0;width:100%;height:100%;opacity:0.10" viewBox="0 0 390 180" preserveAspectRatio="none" fill="none">'
     +   [0,1,2,3,4,5,6].map(function(i){ return '<line x1="'+(i*65)+'" y1="0" x2="'+(i*65)+'" y2="180" stroke="'+catColor+'" stroke-width="0.5"/>'; }).join('')
     +   [0,1,2,3].map(function(i){ return '<line x1="0" y1="'+(i*60)+'" x2="390" y2="'+(i*60)+'" stroke="'+catColor+'" stroke-width="0.5"/>'; }).join('')
