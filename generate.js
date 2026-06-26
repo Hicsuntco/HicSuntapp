@@ -493,7 +493,21 @@ function buildSkeletonPrompt(dc, batchSize, offset){
   ];
 
   if(isFirst){
-    const directives=[_antiTouristDirective(),_occasionDirective(),_interestsDirective(),_rythmeDirective(),_fitnessDirective(),_transportDirective(),_accomStyleDirective(),_childrenDirective(),_dietaryDirective(),_alreadyDoneDirective(),_styleDirective(),_dreamDirective()].filter(Boolean);
+    const compact2=[];
+    if(state.occasion){
+      const occMap={'lune-de-miel':'Lune de miel: suites, dîners romantiques, activités à deux, intimité.','anniversaire':'Anniversaire: 1 moment exceptionnel, gem caché.','evjf':'EVJF: spa, rooftop, lieux instagrammables.','evg':'EVG: activités sportives, soirée locale.','famille':'Famille (enfants '+state.childrenAges+'): hébergement spacieux, activités tous âges.','solo':'Solo: guesthouses, activités modulables, sécurité.'};
+      if(occMap[state.occasion]) compact2.push(occMap[state.occasion]);
+    }
+    if(state.dietary)   compact2.push('Régime: '+state.dietary);
+    if(state.alreadyDone) compact2.push('Éviter: '+state.alreadyDone);
+    if(state.transport&&state.transport!=='Mixte') compact2.push('Transport: '+state.transport);
+    if(state.accomStyle&&state.accomStyle!=='Peu importe') compact2.push('Hébergement: '+state.accomStyle);
+    if(state.fitnessLevel&&state.fitnessLevel!=='Modéré') compact2.push('Forme: '+state.fitnessLevel);
+    const styles2=(state.styles||[]);
+    if(styles2.length) compact2.push('Style: '+styles2.join(', '));
+    const interests2=(state.interests||[]);
+    if(interests2.length) compact2.push('Intérêts: '+interests2.join(', '));
+    if(state.dream) compact2.push('Envie: '+state.dream.slice(0,120));
     const destLock = (!b.surprise&&dest)
       ? '⚠️ DESTINATION IMPOSÉE : "'+dest+'". "dest" DOIT être "'+dest+'". Absolument aucune autre destination.' : '';
 
@@ -510,7 +524,7 @@ function buildSkeletonPrompt(dc, batchSize, offset){
       b.lines,
       '',
       '━━━ PERSONNALISATION ━━━',
-      directives.length?directives.join('\n'):'Confort, ouvert aux découvertes authentiques.',
+      compact2.length?compact2.join(' | '):'Confort, découvertes authentiques.',
       '',
       '━━━ PHILOSOPHIE ÉDITORIALE ━━━',
       '• NOMS RÉELS : restaurants, guides, excursions — décris-les précisément. Pour les HÉBERGEMENTS, propose un nom plausible et le bon standing : ils seront ensuite remplacés par de vrais établissements vérifiés.',
@@ -585,63 +599,46 @@ function buildDaysPrompt(skel, planSteps, offset){
   const b=buildBrief();
   const nMoments=_momentsPerDay();
   const occ=state.occasion;
-  const directives=[_antiTouristDirective(),_occasionDirective(),_interestsDirective(),_rythmeDirective(),_fitnessDirective(),_transportDirective(),_accomStyleDirective(),_childrenDirective(),_dietaryDirective(),_alreadyDoneDirective(),_styleDirective(),_dreamDirective()].filter(Boolean);
+
+  /* Directives compactes — une ligne par contrainte max */
+  const compact=[];
+  if(occ==='lune-de-miel') compact.push('LUNE DE MIEL: suites/terrasse privée, dîners isolés éclairage tamisé, 1 massage duo nommé, 1 coucher soleil planifié, jamais buffet ni groupe.');
+  else if(occ==='famille')  compact.push('FAMILLE (enfants: '+(state.childrenAges||'?')+'): marche<3km, visites<1h30, menu enfant, piscine hébergement, pas de musées sans espace interactif.');
+  else if(occ==='evjf')     compact.push('EVJF: spa privatisé, rooftop/cocktails, lieux instagrammables, 1 dîner festif.');
+  else if(occ==='evg')      compact.push('EVG: 2 activités sportives intenses, 1 soirée locale authentique, BBQ/tablée conviviale.');
+  else if(occ==='anniversaire') compact.push('ANNIVERSAIRE: 1 moment exceptionnel jour J, gem caché, formule anniversaire si dispo.');
+  if(state.dietary)         compact.push('RÉGIME/ALLERGIE: '+state.dietary+' — vérifier chaque restaurant.');
+  if(state.alreadyDone)     compact.push('DÉJÀ FAIT/ÉVITER: '+state.alreadyDone);
+  if(state.transport&&state.transport!=='Mixte') compact.push('TRANSPORT: '+state.transport+'.');
+  if(state.accomStyle&&state.accomStyle!=='Peu importe') compact.push('HÉBERGEMENT: '+state.accomStyle+'.');
+  if(state.fitnessLevel&&state.fitnessLevel!=='Modéré') compact.push('FORME: '+state.fitnessLevel+'.');
+  const styles=(state.styles||[]);
+  if(styles.length) compact.push('STYLE: '+styles.join(', ')+'.');
+  const interests=(state.interests||[]);
+  if(interests.length) compact.push('INTÉRÊTS: '+interests.join(', ')+' — au moins 1 par jour.');
+  if(state.dream) compact.push('ADN DU VOYAGE: '+state.dream.slice(0,120));
+
   const steps=planSteps.map(function(p,i){return (offset+i+1)+'. '+p.title+' — '+p.loc+(p.hook?' ('+p.hook+')':'');}).join('\n');
 
-  /* Rappel occasion condensé pour la section des standards */
-  const occReminder = occ === 'lune-de-miel'
-    ? '\n⚠️ LUNE DE MIEL — RAPPEL POUR CHAQUE MOMENT : table romantique isolée, vue privée, nom du spa et soin précis, activité intimiste à deux. Aucun restaurant bruyant, aucune activité de groupe.'
-    : occ === 'famille'
-    ? '\n⚠️ FAMILLE — RAPPEL : vérifier que chaque activité est réalisable avec les enfants (âges : '+(state.childrenAges||'non précisés')+'). Restaurant avec menu enfant obligatoire. Pas de visite > 1h30 sans pause.'
-    : occ === 'evjf'
-    ? '\n⚠️ EVJF — RAPPEL : ambiance festive et esthétique pour chaque lieu, activités de groupe, restaurants avec cocktails.'
-    : occ === 'anniversaire'
-    ? '\n⚠️ ANNIVERSAIRE — RAPPEL : au moins 1 moment de célébration par segment, mention explicite des formules anniversaire disponibles.'
-    : '';
-
   return [
-    '╔═══════════════════════════════════════════════════════════════╗',
-    '║  HIC SUNT · CARTOGRAPHE SENIOR — RÉDACTION ÉDITORIAL         ║',
-    '║  Standard : Condé Nast Traveller + Wallpaper City Guide       ║',
-    '║  Exigence : noms RÉELS, détails PRÉCIS, cohérence TOTALE      ║',
-    '╚═══════════════════════════════════════════════════════════════╝',
+    'HIC SUNT · CARTOGRAPHE — détail jours '+skel.dest+', jours '+(offset+1)+'→'+(offset+planSteps.length),
+    'Standard Condé Nast. Noms RÉELS et vérifiables. JSON UNIQUEMENT.',
     '',
-    'Destination : '+skel.dest+' · Jours '+(offset+1)+' à '+(offset+planSteps.length),
+    'BRIEF: '+b.lines.replace(/\n/g,' | '),
+    compact.length ? 'CONTRAINTES: '+compact.join(' / ') : '',
     '',
-    '━━━ BRIEF CLIENT COMPLET ━━━',
-    b.lines,
+    'ÉTAPES:\n'+steps,
     '',
-    '━━━ PERSONNALISATION — CHAQUE MOMENT DOIT RESPECTER CES CONTRAINTES ━━━',
-    directives.length?directives.join('\n\n'):'Standard confort.',
+    'RÈGLES:',
+    '• Géo stricte: chaque lieu dans la zone de l\'étape (<15km). Sur île: sur cette île uniquement.',
+    '• desc: 2 phrases évocatrices max 40 mots (sensations, lumière, atmosphère).',
+    '• moments: '+nMoments+' items réels — {t:"HH:MM",k:"['+GEN_KINDS.slice(0,8).join('|')+']",ti:"NOM RÉEL",d:"détail 6 mots"}',
+    '• tip: conseil initié ultra-spécifique (heure, jour, lieu exact).',
+    '• restaurant: {name,type,price:"€/€€/€€€",note,rating:"4,x⭐",review}',
+    '• wellness: null ou {name,type,price,note} si spa/lune de miel.',
     '',
-    '━━━ ÉTAPES À DÉTAILLER ━━━',
-    steps,
-    '',
-    '━━━ VÉRIFICATION GÉOGRAPHIQUE OBLIGATOIRE ━━━',
-    '• Chaque restaurant/activité DOIT être dans la ville/zone de l\'étape (< 15km).',
-    '• Sur une île : TOUS les lieux sur cette île uniquement.',
-    '• Si incertain qu\'un lieu existe dans cette zone exacte : nom plausible local > lieu d\'une autre région.',
-    '',
-    '━━━ STANDARDS DE RÉDACTION PREMIUM ━━━',
-    occReminder,
-    '• "desc" : 2-3 phrases narratives (max 45 mots) au ton magazine luxe. SENSATIONS et ATMOSPHÈRE, pas les faits bruts. Évoquer la lumière, les odeurs, l\'émotion du lieu.',
-    '• "moments" : '+nMoments+' moments RÉELS et SPÉCIFIQUES :',
-    '  · Restaurants : nom exact + adresse quartier + spécialité signature + note (ex: "Trattoria Su Cumbidu, via Manno Cagliari — ravioli di pecorino, 4,6⭐")',
-    '  · Excursions : prestataire nommé + contact si possible (ex: "Kayak Cala Goloritzé avec Cooperativa Gorropu — +39 0784 96774")',
-    '  · Sites : heure idéale + conseil pratique précis (ex: "Tharros — arriver à 7h30 avant les cars, côté ouest pour le coucher")',
-    '  · Spas : nom + type de soin + durée + prix (ex: "Terme di Fordongianus — bain thermal romain 45min, 18€")',
-    '  · Format : {t:"heure", k:"icône parmi ['+GEN_KINDS.join(',')+']", ti:"NOM RÉEL", d:"détail local 6 mots max"}',
-    '• "tip" : conseil d\'initié ULTRA-SPÉCIFIQUE à ce lieu et cette saison. Pas un conseil générique. Ex: "Jeudi matin — marché de producteurs à 200m côté porta, légumes et fromages, 7h-12h".',
-    '• "restaurant" : VRAI restaurant, vérifiable en ligne :',
-    '  {name, type:"spécialité signature", price:"€/€€/€€€", note:"1 vraie raison d\'y aller", rating:"4,3⭐", review:"ce que disent les habitués"}',
-    state.dietary ? '  ATTENTION : le restaurant DOIT être compatible avec : '+state.dietary : '',
-    occ==='lune-de-miel' ? '  LUNE DE MIEL : restaurant avec table isolée, ambiance tamisée, vue si possible. Préciser l\'atmosphère romantique.' : '',
-    occ==='famille' ? '  FAMILLE : restaurant avec menu enfant, chaises hautes disponibles, ambiance décontractée.' : '',
-    '• "wellness" : établissement réel si spa/bien-être/lune de miel, sinon null.',
-    '  {name, type:"type de soin", price:"prix", note:"atmosphère", romantic: true/false}',
-    '',
-    'Réponds UNIQUEMENT en JSON compact valide, EXACTEMENT '+planSteps.length+' entrées dans "days" :',
-    '{"days":[{"desc":"Le soleil frappe le basalte dès 7h. Le marché de Pula s\'éveille dans les odeurs de pecorino frais et de fougasse — une heure ici vaut une journée ailleurs.","tip":"Mercredi matin : marché de producteurs côté église, 7h-12h. Éviter 11h-14h en été.","restaurant":{"name":"Ristorante La Tonnara","type":"Thon rouge local et bottarga","price":"€€","note":"Pêcheurs locaux depuis 1961, clientèle 100% sarde","rating":"4,5⭐","review":"La bottarga maison est introuvable ailleurs dans la région"},"wellness":null,"moments":[{"t":"07:30","k":"camera","ti":"Marché de Pula, piazza Municipio","d":"Fromagers locaux, légumes du jardin"}]}]}',
+    'JSON EXACT — '+planSteps.length+' entrées dans "days":',
+    '{"days":[{"desc":"","tip":"","restaurant":{"name":"","type":"","price":"€€","note":"","rating":"","review":""},"wellness":null,"moments":[{"t":"","k":"","ti":"","d":""}]}]}',
   ].filter(Boolean).join('\n');
 }
 
