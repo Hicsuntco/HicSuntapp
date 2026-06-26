@@ -433,9 +433,8 @@ function itineraryView(){
   const minimapBg = 'linear-gradient(135deg,' + hexA(c1,0.07) + ' 0%,' + hexA(c2,0.04) + ' 100%),var(--surface)';
 
   return (
-    /* ══ HERO ══ */
-    '<div style="background:' + heroGrad + ';position:relative">'
-    + statusBar(true)
+    /* ══ HERO — flex:none pour que ov-scroll prenne le reste ══ */
+    '<div style="flex:none;background:' + heroGrad + ';overflow:hidden">'
     + '<div class="navbar on-dark" style="background:transparent;position:relative;z-index:2">'
     +   '<button class="nav-btn" onclick="closeOverlay()" aria-label="Retour">' + ico('back',20,1.7) + '</button>'
     +   '<button class="nav-btn" onclick="openOverlay(\'share\', shareView())" aria-label="Partager">' + ico('share',18,1.5) + '</button>'
@@ -589,8 +588,7 @@ function dayDetailView(idx){
   const heroBg = DAY_BG[theme] || '#0B1822';
   const dayGrad = 'linear-gradient(160deg,' + heroBg + ' 0%,' + hexA(catColor,0.35) + ' 100%)';
 
-  return '<div style="background:' + dayGrad + '">'
-    + statusBar(true)
+  return '<div style="flex:none;background:' + dayGrad + ';overflow:hidden">'
     + '<div class="navbar on-dark" style="background:transparent;position:relative;z-index:2">'
     +   '<button class="nav-btn" onclick="closeOverlay()" aria-label="Retour">' + ico('back',20,1.7) + '</button>'
     +   (idx < it.plan.length-1
