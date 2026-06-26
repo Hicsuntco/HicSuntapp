@@ -556,6 +556,8 @@ function dayDetailView(idx){
   const it = ITINERARY;
   const p = it.plan[idx];
   if (!p) return statusBar() + navbar('Jour');
+  /* DEBUG temporaire */
+  try{ console.log('[dayDetail] p=', JSON.stringify({n:p.n,title:p.title,category:p.category,hasDesc:!!p.desc,hasMoments:!!(p.moments&&p.moments.length),hasTip:!!p.tip,theme:it.theme,palette:JSON.stringify(it.palette)})); }catch(e){}
   const num = 'Jour ' + String(p.n).padStart(2,'0');
   const palette = it.palette || {};
   const theme = it.theme || 'mediterranean';
@@ -648,10 +650,10 @@ function dayDetailView(idx){
     + '</div>'
     /* Corps scrollable */
     + '<div class="ov-scroll has-foot px" style="padding-top:16px">'
-    +   '<p style="font-size:15px;color:var(--ink);line-height:1.65;font-family:var(--serif);font-style:italic;margin:0 0 4px">' + esc(p.desc) + '</p>'
+    +   (p.desc ? '<p style="font-size:15px;color:var(--ink);line-height:1.65;font-family:var(--serif);font-style:italic;margin:0 0 4px">' + esc(p.desc) + '</p>' : '')
     +   tipHTML
-    +   '<div class="section-h" style="margin-top:20px"><h2>Le programme</h2><span class="meta">' + p.moments.length + ' moments</span></div>'
-    +   p.moments.map(function(m){
+    +   '<div class="section-h" style="margin-top:20px"><h2>Le programme</h2><span class="meta">' + (p.moments ? p.moments.length : 0) + ' moments</span></div>'
+    +   (p.moments || []).map(function(m){
         /* Support des deux formats : tableau [t,k,ti,d] et objet {t,k,ti,d} */
         var mt = Array.isArray(m) ? m[0] : (m && m.t) || '—';
         var mk = Array.isArray(m) ? m[1] : (m && m.k) || 'pin';
