@@ -704,14 +704,26 @@ function parseItineraryJSON(text){
 /* ── appel Supabase ─────────────────────────────────────────────────── */
 async function _callSupabase(prompt){
   const res=await fetch(SUPABASE_ENDPOINT,{method:'POST',headers:SUPABASE_HEADERS,body:JSON.stringify({prompt:prompt})});
-  if(!res.ok) throw new Error('HTTP '+res.status);
+  if(!res.ok){
+    const body=await res.text().catch(function(){return '';});
+    console.error('[_callSupabase] HTTP',res.status,body.slice(0,200));
+    throw new Error('HTTP '+res.status+' — '+body.slice(0,80));
+  }
   const data=await res.json();
   if(data.error) throw new Error(data.error);
   return data.result||'';
 }
 async function _completeJSON(prompt){
   for(let a=0;a<2;a++){
-    try{const txt=await _callSupabase(prompt); const j=parseItineraryJSON(txt); if(j) return j;}catch(e){}
+    try{
+      const txt=await _callSupabase(prompt);
+      const j=parseItineraryJSON(txt);
+      if(j) return j;
+      console.warn('[_completeJSON] JSON invalide, tentative',a+1,'réponse:',txt&&txt.slice(0,120));
+    }catch(e){
+      console.error('[_completeJSON] erreur tentative',a+1,e&&e.message||e);
+      toast('Erreur: '+String(e&&e.message||e).slice(0,60));
+    }
   }
   return null;
 }
