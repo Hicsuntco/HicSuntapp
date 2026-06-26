@@ -443,7 +443,6 @@ function itineraryView(){
     /* Pills */
     +   '<div style="display:flex;flex-wrap:wrap;gap:7px">'
     +     '<span style="font-family:var(--mono);font-size:8.5px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;padding:7px 14px;border-radius:20px;background:' + hexA(ac,0.1) + ';color:' + ac + ';border:1px solid ' + hexA(ac,0.25) + '">' + esc(it.dates) + '</span>'
-    +     '<span style="font-family:var(--mono);font-size:8.5px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;padding:7px 14px;border-radius:20px;background:var(--surface);color:var(--ink-soft);border:1px solid var(--line)">' + nDays + ' jours</span>'
     +     '<span style="font-family:var(--mono);font-size:8.5px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;padding:7px 14px;border-radius:20px;background:var(--surface);color:var(--ink-soft);border:1px solid var(--line)">' + esc(it.level) + '</span>'
     +   '</div>'
     + '</div>'
@@ -452,11 +451,9 @@ function itineraryView(){
     + '<div class="ov-scroll has-foot px">'
 
     /* Carte */
-    + '<div style="margin-top:16px">'
-    + '<div class="minimap" style="background:' + minimapBg + '" onclick="openMapOv()">'
-    +   geoMapSVG(345, 188, null) + wxChip(wx1[0], wx1[1])
-    +   '<span class="mm-cap">' + esc(it.coords || it.dest) + ' · ' + nDays + ' jours</span>'
-    + '</div>'
+    + '<div class="minimap" style="margin-top:16px;background:' + minimapBg + '" onclick="openMapOv()">'
+    +   geoMapSVG(345, 140, null) + wxChip(wx1[0], wx1[1])
+    +   '<span class="mm-cap">' + esc(it.coords || it.dest) + '</span>'
     + '</div>'
 
     /* Actions */
