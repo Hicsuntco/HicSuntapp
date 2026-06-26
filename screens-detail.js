@@ -195,8 +195,10 @@ function destinationView(key){
     +   '<div class="wash" style="background:' + d.bg + '"></div>' + contour()
     +   '<div class="wm">' + ico(d.i, 132, 1) + '</div>'
     +   '<div class="veil"></div>'
-    +   '<div class="navbar on-dark"><button class="nav-btn ghost" onclick="closeOverlay()" aria-label="Retour">' + ico('back',20,1.7) + '</button>'
-    +     '<button class="nav-btn ghost" onclick="toast(\'Lien copié\')" aria-label="Partager">' + ico('share',18,1.5) + '</button></div>'
+    +   '<div class="navbar on-dark" style="position:absolute;top:0;left:0;right:0;z-index:10">'
+    +     '<button class="nav-btn" style="background:rgba(0,0,0,0.35);border-color:rgba(255,255,255,0.2);color:#fff;backdrop-filter:blur(8px)" onclick="closeOverlay()" aria-label="Retour">' + ico('back',20,1.7) + '</button>'
+    +     '<button class="nav-btn" style="background:rgba(0,0,0,0.35);border-color:rgba(255,255,255,0.2);color:#fff;backdrop-filter:blur(8px)" onclick="toast(\'Lien copié\')" aria-label="Partager">' + ico('share',18,1.5) + '</button>'
+    +   '</div>'
     +   '<div class="dest-cap"><span class="eyebrow">' + esc(d.r) + '</span><h1>' + esc(key) + '</h1>'
     +     '<div class="dest-pills"><span class="pill">' + esc(d.best) + '</span><span class="pill">Vol ' + esc(d.flight) + '</span></div></div>'
     + '</div>'
