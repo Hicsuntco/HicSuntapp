@@ -28,7 +28,7 @@
 .dest-hero .wash{position:absolute;inset:0}
 .dest-hero .wm{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--ink);opacity:0.16}
 .dest-hero .veil{position:absolute;inset:0;background:linear-gradient(to top,rgba(20,15,8,0.55),rgba(20,15,8,0.06) 55%,rgba(20,15,8,0.12))}
-.dest-hero .navbar{position:absolute;top:54px;left:0;right:0}
+.dest-hero .navbar{position:absolute;top:8px;left:0;right:0}
 .dest-cap{position:absolute;left:24px;right:24px;bottom:16px;color:#fff}
 .dest-cap .eyebrow{color:#e8d9b8}
 /* Destination name — biggest serif in the app */
