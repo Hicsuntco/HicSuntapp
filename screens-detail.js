@@ -542,14 +542,6 @@ function dayDetailView(idx){
   const secCat = categories.find(function(c){ return c !== p.category && c !== 'transit'; }) || p.category || 'culture';
   const secColor = (secCat && palette[secCat]) || catColor;
 
-  /* Fond sombre du hero du jour, légèrement différent du hero principal */
-  const DAY_BG = {
-    mediterranean:'#0A1520', desert:'#160E06', alpine:'#081410', tropical:'#0A1409',
-    tropical_io:'#061620', steppe:'#0A1018', andean:'#0E0C06', urban_asia:'#0A0616',
-    urban:'#0C0A16', savanna:'#0E0C04', caribbean:'#061814',
-  };
-  const heroBg = DAY_BG[theme] || '#0A1020';
-
   let nightHTML = '';
   if (p.night && p.night.acc){
     let found = null;
