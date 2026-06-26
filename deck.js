@@ -58,7 +58,7 @@ function deckQuestions(){
         return '<button class="radio-it' + (on?' on':'') + '" onclick="deckRadio(\'budget\',\'' + o[0] + '\')">'
           + '<span><span class="ra-t">' + o[0] + '</span><br><span class="ra-d">' + o[1] + '</span></span><span class="ra-dot"></span></button>';
       }).join('');
-    }, noFoot:true });
+    }, noFoot:false, footLabel:'Passer' });
 
   /* Q7 — Rythme */
   q.push({ id:'rythme', t:'À quel <em>rythme</em> ?', s:'Le tempo des journées, des transferts, des pauses.',
@@ -73,7 +73,7 @@ function deckQuestions(){
         return '<button class="radio-it' + (on?' on':'') + '" onclick="deckRadio(\'rythme\',\'' + o[0] + '\')">'
           + '<span><span class="ra-t">' + o[0] + '</span><br><span class="ra-d">' + o[1] + '</span></span><span class="ra-dot"></span></button>';
       }).join('');
-    }, noFoot:true });
+    }, noFoot:false, footLabel:'Passer' });
 
   /* Q8 — Styles */
   q.push({ id:'styles', t:'Votre <em>style</em> de voyage ?', s:'Choisissez-en autant que vous voulez.',
@@ -105,7 +105,7 @@ function deckQuestions(){
         return '<button class="radio-it' + (on?' on':'') + '" onclick="deckRadio(\'transport\',\'' + o[0].replace(/'/g,"\\'") + '\')">'
           + '<span><span class="ra-t">' + o[0] + '</span><br><span class="ra-d">' + o[1] + '</span></span><span class="ra-dot"></span></button>';
       }).join('');
-    }, noFoot:true });
+    }, noFoot:false, footLabel:'Passer' });
 
   /* Q11 — Style hébergement */
   q.push({ id:'accomStyle', t:'Quel type d\'<em>hébergement</em> vous ressemble ?', s:'Le cadre de vos nuits est aussi important que vos journées.',
@@ -121,7 +121,7 @@ function deckQuestions(){
         return '<button class="radio-it' + (on?' on':'') + '" onclick="deckRadio(\'accomStyle\',\'' + o[0].replace(/'/g,"\\'") + '\')">'
           + '<span><span class="ra-t">' + o[0] + '</span><br><span class="ra-d">' + o[1] + '</span></span><span class="ra-dot"></span></button>';
       }).join('');
-    }, noFoot:true });
+    }, noFoot:false, footLabel:'Passer' });
 
   /* Q12 — Forme physique */
   q.push({ id:'fitnessLevel', t:'Votre <em>forme physique</em> pour ce voyage ?', s:'Pour calibrer les randonnées, visites et rythme de marche.',
@@ -137,7 +137,7 @@ function deckQuestions(){
         return '<button class="radio-it' + (on?' on':'') + '" onclick="deckRadio(\'fitnessLevel\',\'' + o[0] + '\')">'
           + '<span><span class="ra-t">' + o[0] + '</span><br><span class="ra-d">' + o[1] + '</span></span><span class="ra-dot"></span></button>';
       }).join('');
-    }, noFoot:true });
+    }, noFoot:false, footLabel:'Passer' });
 
   /* Q13 — Infos spéciales (enfants, régime, déjà fait) — contextuelle */
   q.push({ id:'special', t:'Des <em>précisions</em> pour un voyage parfait ?', s:'Facultatif mais précieux — chaque détail compte.',
