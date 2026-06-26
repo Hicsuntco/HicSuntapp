@@ -125,6 +125,7 @@ body{
 .nav-btn:active{transform:scale(0.88);opacity:0.75}
 .nav-btn.ghost{border-color:transparent;background:transparent}
 .navbar.on-dark .nav-btn{background:rgba(246,240,228,0.1);border-color:rgba(246,240,228,0.16);color:var(--onink)}
+.navbar.on-dark .nav-btn.ghost{background:transparent;border-color:transparent;color:var(--onink)}
 .nav-spacer{width:44px;height:44px}
 
 /* ── overlays — iOS slide + spring ── */
