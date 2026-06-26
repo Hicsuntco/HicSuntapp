@@ -16,7 +16,6 @@ function tileHTML(key){
   const d = DESTS[key];
   return '<div class="tile" onclick="openDest(\'' + key.replace(/'/g, "\\'") + '\')">'
     + '<div class="wash" style="background:' + d.bg + '"></div>'
-    + contour()
     + '<span class="wm">' + ico(d.i, 30, 1.3) + '</span>'
     + '<span class="code">' + (DEST_CODES[key] || '—') + '</span>'
     + '<div class="t-cap"><div class="t-n">' + esc(key) + '</div><div class="t-rule"></div><div class="t-r">' + esc(d.r) + '</div></div>'
@@ -26,7 +25,7 @@ function tripCard(t){
   const action = t.itin ? 'openItinerary()' : (t.s[0] === 'prep' ? "setTab('create')" : 'void(0)');
   return '<div class="trip" onclick="' + action + '">'
     + '<div class="th"><div class="wash" style="position:absolute;inset:0;background:' + t.bg + '"></div>'
-    + contour() + '<span class="wm">' + ico(t.i, 34, 1.3) + '</span></div>'
+    + '<span class="wm">' + ico(t.i, 34, 1.3) + '</span></div>'
     + '<div><div class="ti-n">' + esc(t.n) + '</div>'
     + '<div class="ti-d">' + esc(t.d) + '</div>'
     + '<div class="ti-days">' + esc(t.days) + '</div>'
