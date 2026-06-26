@@ -235,7 +235,7 @@ function deckRadio(field, val){
       its[i].classList.toggle('on', t && t.textContent === val);
     }
   }
-  setTimeout(deckNext, 240);
+  setTimeout(deckNext, 520);
 }
 function deckToggle(field, val, el){
   const arr = state[field];
@@ -250,7 +250,7 @@ function deckOccasion(id){
     const its = card.querySelectorAll('.occ');
     for (let i = 0; i < its.length; i++) its[i].classList.toggle('on', state.occasion === OCCASIONS[i].id);
   }
-  if (state.occasion) setTimeout(deckNext, 240);
+  if (state.occasion) setTimeout(deckNext, 520);
 }
 function stepTravelers(d){
   state.travelers = Math.max(1, Math.min(12, state.travelers + d));
