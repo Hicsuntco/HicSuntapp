@@ -561,13 +561,16 @@ function dayDetailView(idx){
   const theme = it.theme || 'mediterranean';
 
   /* Couleur principale du jour = couleur de sa catégorie */
-  const catColor = palette[p.category] || '#9c7c44';
-  const catLabel = (typeof CATEGORY_LABELS !== 'undefined' && CATEGORY_LABELS[p.category]) || '';
+  const catColor = (p.category && palette[p.category]) || '#9c7c44';
+  const catLabel = (typeof CATEGORY_LABELS !== 'undefined' && p.category && CATEGORY_LABELS[p.category]) || '';
 
   /* Couleur secondaire = catégorie du moment dominant différente */
-  const categories = (p.moments||[]).map(function(m){ return (typeof KIND_CATEGORY!=='undefined'&&KIND_CATEGORY[m[1]])||'culture'; });
-  const secCat = categories.find(function(c){ return c !== p.category && c !== 'transit'; }) || p.category;
-  const secColor = palette[secCat] || catColor;
+  const categories = (p.moments||[]).map(function(m){
+    var k = Array.isArray(m) ? m[1] : (m && m.k);
+    return (typeof KIND_CATEGORY!=='undefined' && k && KIND_CATEGORY[k]) || 'culture';
+  });
+  const secCat = categories.find(function(c){ return c !== p.category && c !== 'transit'; }) || p.category || 'culture';
+  const secColor = (secCat && palette[secCat]) || catColor;
 
   /* Fond sombre du hero du jour, légèrement différent du hero principal */
   const DAY_BG = {
@@ -649,12 +652,17 @@ function dayDetailView(idx){
     +   tipHTML
     +   '<div class="section-h" style="margin-top:20px"><h2>Le programme</h2><span class="meta">' + p.moments.length + ' moments</span></div>'
     +   p.moments.map(function(m){
-        const mCat = (typeof KIND_CATEGORY!=='undefined'&&KIND_CATEGORY[m[1]])||'culture';
-        const mColor = palette[mCat] || catColor;
+        /* Support des deux formats : tableau [t,k,ti,d] et objet {t,k,ti,d} */
+        var mt = Array.isArray(m) ? m[0] : (m && m.t) || '—';
+        var mk = Array.isArray(m) ? m[1] : (m && m.k) || 'pin';
+        var mti = Array.isArray(m) ? m[2] : (m && m.ti) || '';
+        var md = Array.isArray(m) ? m[3] : (m && m.d) || '';
+        var mCat = (typeof KIND_CATEGORY!=='undefined' && mk && KIND_CATEGORY[mk]) || 'culture';
+        var mColor = (mCat && palette[mCat]) || catColor;
         return '<div class="moment">'
-          + '<span class="mo-t">' + esc(m[0]) + '</span>'
-          + '<span class="mo-i" style="color:'+mColor+'">' + ico(m[1],15,1.6) + '</span>'
-          + '<div><div class="mo-ti">' + esc(m[2]) + '</div>' + (m[3] ? '<div class="mo-d">' + esc(m[3]) + '</div>' : '') + '</div>'
+          + '<span class="mo-t">' + esc(mt) + '</span>'
+          + '<span class="mo-i" style="color:'+mColor+'">' + ico(mk,15,1.6) + '</span>'
+          + '<div><div class="mo-ti">' + esc(mti) + '</div>' + (md ? '<div class="mo-d">' + esc(md) + '</div>' : '') + '</div>'
           + '</div>';
       }).join('')
     +   restaurantHTML
