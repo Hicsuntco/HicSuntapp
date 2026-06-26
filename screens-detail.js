@@ -485,28 +485,27 @@ function itineraryView(){
   const minimapBg = 'linear-gradient(135deg,' + hexA(c1,0.09) + ' 0%,' + hexA(c2,0.05) + ' 100%),var(--surface)';
   const nDays = it.plan && it.plan.length ? it.plan.length : _days(it);
 
-  /* statusBar intégré dans le hero pour que tout le fond sombre couvre
-     y compris la zone de la status bar */
-  return '<div style="position:relative;overflow:hidden;background:'+heroBg+';padding:0 0 28px">'
-    +   statusBar(true)   /* true = texte clair pour fond sombre */
+  return '<div style="position:relative;overflow:hidden;background:'+heroBg+'">'
+    +   statusBar(true)
     +   heroMotif(sig.motif, c1, c2)
-    +   '<div style="position:absolute;bottom:0;left:0;right:0;height:60px;background:linear-gradient(to bottom,transparent,'+heroBg+')"></div>'
-    +   '<div style="position:relative;z-index:2">'
-    +     '<div class="navbar" style="background:transparent">'
-    +       '<button class="nav-btn" style="color:rgba(246,240,228,0.85)" onclick="closeOverlay()" aria-label="Retour">' + ico('back',20,1.7) + '</button>'
-    +       '<button class="nav-btn" style="color:rgba(246,240,228,0.85)" onclick="openOverlay(\'share\', shareView())" aria-label="Partager">' + ico('share',18,1.5) + '</button>'
+    +   '<div style="position:relative;z-index:2;padding-bottom:36px">'
+    +     '<div class="navbar on-dark" style="background:transparent">'
+    +       '<button class="nav-btn" onclick="closeOverlay()" aria-label="Retour">' + ico('back',20,1.7) + '</button>'
+    +       '<button class="nav-btn" onclick="openOverlay(\'share\', shareView())" aria-label="Partager">' + ico('share',18,1.5) + '</button>'
     +     '</div>'
-    +     '<div style="padding:8px 20px 0">'
-    +       '<span style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:'+c1+';display:block;margin-bottom:10px">Itinéraire · '+esc(themeLabel)+'</span>'
-    +       '<h1 style="font-family:var(--serif);font-weight:600;font-size:42px;letter-spacing:-1px;color:#F6F0E4;line-height:1.04;margin:0 0 8px">' + esc(it.dest) + '</h1>'
-    +       '<p style="font-family:var(--serif);font-style:italic;font-size:15px;color:rgba(246,240,228,0.7);line-height:1.5;margin:0 0 16px">' + esc(it.tag) + '</p>'
-    +       '<div style="display:flex;flex-wrap:wrap;gap:7px">'
-    +         '<span style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;padding:6px 13px;border-radius:20px;border:1px solid '+hexA(c1,0.4)+';color:'+c1+';background:'+hexA(c1,0.1)+'">' + esc(it.dates) + '</span>'
-    +         '<span style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;padding:6px 13px;border-radius:20px;border:1px solid rgba(246,240,228,0.2);color:rgba(246,240,228,0.8)">' + nDays + ' jours</span>'
-    +         '<span style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;padding:6px 13px;border-radius:20px;border:1px solid rgba(246,240,228,0.2);color:rgba(246,240,228,0.8)">' + esc(it.level) + '</span>'
+    +     '<div style="padding:4px 22px 0">'
+    +       '<span style="font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:'+c1+';display:block;margin-bottom:12px;opacity:0.9">Itinéraire · '+esc(themeLabel)+'</span>'
+    +       '<h1 style="font-family:var(--serif);font-weight:600;font-size:46px;letter-spacing:-1.2px;color:#F6F0E4;line-height:1.02;margin:0 0 10px">' + esc(it.dest) + '</h1>'
+    +       '<p style="font-family:var(--serif);font-style:italic;font-size:14.5px;color:rgba(246,240,228,0.6);line-height:1.55;margin:0 0 20px;max-width:320px">' + esc(it.tag) + '</p>'
+    +       '<div style="display:flex;flex-wrap:wrap;gap:6px">'
+    +         '<span style="font-family:var(--mono);font-size:8.5px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;padding:7px 14px;border-radius:20px;border:1px solid '+hexA(c1,0.5)+';color:'+c1+';background:'+hexA(c1,0.12)+'">' + esc(it.dates) + '</span>'
+    +         '<span style="font-family:var(--mono);font-size:8.5px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;padding:7px 14px;border-radius:20px;border:1px solid rgba(246,240,228,0.18);color:rgba(246,240,228,0.7)">' + nDays + ' jours</span>'
+    +         '<span style="font-family:var(--mono);font-size:8.5px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;padding:7px 14px;border-radius:20px;border:1px solid rgba(246,240,228,0.18);color:rgba(246,240,228,0.7)">' + esc(it.level) + '</span>'
     +       '</div>'
     +     '</div>'
     +   '</div>'
+    /* Fondu progressif hero → fond clair */
+    + '<div style="height:48px;background:linear-gradient(to bottom,'+heroBg+',var(--bg));margin-top:-1px"></div>'
     + '</div>'
     + '<div class="ov-scroll has-foot px" style="padding-top:16px">'
     +   '<div class="minimap" style="background:'+minimapBg+'" onclick="openMapOv()">' + geoMapSVG(345, 188, null) + wxChip(wx1[0], wx1[1])
@@ -620,33 +619,32 @@ function dayDetailView(idx){
   /* Hero du jour */
   const wxBadge = p.wx && p.wx[0] ? wxChip(p.wx[0], p.wx[1]) : '';
 
-  return /* Hero thématique du jour */
-    '<div style="position:relative;overflow:hidden;background:'+heroBg+';padding-bottom:24px">'
+  return '<div style="position:relative;overflow:hidden;background:'+heroBg+'">'
     + statusBar(true)
-    + '<div style="position:absolute;inset:0;background:radial-gradient(ellipse at 80% 20%,'+hexA(catColor,0.20)+',transparent 65%),radial-gradient(ellipse at 20% 80%,'+hexA(secColor,0.12)+',transparent 50%)"></div>'
-    + '<svg style="position:absolute;inset:0;width:100%;height:100%;opacity:0.10" viewBox="0 0 390 180" preserveAspectRatio="none" fill="none">'
+    + '<div style="position:absolute;inset:0;background:radial-gradient(ellipse at 80% 20%,'+hexA(catColor,0.22)+',transparent 65%),radial-gradient(ellipse at 20% 80%,'+hexA(secColor,0.13)+',transparent 50%)"></div>'
+    + '<svg style="position:absolute;inset:0;width:100%;height:100%;opacity:0.08" viewBox="0 0 390 180" preserveAspectRatio="none" fill="none">'
     +   [0,1,2,3,4,5,6].map(function(i){ return '<line x1="'+(i*65)+'" y1="0" x2="'+(i*65)+'" y2="180" stroke="'+catColor+'" stroke-width="0.5"/>'; }).join('')
     +   [0,1,2,3].map(function(i){ return '<line x1="0" y1="'+(i*60)+'" x2="390" y2="'+(i*60)+'" stroke="'+catColor+'" stroke-width="0.5"/>'; }).join('')
     + '</svg>'
-    + '<div style="position:absolute;bottom:0;left:0;right:0;height:40px;background:linear-gradient(to bottom,transparent,'+heroBg+')"></div>'
-    + '<div style="position:relative;z-index:2">'
-    +   '<div class="navbar" style="background:transparent">'
-    +     '<button class="nav-btn" style="color:rgba(246,240,228,0.85)" onclick="closeOverlay()" aria-label="Retour">' + ico('back',20,1.7) + '</button>'
+    + '<div style="position:relative;z-index:2;padding-bottom:32px">'
+    +   '<div class="navbar on-dark" style="background:transparent">'
+    +     '<button class="nav-btn" onclick="closeOverlay()" aria-label="Retour">' + ico('back',20,1.7) + '</button>'
     +     (idx < it.plan.length-1
-          ? '<button class="nav-btn" style="color:rgba(246,240,228,0.85)" onclick="swapDay('+(idx+1)+')" aria-label="Suivant">'+ico('chevron',20,1.7)+'</button>'
+          ? '<button class="nav-btn" onclick="swapDay('+(idx+1)+')" aria-label="Suivant">'+ico('chevron',20,1.7)+'</button>'
           : '<span class="nav-spacer"></span>')
     +   '</div>'
-    +   '<div style="padding:4px 20px 0">'
-    +     '<span style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:'+catColor+';display:block;margin-bottom:8px">'
+    +   '<div style="padding:4px 22px 0">'
+    +     '<span style="font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:'+catColor+';display:block;margin-bottom:10px;opacity:0.9">'
     +       num + (catLabel ? ' · ' + catLabel : '') + ' · ' + esc(p.loc)
     +     '</span>'
-    +     '<h1 style="font-family:var(--serif);font-weight:600;font-size:28px;letter-spacing:-0.4px;color:#F6F0E4;line-height:1.12;margin:0 0 10px">' + esc(p.title) + '</h1>'
+    +     '<h1 style="font-family:var(--serif);font-weight:600;font-size:30px;letter-spacing:-0.5px;color:#F6F0E4;line-height:1.1;margin:0 0 12px">' + esc(p.title) + '</h1>'
     +     '<div style="display:flex;align-items:center;gap:8px">'
-    +       (p.wx && p.wx[1] ? '<span style="font-family:var(--mono);font-size:10px;color:rgba(246,240,228,0.7)">'+esc(p.wx[1])+'</span>' : '')
-    +       '<span style="font-family:var(--mono);font-size:9px;padding:4px 10px;border-radius:12px;border:1px solid '+hexA(catColor,0.4)+';color:'+catColor+';background:'+hexA(catColor,0.12)+'">'+(catLabel||'Découverte')+'</span>'
+    +       (p.wx && p.wx[1] ? '<span style="font-family:var(--mono);font-size:10px;color:rgba(246,240,228,0.6)">'+esc(p.wx[1])+'</span>' : '')
+    +       (catLabel ? '<span style="font-family:var(--mono);font-size:8.5px;padding:5px 11px;border-radius:12px;border:1px solid '+hexA(catColor,0.45)+';color:'+catColor+';background:'+hexA(catColor,0.12)+'">'+catLabel+'</span>' : '')
     +     '</div>'
     +   '</div>'
     + '</div>'
+    + '<div style="height:40px;background:linear-gradient(to bottom,'+heroBg+',var(--bg));margin-top:-1px"></div>'
     + '</div>'
     /* Corps scrollable */
     + '<div class="ov-scroll has-foot px" style="padding-top:16px">'
