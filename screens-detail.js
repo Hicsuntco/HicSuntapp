@@ -399,155 +399,124 @@ function accCard(a){
 function itineraryView(){
   const it = ITINERARY;
   const wx1 = it.plan[0] ? it.plan[0].wx : ['sun','30°'];
-
   const palette = it.palette || {};
   const theme = it.theme || 'mediterranean';
+  const nDays = it.plan && it.plan.length ? it.plan.length : _days(it);
+
+  /* ── Couleurs par thème ── */
   const SIG = {
-    mediterranean: { c1: palette.beach   || '#3A9EC9', c2: palette.food    || '#D44A2A', bg:'#0D1A24', motif:'waves' },
-    desert:        { c1: palette.culture || '#D4943A', c2: palette.food    || '#D4522A', bg:'#1A1008', motif:'dunes' },
-    alpine:        { c1: palette.hike    || '#3A9E7E', c2: palette.outdoor || '#4ABECE', bg:'#0A1614', motif:'peaks' },
-    tropical:      { c1: palette.food    || '#E87A4A', c2: palette.hike    || '#2D9E6B', bg:'#0C160E', motif:'jungle' },
-    tropical_io:   { c1: palette.beach   || '#4AC8E0', c2: palette.spa     || '#E87A9A', bg:'#081820', motif:'waves' },
-    steppe:        { c1: palette.beach   || '#5A8AAA', c2: palette.hike    || '#7A9E8A', bg:'#0C1218', motif:'steppe' },
-    andean:        { c1: palette.culture || '#C0A040', c2: palette.hike    || '#8A6A3A', bg:'#100E08', motif:'peaks' },
-    urban_asia:    { c1: palette.culture || '#C040A0', c2: palette.food    || '#E05030', bg:'#0C0818', motif:'grid' },
-    urban:         { c1: palette.culture || '#7A65D4', c2: palette.food    || '#D4854A', bg:'#100E18', motif:'grid' },
-    savanna:       { c1: palette.outdoor || '#A0C840', c2: palette.culture || '#B07030', bg:'#100E04', motif:'savanna' },
-    caribbean:     { c1: palette.beach   || '#30C0C0', c2: palette.food    || '#E0A030', bg:'#081C18', motif:'waves' },
+    mediterranean: { c1:'#2E7FAF', c2:'#C4531E', bg1:'#0B1E2E', bg2:'#1A3040' },
+    desert:        { c1:'#C9803A', c2:'#A03820', bg1:'#1C1008', bg2:'#2A1A0C' },
+    alpine:        { c1:'#2E9E78', c2:'#1A7AAE', bg1:'#081814', bg2:'#102820' },
+    tropical:      { c1:'#D4622A', c2:'#1E9060', bg1:'#140C08', bg2:'#1E1408' },
+    tropical_io:   { c1:'#1AAEC8', c2:'#C85A8A', bg1:'#081420', bg2:'#102030' },
+    steppe:        { c1:'#4A7898', c2:'#5A8878', bg1:'#0C1018', bg2:'#162030' },
+    andean:        { c1:'#A88830', c2:'#7A5828', bg1:'#100C08', bg2:'#1C1408' },
+    urban_asia:    { c1:'#9830A8', c2:'#C84028', bg1:'#0C0818', bg2:'#180C28' },
+    urban:         { c1:'#5A50C8', c2:'#C86838', bg1:'#0C0A18', bg2:'#181428' },
+    savanna:       { c1:'#78A830', c2:'#9A6020', bg1:'#0E0C04', bg2:'#1C1808' },
+    caribbean:     { c1:'#18A8A0', c2:'#C88820', bg1:'#081814', bg2:'#0C2020' },
   };
-  const sig = SIG[theme] || SIG.tropical;
-  const c1 = sig.c1, c2 = sig.c2, heroBg = sig.bg;
+  const sig = SIG[theme] || SIG.mediterranean;
+  const c1 = sig.c1, c2 = sig.c2;
 
-  /* ── Motifs SVG par thème ── */
-  function heroMotif(motif, c1, c2){
-    const op = 'opacity:0.18;';
-    if(motif==='waves') return '<svg style="position:absolute;inset:0;width:100%;height:100%;'+op+'" viewBox="0 0 390 260" preserveAspectRatio="none" fill="none">'
-      +'<path d="M0 80 Q48 60 97 80 T195 80 T293 80 T390 80" stroke="'+c1+'" stroke-width="1.2"/>'
-      +'<path d="M0 110 Q48 90 97 110 T195 110 T293 110 T390 110" stroke="'+c1+'" stroke-width="0.8"/>'
-      +'<path d="M0 140 Q48 120 97 140 T195 140 T293 140 T390 140" stroke="'+c2+'" stroke-width="1"/>'
-      +'<path d="M0 170 Q65 150 130 170 T260 170 T390 170" stroke="'+c2+'" stroke-width="0.6"/>'
-      +'<circle cx="320" cy="50" r="60" stroke="'+c1+'" stroke-width="0.5"/>'
-      +'<circle cx="320" cy="50" r="38" stroke="'+c1+'" stroke-width="0.4"/>'
-      +'</svg>';
-    if(motif==='dunes') return '<svg style="position:absolute;inset:0;width:100%;height:100%;'+op+'" viewBox="0 0 390 260" preserveAspectRatio="none" fill="none">'
-      +'<path d="M-10 200 Q80 140 180 180 T390 170" stroke="'+c1+'" stroke-width="1.5"/>'
-      +'<path d="M-10 220 Q100 165 200 200 T390 190" stroke="'+c2+'" stroke-width="1"/>'
-      +'<path d="M-10 240 Q120 185 220 215 T390 210" stroke="'+c1+'" stroke-width="0.7"/>'
-      +'<circle cx="300" cy="45" r="48" stroke="'+c2+'" stroke-width="0.8"/>'
-      +'<line x1="0" y1="260" x2="390" y2="100" stroke="'+c1+'" stroke-width="0.4" stroke-dasharray="4 8"/>'
-      +'</svg>';
-    if(motif==='peaks') return '<svg style="position:absolute;inset:0;width:100%;height:100%;'+op+'" viewBox="0 0 390 260" preserveAspectRatio="none" fill="none">'
-      +'<polyline points="0,260 60,120 120,180 190,60 260,150 320,80 390,130 390,260" stroke="'+c1+'" stroke-width="1.2"/>'
-      +'<polyline points="0,260 80,160 150,200 230,100 300,160 390,100 390,260" stroke="'+c2+'" stroke-width="0.7" opacity="0.6"/>'
-      +'<line x1="0" y1="220" x2="390" y2="220" stroke="'+c1+'" stroke-width="0.4"/>'
-      +'</svg>';
-    if(motif==='jungle') return '<svg style="position:absolute;inset:0;width:100%;height:100%;'+op+'" viewBox="0 0 390 260" preserveAspectRatio="none" fill="none">'
-      +'<path d="M40 260 Q30 180 60 120 Q80 80 70 20" stroke="'+c1+'" stroke-width="1.2"/>'
-      +'<path d="M70 20 Q120 60 60 120" stroke="'+c1+'" stroke-width="0.8"/>'
-      +'<path d="M70 20 Q20 50 60 120" stroke="'+c1+'" stroke-width="0.8"/>'
-      +'<path d="M140 260 Q130 200 155 140 Q175 100 165 30" stroke="'+c2+'" stroke-width="1"/>'
-      +'<path d="M165 30 Q210 70 155 140" stroke="'+c2+'" stroke-width="0.7"/>'
-      +'<path d="M165 30 Q120 65 155 140" stroke="'+c2+'" stroke-width="0.7"/>'
-      +'<path d="M280 260 Q270 190 300 130 Q320 85 310 15" stroke="'+c1+'" stroke-width="1.1"/>'
-      +'<path d="M310 15 Q350 55 300 130" stroke="'+c1+'" stroke-width="0.7"/>'
-      +'<path d="M310 15 Q265 50 300 130" stroke="'+c1+'" stroke-width="0.7"/>'
-      +'</svg>';
-    if(motif==='grid') return '<svg style="position:absolute;inset:0;width:100%;height:100%;'+op+'" viewBox="0 0 390 260" preserveAspectRatio="none" fill="none">'
-      +[0,1,2,3,4,5,6].map(function(i){ return '<line x1="'+(i*65)+'" y1="0" x2="'+(i*65)+'" y2="260" stroke="'+c1+'" stroke-width="0.4"/>'; }).join('')
-      +[0,1,2,3,4].map(function(i){ return '<line x1="0" y1="'+(i*65)+'" x2="390" y2="'+(i*65)+'" stroke="'+c1+'" stroke-width="0.4"/>'; }).join('')
-      +'<rect x="280" y="20" width="80" height="80" stroke="'+c2+'" stroke-width="1.2"/>'
-      +'<rect x="295" y="35" width="50" height="50" stroke="'+c2+'" stroke-width="0.6"/>'
-      +'</svg>';
-    if(motif==='savanna') return '<svg style="position:absolute;inset:0;width:100%;height:100%;'+op+'" viewBox="0 0 390 260" preserveAspectRatio="none" fill="none">'
-      +'<line x1="0" y1="190" x2="390" y2="190" stroke="'+c1+'" stroke-width="1"/>'
-      +'<path d="M60 190 Q65 150 70 100 Q72 75 68 50" stroke="'+c2+'" stroke-width="1.5"/>'
-      +'<path d="M68 50 Q55 75 70 100" stroke="'+c2+'" stroke-width="1.2"/><path d="M68 50 Q80 72 70 100" stroke="'+c2+'" stroke-width="1.2"/>'
-      +'<path d="M200 190 Q205 160 210 120 Q212 95 208 70" stroke="'+c1+'" stroke-width="1.2"/>'
-      +'<path d="M208 70 Q195 92 210 120" stroke="'+c1+'" stroke-width="1"/><path d="M208 70 Q220 90 210 120" stroke="'+c1+'" stroke-width="1"/>'
-      +'<circle cx="310" cy="45" r="36" stroke="'+c2+'" stroke-width="1"/>'
-      +'</svg>';
-    /* steppe — default */
-    return '<svg style="position:absolute;inset:0;width:100%;height:100%;'+op+'" viewBox="0 0 390 260" preserveAspectRatio="none" fill="none">'
-      +'<path d="M0 180 Q100 160 200 175 T390 165" stroke="'+c1+'" stroke-width="1"/>'
-      +'<path d="M0 200 Q130 180 260 195 T390 185" stroke="'+c2+'" stroke-width="0.7"/>'
-      +'<circle cx="300" cy="55" r="42" stroke="'+c1+'" stroke-width="0.8"/>'
-      +'</svg>';
-  }
-
-  /* ── Hero label thématique ── */
   const THEME_LABEL = {
-    mediterranean:'Méditerranée', desert:'Désert', alpine:'Montagne', tropical:'Tropiques',
-    tropical_io:'Océan Indien', steppe:'Grand Nord', andean:'Andes', urban_asia:'Asie urbaine',
-    urban:'Métropole', savanna:'Savane', caribbean:'Caraïbes',
+    mediterranean:'Méditerranée', desert:'Désert & Ocre', alpine:'Montagne',
+    tropical:'Tropiques', tropical_io:'Océan Indien', steppe:'Grand Nord',
+    andean:'Andes', urban_asia:'Asie urbaine', urban:'Métropole',
+    savanna:'Savane', caribbean:'Caraïbes',
   };
   const themeLabel = THEME_LABEL[theme] || 'Sur-mesure';
 
-  const minimapBg = 'linear-gradient(135deg,' + hexA(c1,0.09) + ' 0%,' + hexA(c2,0.05) + ' 100%),var(--surface)';
-  const nDays = it.plan && it.plan.length ? it.plan.length : _days(it);
+  /* Dégradé hero : du plus sombre en haut → couleur thème au bas */
+  const heroGrad = 'linear-gradient(170deg, ' + sig.bg1 + ' 0%, ' + sig.bg2 + ' 45%, ' + hexA(c1,0.55) + ' 100%)';
+  const minimapBg = 'linear-gradient(135deg,' + hexA(c1,0.07) + ' 0%,' + hexA(c2,0.04) + ' 100%),var(--surface)';
 
-  return '<div style="position:relative;overflow:hidden;background:'+heroBg+'">'
-    +   statusBar(true)
-    +   heroMotif(sig.motif, c1, c2)
-    +   '<div style="position:relative;z-index:2;padding-bottom:36px">'
-    +     '<div class="navbar on-dark" style="background:transparent">'
-    +       '<button class="nav-btn" onclick="closeOverlay()" aria-label="Retour">' + ico('back',20,1.7) + '</button>'
-    +       '<button class="nav-btn" onclick="openOverlay(\'share\', shareView())" aria-label="Partager">' + ico('share',18,1.5) + '</button>'
-    +     '</div>'
-    +     '<div style="padding:4px 22px 0">'
-    +       '<span style="font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:'+c1+';display:block;margin-bottom:12px;opacity:0.9">Itinéraire · '+esc(themeLabel)+'</span>'
-    +       '<h1 style="font-family:var(--serif);font-weight:600;font-size:46px;letter-spacing:-1.2px;color:#F6F0E4;line-height:1.02;margin:0 0 10px">' + esc(it.dest) + '</h1>'
-    +       '<p style="font-family:var(--serif);font-style:italic;font-size:14.5px;color:rgba(246,240,228,0.6);line-height:1.55;margin:0 0 20px;max-width:320px">' + esc(it.tag) + '</p>'
-    +       '<div style="display:flex;flex-wrap:wrap;gap:6px">'
-    +         '<span style="font-family:var(--mono);font-size:8.5px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;padding:7px 14px;border-radius:20px;border:1px solid '+hexA(c1,0.5)+';color:'+c1+';background:'+hexA(c1,0.12)+'">' + esc(it.dates) + '</span>'
-    +         '<span style="font-family:var(--mono);font-size:8.5px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;padding:7px 14px;border-radius:20px;border:1px solid rgba(246,240,228,0.18);color:rgba(246,240,228,0.7)">' + nDays + ' jours</span>'
-    +         '<span style="font-family:var(--mono);font-size:8.5px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;padding:7px 14px;border-radius:20px;border:1px solid rgba(246,240,228,0.18);color:rgba(246,240,228,0.7)">' + esc(it.level) + '</span>'
-    +       '</div>'
-    +     '</div>'
-    +   '</div>'
-    /* Fondu progressif hero → fond clair */
-    + '<div style="height:48px;background:linear-gradient(to bottom,'+heroBg+',var(--bg));margin-top:-1px"></div>'
+  return (
+    /* ══ HERO ══ */
+    '<div style="background:' + heroGrad + ';position:relative">'
+    + statusBar(true)
+    + '<div class="navbar on-dark" style="background:transparent;position:relative;z-index:2">'
+    +   '<button class="nav-btn" onclick="closeOverlay()" aria-label="Retour">' + ico('back',20,1.7) + '</button>'
+    +   '<button class="nav-btn" onclick="openOverlay(\'share\', shareView())" aria-label="Partager">' + ico('share',18,1.5) + '</button>'
     + '</div>'
-    + '<div class="ov-scroll has-foot px" style="padding-top:16px">'
-    +   '<div class="minimap" style="background:'+minimapBg+'" onclick="openMapOv()">' + geoMapSVG(345, 188, null) + wxChip(wx1[0], wx1[1])
-    +     '<span class="mm-cap">' + esc(it.coords || it.dest) + ' · ' + esc(it.distance || '') + '</span></div>'
-    +   '<div class="tools">'
-    +     '<button class="tool" onclick="openOverlay(\'budget\', budgetView())">' + ico('wallet',20,1.5) + '<div class="tl-t">Budget</div><div class="tl-s">' + eur(it.budgetTotal) + ' · estimation</div></button>'
-    +     '<button class="tool" onclick="openActivities()">' + ico('ticket',20,1.5) + '<div class="tl-t">Activités</div><div class="tl-s">' + ACTIVITIES.length + ' expériences</div></button>'
-    +     (it.generated
-      ? '<button class="tool" onclick="openOverlay(\'gems\', gemsView())">' + ico('star',18,1.5) + '<div class="tl-t">Pépites</div><div class="tl-s">' + ((it.gems||[]).length) + ' adresses secrètes</div></button>'
-        + '<button class="tool" onclick="openOverlay(\'share\', shareView())">' + ico('share',19,1.5) + '<div class="tl-t">Partager</div><div class="tl-s">Copier le lien</div></button>'
-      : '<button class="tool" onclick="openOverlay(\'share\', shareView())">' + ico('share',19,1.5) + '<div class="tl-t">Partager</div><div class="tl-s">Copier le lien</div></button>'
-        + '<button class="tool" onclick="openOverlay(\'gems\', gemsView())">' + ico('star',18,1.5) + '<div class="tl-t">Pépites</div><div class="tl-s">' + ((it.gems||[]).length) + ' adresses</div></button>')
+    + '<div style="padding:2px 24px 40px;position:relative;z-index:2">'
+    +   '<span style="font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:3.5px;text-transform:uppercase;color:' + hexA(c1,0.85) + ';display:block;margin-bottom:14px;filter:brightness(1.4)">' + esc(themeLabel) + '</span>'
+    +   '<h1 style="font-family:var(--serif);font-weight:600;font-size:48px;letter-spacing:-1.5px;color:#F2EDE4;line-height:1;margin:0 0 12px">' + esc(it.dest) + '</h1>'
+    +   '<p style="font-family:var(--serif);font-style:italic;font-size:15px;color:rgba(242,237,228,0.55);line-height:1.55;margin:0 0 24px;max-width:300px">' + esc(it.tag) + '</p>'
+    +   '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">'
+    +     '<span style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;padding:8px 16px;border-radius:30px;background:rgba(242,237,228,0.12);color:#F2EDE4;border:1px solid rgba(242,237,228,0.2)">' + esc(it.dates) + '</span>'
+    +     '<span style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;padding:8px 14px;border-radius:30px;background:rgba(242,237,228,0.08);color:rgba(242,237,228,0.7);border:1px solid rgba(242,237,228,0.14)">' + esc(it.level) + '</span>'
     +   '</div>'
-    +   '<div class="ai-banner" onclick="openAI()" style="border-color:'+hexA(c1,0.28)+';background:'+hexA(c1,0.06)+'">'
-    +     '<span class="ai-av" style="background:'+hexA(c1,0.15)+';color:'+c1+'">' + ico('sparkle',22,1.6) + '</span>'
-    +     '<span><span class="ab-k">Cartographe · assistant</span><br><span class="ab-t">Modifier l\'itinéraire</span></span>'
-    +     '<span class="ico chev">' + ico('chevron',20,1.7) + '</span>'
-    +   '</div>'
-    +   '<div class="section-h"><h2>Jour par jour</h2><span class="meta">' + nDays + ' jours</span></div>'
-    +   it.plan.map(function(p, i){
-      if(!p) return '';
-      const catColor = (palette[p.category]) || c1;
-      const tags = Array.isArray(p.tags) ? p.tags : [];
-      const wx = Array.isArray(p.wx) ? p.wx : ['sun','—'];
-      return '<div class="dayrow" onclick="openDay(' + i + ')">'
-        + '<div class="dr-rail"><span class="dr-pin" style="background:'+catColor+';border-color:'+catColor+'">' + p.n + '</span><span class="dr-line" style="background:'+hexA(catColor,0.2)+'"></span></div>'
-        + '<div class="dr-main"><div class="dr-top"><div><div class="dr-t">' + esc(p.title||'') + '</div><div class="dr-l">' + esc(p.loc||'') + '</div></div>'
-        + wxChip(wx[0], wx[1]) + '</div>'
-        + '<div class="dr-d">' + esc(p.desc||'') + '</div>'
-        + '<div class="dr-tags">' + tags.map(function(t){ return '<span class="mini-tag" style="color:'+catColor+';border-color:'+hexA(catColor,0.3)+';background:'+hexA(catColor,0.08)+'">' + ico(t[0],12,1.7) + t[1] + '</span>'; }).join('') + '</div>'
-        + '</div></div>';
-    }).join('')
-    +   '<div class="section-h"><h2>Hébergements</h2><span class="meta">' + it.accommodations.length + ' étapes</span></div>'
-    +   it.accommodations.map(accCard).join('')
     + '</div>'
+    /* Fondu vers fond app */
+    + '<div style="height:56px;background:linear-gradient(to bottom,' + sig.bg2 + '00,' + 'var(--bg));position:relative;z-index:1;margin-top:-1px"></div>'
+    + '</div>'
+
+    /* ══ CONTENU SCROLLABLE ══ */
+    + '<div class="ov-scroll has-foot px">'
+
+    /* Carte + météo */
+    + '<div class="minimap" style="margin-top:-8px;background:' + minimapBg + ';border-radius:20px" onclick="openMapOv()">'
+    +   geoMapSVG(345, 188, null) + wxChip(wx1[0], wx1[1])
+    +   '<span class="mm-cap">' + esc(it.coords || it.dest) + ' · ' + nDays + ' jours</span>'
+    + '</div>'
+
+    /* Actions rapides */
+    + '<div class="tools" style="margin-top:16px">'
+    +   '<button class="tool" onclick="openOverlay(\'budget\', budgetView())">'
+    +     ico('wallet',20,1.5) + '<div class="tl-t">Budget</div><div class="tl-s">' + eur(it.budgetTotal) + '</div>'
+    +   '</button>'
+    +   '<button class="tool" onclick="openActivities()">'
+    +     ico('ticket',20,1.5) + '<div class="tl-t">Activités</div><div class="tl-s">' + ACTIVITIES.length + ' expériences</div>'
+    +   '</button>'
+    +   '<button class="tool" onclick="openOverlay(\'gems\', gemsView())">'
+    +     ico('star',18,1.5) + '<div class="tl-t">Pépites</div><div class="tl-s">' + ((it.gems||[]).length) + ' adresses</div>'
+    +   '</button>'
+    +   '<button class="tool" onclick="openAI()">'
+    +     ico('sparkle',18,1.5) + '<div class="tl-t">Modifier</div><div class="tl-s">Cartographe IA</div>'
+    +   '</button>'
+    + '</div>'
+
+    /* Jours */
+    + '<div class="section-h" style="margin-top:24px"><h2>Jour par jour</h2><span class="meta">' + nDays + ' jours</span></div>'
+    + it.plan.map(function(p, i){
+        if(!p) return '';
+        const cc = (p.category && palette[p.category]) || c1;
+        const tags = Array.isArray(p.tags) ? p.tags : [];
+        const wx = Array.isArray(p.wx) ? p.wx : ['sun','—'];
+        return '<div class="dayrow" onclick="openDay(' + i + ')">'
+          + '<div class="dr-rail">'
+          +   '<span class="dr-pin" style="background:' + cc + ';border-color:' + cc + '">' + p.n + '</span>'
+          +   '<span class="dr-line" style="background:' + hexA(cc,0.18) + '"></span>'
+          + '</div>'
+          + '<div class="dr-main">'
+          +   '<div class="dr-top">'
+          +     '<div><div class="dr-t">' + esc(p.title||'') + '</div><div class="dr-l">' + esc(p.loc||'') + '</div></div>'
+          +     wxChip(wx[0], wx[1])
+          +   '</div>'
+          +   (p.desc ? '<div class="dr-d">' + esc(p.desc) + '</div>' : '')
+          +   (tags.length ? '<div class="dr-tags">' + tags.map(function(t){
+                return '<span class="mini-tag" style="color:' + cc + ';border-color:' + hexA(cc,0.28) + ';background:' + hexA(cc,0.07) + '">' + ico(t[0],12,1.7) + t[1] + '</span>';
+              }).join('') + '</div>' : '')
+          + '</div>'
+          + '</div>';
+      }).join('')
+
+    /* Hébergements */
+    + '<div class="section-h" style="margin-top:8px"><h2>Hébergements</h2><span class="meta">' + it.accommodations.length + ' sélections</span></div>'
+    + it.accommodations.map(accCard).join('')
+    + '</div>'
+
+    /* Footer */
     + '<div class="ov-foot"><div class="foot-price">'
     +   '<div><div class="fp-v">' + eur(it.budgetTotal) + '</div><div class="fp-l">tout compris · ' + travelerLabel() + '</div></div>'
     +   '<div class="foot-actions">'
-    +     '<button class="fa-btn" onclick="saveItinerary()" aria-label="Enregistrer"><span>' + ico('bookmark',20,1.6) + '</span><i>Garder</i></button>'
-    +     '<button class="fa-btn" onclick="window.triggerPDF&&window.triggerPDF()" aria-label="Exporter"><span>' + ico('doc',20,1.6) + '</span><i>PDF</i></button>'
+    +     '<button class="fa-btn" onclick="saveItinerary()"><span>' + ico('bookmark',20,1.6) + '</span><i>Garder</i></button>'
+    +     '<button class="fa-btn" onclick="window.triggerPDF&&window.triggerPDF()"><span>' + ico('doc',20,1.6) + '</span><i>PDF</i></button>'
     +   '</div>'
-    + '</div></div>';
+    + '</div></div>'
+  );
 }
 
 /* ── 7 · Détail d'un jour ───────────────────────────────────────────── */
@@ -619,32 +588,34 @@ function dayDetailView(idx){
   /* Hero du jour */
   const wxBadge = p.wx && p.wx[0] ? wxChip(p.wx[0], p.wx[1]) : '';
 
-  return '<div style="position:relative;overflow:hidden;background:'+heroBg+'">'
+  /* Dégradé hero du jour basé sur catColor */
+  const DAY_BG = {
+    mediterranean:'#0B1E2E', desert:'#1C1008', alpine:'#081814', tropical:'#140C08',
+    tropical_io:'#081420', steppe:'#0C1018', andean:'#100C08', urban_asia:'#0C0818',
+    urban:'#0C0A18', savanna:'#0E0C04', caribbean:'#081814',
+  };
+  const heroBg = DAY_BG[theme] || '#0B1822';
+  const dayGrad = 'linear-gradient(160deg,' + heroBg + ' 0%,' + hexA(catColor,0.35) + ' 100%)';
+
+  return '<div style="background:' + dayGrad + '">'
     + statusBar(true)
-    + '<div style="position:absolute;inset:0;background:radial-gradient(ellipse at 80% 20%,'+hexA(catColor,0.22)+',transparent 65%),radial-gradient(ellipse at 20% 80%,'+hexA(secColor,0.13)+',transparent 50%)"></div>'
-    + '<svg style="position:absolute;inset:0;width:100%;height:100%;opacity:0.08" viewBox="0 0 390 180" preserveAspectRatio="none" fill="none">'
-    +   [0,1,2,3,4,5,6].map(function(i){ return '<line x1="'+(i*65)+'" y1="0" x2="'+(i*65)+'" y2="180" stroke="'+catColor+'" stroke-width="0.5"/>'; }).join('')
-    +   [0,1,2,3].map(function(i){ return '<line x1="0" y1="'+(i*60)+'" x2="390" y2="'+(i*60)+'" stroke="'+catColor+'" stroke-width="0.5"/>'; }).join('')
-    + '</svg>'
-    + '<div style="position:relative;z-index:2;padding-bottom:32px">'
-    +   '<div class="navbar on-dark" style="background:transparent">'
-    +     '<button class="nav-btn" onclick="closeOverlay()" aria-label="Retour">' + ico('back',20,1.7) + '</button>'
-    +     (idx < it.plan.length-1
-          ? '<button class="nav-btn" onclick="swapDay('+(idx+1)+')" aria-label="Suivant">'+ico('chevron',20,1.7)+'</button>'
-          : '<span class="nav-spacer"></span>')
-    +   '</div>'
-    +   '<div style="padding:4px 22px 0">'
-    +     '<span style="font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:'+catColor+';display:block;margin-bottom:10px;opacity:0.9">'
-    +       num + (catLabel ? ' · ' + catLabel : '') + ' · ' + esc(p.loc)
-    +     '</span>'
-    +     '<h1 style="font-family:var(--serif);font-weight:600;font-size:30px;letter-spacing:-0.5px;color:#F6F0E4;line-height:1.1;margin:0 0 12px">' + esc(p.title) + '</h1>'
-    +     '<div style="display:flex;align-items:center;gap:8px">'
-    +       (p.wx && p.wx[1] ? '<span style="font-family:var(--mono);font-size:10px;color:rgba(246,240,228,0.6)">'+esc(p.wx[1])+'</span>' : '')
-    +       (catLabel ? '<span style="font-family:var(--mono);font-size:8.5px;padding:5px 11px;border-radius:12px;border:1px solid '+hexA(catColor,0.45)+';color:'+catColor+';background:'+hexA(catColor,0.12)+'">'+catLabel+'</span>' : '')
-    +     '</div>'
+    + '<div class="navbar on-dark" style="background:transparent;position:relative;z-index:2">'
+    +   '<button class="nav-btn" onclick="closeOverlay()" aria-label="Retour">' + ico('back',20,1.7) + '</button>'
+    +   (idx < it.plan.length-1
+        ? '<button class="nav-btn" onclick="swapDay('+(idx+1)+')" aria-label="Suivant">'+ico('chevron',20,1.7)+'</button>'
+        : '<span class="nav-spacer"></span>')
+    + '</div>'
+    + '<div style="padding:2px 24px 36px;position:relative;z-index:2">'
+    +   '<span style="font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:' + hexA(catColor,0.9) + ';filter:brightness(1.5);display:block;margin-bottom:12px">'
+    +     num + (catLabel ? ' · ' + catLabel : '') + ' · ' + esc(p.loc)
+    +   '</span>'
+    +   '<h1 style="font-family:var(--serif);font-weight:600;font-size:32px;letter-spacing:-0.6px;color:#F2EDE4;line-height:1.08;margin:0 0 14px">' + esc(p.title) + '</h1>'
+    +   '<div style="display:flex;align-items:center;gap:8px">'
+    +     (p.wx && p.wx[1] ? '<span style="font-family:var(--mono);font-size:10px;color:rgba(242,237,228,0.55)">'+esc(p.wx[1])+'</span>' : '')
+    +     (catLabel ? '<span style="font-family:var(--mono);font-size:8.5px;padding:5px 12px;border-radius:20px;border:1px solid ' + hexA(catColor,0.4) + ';color:' + hexA(catColor,0.9) + ';background:' + hexA(catColor,0.15) + ';filter:brightness(1.4)">' + catLabel + '</span>' : '')
     +   '</div>'
     + '</div>'
-    + '<div style="height:40px;background:linear-gradient(to bottom,'+heroBg+',var(--bg));margin-top:-1px"></div>'
+    + '<div style="height:44px;background:linear-gradient(to bottom,' + hexA(catColor,0.35) + '00,var(--bg));margin-top:-1px"></div>'
     + '</div>'
     /* Corps scrollable */
     + '<div class="ov-scroll has-foot px" style="padding-top:16px">'
