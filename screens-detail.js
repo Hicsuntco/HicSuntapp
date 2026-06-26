@@ -403,85 +403,83 @@ function itineraryView(){
   const theme = it.theme || 'mediterranean';
   const nDays = it.plan && it.plan.length ? it.plan.length : _days(it);
 
-  /* ── Couleurs par thème ── */
-  const SIG = {
-    mediterranean: { c1:'#2E7FAF', c2:'#C4531E', bg1:'#0B1E2E', bg2:'#1A3040' },
-    desert:        { c1:'#C9803A', c2:'#A03820', bg1:'#1C1008', bg2:'#2A1A0C' },
-    alpine:        { c1:'#2E9E78', c2:'#1A7AAE', bg1:'#081814', bg2:'#102820' },
-    tropical:      { c1:'#D4622A', c2:'#1E9060', bg1:'#140C08', bg2:'#1E1408' },
-    tropical_io:   { c1:'#1AAEC8', c2:'#C85A8A', bg1:'#081420', bg2:'#102030' },
-    steppe:        { c1:'#4A7898', c2:'#5A8878', bg1:'#0C1018', bg2:'#162030' },
-    andean:        { c1:'#A88830', c2:'#7A5828', bg1:'#100C08', bg2:'#1C1408' },
-    urban_asia:    { c1:'#9830A8', c2:'#C84028', bg1:'#0C0818', bg2:'#180C28' },
-    urban:         { c1:'#5A50C8', c2:'#C86838', bg1:'#0C0A18', bg2:'#181428' },
-    savanna:       { c1:'#78A830', c2:'#9A6020', bg1:'#0E0C04', bg2:'#1C1808' },
-    caribbean:     { c1:'#18A8A0', c2:'#C88820', bg1:'#081814', bg2:'#0C2020' },
+  /* Couleur accentuée par thème — sobre, une seule couleur vive */
+  const ACCENT = {
+    mediterranean:'#2878A8', desert:'#B86A28', alpine:'#2A8E68',
+    tropical:'#C05020', tropical_io:'#1898B8', steppe:'#4A6E90',
+    andean:'#987830', urban_asia:'#8828A0', urban:'#4A48B8',
+    savanna:'#6A9828', caribbean:'#1898A0',
   };
-  const sig = SIG[theme] || SIG.mediterranean;
-  const c1 = sig.c1, c2 = sig.c2;
-
   const THEME_LABEL = {
-    mediterranean:'Méditerranée', desert:'Désert & Ocre', alpine:'Montagne',
+    mediterranean:'Méditerranée', desert:'Désert', alpine:'Montagne',
     tropical:'Tropiques', tropical_io:'Océan Indien', steppe:'Grand Nord',
-    andean:'Andes', urban_asia:'Asie urbaine', urban:'Métropole',
+    andean:'Andes', urban_asia:'Asie', urban:'Métropole',
     savanna:'Savane', caribbean:'Caraïbes',
   };
+  const ac = ACCENT[theme] || '#9c7c44';
+  const c1 = (palette && palette.beach) || (palette && palette.culture) || ac;
   const themeLabel = THEME_LABEL[theme] || 'Sur-mesure';
-
-  /* Dégradé hero : du plus sombre en haut → couleur thème au bas */
-  const heroGrad = 'linear-gradient(170deg, ' + sig.bg1 + ' 0%, ' + sig.bg2 + ' 45%, ' + hexA(c1,0.55) + ' 100%)';
-  const minimapBg = 'linear-gradient(135deg,' + hexA(c1,0.07) + ' 0%,' + hexA(c2,0.04) + ' 100%),var(--surface)';
+  const minimapBg = 'linear-gradient(135deg,' + hexA(ac,0.06) + ' 0%,var(--surface) 100%)';
 
   return (
-    /* ══ HERO — flex:none pour que ov-scroll prenne le reste ══ */
-    '<div style="flex:none;background:' + heroGrad + ';overflow:hidden">'
-    + '<div class="navbar on-dark" style="background:transparent;position:relative;z-index:2">'
-    +   '<button class="nav-btn" onclick="closeOverlay()" aria-label="Retour">' + ico('back',20,1.7) + '</button>'
-    +   '<button class="nav-btn" onclick="openOverlay(\'share\', shareView())" aria-label="Partager">' + ico('share',18,1.5) + '</button>'
-    + '</div>'
-    + '<div style="padding:2px 24px 40px;position:relative;z-index:2">'
-    +   '<span style="font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:3.5px;text-transform:uppercase;color:' + hexA(c1,0.85) + ';display:block;margin-bottom:14px;filter:brightness(1.4)">' + esc(themeLabel) + '</span>'
-    +   '<h1 style="font-family:var(--serif);font-weight:600;font-size:48px;letter-spacing:-1.5px;color:#F2EDE4;line-height:1;margin:0 0 12px">' + esc(it.dest) + '</h1>'
-    +   '<p style="font-family:var(--serif);font-style:italic;font-size:15px;color:rgba(242,237,228,0.55);line-height:1.55;margin:0 0 24px;max-width:300px">' + esc(it.tag) + '</p>'
-    +   '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">'
-    +     '<span style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;padding:8px 16px;border-radius:30px;background:rgba(242,237,228,0.12);color:#F2EDE4;border:1px solid rgba(242,237,228,0.2)">' + esc(it.dates) + '</span>'
-    +     '<span style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;padding:8px 14px;border-radius:30px;background:rgba(242,237,228,0.08);color:rgba(242,237,228,0.7);border:1px solid rgba(242,237,228,0.14)">' + esc(it.level) + '</span>'
+    /* ── Navbar ── */
+    navbar(it.dest, {
+      right: '<button class="nav-btn" onclick="openOverlay(\'share\', shareView())" aria-label="Partager">' + ico('share',18,1.5) + '</button>'
+    })
+
+    /* ── Hero éditorial fond clair ── */
+    + '<div style="flex:none;padding:0 20px 28px;border-bottom:1px solid var(--line2)">'
+    /* Eyebrow thème + coordonnées */
+    +   '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">'
+    +     '<span style="font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:' + ac + '">' + esc(themeLabel) + '</span>'
+    +     '<span style="font-family:var(--mono);font-size:8px;letter-spacing:1.5px;color:var(--sub)">' + esc(it.coords||'') + '</span>'
+    +   '</div>'
+    /* Titre */
+    +   '<h1 style="font-family:var(--serif);font-weight:600;font-size:44px;letter-spacing:-1.2px;color:var(--ink);line-height:1;margin:0 0 10px">' + esc(it.dest) + '</h1>'
+    /* Trait couleur sous le titre */
+    +   '<div style="width:48px;height:3px;background:' + ac + ';border-radius:2px;margin-bottom:12px"></div>'
+    /* Tagline */
+    +   '<p style="font-family:var(--serif);font-style:italic;font-size:14px;color:var(--sub);line-height:1.6;margin:0 0 20px;max-width:280px">' + esc(it.tag) + '</p>'
+    /* Pills */
+    +   '<div style="display:flex;flex-wrap:wrap;gap:7px">'
+    +     '<span style="font-family:var(--mono);font-size:8.5px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;padding:7px 14px;border-radius:20px;background:' + hexA(ac,0.1) + ';color:' + ac + ';border:1px solid ' + hexA(ac,0.25) + '">' + esc(it.dates) + '</span>'
+    +     '<span style="font-family:var(--mono);font-size:8.5px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;padding:7px 14px;border-radius:20px;background:var(--surface);color:var(--ink-soft);border:1px solid var(--line)">' + nDays + ' jours</span>'
+    +     '<span style="font-family:var(--mono);font-size:8.5px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;padding:7px 14px;border-radius:20px;background:var(--surface);color:var(--ink-soft);border:1px solid var(--line)">' + esc(it.level) + '</span>'
     +   '</div>'
     + '</div>'
-    /* Fondu vers fond app */
-    + '<div style="height:56px;background:linear-gradient(to bottom,' + sig.bg2 + '00,' + 'var(--bg));position:relative;z-index:1;margin-top:-1px"></div>'
-    + '</div>'
 
-    /* ══ CONTENU SCROLLABLE ══ */
+    /* ── Contenu scrollable ── */
     + '<div class="ov-scroll has-foot px">'
 
-    /* Carte + météo */
-    + '<div class="minimap" style="margin-top:-8px;background:' + minimapBg + ';border-radius:20px" onclick="openMapOv()">'
+    /* Carte */
+    + '<div style="margin-top:16px">'
+    + '<div class="minimap" style="background:' + minimapBg + '" onclick="openMapOv()">'
     +   geoMapSVG(345, 188, null) + wxChip(wx1[0], wx1[1])
     +   '<span class="mm-cap">' + esc(it.coords || it.dest) + ' · ' + nDays + ' jours</span>'
     + '</div>'
+    + '</div>'
 
-    /* Actions rapides */
+    /* Actions */
     + '<div class="tools" style="margin-top:16px">'
     +   '<button class="tool" onclick="openOverlay(\'budget\', budgetView())">'
     +     ico('wallet',20,1.5) + '<div class="tl-t">Budget</div><div class="tl-s">' + eur(it.budgetTotal) + '</div>'
     +   '</button>'
     +   '<button class="tool" onclick="openActivities()">'
-    +     ico('ticket',20,1.5) + '<div class="tl-t">Activités</div><div class="tl-s">' + ACTIVITIES.length + ' expériences</div>'
+    +     ico('ticket',20,1.5) + '<div class="tl-t">Activités</div><div class="tl-s">' + ACTIVITIES.length + ' exp.</div>'
     +   '</button>'
     +   '<button class="tool" onclick="openOverlay(\'gems\', gemsView())">'
     +     ico('star',18,1.5) + '<div class="tl-t">Pépites</div><div class="tl-s">' + ((it.gems||[]).length) + ' adresses</div>'
     +   '</button>'
     +   '<button class="tool" onclick="openAI()">'
-    +     ico('sparkle',18,1.5) + '<div class="tl-t">Modifier</div><div class="tl-s">Cartographe IA</div>'
+    +     ico('sparkle',18,1.5) + '<div class="tl-t">Modifier</div><div class="tl-s">Cartographe</div>'
     +   '</button>'
     + '</div>'
 
     /* Jours */
-    + '<div class="section-h" style="margin-top:24px"><h2>Jour par jour</h2><span class="meta">' + nDays + ' jours</span></div>'
+    + '<div class="section-h" style="margin-top:8px"><h2>Jour par jour</h2><span class="meta">' + nDays + ' jours</span></div>'
     + it.plan.map(function(p, i){
         if(!p) return '';
-        const cc = (p.category && palette[p.category]) || c1;
+        const cc = (p.category && palette[p.category]) || ac;
         const tags = Array.isArray(p.tags) ? p.tags : [];
         const wx = Array.isArray(p.wx) ? p.wx : ['sun','—'];
         return '<div class="dayrow" onclick="openDay(' + i + ')">'
@@ -496,10 +494,9 @@ function itineraryView(){
           +   '</div>'
           +   (p.desc ? '<div class="dr-d">' + esc(p.desc) + '</div>' : '')
           +   (tags.length ? '<div class="dr-tags">' + tags.map(function(t){
-                return '<span class="mini-tag" style="color:' + cc + ';border-color:' + hexA(cc,0.28) + ';background:' + hexA(cc,0.07) + '">' + ico(t[0],12,1.7) + t[1] + '</span>';
+                return '<span class="mini-tag" style="color:' + cc + ';border-color:' + hexA(cc,0.25) + ';background:' + hexA(cc,0.07) + '">' + ico(t[0],12,1.7) + t[1] + '</span>';
               }).join('') + '</div>' : '')
-          + '</div>'
-          + '</div>';
+          + '</div></div>';
       }).join('')
 
     /* Hébergements */
@@ -576,36 +573,23 @@ function dayDetailView(idx){
     + '<span style="color:'+catColor+';font-family:var(--mono);font-weight:700;font-style:normal;text-transform:uppercase;letter-spacing:.1em;font-size:9px;display:block;margin-bottom:5px">Conseil d\'initié</span>'
     + '<span style="font-size:13.5px;font-style:italic;color:var(--ink);line-height:1.5">'+esc(p.tip)+'</span></div>' : '';
 
-  /* Hero du jour */
-  const wxBadge = p.wx && p.wx[0] ? wxChip(p.wx[0], p.wx[1]) : '';
+  /* Hero du jour — fond clair, bande colorée */
+  const navRight = idx < it.plan.length-1
+    ? '<button class="nav-btn" onclick="swapDay('+(idx+1)+')" aria-label="Suivant">'+ico('chevron',20,1.7)+'</button>'
+    : '<span class="nav-spacer"></span>';
 
-  /* Dégradé hero du jour basé sur catColor */
-  const DAY_BG = {
-    mediterranean:'#0B1E2E', desert:'#1C1008', alpine:'#081814', tropical:'#140C08',
-    tropical_io:'#081420', steppe:'#0C1018', andean:'#100C08', urban_asia:'#0C0818',
-    urban:'#0C0A18', savanna:'#0E0C04', caribbean:'#081814',
-  };
-  const heroBg = DAY_BG[theme] || '#0B1822';
-  const dayGrad = 'linear-gradient(160deg,' + heroBg + ' 0%,' + hexA(catColor,0.35) + ' 100%)';
-
-  return '<div style="flex:none;background:' + dayGrad + ';overflow:hidden">'
-    + '<div class="navbar on-dark" style="background:transparent;position:relative;z-index:2">'
-    +   '<button class="nav-btn" onclick="closeOverlay()" aria-label="Retour">' + ico('back',20,1.7) + '</button>'
-    +   (idx < it.plan.length-1
-        ? '<button class="nav-btn" onclick="swapDay('+(idx+1)+')" aria-label="Suivant">'+ico('chevron',20,1.7)+'</button>'
-        : '<span class="nav-spacer"></span>')
-    + '</div>'
-    + '<div style="padding:2px 24px 36px;position:relative;z-index:2">'
-    +   '<span style="font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:' + hexA(catColor,0.9) + ';filter:brightness(1.5);display:block;margin-bottom:12px">'
-    +     num + (catLabel ? ' · ' + catLabel : '') + ' · ' + esc(p.loc)
-    +   '</span>'
-    +   '<h1 style="font-family:var(--serif);font-weight:600;font-size:32px;letter-spacing:-0.6px;color:#F2EDE4;line-height:1.08;margin:0 0 14px">' + esc(p.title) + '</h1>'
-    +   '<div style="display:flex;align-items:center;gap:8px">'
-    +     (p.wx && p.wx[1] ? '<span style="font-family:var(--mono);font-size:10px;color:rgba(242,237,228,0.55)">'+esc(p.wx[1])+'</span>' : '')
-    +     (catLabel ? '<span style="font-family:var(--mono);font-size:8.5px;padding:5px 12px;border-radius:20px;border:1px solid ' + hexA(catColor,0.4) + ';color:' + hexA(catColor,0.9) + ';background:' + hexA(catColor,0.15) + ';filter:brightness(1.4)">' + catLabel + '</span>' : '')
+  return navbar(num, { right: navRight })
+    /* Bande couleur fine + infos jour */
+    + '<div style="flex:none;padding:0 20px 24px;border-bottom:1px solid var(--line2)">'
+    +   '<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">'
+    +     '<span style="width:4px;height:4px;border-radius:50%;background:'+catColor+';display:block"></span>'
+    +     '<span style="font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:'+catColor+'">'
+    +       (catLabel || 'Découverte') + ' · ' + esc(p.loc)
+    +     '</span>'
+    +     (p.wx && p.wx[1] ? '<span style="margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--sub)">'+esc(p.wx[1])+'</span>' : '')
     +   '</div>'
-    + '</div>'
-    + '<div style="height:44px;background:linear-gradient(to bottom,' + hexA(catColor,0.35) + '00,var(--bg));margin-top:-1px"></div>'
+    +   '<h1 style="font-family:var(--serif);font-weight:600;font-size:30px;letter-spacing:-0.5px;color:var(--ink);line-height:1.1;margin:0 0 10px">' + esc(p.title) + '</h1>'
+    +   '<div style="width:36px;height:3px;background:'+catColor+';border-radius:2px"></div>'
     + '</div>'
     /* Corps scrollable */
     + '<div class="ov-scroll has-foot px" style="padding-top:16px">'
