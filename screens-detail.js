@@ -3,6 +3,8 @@
 /* ── Carte géographique — redéfinition forcée (remplace features.js) ── */
 var GEO_SHAPES_SD = {
   'sardaigne':{vb:'0 0 100 160',path:'M50,8 C58,10 66,14 70,22 C74,30 72,38 74,46 C76,54 80,60 78,70 C76,80 70,84 68,94 C66,104 70,112 66,120 C62,128 54,134 46,138 C38,142 30,138 26,130 C22,122 24,114 22,106 C20,98 16,92 18,82 C20,72 26,66 28,56 C30,46 26,36 30,26 C34,16 42,6 50,8Z',cities:{'Cagliari':[50,130],'Iglesias':[34,118],'Oristano':[32,82],'Nuoro':[58,62],'Sassari':[36,28],'Alghero':[24,38],'Olbia':[72,26],'Villasimius':[68,136],'Chia':[40,146],'Barumini':[46,102]}},
+  'sicile':{vb:'0 0 180 120',path:'M10,60 C14,44 24,30 40,22 C56,14 74,12 92,14 C110,16 128,20 144,30 C160,40 172,54 172,68 C172,82 162,94 148,102 C134,110 116,114 98,112 C80,110 62,104 46,96 C30,88 16,80 10,68 Z',cities:{'Palermo':[60,32],'Catane':[140,80],'Siracuse':[158,96],'Agrigente':[80,96],'Messine':[166,36]}},
+  'éoliennes':{vb:'0 0 160 100',path:'M30,50 C34,42 42,36 52,34 C62,32 72,36 78,44 C84,52 82,62 76,70 C70,78 60,82 50,80 C40,78 32,72 28,64 C24,56 26,58 30,50Z M95,35 C99,29 107,26 115,28 C123,30 128,38 126,46 C124,54 116,58 108,56 C100,54 94,46 95,35Z M115,65 C119,60 126,58 132,61 C138,64 140,72 136,78 C132,84 124,85 118,81 C112,77 111,70 115,65Z',cities:{'Lipari':[52,58],'Stromboli':[110,42],'Vulcano':[122,72]}},
   'thaïlande':{vb:'0 0 120 220',path:'M30,10 C38,6 50,6 62,10 C74,14 84,20 90,30 C96,40 94,52 92,62 C90,72 86,80 84,88 C82,96 84,104 80,110 C76,116 68,118 64,124 C60,130 58,136 56,142 C54,148 50,152 48,158 C46,164 46,170 44,176 C42,182 40,188 38,194 C36,200 34,206 32,212 C30,216 28,218 28,218 L26,218 C25,214 24,208 26,202 C28,196 30,190 32,184 C34,178 34,172 36,166 C38,160 40,154 42,148 C44,142 44,136 46,130 C48,124 52,120 54,114 C56,108 56,102 58,96 C60,90 64,86 66,80 C68,74 66,66 68,58 C70,50 76,44 78,36 C80,28 76,18 70,12 C64,6 52,8 44,10 L30,10Z',cities:{'Chiang Mai':[40,28],'Bangkok':[62,88],'Phuket':[32,164],'Koh Samui':[50,138],'Ayutthaya':[56,76],'Pai':[32,22],'Krabi':[36,158]}},
   'maroc':{vb:'0 0 140 120',path:'M20,16 C32,10 50,10 64,14 C78,18 90,26 98,36 C106,46 108,58 106,70 C104,82 96,90 86,96 C76,102 62,104 48,104 C34,104 20,100 12,90 C4,80 4,66 6,54 C8,42 10,28 20,16Z',cities:{'Marrakech':[60,74],'Casablanca':[30,48],'Fès':[74,34],'Agadir':[36,92],'Essaouira':[22,78]}},
   'japon':{vb:'0 0 140 180',path:'M80,10 C90,12 98,18 100,28 C102,38 96,50 94,62 C92,74 96,86 90,96 C84,106 74,110 68,120 C62,130 60,142 54,148 C48,154 40,152 34,144 C28,136 28,124 26,112 C24,100 18,90 18,78 C18,66 22,54 26,44 C30,34 28,22 34,14 C40,6 50,6 62,8 L80,10Z',cities:{'Tokyo':[82,58],'Kyoto':[62,86],'Osaka':[66,94],'Hiroshima':[50,108]}},
@@ -12,13 +14,22 @@ var GEO_SHAPES_SD = {
   'pérou':{vb:'0 0 100 140',path:'M28,16 C38,10 52,8 64,12 C76,16 84,26 88,38 C92,50 90,64 88,76 C86,88 88,102 82,112 C76,122 64,126 52,126 C40,126 28,120 20,110 C12,100 10,86 12,74 C14,62 10,48 14,36 C18,24 20,22 28,16Z',cities:{'Lima':[20,66],'Cusco':[60,96],'Machu Picchu':[52,100]}},
   'kenya':{vb:'0 0 100 120',path:'M28,16 C40,10 56,8 68,12 C80,16 90,26 94,38 C98,50 96,64 92,76 C88,88 88,102 80,110 C72,118 58,120 46,116 C34,112 22,104 16,92 C10,80 8,66 10,54 C12,42 16,30 28,16Z',cities:{'Nairobi':[52,72],'Mombasa':[76,104],'Masai Mara':[26,84]}},
   'bali':{vb:'0 0 140 70',path:'M20,35 C28,22 44,16 60,14 C76,12 90,16 104,24 C118,32 128,42 124,54 C120,66 104,68 88,68 C72,68 56,66 42,58 C28,50 12,48 20,35Z',cities:{'Ubud':[68,38],'Kuta':[38,50],'Seminyak':[32,46]}},
-  '_default':{vb:'0 0 100 100',path:'M50,8 C64,10 76,20 80,34 C84,48 80,62 76,74 C72,86 64,94 52,98 C40,102 28,98 20,88 C12,78 10,64 12,52 C14,40 16,26 24,18 C32,10 38,6 50,8Z',cities:{}}
+  'corse':{vb:'0 0 80 140',path:'M40,8 C50,6 60,12 66,22 C72,32 70,44 68,56 C66,68 68,80 64,92 C60,104 52,114 42,118 C32,122 22,116 16,106 C10,96 10,82 12,70 C14,58 12,44 16,32 C20,20 30,10 40,8Z',cities:{'Ajaccio':[24,90],'Bastia':[60,28],'Bonifacio':[44,128]}},
+  'maldives':{vb:'0 0 60 160',path:'M30,8 C34,8 36,12 34,18 C32,24 28,24 26,18 C24,12 26,8 30,8Z M28,40 C33,38 36,44 34,50 C32,56 26,56 24,50 C22,44 23,42 28,40Z M32,72 C37,70 40,76 38,82 C36,88 30,88 28,82 C26,76 27,74 32,72Z M26,104 C31,102 34,108 32,114 C30,120 24,120 22,114 C20,108 21,106 26,104Z M30,136 C35,134 38,140 36,146 C34,152 28,152 26,146 C24,140 25,138 30,136Z',cities:{'Malé':[30,72]}},
+  'sri lanka':{vb:'0 0 80 120',path:'M40,8 C50,8 60,14 66,24 C72,34 72,46 70,58 C68,70 64,82 58,92 C52,102 44,110 36,110 C28,110 20,104 16,94 C12,84 12,70 14,58 C16,46 18,34 24,24 C30,14 30,8 40,8Z',cities:{'Colombo':[22,68],'Kandy':[44,56],'Galle':[28,104],'Sigiriya':[50,40]}},
+  'italie':{vb:'0 0 100 200',path:'M52,8 C60,8 68,14 72,22 C76,30 72,40 70,50 C68,60 70,70 66,80 C62,90 56,96 52,106 C48,116 46,126 42,136 C38,146 32,154 28,162 C24,170 22,178 20,182 C18,186 16,188 18,184 C20,180 26,172 30,164 C34,156 36,148 38,138 C40,128 40,116 44,106 C48,96 52,88 54,78 C56,68 54,58 54,48 C54,38 56,28 54,20 C52,12 44,8 52,8Z',cities:{'Rome':[42,110],'Milan':[34,30],'Florence':[38,76],'Naples':[46,140],'Venise':[60,44]}},
+  '_default':{vb:'0 0 120 120',path:'M60,10 C74,10 86,18 94,30 C102,42 104,58 100,72 C96,86 86,96 74,104 C62,112 46,114 34,108 C22,102 12,90 8,76 C4,62 6,46 14,34 C22,22 34,12 48,10 Z',cities:{}}
 };
 function _geoShapeSD(dest){
   var d=(dest||'').toLowerCase();
   var keys=Object.keys(GEO_SHAPES_SD).filter(function(k){return k!=='_default';});
   for(var i=0;i<keys.length;i++){if(d.includes(keys[i]))return{key:keys[i],g:GEO_SHAPES_SD[keys[i]]};}
-  if(/italie|sicile|rome/.test(d))return{key:'sardaigne',g:GEO_SHAPES_SD.sardaigne};
+  if(/italie|sicile|rome|naples|toscane|amalfi|pouilles|ombrie|venise|milan|florence/.test(d))return{key:'italie',g:GEO_SHAPES_SD.italie};
+  if(/éoliennes|eoliennes|lipari|stromboli|vulcano/.test(d))return{key:'éoliennes',g:GEO_SHAPES_SD['éoliennes']};
+  if(/sicile|palermo|catane|agrigente/.test(d))return{key:'sicile',g:GEO_SHAPES_SD.sicile};
+  if(/corse|ajaccio|bastia/.test(d))return{key:'corse',g:GEO_SHAPES_SD.corse};
+  if(/sri lanka|colombo|kandy/.test(d))return{key:'sri lanka',g:GEO_SHAPES_SD['sri lanka']};
+  if(/maldives|malé/.test(d))return{key:'maldives',g:GEO_SHAPES_SD.maldives};
   if(/thaïlande|bangkok|phuket/.test(d))return{key:'thaïlande',g:GEO_SHAPES_SD['thaïlande']};
   if(/grèce|athènes|santorin/.test(d))return{key:'grèce',g:GEO_SHAPES_SD['grèce']};
   if(/japon|tokyo|kyoto/.test(d))return{key:'japon',g:GEO_SHAPES_SD.japon};
