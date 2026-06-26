@@ -8,6 +8,8 @@
   padding-bottom:calc(96px + env(safe-area-inset-bottom,0px));
   opacity:0;pointer-events:none;
   transition:opacity 0.22s ease;scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;
+  touch-action:pan-y;
 }
 .tabview::-webkit-scrollbar{display:none}
 .tabview.active{opacity:1;pointer-events:auto}
@@ -95,12 +97,12 @@
 .disc-hero em{font-style:italic;color:var(--gold)}
 
 /* ── muse card ── */
-.muse{margin-top:22px;background:var(--surface-raised);border:1px solid var(--line);border-radius:var(--card-radius);box-shadow:var(--shadow-raised);padding:20px;position:relative;overflow:hidden}
+.muse{margin-top:22px;background:var(--surface-raised);border:1px solid var(--line);border-radius:var(--card-radius);box-shadow:var(--shadow-raised);padding:20px;position:relative;overflow:hidden;touch-action:pan-y}
 .muse::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(to right,transparent,var(--gold-soft),transparent);opacity:0.5}
 .muse-top{display:flex;justify-content:space-between;align-items:center}
 .muse-nsew{font-family:var(--mono);font-size:8.5px;letter-spacing:2px;color:var(--gold-soft)}
 .muse-row{display:flex;align-items:flex-end;gap:12px;margin-top:16px}
-.muse-input{flex:1;border:none;background:transparent;outline:none;font-family:var(--serif);font-style:italic;font-size:28px;font-weight:400;color:var(--ink);min-width:0}
+.muse-input{flex:1;border:none;background:transparent;outline:none;font-family:var(--serif);font-style:italic;font-size:28px;font-weight:400;color:var(--ink);min-width:0;touch-action:manipulation}
 .muse-input::placeholder{color:var(--ph)}
 /* iOS: minimum 44×44 tap target */
 .muse-go{
