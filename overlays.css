@@ -224,7 +224,7 @@
 .conf-acts{padding:0 28px 46px;display:flex;flex-direction:column;gap:11px}
 
 /* ── generation ── */
-.gen{flex:1;display:flex;flex-direction:column;color:var(--onink);opacity:0;transition:opacity 0.7s ease;background:#0d0b08;position:relative}
+.gen{flex:1;display:flex;flex-direction:column;color:var(--ink);opacity:0;transition:opacity 0.7s ease;background:var(--bg);position:relative}
 .gen.run{opacity:1}
 .gen::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 48%,rgba(156,124,68,0.10) 0%,transparent 65%);pointer-events:none}
 .gen-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 32px;gap:28px;position:relative}
@@ -232,7 +232,7 @@
 .gen-logo em{font-style:italic;color:var(--gold-soft)}
 .gen-visual{position:relative;width:240px;height:240px;display:flex;align-items:center;justify-content:center}
 .gen-globe-wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
-.gen-globe{width:190px;height:190px;stroke:var(--gold);fill:none;opacity:0.3;animation:genGlobeRotate 20s linear infinite}
+.gen-globe{width:190px;height:190px;stroke:var(--gold-deep);fill:none;opacity:0.3;animation:genGlobeRotate 20s linear infinite}
 @keyframes genGlobeRotate{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 .gen-globe .sg-ring{stroke-width:0.7}
 .gen-globe .sg-mer{stroke-width:0.4}
@@ -262,13 +262,13 @@
 }
 /* Bloquer animations sur SVG carte géo */
 .map-svg path,.map-svg circle,.map-svg g,.minimap svg path,.minimap svg circle,.bigmap svg path,.bigmap svg circle{animation:none !important;stroke-dashoffset:unset !important}
-.gen-status{font-family:var(--serif);font-style:italic;font-size:20px;line-height:1.45;color:rgba(189,162,104,0.88);transition:opacity 0.28s ease;min-height:30px;text-align:center;max-width:260px}
+.gen-status{font-family:var(--serif);font-style:italic;font-size:20px;line-height:1.45;color:var(--gold-deep);transition:opacity 0.28s ease;min-height:30px;text-align:center;max-width:260px}
 .gen-progress{display:flex;flex-direction:column;align-items:center;gap:10px;width:220px}
-.gen-progress-track{width:100%;height:1px;background:rgba(246,240,228,0.12);border-radius:1px;overflow:hidden}
+.gen-progress-track{width:100%;height:1px;background:rgba(28,20,12,0.10);border-radius:1px;overflow:hidden}
 .gen-progress-fill{height:100%;background:linear-gradient(to right,var(--gold-deep),var(--gold-soft));border-radius:1px;transition:width 0.3s linear}
 .gen-progress-nums{display:flex;align-items:center;gap:12px}
-.gen-progress-pct{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:1.5px;color:rgba(246,240,228,0.45)}
-.gen-progress-time{font-family:var(--mono);font-size:9px;letter-spacing:0.5px;color:rgba(246,240,228,0.22)}
+.gen-progress-pct{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--ink-soft)}
+.gen-progress-time{font-family:var(--mono);font-size:9px;letter-spacing:0.5px;color:var(--sub)}
 
 /* ── suggestion de destination (mode Surprenez-moi) ── */
 .gen.suggest .gen-body{gap:14px;text-align:center}
@@ -277,7 +277,7 @@
 .sugg-teaser{font-size:14px;font-weight:300;color:rgba(246,240,228,0.7);line-height:1.6;max-width:280px}
 .sugg-coords{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(246,240,228,0.4);margin-top:4px}
 .sugg-acts{display:flex;flex-direction:column;gap:10px;width:100%;margin-top:18px}
-.btn-ghost.on-dark{color:var(--onink);border-color:rgba(246,240,228,0.22);background:transparent}
+.btn-ghost.on-dark{color:var(--onink);border-color:var(--sub);background:transparent}
 
 /* ── activités ── */
 .act-day{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin:22px 0 10px;padding-top:6px;border-top:1px solid var(--line2)}

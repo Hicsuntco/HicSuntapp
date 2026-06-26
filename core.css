@@ -267,14 +267,14 @@ textarea.input{height:auto;min-height:110px;padding:14px 16px;resize:none;line-h
 /* ── splash de lancement · cinématique premium ── */
 .splash{
   position:absolute;inset:0;z-index:600;
-  background:#0d0b08;
+  background:var(--bg);
   display:flex;align-items:center;justify-content:center;
   overflow:hidden;opacity:1;transition:opacity 0.9s var(--ease-out)
 }
 .splash.out{opacity:0}
 .splash::before{
   content:'';position:absolute;inset:0;
-  background:radial-gradient(ellipse 75% 65% at 50% 52%, rgba(156,124,68,0.14) 0%, transparent 68%);
+  background:radial-gradient(ellipse 75% 65% at 50% 52%, rgba(156,124,68,0.06) 0%, transparent 68%);
   pointer-events:none
 }
 .splash-grid{position:absolute;inset:0;width:100%;height:100%}
@@ -305,7 +305,7 @@ textarea.input{height:auto;min-height:110px;padding:14px 16px;resize:none;line-h
 .splash.run .splash-h{opacity:1;transform:translate(-50%,-50%) scale(1)}
 .splash-h span{
   font-family:var(--serif);font-weight:600;font-size:118px;
-  color:#f5efe3;letter-spacing:-6px;line-height:1;display:block
+  color:var(--ink);letter-spacing:-6px;line-height:1;display:block
 }
 .splash-rule{
   width:0;height:1px;

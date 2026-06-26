@@ -969,7 +969,7 @@ function handleAuthCallback(){
 /* ── splash de lancement ─────────────────────────────────────────────── */
 function splashHTML(){
   return '<div class="splash" data-splash>'
-    + '<svg class="splash-grid" viewBox="0 0 393 852" preserveAspectRatio="none" fill="none" stroke="rgba(189,162,104,0.06)" stroke-width="0.5">'
+    + '<svg class="splash-grid" viewBox="0 0 393 852" preserveAspectRatio="none" fill="none" stroke="rgba(156,124,68,0.08)" stroke-width="0.5">'
     +   [0,1,2,3,4,5,6].map(function(i){ return '<line class="sg-line" x1="'+(i*65.5)+'" y1="0" x2="'+(i*65.5)+'" y2="852"/>'; }).join('')
     +   [0,1,2,3,4,5,6,7,8,9,10,11,12].map(function(i){ return '<line class="sg-line" x1="0" y1="'+(i*71)+'" x2="393" y2="'+(i*71)+'"/>'; }).join('')
     + '</svg>'
