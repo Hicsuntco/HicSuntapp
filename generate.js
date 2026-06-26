@@ -3,6 +3,8 @@
    3 passes : ossature → jours détaillés → adresses & highlights        */
 
 const SUPABASE_ENDPOINT = 'https://lucbxwxcismnvcdnctau.supabase.co/functions/v1/super-endpoint';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1Y2J4d3hjaXNtbnZjZG5jdGF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQzODc0NDYsImV4cCI6MjA1OTk2MzQ0Nn0.6GPNP_GFoJtJ9vkMX5JJNANaHzUUjIg7kGY3LGc6lqM';
+const SUPABASE_HEADERS = {'content-type':'application/json','Authorization':'Bearer '+SUPABASE_ANON_KEY};
 
 const GEN_KINDS = ['plane','fork','droplet','wave','peaks','arch','leaf','sun','moon','bed','star','camera','ticket','pin','compass'];
 const GEN_SKY   = ['sun','cloud','rain'];
@@ -701,7 +703,7 @@ function parseItineraryJSON(text){
 
 /* ── appel Supabase ─────────────────────────────────────────────────── */
 async function _callSupabase(prompt){
-  const res=await fetch(SUPABASE_ENDPOINT,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({prompt:prompt})});
+  const res=await fetch(SUPABASE_ENDPOINT,{method:'POST',headers:SUPABASE_HEADERS,body:JSON.stringify({prompt:prompt})});
   if(!res.ok) throw new Error('HTTP '+res.status);
   const data=await res.json();
   if(data.error) throw new Error(data.error);
@@ -1042,7 +1044,7 @@ async function _fetchFlightPriceFromWeb(dest, country, dateFrom, dateTo, travele
     const prompt = buildFlightSearchPrompt(dest, country, dateFrom, dateTo, travelers);
     const res = await fetch(SUPABASE_ENDPOINT,{
       method:'POST',
-      headers:{'content-type':'application/json'},
+      headers:SUPABASE_HEADERS,
       body:JSON.stringify({prompt:prompt, webSearch:true})
     });
     if(!res.ok) return null;
@@ -1083,7 +1085,7 @@ async function _fetchRealStays(dest, zones, level){
     try{
       const res = await fetch(SUPABASE_ENDPOINT,{
         method:'POST',
-        headers:{'content-type':'application/json'},
+        headers:SUPABASE_HEADERS,
         body:JSON.stringify({prompt:buildStaySearchPrompt(dest, zones, level), webSearch:true})
       });
       if(!res.ok) continue;
@@ -1131,7 +1133,7 @@ async function _fetchRealRestos(dest, places, level){
     try{
       const res = await fetch(SUPABASE_ENDPOINT,{
         method:'POST',
-        headers:{'content-type':'application/json'},
+        headers:SUPABASE_HEADERS,
         body:JSON.stringify({prompt:buildRestoSearchPrompt(dest, places, level), webSearch:true})
       });
       if(!res.ok){ window._restoErr='HTTP '+res.status+(attempt?' (2e essai)':''); continue; }
