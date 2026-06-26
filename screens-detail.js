@@ -400,75 +400,146 @@ function itineraryView(){
   const it = ITINERARY;
   const wx1 = it.plan[0] ? it.plan[0].wx : ['sun','30°'];
 
-  /* Couleur primaire du thème — utilisée partout dans l'écran */
   const palette = it.palette || {};
   const theme = it.theme || 'mediterranean';
   const SIG = {
-    mediterranean: { c1: palette.beach   || '#3A9EC9', c2: palette.food    || '#D44A2A' },
-    desert:        { c1: palette.culture || '#D4943A', c2: palette.food    || '#D4522A' },
-    alpine:        { c1: palette.hike    || '#3A9E7E', c2: palette.outdoor || '#4ABECE' },
-    tropical:      { c1: palette.food    || '#E87A4A', c2: palette.hike    || '#2D9E6B' },
-    tropical_io:   { c1: palette.beach   || '#4AC8E0', c2: palette.spa     || '#E87A9A' },
-    steppe:        { c1: palette.beach   || '#5A8AAA', c2: palette.hike    || '#7A9E8A' },
-    andean:        { c1: palette.culture || '#C0A040', c2: palette.hike    || '#8A6A3A' },
-    urban_asia:    { c1: palette.culture || '#7A50C0', c2: palette.food    || '#E05030' },
-    urban:         { c1: palette.culture || '#7A65D4', c2: palette.food    || '#D4854A' },
-    savanna:       { c1: palette.outdoor || '#70A850', c2: palette.culture || '#B07030' },
-    caribbean:     { c1: palette.beach   || '#30C0C0', c2: palette.food    || '#E0A030' },
+    mediterranean: { c1: palette.beach   || '#3A9EC9', c2: palette.food    || '#D44A2A', bg:'#0D1A24', motif:'waves' },
+    desert:        { c1: palette.culture || '#D4943A', c2: palette.food    || '#D4522A', bg:'#1A1008', motif:'dunes' },
+    alpine:        { c1: palette.hike    || '#3A9E7E', c2: palette.outdoor || '#4ABECE', bg:'#0A1614', motif:'peaks' },
+    tropical:      { c1: palette.food    || '#E87A4A', c2: palette.hike    || '#2D9E6B', bg:'#0C160E', motif:'jungle' },
+    tropical_io:   { c1: palette.beach   || '#4AC8E0', c2: palette.spa     || '#E87A9A', bg:'#081820', motif:'waves' },
+    steppe:        { c1: palette.beach   || '#5A8AAA', c2: palette.hike    || '#7A9E8A', bg:'#0C1218', motif:'steppe' },
+    andean:        { c1: palette.culture || '#C0A040', c2: palette.hike    || '#8A6A3A', bg:'#100E08', motif:'peaks' },
+    urban_asia:    { c1: palette.culture || '#C040A0', c2: palette.food    || '#E05030', bg:'#0C0818', motif:'grid' },
+    urban:         { c1: palette.culture || '#7A65D4', c2: palette.food    || '#D4854A', bg:'#100E18', motif:'grid' },
+    savanna:       { c1: palette.outdoor || '#A0C840', c2: palette.culture || '#B07030', bg:'#100E04', motif:'savanna' },
+    caribbean:     { c1: palette.beach   || '#30C0C0', c2: palette.food    || '#E0A030', bg:'#081C18', motif:'waves' },
   };
   const sig = SIG[theme] || SIG.tropical;
-  const primaryColor = sig.c1;
-  const secondColor  = sig.c2;
+  const c1 = sig.c1, c2 = sig.c2, heroBg = sig.bg;
 
-  /* Fond du minimap : légère teinte de la couleur primaire */
-  const minimapBg = 'linear-gradient(135deg,'
-    + hexA(primaryColor,0.08) + ' 0%,'
-    + hexA(secondColor,0.05) + ' 100%),'
-    + 'var(--surface)';
+  /* ── Motifs SVG par thème ── */
+  function heroMotif(motif, c1, c2){
+    const op = 'opacity:0.18;';
+    if(motif==='waves') return '<svg style="position:absolute;inset:0;width:100%;height:100%;'+op+'" viewBox="0 0 390 260" preserveAspectRatio="none" fill="none">'
+      +'<path d="M0 80 Q48 60 97 80 T195 80 T293 80 T390 80" stroke="'+c1+'" stroke-width="1.2"/>'
+      +'<path d="M0 110 Q48 90 97 110 T195 110 T293 110 T390 110" stroke="'+c1+'" stroke-width="0.8"/>'
+      +'<path d="M0 140 Q48 120 97 140 T195 140 T293 140 T390 140" stroke="'+c2+'" stroke-width="1"/>'
+      +'<path d="M0 170 Q65 150 130 170 T260 170 T390 170" stroke="'+c2+'" stroke-width="0.6"/>'
+      +'<circle cx="320" cy="50" r="60" stroke="'+c1+'" stroke-width="0.5"/>'
+      +'<circle cx="320" cy="50" r="38" stroke="'+c1+'" stroke-width="0.4"/>'
+      +'</svg>';
+    if(motif==='dunes') return '<svg style="position:absolute;inset:0;width:100%;height:100%;'+op+'" viewBox="0 0 390 260" preserveAspectRatio="none" fill="none">'
+      +'<path d="M-10 200 Q80 140 180 180 T390 170" stroke="'+c1+'" stroke-width="1.5"/>'
+      +'<path d="M-10 220 Q100 165 200 200 T390 190" stroke="'+c2+'" stroke-width="1"/>'
+      +'<path d="M-10 240 Q120 185 220 215 T390 210" stroke="'+c1+'" stroke-width="0.7"/>'
+      +'<circle cx="300" cy="45" r="48" stroke="'+c2+'" stroke-width="0.8"/>'
+      +'<line x1="0" y1="260" x2="390" y2="100" stroke="'+c1+'" stroke-width="0.4" stroke-dasharray="4 8"/>'
+      +'</svg>';
+    if(motif==='peaks') return '<svg style="position:absolute;inset:0;width:100%;height:100%;'+op+'" viewBox="0 0 390 260" preserveAspectRatio="none" fill="none">'
+      +'<polyline points="0,260 60,120 120,180 190,60 260,150 320,80 390,130 390,260" stroke="'+c1+'" stroke-width="1.2"/>'
+      +'<polyline points="0,260 80,160 150,200 230,100 300,160 390,100 390,260" stroke="'+c2+'" stroke-width="0.7" opacity="0.6"/>'
+      +'<line x1="0" y1="220" x2="390" y2="220" stroke="'+c1+'" stroke-width="0.4"/>'
+      +'</svg>';
+    if(motif==='jungle') return '<svg style="position:absolute;inset:0;width:100%;height:100%;'+op+'" viewBox="0 0 390 260" preserveAspectRatio="none" fill="none">'
+      +'<path d="M40 260 Q30 180 60 120 Q80 80 70 20" stroke="'+c1+'" stroke-width="1.2"/>'
+      +'<path d="M70 20 Q120 60 60 120" stroke="'+c1+'" stroke-width="0.8"/>'
+      +'<path d="M70 20 Q20 50 60 120" stroke="'+c1+'" stroke-width="0.8"/>'
+      +'<path d="M140 260 Q130 200 155 140 Q175 100 165 30" stroke="'+c2+'" stroke-width="1"/>'
+      +'<path d="M165 30 Q210 70 155 140" stroke="'+c2+'" stroke-width="0.7"/>'
+      +'<path d="M165 30 Q120 65 155 140" stroke="'+c2+'" stroke-width="0.7"/>'
+      +'<path d="M280 260 Q270 190 300 130 Q320 85 310 15" stroke="'+c1+'" stroke-width="1.1"/>'
+      +'<path d="M310 15 Q350 55 300 130" stroke="'+c1+'" stroke-width="0.7"/>'
+      +'<path d="M310 15 Q265 50 300 130" stroke="'+c1+'" stroke-width="0.7"/>'
+      +'</svg>';
+    if(motif==='grid') return '<svg style="position:absolute;inset:0;width:100%;height:100%;'+op+'" viewBox="0 0 390 260" preserveAspectRatio="none" fill="none">'
+      +[0,1,2,3,4,5,6].map(function(i){ return '<line x1="'+(i*65)+'" y1="0" x2="'+(i*65)+'" y2="260" stroke="'+c1+'" stroke-width="0.4"/>'; }).join('')
+      +[0,1,2,3,4].map(function(i){ return '<line x1="0" y1="'+(i*65)+'" x2="390" y2="'+(i*65)+'" stroke="'+c1+'" stroke-width="0.4"/>'; }).join('')
+      +'<rect x="280" y="20" width="80" height="80" stroke="'+c2+'" stroke-width="1.2"/>'
+      +'<rect x="295" y="35" width="50" height="50" stroke="'+c2+'" stroke-width="0.6"/>'
+      +'</svg>';
+    if(motif==='savanna') return '<svg style="position:absolute;inset:0;width:100%;height:100%;'+op+'" viewBox="0 0 390 260" preserveAspectRatio="none" fill="none">'
+      +'<line x1="0" y1="190" x2="390" y2="190" stroke="'+c1+'" stroke-width="1"/>'
+      +'<path d="M60 190 Q65 150 70 100 Q72 75 68 50" stroke="'+c2+'" stroke-width="1.5"/>'
+      +'<path d="M68 50 Q55 75 70 100" stroke="'+c2+'" stroke-width="1.2"/><path d="M68 50 Q80 72 70 100" stroke="'+c2+'" stroke-width="1.2"/>'
+      +'<path d="M200 190 Q205 160 210 120 Q212 95 208 70" stroke="'+c1+'" stroke-width="1.2"/>'
+      +'<path d="M208 70 Q195 92 210 120" stroke="'+c1+'" stroke-width="1"/><path d="M208 70 Q220 90 210 120" stroke="'+c1+'" stroke-width="1"/>'
+      +'<circle cx="310" cy="45" r="36" stroke="'+c2+'" stroke-width="1"/>'
+      +'</svg>';
+    /* steppe — default */
+    return '<svg style="position:absolute;inset:0;width:100%;height:100%;'+op+'" viewBox="0 0 390 260" preserveAspectRatio="none" fill="none">'
+      +'<path d="M0 180 Q100 160 200 175 T390 165" stroke="'+c1+'" stroke-width="1"/>'
+      +'<path d="M0 200 Q130 180 260 195 T390 185" stroke="'+c2+'" stroke-width="0.7"/>'
+      +'<circle cx="300" cy="55" r="42" stroke="'+c1+'" stroke-width="0.8"/>'
+      +'</svg>';
+  }
+
+  /* ── Hero label thématique ── */
+  const THEME_LABEL = {
+    mediterranean:'Méditerranée', desert:'Désert', alpine:'Montagne', tropical:'Tropiques',
+    tropical_io:'Océan Indien', steppe:'Grand Nord', andean:'Andes', urban_asia:'Asie urbaine',
+    urban:'Métropole', savanna:'Savane', caribbean:'Caraïbes',
+  };
+  const themeLabel = THEME_LABEL[theme] || 'Sur-mesure';
+
+  const minimapBg = 'linear-gradient(135deg,' + hexA(c1,0.09) + ' 0%,' + hexA(c2,0.05) + ' 100%),var(--surface)';
+  const nDays = it.plan && it.plan.length ? it.plan.length : _days(it);
 
   return statusBar()
-    + navbar(it.dest, { right:'<button class="nav-btn" onclick="openOverlay(\'share\', shareView())" aria-label="Partager">' + ico('share',18,1.5) + '</button>' })
-    + '<div class="ov-scroll has-foot px">'
-    +   '<div class="itin-hero">'
-    +     '<span class="eyebrow" style="color:'+primaryColor+'">Itinéraire composé · ' + esc(it.theme ? it.theme.charAt(0).toUpperCase()+it.theme.slice(1) : 'Sur-mesure') + '</span>'
-    +     '<h1>' + esc(it.dest) + '</h1>'
-    +     '<div class="itin-tag">' + esc(it.tag) + '</div>'
-    +     '<div class="itin-pills">'
-    +       '<span class="pill" style="color:'+primaryColor+';border-color:'+hexA(primaryColor,0.3)+';background:'+hexA(primaryColor,0.07)+'">' + esc(it.dates) + '</span>'
-    +       '<span class="pill">' + (it.plan&&it.plan.length?it.plan.length:_days(it)) + ' jours</span>'
-    +       '<span class="pill">' + esc(it.level) + '</span>'
+    /* ── Hero immersif ── */
+    + '<div style="position:relative;overflow:hidden;background:'+heroBg+';padding:0 0 28px">'
+    +   heroMotif(sig.motif, c1, c2)
+    +   /* Gradient de fondu en bas vers le fond de l'app */
+    +   '<div style="position:absolute;bottom:0;left:0;right:0;height:60px;background:linear-gradient(to bottom,transparent,'+heroBg+')"></div>'
+    +   '<div style="position:relative;z-index:2">'
+    +     /* Navbar transparente sur le hero */
+    +     '<div class="navbar" style="background:transparent">'
+    +       '<button class="nav-btn" style="color:rgba(246,240,228,0.85)" onclick="closeOverlay()" aria-label="Retour">' + ico('back',20,1.7) + '</button>'
+    +       '<button class="nav-btn" style="color:rgba(246,240,228,0.85)" onclick="openOverlay(\'share\', shareView())" aria-label="Partager">' + ico('share',18,1.5) + '</button>'
+    +     '</div>'
+    +     '<div style="padding:8px 20px 0">'
+    +       '<span style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:'+c1+';display:block;margin-bottom:10px">Itinéraire · '+esc(themeLabel)+'</span>'
+    +       '<h1 style="font-family:var(--serif);font-weight:600;font-size:42px;letter-spacing:-1px;color:#F6F0E4;line-height:1.04;margin:0 0 8px">' + esc(it.dest) + '</h1>'
+    +       '<p style="font-family:var(--serif);font-style:italic;font-size:15px;color:rgba(246,240,228,0.7);line-height:1.5;margin:0 0 16px">' + esc(it.tag) + '</p>'
+    +       '<div style="display:flex;flex-wrap:wrap;gap:7px">'
+    +         '<span style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;padding:6px 13px;border-radius:20px;border:1px solid '+hexA(c1,0.4)+';color:'+c1+';background:'+hexA(c1,0.1)+'">' + esc(it.dates) + '</span>'
+    +         '<span style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;padding:6px 13px;border-radius:20px;border:1px solid rgba(246,240,228,0.2);color:rgba(246,240,228,0.8)">' + nDays + ' jours</span>'
+    +         '<span style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;padding:6px 13px;border-radius:20px;border:1px solid rgba(246,240,228,0.2);color:rgba(246,240,228,0.8)">' + esc(it.level) + '</span>'
+    +       '</div>'
     +     '</div>'
     +   '</div>'
+    + '</div>'
+    + '<div class="ov-scroll has-foot px" style="padding-top:16px">'
     +   '<div class="minimap" style="background:'+minimapBg+'" onclick="openMapOv()">' + geoMapSVG(345, 188, null) + wxChip(wx1[0], wx1[1])
     +     '<span class="mm-cap">' + esc(it.coords || it.dest) + ' · ' + esc(it.distance || '') + '</span></div>'
     +   '<div class="tools">'
     +     '<button class="tool" onclick="openOverlay(\'budget\', budgetView())">' + ico('wallet',20,1.5) + '<div class="tl-t">Budget</div><div class="tl-s">' + eur(it.budgetTotal) + ' · estimation</div></button>'
     +     '<button class="tool" onclick="openActivities()">' + ico('ticket',20,1.5) + '<div class="tl-t">Activités</div><div class="tl-s">' + ACTIVITIES.length + ' expériences</div></button>'
     +     (it.generated
-        ? '<button class="tool" onclick="openOverlay(\'gems\', gemsView())">' + ico('star',18,1.5) + '<div class="tl-t">Pépites</div><div class="tl-s">' + ((it.gems||[]).length) + ' adresses secrètes</div></button>'
-          + '<button class="tool" onclick="openOverlay(\'share\', shareView())">' + ico('share',19,1.5) + '<div class="tl-t">Partager</div><div class="tl-s">Copier le lien</div></button>'
-        : '<button class="tool" onclick="openOverlay(\'share\', shareView())">' + ico('share',19,1.5) + '<div class="tl-t">Partager</div><div class="tl-s">Copier le lien</div></button>'
-          + '<button class="tool" onclick="openOverlay(\'gems\', gemsView())">' + ico('star',18,1.5) + '<div class="tl-t">Pépites</div><div class="tl-s">' + ((it.gems||[]).length) + ' adresses</div></button>')
+      ? '<button class="tool" onclick="openOverlay(\'gems\', gemsView())">' + ico('star',18,1.5) + '<div class="tl-t">Pépites</div><div class="tl-s">' + ((it.gems||[]).length) + ' adresses secrètes</div></button>'
+        + '<button class="tool" onclick="openOverlay(\'share\', shareView())">' + ico('share',19,1.5) + '<div class="tl-t">Partager</div><div class="tl-s">Copier le lien</div></button>'
+      : '<button class="tool" onclick="openOverlay(\'share\', shareView())">' + ico('share',19,1.5) + '<div class="tl-t">Partager</div><div class="tl-s">Copier le lien</div></button>'
+        + '<button class="tool" onclick="openOverlay(\'gems\', gemsView())">' + ico('star',18,1.5) + '<div class="tl-t">Pépites</div><div class="tl-s">' + ((it.gems||[]).length) + ' adresses</div></button>')
     +   '</div>'
-    +   '<div class="ai-banner" onclick="openAI()" style="border-color:'+hexA(primaryColor,0.25)+';background:'+hexA(primaryColor,0.05)+'">'
-    +     '<span class="ai-av" style="background:'+hexA(primaryColor,0.15)+';color:'+primaryColor+'">' + ico('sparkle',22,1.6) + '</span>'
+    +   '<div class="ai-banner" onclick="openAI()" style="border-color:'+hexA(c1,0.28)+';background:'+hexA(c1,0.06)+'">'
+    +     '<span class="ai-av" style="background:'+hexA(c1,0.15)+';color:'+c1+'">' + ico('sparkle',22,1.6) + '</span>'
     +     '<span><span class="ab-k">Cartographe · assistant</span><br><span class="ab-t">Modifier l\'itinéraire</span></span>'
     +     '<span class="ico chev">' + ico('chevron',20,1.7) + '</span>'
     +   '</div>'
-    +   '<div class="section-h"><h2>Jour par jour</h2><span class="meta">' + (it.plan&&it.plan.length?it.plan.length:_days(it)) + ' jours</span></div>'
+    +   '<div class="section-h"><h2>Jour par jour</h2><span class="meta">' + nDays + ' jours</span></div>'
     +   it.plan.map(function(p, i){
-        if(!p) return '';
-        const catColor = (palette[p.category]) || primaryColor;
-        const tags = Array.isArray(p.tags) ? p.tags : [];
-        const wx = Array.isArray(p.wx) ? p.wx : ['sun','—'];
-        return '<div class="dayrow" onclick="openDay(' + i + ')">'
-          + '<div class="dr-rail"><span class="dr-pin" style="background:'+catColor+';border-color:'+catColor+'">' + p.n + '</span><span class="dr-line" style="background:'+hexA(catColor,0.2)+'"></span></div>'
-          + '<div class="dr-main"><div class="dr-top"><div><div class="dr-t">' + esc(p.title||'') + '</div><div class="dr-l">' + esc(p.loc||'') + '</div></div>'
-          + wxChip(wx[0], wx[1]) + '</div>'
-          + '<div class="dr-d">' + esc(p.desc||'') + '</div>'
-          + '<div class="dr-tags">' + tags.map(function(t){ return '<span class="mini-tag" style="color:'+catColor+';border-color:'+hexA(catColor,0.3)+';background:'+hexA(catColor,0.08)+'">' + ico(t[0],12,1.7) + t[1] + '</span>'; }).join('') + '</div>'
-          + '</div></div>';
-      }).join('')
+      if(!p) return '';
+      const catColor = (palette[p.category]) || c1;
+      const tags = Array.isArray(p.tags) ? p.tags : [];
+      const wx = Array.isArray(p.wx) ? p.wx : ['sun','—'];
+      return '<div class="dayrow" onclick="openDay(' + i + ')">'
+        + '<div class="dr-rail"><span class="dr-pin" style="background:'+catColor+';border-color:'+catColor+'">' + p.n + '</span><span class="dr-line" style="background:'+hexA(catColor,0.2)+'"></span></div>'
+        + '<div class="dr-main"><div class="dr-top"><div><div class="dr-t">' + esc(p.title||'') + '</div><div class="dr-l">' + esc(p.loc||'') + '</div></div>'
+        + wxChip(wx[0], wx[1]) + '</div>'
+        + '<div class="dr-d">' + esc(p.desc||'') + '</div>'
+        + '<div class="dr-tags">' + tags.map(function(t){ return '<span class="mini-tag" style="color:'+catColor+';border-color:'+hexA(catColor,0.3)+';background:'+hexA(catColor,0.08)+'">' + ico(t[0],12,1.7) + t[1] + '</span>'; }).join('') + '</div>'
+        + '</div></div>';
+    }).join('')
     +   '<div class="section-h"><h2>Hébergements</h2><span class="meta">' + it.accommodations.length + ' étapes</span></div>'
     +   it.accommodations.map(accCard).join('')
     + '</div>'
@@ -488,8 +559,25 @@ function dayDetailView(idx){
   if (!p) return statusBar() + navbar('Jour');
   const num = 'Jour ' + String(p.n).padStart(2,'0');
   const palette = it.palette || {};
-  const catColor = palette[p.category] || 'var(--gold)';
+  const theme = it.theme || 'mediterranean';
+
+  /* Couleur principale du jour = couleur de sa catégorie */
+  const catColor = palette[p.category] || '#9c7c44';
   const catLabel = (typeof CATEGORY_LABELS !== 'undefined' && CATEGORY_LABELS[p.category]) || '';
+
+  /* Couleur secondaire = catégorie du moment dominant différente */
+  const categories = (p.moments||[]).map(function(m){ return (typeof KIND_CATEGORY!=='undefined'&&KIND_CATEGORY[m[1]])||'culture'; });
+  const secCat = categories.find(function(c){ return c !== p.category && c !== 'transit'; }) || p.category;
+  const secColor = palette[secCat] || catColor;
+
+  /* Fond sombre du hero du jour, légèrement différent du hero principal */
+  const DAY_BG = {
+    mediterranean:'#0A1520', desert:'#160E06', alpine:'#081410', tropical:'#0A1409',
+    tropical_io:'#061620', steppe:'#0A1018', andean:'#0E0C06', urban_asia:'#0A0616',
+    urban:'#0C0A16', savanna:'#0E0C04', caribbean:'#061814',
+  };
+  const heroBg = DAY_BG[theme] || '#0A1020';
+
   let nightHTML = '';
   if (p.night && p.night.acc){
     let found = null;
@@ -507,34 +595,68 @@ function dayDetailView(idx){
     : '<button class="btn" onclick="closeOverlay()">Retour à l\'itinéraire</button>';
 
   const restaurantHTML = p.restaurant ? '<div class="section-h"><h2>À table</h2></div>'
-    + '<div class="row" style="cursor:default;align-items:flex-start"><span class="r-ico">' + ico('fork',19,1.5) + '</span>'
-    + '<div class="r-main"><div class="r-t"><a href="https://www.google.com/search?q='+encodeURIComponent((p.restaurant.name||'')+' '+(p.loc||ITINERARY.dest||'')+' restaurant')+'" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:5px">' + esc(p.restaurant.name||'') + '<span style="color:var(--gold);display:inline-flex;flex:none">'+ico('external',11,1.6)+'</span></a>' + (p.restaurant.rating?' <span style="font-size:11px;font-weight:400;color:var(--gold)">'+esc(p.restaurant.rating)+'</span>':'') + '</div>'
+    + '<div class="row" style="cursor:default;align-items:flex-start"><span class="r-ico" style="color:'+catColor+'">' + ico('fork',19,1.5) + '</span>'
+    + '<div class="r-main"><div class="r-t"><a href="https://www.google.com/search?q='+encodeURIComponent((p.restaurant.name||'')+' '+(p.loc||ITINERARY.dest||'')+' restaurant')+'" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:5px">' + esc(p.restaurant.name||'') + '<span style="color:'+catColor+';display:inline-flex;flex:none">'+ico('external',11,1.6)+'</span></a>' + (p.restaurant.rating?' <span style="font-size:11px;font-weight:400;color:'+catColor+'">'+esc(p.restaurant.rating)+'</span>':'') + '</div>'
     + '<div class="r-s">' + esc(p.restaurant.type||'') + (p.restaurant.price?' · '+esc(p.restaurant.price):'') + '</div>'
     + (p.restaurant.note?'<div class="r-s" style="margin-top:2px;font-style:italic">'+esc(p.restaurant.note)+'</div>':'')
     + (p.restaurant.review?'<div class="r-s" style="margin-top:4px;color:var(--sub);font-size:11px">"'+esc(p.restaurant.review)+'"</div>':'')
     + '</div></div>' : '';
 
   const wellnessHTML = p.wellness ? '<div class="section-h"><h2>Bien-être</h2></div>'
-    + '<div class="row" style="cursor:default;align-items:flex-start"><span class="r-ico">' + ico('droplet',19,1.5) + '</span>'
+    + '<div class="row" style="cursor:default;align-items:flex-start"><span class="r-ico" style="color:'+(palette.spa||catColor)+'">' + ico('droplet',19,1.5) + '</span>'
     + '<div class="r-main"><div class="r-t">' + esc(p.wellness.name||'') + '</div>'
     + '<div class="r-s">' + esc(p.wellness.type||'') + (p.wellness.price?' · '+esc(p.wellness.price):'') + '</div>'
     + (p.wellness.note?'<div class="r-s" style="margin-top:2px;font-style:italic">'+esc(p.wellness.note)+'</div>':'')
     + '</div></div>' : '';
 
-  const tipHTML = p.tip ? '<div class="day-tip" style="border-left:3px solid '+catColor+';background:'+hexA(catColor,0.08)+';border-radius:0 8px 8px 0;padding:12px 14px;margin-top:14px;font-size:13.5px;font-style:italic;color:var(--ink)">'
-    + '<span style="color:'+catColor+';font-weight:600;font-style:normal;text-transform:uppercase;letter-spacing:.08em;font-size:10px;display:block;margin-bottom:4px">Conseil d\'initié</span>'
-    + esc(p.tip) + '</div>' : '';
+  const tipHTML = p.tip ? '<div style="border-left:3px solid '+catColor+';background:'+hexA(catColor,0.07)+';border-radius:0 10px 10px 0;padding:12px 16px;margin-top:16px;margin-bottom:4px">'
+    + '<span style="color:'+catColor+';font-family:var(--mono);font-weight:700;font-style:normal;text-transform:uppercase;letter-spacing:.1em;font-size:9px;display:block;margin-bottom:5px">Conseil d\'initié</span>'
+    + '<span style="font-size:13.5px;font-style:italic;color:var(--ink);line-height:1.5">'+esc(p.tip)+'</span></div>' : '';
 
-  return statusBar() + navbar(num)
-    + '<div class="ov-scroll has-foot px">'
-    +   '<span class="eyebrow" style="color:'+catColor+'">' + num + ' · ' + esc(p.loc) + (catLabel ? ' · ' + catLabel : '') + '</span>'
-    +   '<h1 class="dayd-h">' + esc(p.title) + '</h1>'
-    +   '<p class="dayd-s">' + esc(p.desc) + '</p>'
+  /* Hero du jour */
+  const wxBadge = p.wx && p.wx[0] ? wxChip(p.wx[0], p.wx[1]) : '';
+
+  return /* Hero thématique du jour */
+    '<div style="position:relative;overflow:hidden;background:'+heroBg+';padding-bottom:24px">'
+    + '<div style="position:absolute;inset:0;background:radial-gradient(ellipse at 80% 20%,'+hexA(catColor,0.20)+',transparent 65%),radial-gradient(ellipse at 20% 80%,'+hexA(secColor,0.12)+',transparent 50%)"></div>'
+    /* fine grille cartographique */
+    + '<svg style="position:absolute;inset:0;width:100%;height:100%;opacity:0.10" viewBox="0 0 390 180" preserveAspectRatio="none" fill="none">'
+    +   [0,1,2,3,4,5,6].map(function(i){ return '<line x1="'+(i*65)+'" y1="0" x2="'+(i*65)+'" y2="180" stroke="'+catColor+'" stroke-width="0.5"/>'; }).join('')
+    +   [0,1,2,3].map(function(i){ return '<line x1="0" y1="'+(i*60)+'" x2="390" y2="'+(i*60)+'" stroke="'+catColor+'" stroke-width="0.5"/>'; }).join('')
+    + '</svg>'
+    + '<div style="position:absolute;bottom:0;left:0;right:0;height:40px;background:linear-gradient(to bottom,transparent,'+heroBg+')"></div>'
+    + '<div style="position:relative;z-index:2">'
+    +   '<div class="navbar" style="background:transparent">'
+    +     '<button class="nav-btn" style="color:rgba(246,240,228,0.85)" onclick="closeOverlay()" aria-label="Retour">' + ico('back',20,1.7) + '</button>'
+    +     (idx < it.plan.length-1
+          ? '<button class="nav-btn" style="color:rgba(246,240,228,0.85)" onclick="swapDay('+(idx+1)+')" aria-label="Suivant">'+ico('chevron',20,1.7)+'</button>'
+          : '<span class="nav-spacer"></span>')
+    +   '</div>'
+    +   '<div style="padding:4px 20px 0">'
+    +     '<span style="font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:'+catColor+';display:block;margin-bottom:8px">'
+    +       num + (catLabel ? ' · ' + catLabel : '') + ' · ' + esc(p.loc)
+    +     '</span>'
+    +     '<h1 style="font-family:var(--serif);font-weight:600;font-size:28px;letter-spacing:-0.4px;color:#F6F0E4;line-height:1.12;margin:0 0 10px">' + esc(p.title) + '</h1>'
+    +     '<div style="display:flex;align-items:center;gap:8px">'
+    +       (p.wx && p.wx[1] ? '<span style="font-family:var(--mono);font-size:10px;color:rgba(246,240,228,0.7)">'+esc(p.wx[1])+'</span>' : '')
+    +       '<span style="font-family:var(--mono);font-size:9px;padding:4px 10px;border-radius:12px;border:1px solid '+hexA(catColor,0.4)+';color:'+catColor+';background:'+hexA(catColor,0.12)+'">'+(catLabel||'Découverte')+'</span>'
+    +     '</div>'
+    +   '</div>'
+    + '</div>'
+    + '</div>'
+    /* Corps scrollable */
+    + '<div class="ov-scroll has-foot px" style="padding-top:16px">'
+    +   '<p style="font-size:15px;color:var(--ink);line-height:1.65;font-family:var(--serif);font-style:italic;margin:0 0 4px">' + esc(p.desc) + '</p>'
     +   tipHTML
-    +   '<div class="section-h"><h2>Le programme</h2><span class="meta">' + p.moments.length + ' moments</span></div>'
+    +   '<div class="section-h" style="margin-top:20px"><h2>Le programme</h2><span class="meta">' + p.moments.length + ' moments</span></div>'
     +   p.moments.map(function(m){
-        return '<div class="moment"><span class="mo-t">' + esc(m[0]) + '</span><span class="mo-i" style="color:'+catColor+'">' + ico(m[1],15,1.6) + '</span>'
-          + '<div><div class="mo-ti">' + esc(m[2]) + '</div>' + (m[3] ? '<div class="mo-d">' + esc(m[3]) + '</div>' : '') + '</div></div>';
+        const mCat = (typeof KIND_CATEGORY!=='undefined'&&KIND_CATEGORY[m[1]])||'culture';
+        const mColor = palette[mCat] || catColor;
+        return '<div class="moment">'
+          + '<span class="mo-t">' + esc(m[0]) + '</span>'
+          + '<span class="mo-i" style="color:'+mColor+'">' + ico(m[1],15,1.6) + '</span>'
+          + '<div><div class="mo-ti">' + esc(m[2]) + '</div>' + (m[3] ? '<div class="mo-d">' + esc(m[3]) + '</div>' : '') + '</div>'
+          + '</div>';
       }).join('')
     +   restaurantHTML
     +   wellnessHTML
