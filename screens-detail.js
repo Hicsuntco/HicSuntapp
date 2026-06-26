@@ -295,16 +295,16 @@ function generationView(){
 
 /* ── Suggestion de destination (mode "Surprenez-moi") ────────────────── */
 function destinationSuggestView(s){
-  return '<div class="gen suggest">' + statusBar(true)
+  return '<div class="gen suggest">' + statusBar()
     + '<div class="gen-body">'
-    +   '<span class="eyebrow" style="color:var(--gold-soft)">Destination suggérée</span>'
-    +   '<h1 class="sugg-dest">' + esc(s.dest||'') + '</h1>'
-    +   '<p class="sugg-tag">' + esc(s.tagline||'') + '</p>'
-    +   '<p class="sugg-teaser">' + esc(s.teaser||'') + '</p>'
-    +   (s.coords?'<div class="sugg-coords">'+esc(s.coords)+'</div>':'')
+    +   '<span style="font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:3.5px;text-transform:uppercase;color:var(--gold-deep)">Destination suggérée</span>'
+    +   '<h1 style="font-family:var(--serif);font-weight:600;font-size:48px;letter-spacing:-1.5px;color:var(--ink);line-height:1.0;margin:12px 0 4px;text-align:center">' + esc(s.dest||'') + '</h1>'
+    +   '<p style="font-family:var(--serif);font-style:italic;font-size:18px;color:var(--gold-deep);line-height:1.45;margin:0 0 16px;text-align:center">' + esc(s.tagline||'') + '</p>'
+    +   '<p style="font-family:var(--serif);font-size:14px;color:var(--ink-soft);line-height:1.6;text-align:center;max-width:280px;margin:0 auto 8px">' + esc(s.teaser||'') + '</p>'
+    +   (s.coords?'<div style="font-family:var(--mono);font-size:8px;letter-spacing:2px;color:var(--sub);text-align:center;margin-bottom:24px">'+esc(s.coords)+'</div>':'')
     +   '<div class="sugg-acts">'
     +     '<button class="btn gold" onclick="confirmSuggestedDestination()">' + ico('sparkle',18,1.7) + 'Composer cet itinéraire</button>'
-    +     '<button class="btn-ghost on-dark" onclick="retrySuggestion()">Proposer une autre destination</button>'
+    +     '<button class="btn" style="background:transparent;border:1px solid var(--line);color:var(--ink-soft)" onclick="retrySuggestion()">Proposer une autre destination</button>'
     +   '</div>'
     + '</div></div>';
 }
