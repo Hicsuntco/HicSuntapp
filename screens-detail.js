@@ -192,7 +192,7 @@ function destinationView(key){
   const scores = SEASONS_BY_DEST[key] || [1,1,1,2,2,2,2,2,2,1,1,1];
   const k = key.replace(/'/g, "\\'");
   return '<div class="dest-hero">'
-    +   '<div class="wash" style="background:' + d.bg + '"></div>' + contour()
+    +   '<div class="wash" style="background:' + d.bg + '"></div>'
     +   '<div class="wm">' + ico(d.i, 132, 1) + '</div>'
     +   '<div class="veil"></div>'
     +   '<div class="navbar on-dark" style="position:absolute;top:0;left:0;right:0;z-index:10">'
@@ -636,10 +636,6 @@ function bookingView(accId){
   const accent = accThemeAccent(a, ITINERARY);
   const isAirbnb = /villa|appartement|apparthotel|maison|airbnb|guesthouse|gîte|loft/.test((a.type||'').toLowerCase());
   return '<div class="book-hero" style="position:relative;overflow:hidden;height:245px;background:radial-gradient(120% 100% at 15% 0%,'+hexA(accent,0.28)+',transparent 60%),linear-gradient(155deg,#1c1812,#0d0b08 55%,#000)">'
-    +   '<svg style="position:absolute;inset:0;width:100%;height:100%" viewBox="0 0 393 280" preserveAspectRatio="none" fill="none" stroke="'+hexA(accent,0.4)+'" stroke-width="0.5">'
-    +     [0,1,2,3,4,5,6].map(function(i){ return '<line x1="'+(i*65.5)+'" y1="0" x2="'+(i*65.5)+'" y2="280"/>'; }).join('')
-    +     [0,1,2,3,4,5,6].map(function(i){ return '<line x1="0" y1="'+(i*46.6)+'" x2="393" y2="'+(i*46.6)+'"/>'; }).join('')
-    +   '</svg>'
     +   '<span style="position:absolute;bottom:20px;right:24px;z-index:1;color:'+hexA(accent,0.9)+';display:flex;opacity:0.95">' + ico(a.i, 32, 1.3) + '</span>'
     +   '<span style="position:absolute;left:24px;right:24px;bottom:19px;height:1px;z-index:0;background:'+hexA(accent,0.25)+'"></span>'
     +   '<div class="navbar on-dark" style="position:absolute;top:0;left:0;right:0;z-index:1"><button class="nav-btn ghost" onclick="closeOverlay()" aria-label="Retour">' + ico('back',20,1.7) + '</button>'

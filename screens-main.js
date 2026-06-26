@@ -241,12 +241,7 @@ function savedTripCard(it){
     +'<div style="position:absolute;inset:0;background:'+bg+'"></div>'
     /* lueur colorée thématique au centre */
     +'<div style="position:absolute;inset:0;background:radial-gradient(65% 65% at 50% 50%,'+accent.glow+',transparent)"></div>'
-    /* grille cartographique fine teintée */
-    +'<svg style="position:absolute;inset:0;width:100%;height:100%;opacity:0.15" viewBox="0 0 80 80" preserveAspectRatio="none" fill="none" stroke="'+accent.primary+'" stroke-width="0.7">'
-    +[0,1,2,3].map(function(i){ return '<line x1="'+(i*27)+'" y1="0" x2="'+(i*27)+'" y2="80"/>'; }).join('')
-    +[0,1,2,3].map(function(i){ return '<line x1="0" y1="'+(i*27)+'" x2="80" y2="'+(i*27)+'"/>'; }).join('')
-    +'</svg>'
-    /* icône colorée selon le thème (plus opaque, colorée) */
+    /* icône colorée selon le thème */
     +'<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:'+accent.primary+';opacity:0.85">'+ico(icon,36,1.3)+'</span>'
     +'</div>'
     +'<div><div class="ti-n">'+esc(it.destination)+'</div>'
