@@ -123,47 +123,144 @@ function _antiTouristDirective(){
 /* ── traduction des réponses du questionnaire en consignes concrètes ── */
 const RYTHME_MOMENTS={'Lent':2,'Équilibré':3,'Intense':4};
 function _momentsPerDay(){ return RYTHME_MOMENTS[state.rythme] || 3; }
+
 function _rythmeDirective(){
   const r=state.rythme||'Équilibré';
-  if(r==='Lent') return 'Rythme LENT : peu d\'étapes par jour, larges plages libres, favoriser un même lieu plusieurs jours, transferts courts.';
-  if(r==='Intense') return 'Rythme INTENSE : journées denses, plusieurs activités/lieux par jour, peu de temps mort, maximiser les découvertes.';
-  return 'Rythme ÉQUILIBRÉ : alternance activités et temps libre, transferts raisonnables.';
+  if(r==='Lent') return 'RYTHME LENT : maximum 1-2 activités par jour, larges plages libres non planifiées, rester au même endroit 2-3 nuits minimum, transferts < 45min. Les après-midis libres sont un luxe premium, pas un oubli.';
+  if(r==='Intense') return 'RYTHME INTENSE : 3-4 activités distinctes par jour, journées 7h→21h, transferts acceptables jusqu\'à 3h si le trajet vaut le détour, maximiser les expériences sans temps mort.';
+  return 'RYTHME ÉQUILIBRÉ : 2-3 activités significatives par jour, matinées actives, après-midis libres possibles, 1 transfert max par jour < 2h.';
 }
+
+function _fitnessDirective(){
+  const f=state.fitnessLevel||'Modéré';
+  if(f==='Sédentaire') return 'MOBILITÉ RÉDUITE : zéro randonnée, zéro escaliers excessifs. Transports confortables (voiture privée, bateau), hébergements plain-pied ou avec ascenseur, sites accessibles en véhicule, activités assises (croisière, dégustation, visite guidée en voiture).';
+  if(f==='Sportif') return 'NIVEAU SPORTIF : randonnées réelles (5-15km, dénivelé possible), vélo, kayak, snorkeling, activités outdoor exigeantes. Les journées physiques sont un plaisir, pas une contrainte.';
+  if(f==='Extrême') return 'NIVEAU EXTRÊME : randonnées de montagne, trails techniques, via ferrata, surf, plongée, expédition. Pas de limite physique dans les propositions.';
+  return 'NIVEAU MODÉRÉ : quelques heures de marche acceptables (3-8km/jour), pas de trek exigeant, escaliers OK, activités variées sans caractère physique extrême.';
+}
+
+function _transportDirective(){
+  const t=state.transport||'Mixte';
+  if(t==='Voiture de location') return 'TRANSPORT — Voiture de location : itinéraire organisé pour être 100% réalisable en voiture. Mentionner les routes panoramiques, parkings, état des routes. Chaque étape accessible en conduite raisonnable (< maxKm).';
+  if(t==='Transports en commun') return 'TRANSPORT — Train et bus locaux : choisir uniquement des étapes connectées par transport public fiable. Préciser les liaisons (ex: "Trenitalia 08:42, 2h15, 18€"). Éviter les destinations enclavées sans transports.';
+  if(t==='Avec un guide') return 'TRANSPORT — Organisé privé : guides locaux privés ou excursions organisées pour chaque journée, tout en véhicule privé. Proposer prestataires nommés.';
+  return 'TRANSPORT — Mixte : voiture de location pour zones rurales, train pour grandes liaisons. Préciser le mode recommandé pour chaque transfert.';
+}
+
+function _accomStyleDirective(){
+  const a=state.accomStyle||'';
+  if(!a||a==='Peu importe') return '';
+  if(a==='Charme & caractère') return 'HÉBERGEMENT — IMPÉRATIF : maisons d\'hôtes familiales, riads, agriturismi, mas, bastides — tenus par des locaux, histoire tangible, aucune chaîne hôtelière. L\'adresse doit avoir une âme et raconter quelque chose.';
+  if(a==='Design & contemporain') return 'HÉBERGEMENT — IMPÉRATIF : architecture remarquable, design intérieur soigné, matériaux locaux contemporains, service irréprochable. Boutique-hôtels primés, adresses plébiscitées par les revues de design.';
+  if(a==='Nature & immersion') return 'HÉBERGEMENT — IMPÉRATIF : lodges dans la nature, glamping de luxe, écolodges perchés, cabanes dans les arbres, pavillons ouverts sur le sauvage. Vue directe sur le paysage depuis le lit.';
+  return '';
+}
+
+function _childrenDirective(){
+  if(state.occasion!=='famille'&&state.travelers<3) return '';
+  if(!state.childrenAges) return 'FAMILLE : hébergements avec piscine et espace, activités adaptées tous âges (marche < 3km, visite < 1h30), rythme doux, sieste possible, restaurants family-friendly.';
+  const ages=state.childrenAges;
+  const hasToddler=/\b[0-3]\b/.test(ages);
+  const hasPrimaire=/\b[4-9]\b|\b1[0-2]\b/.test(ages);
+  const hasAdo=/\b1[3-9]\b/.test(ages);
+  let d='FAMILLE avec enfants (âges : '+ages+') — contraintes absolues :';
+  if(hasToddler) d+=' BÉBÉ/TOUT-PETIT : lit bébé obligatoire, transferts < 30min, sieste 13h-15h dans le planning, activités sensorielles (animaux, eau, couleurs), chaises hautes et menu enfant au restaurant.';
+  if(hasPrimaire) d+=' ENFANTS PRIMAIRE : activités ludo-éducatives (animaux, ateliers, aventure accessible), piscine essentielle, horaires souples coucher.';
+  if(hasAdo) d+=' ADOLESCENTS : activités à sensations (snorkeling, quad, accrobranche), lieux cool, wifi hébergement, pas "bébé".';
+  d+=' INTERDIT : randonnées > 3km, musées sans espace interactif, restaurants huppés sans ambiance familiale, transferts > 1h avec moins de 5 ans.';
+  return d;
+}
+
+function _dietaryDirective(){
+  if(!state.dietary) return '';
+  return 'RÉGIME / ALLERGIES (vérifier CHAQUE restaurant proposé) : '+state.dietary+'. Mentionner explicitement si l\'adresse peut accommoder. Ne jamais proposer de restaurant incompatible.';
+}
+
+function _alreadyDoneDirective(){
+  if(!state.alreadyDone) return '';
+  return 'DÉJÀ VU / À ÉVITER ABSOLUMENT : '+state.alreadyDone+'. Trouver des alternatives inédites. Ne pas répéter ces expériences, destinations ou types d\'activité.';
+}
+
 function _occasionDirective(){
   const id=state.occasion;
   if(!id) return '';
   const map={
-    'lune-de-miel':'OCCASION — Lune de miel : privilégier dîners romantiques en tête-à-tête, hébergements intimistes (vue, terrasse privée, suites), moments à deux (massage en duo, bateau privé, coucher de soleil).',
-    'anniversaire':'OCCASION — Anniversaire : prévoir au moins un moment de célébration mémorable (dîner spécial, surprise locale, expérience exclusive le jour J si possible).',
-    'evjf':'OCCASION — EVJF : adresses tendance et instagrammables, spas/bien-être, brunchs et rooftops, ambiance festive entre amies.',
-    'evg':'OCCASION — EVG : expériences fortes en sensations (sports, sorties nocturnes, activités entre amis), ambiance conviviale et dynamique.',
-    'famille':'OCCASION — En famille : activités adaptées à tous âges (pas d\'horaires extrêmes, pas de randonnées trop longues), hébergements avec espace/piscine, rythme doux.',
-    'solo':'OCCASION — En solo : favoriser rencontres locales, hébergements conviviaux (guesthouses, petites adresses), activités modulables.',
+    'lune-de-miel':[
+      '╔══ LUNE DE MIEL — CE FILTRE S\'APPLIQUE À CHAQUE DÉCISION DE L\'ITINÉRAIRE ══╗',
+      '• HÉBERGEMENTS : suites ou chambres avec terrasse/vue privative, lit king, bain ou jacuzzi si possible. Structures intimistes (< 12 chambres) pour le sentiment de cocon. Zéro chambre standard face à un parking.',
+      '• REPAS : dîners en tête-à-tête uniquement — tables isolées, éclairage tamisé, vue imprenable. Au moins 1 dîner d\'exception (gastronomique, pieds dans le sable, terrasse privée ou expérience unique). Jamais de buffets ou restaurants bruyants le soir.',
+      '• MOMENTS ROMANTIQUES OBLIGATOIRES : (1) coucher de soleil structuré — en bateau, sur un toit ou depuis un belvédère secret ; (2) massage en duo avec nom du spa, type de soin et prix précis ; (3) expérience exclusive à deux — bateau privé, pique-nique sur plage déserte, balade à cheval au coucher du soleil.',
+      '• RYTHME : jamais de réveil < 7h30. Après-midis libres pour flâner ensemble. Pas de journée "marathon touristique".',
+      '• DÉTAILS QUI COMPTENT : pétales de roses à l\'arrivée si disponible, champagne offert, accès piscine privée, service de chambre romantique, notes de bienvenue.',
+      '• PROHIBÉ : auberges, hôtels de chaîne sans âme, buffets, activités de groupe bondées, bus locaux.',
+      '╚══════════════════════════════════════════════════════════════════════════════╝',
+    ].join('\n'),
+    'anniversaire':[
+      '╔══ ANNIVERSAIRE — CÉLÉBRATION AU CŒUR DE L\'ITINÉRAIRE ══╗',
+      '• MOMENT CLÉ : identifier le jour J (milieu du séjour si non précisé) et le rendre inoubliable — dîner de gala, expérience exclusive, surprise locale.',
+      '• Au moins 1 expérience "première fois" : activité jamais tentée, lieu d\'exception, table impossible à trouver seul.',
+      '• Hébergements avec valeur ajoutée : vue, standing, service. Mentionner les formules anniversaire disponibles (gâteau, décoration, chambre surclassée).',
+      '• 1 gem cachée réservée au jour J : spot secret, chemin non balisé, crique inaccessible normalement.',
+      '• Ton : légèreté, plaisir, spontanéité — laisser du vide pour les coups de cœur imprévus.',
+      '╚══════════════════════════════════════════════════════════╝',
+    ].join('\n'),
+    'evjf':[
+      '╔══ EVJF — PROGRAMME ENTRE FILLES ══╗',
+      '• HÉBERGEMENT : villa avec piscine privée ou grand appartement — espace commun pour soirées de groupe.',
+      '• ACTIVITÉS PRIORITAIRES : spa privatisé pour le groupe, cours de cuisine ou atelier local (céramique, cocktails, parfum), sunset rooftop ou bar avec vue, plage/piscine avec service.',
+      '• ESTHÉTIQUE : lieux instagrammables mais authentiques — pas de kitch. Couleurs, architecture, lumière favorable.',
+      '• 1 dîner festif avec ambiance musicale ou show live.',
+      '• Éviter : musées ennuyeux, randonnées épuisantes, hôtels formels. Favoriser mouvement, photos, rire.',
+      '• Budget repas : restaurants trendy avec cocktails — intégrer les boissons dans l\'estimation.',
+      '╚═══════════════════════════════════╝',
+    ].join('\n'),
+    'evg':[
+      '╔══ EVG — ADRÉNALINE ET COHÉSION DE GROUPE ══╗',
+      '• ACTIVITÉS : quad, karting, surf, accrobranche, paintball, plongée, parapente, 4x4 — au moins 2 activités physiques intenses.',
+      '• 1 soirée mémorable : bar à cocktails locaux, concert live ou sortie nocturne authentique (pas de club à touristes).',
+      '• HÉBERGEMENTS : grande villa ou lodge avec espace commun (terrasse, piscine) pour le groupe.',
+      '• REPAS : grillades, BBQ, street food de qualité, portions généreuses, au moins 1 tablée conviviale.',
+      '• Éviter : gastronomie trop formelle, rythme lent. Chaque jour doit avoir une histoire à raconter.',
+      '╚═══════════════════════════════════════════╝',
+    ].join('\n'),
+    'famille':_childrenDirective()||[
+      '╔══ EN FAMILLE ══╗',
+      '• Hébergements spacieux avec piscine, espaces verts, activités sur place.',
+      '• Activités adaptées tous âges : animaux, eau, découvertes sensorielles.',
+      '• Rythme doux, horaires souples, restaurants menu enfant.',
+      '• Pas de longues randonnées ni de musées sans espace interactif.',
+      '╚════════════════╝',
+    ].join('\n'),
+    'solo':[
+      '╔══ VOYAGE EN SOLO ══╗',
+      '• Hébergements favorisant les rencontres (guesthouses avec table d\'hôtes) sans sacrifier la qualité.',
+      '• Activités réalisables seul et sûres : excursions avec guides locaux recommandés, petits groupes.',
+      '• Tips de sécurité spécifiques à la destination intégrés naturellement.',
+      '• Moments libres pour flâner : mercados, cafés de quartier, bibliothèques, parcs.',
+      '• Signaler quand une activité est difficile seul et proposer l\'alternative solo-friendly.',
+      '╚════════════════════╝',
+    ].join('\n'),
   };
   return map[id]||'';
 }
+
 function _styleDirective(){
   const styles=(state.styles||[]);
   if(!styles.length) return '';
   const lower=styles.join(' ').toLowerCase();
   const notes=[];
-  if(lower.includes('luxe'))              notes.push('hébergements haut de gamme, services premium, adresses signature');
+  if(lower.includes('luxe'))              notes.push('hébergements haut de gamme avec services premium, adresses signature reconnues');
   if(lower.includes('nature')||lower.includes('aventure')) notes.push('lodges nature, accès direct sentiers/sites naturels, activités outdoor');
-  if(lower.includes('détente')||lower.includes('bien-être')||lower.includes('spa')) notes.push('hébergements avec spa/piscine, massages inclus si possible, journées avec temps libre');
-  if(lower.includes('gastro')||lower.includes('culinaire')) notes.push('tables d\'exception locales, marchés producteurs, cours de cuisine');
+  if(lower.includes('détente')||lower.includes('bien-être')||lower.includes('spa')) notes.push('hébergements avec spa, massages planifiés, après-midis libres non négociables');
+  if(lower.includes('gastro')||lower.includes('culinaire')) notes.push('tables d\'exception locales, marchés producteurs, cours de cuisine avec chef local');
   if(lower.includes('plage')||lower.includes('mer'))  notes.push('hébergements en front de mer ou accès direct plage/crique, activités nautiques');
-  if(lower.includes('art')||lower.includes('architecture')) notes.push('musées, ateliers d\'artistes, quartiers historiques et bâtiments remarquables');
-  if(lower.includes('road')||lower.includes('route')) notes.push('itinéraire en voiture/moto, haltes spontanées, hébergements variés le long du trajet');
-  if(lower.includes('randonnée'))         notes.push('sentiers de randonnée, hébergements avec accès direct aux trails');
-  if(lower.includes('off')||lower.includes('beaten')) notes.push('destinations peu fréquentées, zéro touristique, immersion totale');
-  if(lower.includes('oenot')||lower.includes('vin')) notes.push('visites de domaines viticoles, dégustations, tables gastronomiques de vignobles');
-  if(lower.includes('surf')||lower.includes('nautisme')) notes.push('spots de surf/kite, locations d\'équipement nautique, hébergements surfers-friendly');
-  if(lower.includes('photo'))             notes.push('golden hours programmés, accès aux points de vue secrets, lumière naturelle privilégiée');
-  if(lower.includes('nocturn')||lower.includes('nightl')) notes.push('bars locaux, concerts, scène culturelle nocturne authentique');
-  if(lower.includes('slow'))              notes.push('rythme très lent, longues haltes, répéter les mêmes lieux pour s\'y ancrer vraiment');
-  if(lower.includes('famille'))           notes.push('activités adaptées aux enfants, hébergements spacieux, rythme doux');
-  if(lower.includes('culture')||lower.includes('authenticité')) notes.push('rencontres locales, artisans, patrimoine vivant loin des circuits');
-  return notes.length ? 'STYLE DE VOYAGE ('+styles.join(', ')+') : '+notes.join(' · ')+'.' : 'Styles : '+styles.join(', ')+'.';
+  if(lower.includes('art')||lower.includes('architecture')) notes.push('musées atypiques, ateliers d\'artistes, quartiers historiques, bâtiments remarquables');
+  if(lower.includes('road')||lower.includes('route')) notes.push('itinéraire voiture, haltes spontanées sur routes panoramiques, hébergements variés');
+  if(lower.includes('slow'))              notes.push('rythme très lent — ne pas tout voir, s\'ancrer vraiment dans chaque lieu, longues haltes');
+  if(lower.includes('culture')||lower.includes('authenticité')) notes.push('rencontres locales, artisans, patrimoine vivant loin des circuits de masse');
+  if(lower.includes('photo'))             notes.push('golden hours programmés, belvédères secrets, sujets photographiques uniques');
+  if(lower.includes('oenot')||lower.includes('vin')) notes.push('domaines viticoles et caves, dégustations producteurs, tables gastronomiques de vignobles');
+  return notes.length ? 'STYLE DE VOYAGE ('+styles.join(', ')+') — intégrer dans CHAQUE journée : '+notes.join(' · ')+'.' : '';
 }
 
 function _interestsDirective(){
@@ -171,32 +268,31 @@ function _interestsDirective(){
   if(!interests.length) return '';
   const lower=interests.join(' ').toLowerCase();
   const notes=[];
-  if(lower.includes('randonnée')||lower.includes('hike')) notes.push('planifier des randonnées avec noms des sentiers et niveaux de difficulté');
-  if(lower.includes('plage')||lower.includes('crique'))   notes.push('accès à des plages secrètes et criques peu fréquentées');
-  if(lower.includes('safari')||lower.includes('faune'))   notes.push('sorties safari avec guides locaux, faune endémique');
-  if(lower.includes('temple')||lower.includes('spiritua')) notes.push('sites spirituels authentiques, heures de visite calmes');
-  if(lower.includes('marché'))                            notes.push('marchés de producteurs locaux, étals authentiques');
-  if(lower.includes('gastro')||lower.includes('cuisine')) notes.push('tables locales réputées, cours de cuisine, spécialités régionales');
-  if(lower.includes('photo'))                             notes.push('moments golden hour et blue hour, accès aux belvédères secrets');
-  if(lower.includes('architect'))                         notes.push('patrimoine architectural, bâtiments remarquables, quartiers historiques');
-  if(lower.includes('vin')||lower.includes('vignoble')||lower.includes('oenot')) notes.push('domaines viticoles et caves à visiter, dégustations producteurs');
-  if(lower.includes('bien-être')||lower.includes('spa')||lower.includes('yoga')||lower.includes('médita')) notes.push('spas et centres de bien-être locaux avec noms et tarifs, séances yoga/méditation');
-  if(lower.includes('plongée')||lower.includes('snorkel')||lower.includes('sous-marin')||lower.includes('nautique')) notes.push('spots de plongée et snorkeling avec prestataires locaux');
-  if(lower.includes('nocturn')||lower.includes('nightl')) notes.push('bars locaux, concerts, scène nocturne authentique et non-touristique');
-  if(lower.includes('vélo')||lower.includes('cycl'))      notes.push('pistes cyclables, locations de vélo, itinéraires à deux-roues');
-  if(lower.includes('équitat')||lower.includes('cheval')) notes.push('randonnées équestres avec prestataires locaux');
-  if(lower.includes('artisan')||lower.includes('craft'))  notes.push('ateliers d\'artisans, coopératives, savoir-faire local');
-  if(lower.includes('musée')||lower.includes('galerie'))  notes.push('musées insolites et galeries d\'art contemporain local');
-  if(lower.includes('festival')||lower.includes('musique')) notes.push('festivals locaux et concerts si disponibles sur la période');
-  if(lower.includes('astrono'))                           notes.push('spots d\'observation astronomique, nuits sous les étoiles');
-  if(lower.includes('therme')||lower.includes('bain'))    notes.push('thermes et bains naturels locaux');
-  if(lower.includes('ornith')||lower.includes('oiseau'))  notes.push('réserves ornithologiques, sorties observation avec guide');
-  return notes.length ? 'INTÉRÊTS PRIORITAIRES ('+interests.join(', ')+') : intégrer dans chaque journée : '+notes.join(' · ')+'.' : '';
+  if(lower.includes('randonnée')||lower.includes('hike')) notes.push('randonnées réelles avec noms de sentiers, dénivelé et durée précis');
+  if(lower.includes('plage')||lower.includes('crique'))   notes.push('plages et criques peu fréquentées avec horaires optimaux');
+  if(lower.includes('safari')||lower.includes('faune'))   notes.push('sorties safari avec guides nommés, faune endémique spécifique');
+  if(lower.includes('temple')||lower.includes('spiritua')) notes.push('sites spirituels authentiques, heures hors afflux touristique');
+  if(lower.includes('marché'))                            notes.push('marchés de producteurs locaux — heure d\'ouverture et spécialités');
+  if(lower.includes('gastro')||lower.includes('cuisine')) notes.push('tables locales incontournables, cours de cuisine avec habitant, spécialités régionales');
+  if(lower.includes('photo'))                             notes.push('golden hour et blue hour planifiés, belvédères secrets, sujets photographiques');
+  if(lower.includes('architect'))                         notes.push('patrimoine architectural précis, bâtiments remarquables avec histoire');
+  if(lower.includes('vin')||lower.includes('vignoble'))   notes.push('domaines viticoles et caves, dégustations producteurs avec rendez-vous');
+  if(lower.includes('bien-être')||lower.includes('spa'))  notes.push('spas locaux avec noms, tarifs et types de soins — dans la planification horaire');
+  if(lower.includes('plongée')||lower.includes('snorkel')||lower.includes('sous-marin')) notes.push('spots de plongée/snorkeling avec prestataires nommés et conditions idéales');
+  if(lower.includes('nocturn')||lower.includes('nightl')) notes.push('bars locaux, concerts, scène nocturne authentique non-touristique avec adresses');
+  if(lower.includes('vélo')||lower.includes('cycl'))      notes.push('pistes cyclables ou routes peu fréquentées, prestataires location nommés');
+  if(lower.includes('musée')||lower.includes('galerie'))  notes.push('musées insolites et galeries d\'art contemporain local — pas les blockbusters');
+  if(lower.includes('therme')||lower.includes('bain'))    notes.push('sources thermales et bains naturels locaux avec conditions d\'accès');
+  return notes.length ? 'INTÉRÊTS PRIORITAIRES ('+interests.join(', ')+') — planifier au moins 1 activité liée CHAQUE JOUR : '+notes.join(' · ')+'.' : '';
 }
+
 function _dreamDirective(){
   if(!state.dream) return '';
   const surprise=state.createTab==='surprise';
-  return (surprise?'CONTRAINTES / À ÉVITER (impératif) : ':'ENVIE PRIORITAIRE DU CLIENT (à intégrer absolument) : ')+state.dream;
+  return (surprise
+    ? 'CONTRAINTES / À ÉVITER (respecter impérativement) : '
+    : 'ADN DU VOYAGE — ce texte définit l\'âme de tout l\'itinéraire, chaque étape doit y répondre : '
+  )+state.dream;
 }
 
 /* Extraire une contrainte de zone depuis le dream si mentionnée */
@@ -348,13 +444,19 @@ function buildBrief(){
     'Départ : '+(state.origin||'Paris'),
     datesLine, durationLine,
     'Voyageurs : '+travelerLabel(),
+    state.childrenAges ? 'Enfants (âges) : '+state.childrenAges : '',
     'Confort : '+(state.budget||'Confort'),
     'Rythme : '+(state.rythme||'Équilibré'),
-    'Styles : '+((state.styles||[]).join(', ')||'variés'),
-    "Intérêts : "+((state.interests||[]).join(', ')||'découverte générale'),
+    'Forme physique : '+(state.fitnessLevel||'Modéré'),
+    'Transport préféré : '+(state.transport||'Mixte'),
+    state.accomStyle ? 'Style hébergement souhaité : '+state.accomStyle : '',
+    'Styles de voyage : '+((state.styles||[]).join(', ')||'variés'),
+    'Intérêts : '+((state.interests||[]).join(', ')||'découverte générale'),
     'Occasion : '+(occ||'aucune'),
+    state.dietary ? 'Régime / allergies : '+state.dietary : '',
+    state.alreadyDone ? 'Déjà fait / à éviter : '+state.alreadyDone : '',
     flightsLine,
-    (surprise?'Contraintes / à éviter : ':'Rêve du voyage : ')+(state.dream||'—'),
+    (surprise?'Contraintes / à éviter : ':'Ce voyage représente : ')+(state.dream||'—'),
   ].filter(Boolean).join('\n');
   return {surprise:surprise, lines:lines, daysCount:daysCount};
 }
@@ -389,7 +491,7 @@ function buildSkeletonPrompt(dc, batchSize, offset){
   ];
 
   if(isFirst){
-    const directives=[_antiTouristDirective(),_interestsDirective(),_rythmeDirective(),_occasionDirective(),_styleDirective(),_dreamDirective()].filter(Boolean);
+    const directives=[_antiTouristDirective(),_occasionDirective(),_interestsDirective(),_rythmeDirective(),_fitnessDirective(),_transportDirective(),_accomStyleDirective(),_childrenDirective(),_dietaryDirective(),_alreadyDoneDirective(),_styleDirective(),_dreamDirective()].filter(Boolean);
     const destLock = (!b.surprise&&dest)
       ? '⚠️ DESTINATION IMPOSÉE : "'+dest+'". "dest" DOIT être "'+dest+'". Absolument aucune autre destination.' : '';
 
@@ -480,47 +582,65 @@ function buildSkeletonPrompt(dc, batchSize, offset){
 function buildDaysPrompt(skel, planSteps, offset){
   const b=buildBrief();
   const nMoments=_momentsPerDay();
-  const directives=[_antiTouristDirective(),_interestsDirective(),_rythmeDirective(),_occasionDirective(),_styleDirective(),_dreamDirective()].filter(Boolean);
+  const occ=state.occasion;
+  const directives=[_antiTouristDirective(),_occasionDirective(),_interestsDirective(),_rythmeDirective(),_fitnessDirective(),_transportDirective(),_accomStyleDirective(),_childrenDirective(),_dietaryDirective(),_alreadyDoneDirective(),_styleDirective(),_dreamDirective()].filter(Boolean);
   const steps=planSteps.map(function(p,i){return (offset+i+1)+'. '+p.title+' — '+p.loc+(p.hook?' ('+p.hook+')':'');}).join('\n');
+
+  /* Rappel occasion condensé pour la section des standards */
+  const occReminder = occ === 'lune-de-miel'
+    ? '\n⚠️ LUNE DE MIEL — RAPPEL POUR CHAQUE MOMENT : table romantique isolée, vue privée, nom du spa et soin précis, activité intimiste à deux. Aucun restaurant bruyant, aucune activité de groupe.'
+    : occ === 'famille'
+    ? '\n⚠️ FAMILLE — RAPPEL : vérifier que chaque activité est réalisable avec les enfants (âges : '+(state.childrenAges||'non précisés')+'). Restaurant avec menu enfant obligatoire. Pas de visite > 1h30 sans pause.'
+    : occ === 'evjf'
+    ? '\n⚠️ EVJF — RAPPEL : ambiance festive et esthétique pour chaque lieu, activités de groupe, restaurants avec cocktails.'
+    : occ === 'anniversaire'
+    ? '\n⚠️ ANNIVERSAIRE — RAPPEL : au moins 1 moment de célébration par segment, mention explicite des formules anniversaire disponibles.'
+    : '';
+
   return [
-    'CARTOGRAPHE SENIOR HICSUNT — Détails éditoriaux pour '+skel.dest+', jours '+(offset+1)+' à '+(offset+planSteps.length)+'.',
-    'EXIGENCE : niveau d\'un guide Condé Nast Traveller ou Wallpaper City Guide. Noms RÉELS et VÉRIFIABLES.',
+    '╔═══════════════════════════════════════════════════════════════╗',
+    '║  HIC SUNT · CARTOGRAPHE SENIOR — RÉDACTION ÉDITORIAL         ║',
+    '║  Standard : Condé Nast Traveller + Wallpaper City Guide       ║',
+    '║  Exigence : noms RÉELS, détails PRÉCIS, cohérence TOTALE      ║',
+    '╚═══════════════════════════════════════════════════════════════╝',
     '',
-    '═══ BRIEF CLIENT ═══',
+    'Destination : '+skel.dest+' · Jours '+(offset+1)+' à '+(offset+planSteps.length),
+    '',
+    '━━━ BRIEF CLIENT COMPLET ━━━',
     b.lines,
     '',
-    '═══ PERSONNALISATION ═══',
-    directives.length?directives.join('\n'):'Standard confort.',
+    '━━━ PERSONNALISATION — CHAQUE MOMENT DOIT RESPECTER CES CONTRAINTES ━━━',
+    directives.length?directives.join('\n\n'):'Standard confort.',
     '',
-    'ÉTAPES À DÉTAILLER :',
+    '━━━ ÉTAPES À DÉTAILLER ━━━',
     steps,
     '',
     '━━━ VÉRIFICATION GÉOGRAPHIQUE OBLIGATOIRE ━━━',
-    'Avant chaque moment/restaurant, vérifier : ce lieu existe-t-il RÉELLEMENT dans la zone de l\'étape ?',
-    '- Chaque restaurant et activité doit être dans la ville/zone de l\'étape ou à moins de 15km',
-    '- Sur une île (San Pietro, Asinara...) : TOUS les lieux DOIVENT être sur cette île',
-    '- Ne jamais recommander un restaurant d\'une autre région même si célèbre (ex: Su Gologone près de Nuoro ≠ Chia)',
-    '- Si tu n\'es pas certain qu\'un lieu existe dans cette zone exacte : invente un nom plausible local plutôt que de mettre un lieu d\'une autre région',
+    '• Chaque restaurant/activité DOIT être dans la ville/zone de l\'étape (< 15km).',
+    '• Sur une île : TOUS les lieux sur cette île uniquement.',
+    '• Si incertain qu\'un lieu existe dans cette zone exacte : nom plausible local > lieu d\'une autre région.',
     '',
-    '═══ STANDARDS QUALITATIFS ═══',
-    'Pour CHAQUE étape, produire :',
-    '- "desc" : 2 phrases narratives (max 30 mots), ton luxe éditorial. Évoquer les sensations, pas les faits.',
-    '- "moments" : '+nMoments+' moments RÉELS avec vrais noms :',
-    '  · Restaurants : nom exact + quartier + spécialité signature + note Google (ex: "Ristorante Da Tonino, Cagliari — suppa cuata, 4,5⭐")',
-    '  · Excursions : nom commercial ou guide local + téléphone si disponible (ex: "Kayak Cala Luna avec Gonario Guides — +39 347 123 456")',
-    '  · Sites : heure idéale + conseil pratique (ex: "Nuraghe Su Nuraxi, Barumini — arriver à 8h avant les cars")',
-    '  · Spas/massages : nom + prix + type de soin (ex: "Hotelito Desconocido Spa — Massage basalte 90min, 95€")',
-    '  · format moment : {t:"heure", k:"icône", ti:"NOM RÉEL précis", d:"détail local 6 mots"}',
-    '  · k dans ['+GEN_KINDS.join(',')+']',
-    '- "tip" : conseil d\'initié hyper-spécifique à ce lieu ("Éviter les 11h-14h. Mercredi = marché de producteurs à 200m")',
-    '- "restaurant" : VRAI restaurant local avec note et avis',
-    '  · {"name":"Vrai Nom","type":"spécialité signature","price":"€|€€|€€€","note":"1 raison d\'y aller","rating":"4,3⭐","review":"témoignage type client"}',
-    '- "wellness" : si spa/lune de miel dans les intérêts, VRAI établissement avec prix. Sinon null.',
-    '  · {"name":"Nom spa réel","type":"type de soin","price":"prix","note":"ambiance"}',
+    '━━━ STANDARDS DE RÉDACTION PREMIUM ━━━',
+    occReminder,
+    '• "desc" : 2-3 phrases narratives (max 45 mots) au ton magazine luxe. SENSATIONS et ATMOSPHÈRE, pas les faits bruts. Évoquer la lumière, les odeurs, l\'émotion du lieu.',
+    '• "moments" : '+nMoments+' moments RÉELS et SPÉCIFIQUES :',
+    '  · Restaurants : nom exact + adresse quartier + spécialité signature + note (ex: "Trattoria Su Cumbidu, via Manno Cagliari — ravioli di pecorino, 4,6⭐")',
+    '  · Excursions : prestataire nommé + contact si possible (ex: "Kayak Cala Goloritzé avec Cooperativa Gorropu — +39 0784 96774")',
+    '  · Sites : heure idéale + conseil pratique précis (ex: "Tharros — arriver à 7h30 avant les cars, côté ouest pour le coucher")',
+    '  · Spas : nom + type de soin + durée + prix (ex: "Terme di Fordongianus — bain thermal romain 45min, 18€")',
+    '  · Format : {t:"heure", k:"icône parmi ['+GEN_KINDS.join(',')+']", ti:"NOM RÉEL", d:"détail local 6 mots max"}',
+    '• "tip" : conseil d\'initié ULTRA-SPÉCIFIQUE à ce lieu et cette saison. Pas un conseil générique. Ex: "Jeudi matin — marché de producteurs à 200m côté porta, légumes et fromages, 7h-12h".',
+    '• "restaurant" : VRAI restaurant, vérifiable en ligne :',
+    '  {name, type:"spécialité signature", price:"€/€€/€€€", note:"1 vraie raison d\'y aller", rating:"4,3⭐", review:"ce que disent les habitués"}',
+    state.dietary ? '  ATTENTION : le restaurant DOIT être compatible avec : '+state.dietary : '',
+    occ==='lune-de-miel' ? '  LUNE DE MIEL : restaurant avec table isolée, ambiance tamisée, vue si possible. Préciser l\'atmosphère romantique.' : '',
+    occ==='famille' ? '  FAMILLE : restaurant avec menu enfant, chaises hautes disponibles, ambiance décontractée.' : '',
+    '• "wellness" : établissement réel si spa/bien-être/lune de miel, sinon null.',
+    '  {name, type:"type de soin", price:"prix", note:"atmosphère", romantic: true/false}',
     '',
     'Réponds UNIQUEMENT en JSON compact valide, EXACTEMENT '+planSteps.length+' entrées dans "days" :',
-    '{"days":[{"desc":"narrative évocatrice","tip":"conseil expert spécifique","restaurant":{"name":"Sa Cardiga e Su Schironi","type":"Anguille du lac grillée","price":"€€","note":"Institution de 70 ans, clientèle locale","rating":"4,4⭐","review":"Authentique, hors des sentiers"},"wellness":null,"moments":[{"t":"07:30","k":"peaks","ti":"Nuraghe Su Nuraxi, Barumini","d":"Arriver tôt, site Unesco désert"}]}]}',
-  ].join('\n');
+    '{"days":[{"desc":"Le soleil frappe le basalte dès 7h. Le marché de Pula s\'éveille dans les odeurs de pecorino frais et de fougasse — une heure ici vaut une journée ailleurs.","tip":"Mercredi matin : marché de producteurs côté église, 7h-12h. Éviter 11h-14h en été.","restaurant":{"name":"Ristorante La Tonnara","type":"Thon rouge local et bottarga","price":"€€","note":"Pêcheurs locaux depuis 1961, clientèle 100% sarde","rating":"4,5⭐","review":"La bottarga maison est introuvable ailleurs dans la région"},"wellness":null,"moments":[{"t":"07:30","k":"camera","ti":"Marché de Pula, piazza Municipio","d":"Fromagers locaux, légumes du jardin"}]}]}',
+  ].filter(Boolean).join('\n');
 }
 
 /* ── Passe 3 : adresses, highlights, budget ─────────────────────────── */
@@ -528,7 +648,7 @@ function buildHighlightsPrompt(skel, days){
   const b=buildBrief();
   const dest=skel.dest||'';
   const interests=(state.interests||[]).join(', ')||'';
-  const directives=[_antiTouristDirective(),_interestsDirective(),_occasionDirective(),_styleDirective(),_dreamDirective()].filter(Boolean);
+  const directives=[_antiTouristDirective(),_occasionDirective(),_interestsDirective(),_fitnessDirective(),_transportDirective(),_accomStyleDirective(),_childrenDirective(),_dietaryDirective(),_alreadyDoneDirective(),_styleDirective(),_dreamDirective()].filter(Boolean);
   const locs=(skel.plan||[]).map(function(p){return p.loc;}).filter(function(v,i,a){return a.indexOf(v)===i;}).join(', ');
   const wantSpa=interests.toLowerCase().includes('spa')||interests.toLowerCase().includes('bien-être')||state.occasion==='lune-de-miel';
   const wantNature=interests.toLowerCase().includes('nature')||interests.toLowerCase().includes('randonn');
@@ -828,7 +948,7 @@ const DAYS_BATCH_SIZE = 7;
 /* ── Mode "Surprenez-moi" : suggestion légère avant génération complète ── */
 function buildDestinationSuggestPrompt(excluded){
   const b=buildBrief();
-  const directives=[_antiTouristDirective(),_interestsDirective(),_rythmeDirective(),_occasionDirective(),_styleDirective(),_dreamDirective()].filter(Boolean);
+  const directives=[_antiTouristDirective(),_occasionDirective(),_interestsDirective(),_rythmeDirective(),_fitnessDirective(),_transportDirective(),_accomStyleDirective(),_childrenDirective(),_dietaryDirective(),_alreadyDoneDirective(),_styleDirective(),_dreamDirective()].filter(Boolean);
   const excludeLine=(excluded&&excluded.length)?('Ne propose AUCUNE des destinations déjà suggérées et refusées : '+excluded.join(', ')+'.'):'';
 
   /* Contrainte de distance selon la durée du séjour */

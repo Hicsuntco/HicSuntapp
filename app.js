@@ -14,6 +14,13 @@ const state = {
   styles:[], interests:[], occasion:null,
   flightOut:'', flightIn:'',
   dream:'',
+  /* ── Nouveaux champs sur-mesure ── */
+  childrenAges:'',      /* ex: "4 et 8 ans" si famille */
+  transport:'Mixte',    /* Voiture de location / Transports en commun / Guidé / Mixte */
+  dietary:'',           /* allergies, régime, préférences alimentaires */
+  alreadyDone:'',       /* expériences déjà faites à éviter */
+  fitnessLevel:'Modéré',/* Sédentaire / Modéré / Sportif / Extrême */
+  accomStyle:'',        /* Charme & caractère / Design & contemporain / Nature & immersion / Peu importe */
   deckIndex:0,
   mapDay:0,
   tab:'discover',

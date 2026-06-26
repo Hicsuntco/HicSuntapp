@@ -91,13 +91,78 @@ function deckQuestions(){
       }).join('') + '</div>';
     }});
 
-  /* Q10 — Rêve (libre, toujours en dernier) */
+  /* Q10 — Transport */
+  q.push({ id:'transport', t:'Comment aimez-vous vous <em>déplacer</em> ?', s:'Nous organisons la logistique en conséquence.',
+    body: function(){
+      const opts = [
+        ['Voiture de location','Liberté totale, haltes spontanées'],
+        ['Transports en commun','Train, bus, local et authentique'],
+        ['Avec un guide','Tout organisé, privé ou en groupe'],
+        ['Mixte','Combiner selon les étapes'],
+      ];
+      return opts.map(function(o){
+        const on = state.transport === o[0];
+        return '<button class="radio-it' + (on?' on':'') + '" onclick="deckRadio(\'transport\',\'' + o[0].replace(/'/g,"\\'") + '\')">'
+          + '<span><span class="ra-t">' + o[0] + '</span><br><span class="ra-d">' + o[1] + '</span></span><span class="ra-dot"></span></button>';
+      }).join('');
+    }, noFoot:true });
+
+  /* Q11 — Style hébergement */
+  q.push({ id:'accomStyle', t:'Quel type d\'<em>hébergement</em> vous ressemble ?', s:'Le cadre de vos nuits est aussi important que vos journées.',
+    body: function(){
+      const opts = [
+        ['Charme & caractère','Maisons d\'hôtes, riads, agriturismi — âme locale garantie'],
+        ['Design & contemporain','Architecture, esthétique, service irréprochable'],
+        ['Nature & immersion','Lodges, tentes de luxe, écolodges, vue directe sur le sauvage'],
+        ['Peu importe','L\'emplacement prime sur le style'],
+      ];
+      return opts.map(function(o){
+        const on = state.accomStyle === o[0];
+        return '<button class="radio-it' + (on?' on':'') + '" onclick="deckRadio(\'accomStyle\',\'' + o[0].replace(/'/g,"\\'") + '\')">'
+          + '<span><span class="ra-t">' + o[0] + '</span><br><span class="ra-d">' + o[1] + '</span></span><span class="ra-dot"></span></button>';
+      }).join('');
+    }, noFoot:true });
+
+  /* Q12 — Forme physique */
+  q.push({ id:'fitnessLevel', t:'Votre <em>forme physique</em> pour ce voyage ?', s:'Pour calibrer les randonnées, visites et rythme de marche.',
+    body: function(){
+      const opts = [
+        ['Sédentaire','Peu ou pas de marche prolongée, accessibilité PMR bienvenue'],
+        ['Modéré','Promenades tranquilles, quelques escaliers — pas de trek'],
+        ['Sportif','Randonnées, vélo, activités physiques — j\'adore ça'],
+        ['Extrême','Expéditions, sommets, défis physiques — plus c\'est dur, mieux c\'est'],
+      ];
+      return opts.map(function(o){
+        const on = state.fitnessLevel === o[0];
+        return '<button class="radio-it' + (on?' on':'') + '" onclick="deckRadio(\'fitnessLevel\',\'' + o[0] + '\')">'
+          + '<span><span class="ra-t">' + o[0] + '</span><br><span class="ra-d">' + o[1] + '</span></span><span class="ra-dot"></span></button>';
+      }).join('');
+    }, noFoot:true });
+
+  /* Q13 — Infos spéciales (enfants, régime, déjà fait) — contextuelle */
+  q.push({ id:'special', t:'Des <em>précisions</em> pour un voyage parfait ?', s:'Facultatif mais précieux — chaque détail compte.',
+    body: function(){
+      const showChildren = state.occasion === 'famille' || state.travelers >= 3;
+      return (showChildren
+        ? '<div class="field"><label>Âge des enfants</label>'
+          + '<input class="input" placeholder="ex : 5 et 9 ans" value="' + esc(state.childrenAges) + '" oninput="state.childrenAges=this.value"></div>'
+        : '')
+        + '<div class="field"><label>Régime alimentaire ou allergies</label>'
+        + '<input class="input" placeholder="ex : végétarien, sans gluten, allergie fruits de mer…" value="' + esc(state.dietary) + '" oninput="state.dietary=this.value"></div>'
+        + '<div class="field"><label>Ce que vous avez déjà fait et ne souhaitez pas revoir</label>'
+        + '<input class="input" placeholder="ex : j\'ai déjà fait Marrakech, pas de circuits en groupe…" value="' + esc(state.alreadyDone) + '" oninput="state.alreadyDone=this.value"></div>';
+    }});
+
+  /* Q14 — Rêve (libre, toujours en dernier) */
   q.push({ id:'dream', surprise:surprise,
-    t: surprise ? 'À <em>éviter</em> absolument ?' : 'Votre voyage de <em>rêve</em> en quelques mots ?',
-    s: surprise ? 'Destinations déjà vues, contraintes, saisons à fuir.' : 'Zone, ambiance, expérience incontournable… le cartographe lit tout.',
+    t: surprise ? 'À <em>éviter</em> absolument ?' : 'Ce voyage, c\'est quoi pour vous ?',
+    s: surprise ? 'Destinations déjà vues, contraintes, saisons à fuir.' : 'Une phrase, une image, une envie — le cartographe lit tout et le met au cœur de l\'itinéraire.',
     body: function(){
       return '<div class="field"><label>' + (surprise ? 'Vos contraintes' : 'Décrivez librement') + '</label>'
-        + '<textarea class="input" rows="4" placeholder="' + (surprise ? 'ex : pas d\'Asie, éviter la haute saison…' : 'ex : criques sans foule dans le sud, un vieux port le matin tôt, une table familiale introuvable en ligne…') + '" oninput="state.dream=this.value">' + esc(state.dream) + '</textarea></div>';
+        + '<textarea class="input" rows="5" placeholder="' + (surprise
+          ? 'ex : pas d\'Asie, éviter la haute saison, on a horreur des visites guidées…'
+          : 'ex : on veut se lever tôt pour avoir les plages pour nous, manger local même dans les petits villages, éviter absolument les buffets d\'hôtel, et trouver au moins un coucher de soleil mémorable…'
+        ) + '" oninput="state.dream=this.value">' + esc(state.dream) + '</textarea></div>';
     },
     footHTML: function(){
       return '<button class="btn gold" onclick="runGeneration()">' + ico('sparkle',18,1.7)
