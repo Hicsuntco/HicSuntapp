@@ -1470,7 +1470,15 @@ async function runFullGeneration(overlayAlreadyOpen){
 
   const minShow=new Promise(function(r){setTimeout(r,2200);});
   let result=null;
-  try{const res=await Promise.all([callCartographe(),minShow]);result=res[0];}catch(e){await minShow;}
+  try{
+    const res=await Promise.all([callCartographe(),minShow]);
+    result=res[0];
+    console.log('[runFullGen] result=',result?'OK plan='+((result.skel&&result.skel.plan)||[]).length+' days='+((result.days&&result.days.days)||[]).length:'NULL');
+  }catch(e){
+    console.error('[runFullGen] exception callCartographe:',e&&e.message||e);
+    toast('Erreur génération: '+String(e&&e.message||e).slice(0,60));
+    await minShow;
+  }
 
   /* Fin réelle — compléter à 100% */
   done = true;
