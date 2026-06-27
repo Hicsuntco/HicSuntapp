@@ -81,15 +81,20 @@ function _sdMatchCity(loc,cities){
 function _sdCityPts(plan,geo){
   var vbParts=(geo.g.vb||'0 0 100 100').split(' ').map(Number);
   var vbW=vbParts[2],vbH=vbParts[3],cities=geo.g.cities||{};
-  var cityVals=Object.values(cities),cxC=vbW/2,cyC=vbH/2;
-  if(cityVals.length){cxC=cityVals.reduce(function(s,c){return s+c[0];},0)/cityVals.length;cyC=cityVals.reduce(function(s,c){return s+c[1];},0)/cityVals.length;}
   var matched=plan.map(function(p){return _sdMatchCity(p.loc||'',cities);});
-  var fbCount=matched.filter(function(m){return !m;}).length,fbIdx=0;
+  var fbTotal=matched.filter(function(m){return !m;}).length;
+  var fbIdx=0;
   return plan.map(function(p,i){
     var m=matched[i];
     if(m)return{vx:m[0],vy:m[1],n:i+1,loc:p.loc};
-    var angle=(fbIdx/Math.max(1,fbCount))*Math.PI*2-Math.PI/2;fbIdx++;
-    return{vx:cxC+Math.cos(angle)*Math.min(vbW,vbH)*0.15,vy:cyC+Math.sin(angle)*Math.min(vbW,vbH)*0.15,n:i+1,loc:p.loc};
+    /* Pas de match — distribuer en ligne dans le tiers central du viewBox */
+    var t=fbTotal>1?(fbIdx/(fbTotal-1)):0.5;
+    fbIdx++;
+    return{
+      vx:vbW*0.15+t*vbW*0.7,
+      vy:vbH*0.35+Math.sin(t*Math.PI)*vbH*0.15,
+      n:i+1,loc:p.loc
+    };
   });
 }
 function geoMapSVG(W,H,activeIdx){
