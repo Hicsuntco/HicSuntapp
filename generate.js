@@ -262,12 +262,13 @@ function _occasionDirective(){
       '* 1 grand dîner de gala ou soirée de groupe.',
       '* Logistique irréprochable  -  transferts ponctuels, pas d\'improvisation.',
     ].join('\n'),
+    'solo': [
+      'VOYAGE EN SOLO : liberté, rencontres, immersion.',
       '* Hébergements favorisant les rencontres (guesthouses avec table d\'hôtes) sans sacrifier la qualité.',
-      '* Activités réalisables seul et sûres : excursions avec guides locaux recommandés, petits groupes.',
+      '* Activités réalisables seul : excursions avec guides locaux recommandés, petits groupes.',
       '* Tips de sécurité spécifiques à la destination intégrés naturellement.',
       '* Moments libres pour flâner : mercados, cafés de quartier, bibliothèques, parcs.',
       '* Signaler quand une activité est difficile seul et proposer l\'alternative solo-friendly.',
-      '==══════════════════',
     ].join('\n'),
   };
   return map[id]||'';
