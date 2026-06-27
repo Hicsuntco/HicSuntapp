@@ -48,13 +48,13 @@ function deckQuestions(){
       }).join('') + '</div>';
     }, footLabel:'Pas d\'occasion particulière' });
 
-  /* Q5b — Sous-question enfants si famille */
+  /* Q5b — Sous-question enfants UNIQUEMENT si famille */
   q.push({ id:'children', t:'Quel âge ont <em>vos enfants</em> ?', s:'Pour adapter chaque activité, restaurant et rythme de journée.',
-    _show: function(){ return state.occasion === 'famille' || state.travelers >= 3; },
+    _show: function(){ return state.occasion === 'famille'; },
     body: function(){
       return '<div class="field"><label>Âge des enfants</label>'
         + '<input class="input" placeholder="ex : 3, 7 et 11 ans" value="' + esc(state.childrenAges) + '" oninput="state.childrenAges=this.value"></div>'
-        + '<div style="font-size:13px;color:var(--sub);margin-top:12px;line-height:1.5">Bébé (0-2 ans), maternelle (3-5 ans), primaire (6-11 ans), ados (12-17 ans) — chaque tranche a ses propres contraintes.</div>';
+        + '<div style="font-size:13px;color:var(--sub);margin-top:12px;line-height:1.5">Bébé (0-2 ans), maternelle (3-5 ans), primaire (6-11 ans), ados (12-17 ans) — chaque tranche a ses contraintes propres.</div>';
     }});
 
   /* Q6 — Budget */
@@ -105,8 +105,12 @@ function deckQuestions(){
       }).join('');
     }, footLabel:'Passer' });
 
-  /* Q9 — Rythme */
+  /* Q9 — Rythme (masqué si l'occasion impose un rythme) */
   q.push({ id:'rythme', t:'Votre <em>rythme</em> idéal ?', s:'Chaque journée sera construite autour de ce tempo.',
+    _show: function(){
+      /* Lune de miel → toujours lent, EVG → toujours dense : inutile de demander */
+      return state.occasion !== 'lune-de-miel' && state.occasion !== 'evg';
+    },
     body: function(){
       const opts = [
         ['Lent','Peu d\'étapes — s\'imprégner, rester, revenir. Le luxe du temps.'],
@@ -136,16 +140,103 @@ function deckQuestions(){
       }).join('');
     }, footLabel:'Passer' });
 
-  /* Q11 — Ce que vous voulez absolument vivre */
+  /* Q11 — Ce que vous voulez absolument vivre (adapté à l'occasion) */
   q.push({ id:'interests', t:'Ce que vous voulez <em>absolument</em> vivre ?', s:'Cochez tout ce qui doit figurer dans votre itinéraire.',
     body: function(){
-      return '<div class="chips">' + INTERESTS.map(function(s){
+      const occ = state.occasion;
+      let list = INTERESTS;
+      if(occ === 'lune-de-miel') list = [
+        'Un coucher de soleil mémorable en tête-à-tête',
+        'Un dîner gastronomique avec vue exceptionnelle',
+        'Un massage en duo dans un spa d\'exception',
+        'Une journée sur un bateau privé',
+        'Une plage déserte rien que pour nous',
+        'Un hébergement avec piscine ou baignoire privée',
+        'Une expérience culinaire locale intime',
+        'Des criques cachées accessibles à la nage',
+        'Une promenade à cheval au coucher du soleil',
+        'Un marché local au lever du soleil',
+        'Des couchers de soleil depuis un belvédère secret',
+        'Un dîner les pieds dans le sable',
+      ];
+      else if(occ === 'evjf') list = [
+        'Un spa privatisé pour le groupe',
+        'Un atelier local (céramique, cocktails, parfum, cuisine)',
+        'Un rooftop ou bar avec vue au coucher du soleil',
+        'Un dîner festif dans un endroit mémorable',
+        'Des lieux photogéniques et authentiques',
+        'Une plage ou piscine avec service',
+        'Un cours de cuisine ou dégustation en groupe',
+        'Une activité outdoor légère (vélo, balade, kayak)',
+        'Un marché coloré à explorer ensemble',
+        'Des spots instagrammables mais pas kitch',
+        'Un hammam ou bain traditionnel',
+        'Une soirée dans un bar à musique live locale',
+      ];
+      else if(occ === 'evg') list = [
+        'Une activité à sensations fortes (quad, karting, surf, parapente)',
+        'Une soirée dans un bar local authentique',
+        'Un repas convivial (BBQ, tablée, street food)',
+        'Un défi sportif en groupe',
+        'Une excursion en 4x4 ou hors des sentiers',
+        'Une activité nautique (jet ski, kayak, plongée)',
+        'Un concert live ou scène locale',
+        'Un accrobranche ou aventure nature',
+        'Une visite de distillerie ou brasserie locale',
+        'Une randonnée avec vue imprenable',
+        'Un karting ou paintball',
+        'Un match ou événement sportif local',
+      ];
+      else if(occ === 'famille') list = [
+        'Une plage calme avec eau peu profonde',
+        'Un parc naturel avec animaux à observer',
+        'Un atelier créatif pour enfants',
+        'Une randonnée accessible avec récompense (vue, cascade)',
+        'Un marché local animé',
+        'Un musée interactif ou écomusée',
+        'Une activité nautique douce (pédalo, kayak de mer)',
+        'Une ferme ou exploitation à visiter',
+        'Un village médiéval ou château à explorer',
+        'Une baignade en rivière ou cascade',
+        'Un spectacle ou animation locale',
+        'Un cours de cuisine familial',
+      ];
+      else if(occ === 'solo') list = [
+        'Un café local pour écrire ou lire le matin',
+        'Une randonnée en solitaire avec vue',
+        'Un cours ou atelier pour rencontrer des gens',
+        'Un marché où acheter et goûter',
+        'Un bar ou restaurant avec comptoir (pour parler aux locaux)',
+        'Un musée ou galerie hors des sentiers',
+        'Une excursion en petit groupe organisée',
+        'Un coucher de soleil dans un endroit secret',
+        'Une journée vélo sur des routes secondaires',
+        'Un temple ou lieu de spiritualité au lever du soleil',
+        'Un bain thermal ou source naturelle',
+        'Une soirée musique live locale',
+      ];
+      else if(occ === 'amis') list = [
+        'Un repas convivial dans un endroit mémorable',
+        'Une randonnée avec pique-nique au sommet',
+        'Un tour en bateau ou excursion en groupe',
+        'Un atelier culinaire ou dégustation ensemble',
+        'Un coucher de soleil depuis un belvédère',
+        'Une activité sportive ou nautique en groupe',
+        'Une soirée bar ou concert live local',
+        'Un marché local à explorer ensemble',
+        'Une plage ou piscine naturelle cachée',
+        'Un village ou quartier à explorer à pied',
+        'Un défi ou jeu collectif (escape game local, rallye)',
+        'Un feu de camp ou barbecue dans la nature',
+      ];
+      return '<div class="chips">' + list.map(function(s){
         return '<button class="chip' + (state.interests.indexOf(s)>=0?' on':'') + '" onclick="deckToggle(\'interests\',\'' + s.replace(/'/g,"\\'") + '\',this)">' + s + '</button>';
       }).join('') + '</div>';
     }});
 
-  /* Q12 — Comment vous voyagez */
+  /* Q12 — Comment vous voyagez (adapté à l'occasion) */
   q.push({ id:'styles', t:'Comment voyagez-<em>vous</em> ?', s:'Votre manière de vivre le voyage — cochez tout ce qui vous ressemble.',
+    _show: function(){ return !state.occasion || ['anniversaire','pro','famille'].indexOf(state.occasion) >= 0 || !state.occasion; },
     body: function(){
       return '<div class="chips">' + TRAVEL_STYLES.map(function(s){
         return '<button class="chip' + (state.styles.indexOf(s)>=0?' on':'') + '" onclick="deckToggle(\'styles\',\'' + s.replace(/'/g,"\\'") + '\',this)">' + s + '</button>';
@@ -161,16 +252,36 @@ function deckQuestions(){
         + '<input class="input" placeholder="j\'ai déjà fait Marrakech, pas de visites guidées en groupe…" value="' + esc(state.alreadyDone) + '" oninput="state.alreadyDone=this.value"></div>';
     }});
 
-  /* Q14 — La phrase qui change tout */
+  /* Q14 — La phrase qui change tout (adaptée à l'occasion) */
+  const occFinal = state.occasion;
+  const dreamTitle = occFinal === 'lune-de-miel' ? 'Décrivez votre idée du voyage <em>parfait</em> à deux.'
+    : occFinal === 'evjf' ? 'Ce que vous voulez que cette EVJF <em>reste dans les mémoires</em>.'
+    : occFinal === 'evg'  ? 'Ce que vous voulez que cet EVG <em>reste dans les mémoires</em>.'
+    : occFinal === 'famille' ? 'Ce que vous voulez que vos enfants <em>n\'oublient jamais</em>.'
+    : occFinal === 'anniversaire' ? 'Quel doit être le <em>moment clé</em> de ce voyage ?'
+    : surprise ? 'Y a-t-il quelque chose à <em>éviter absolument</em> ?'
+    : 'Quelle est la chose que vous voulez qu\'on <em>ne puisse pas faire</em> sans cet itinéraire ?';
+
+  const dreamPH = occFinal === 'lune-de-miel'
+    ? 'ex : on rêve de se réveiller face à la mer, dîner les pieds dans le sable, trouver un endroit où on est vraiment seuls au monde…'
+    : occFinal === 'evjf'
+    ? 'ex : une nuit qu\'on n\'oubliera pas, un endroit tellement beau qu\'on ne pouvait pas y aller sans ça, une chose qu\'aucune de nous n\'a jamais faite…'
+    : occFinal === 'evg'
+    ? 'ex : une activité physiquement dingue, une soirée mémorable, un endroit dont on n\'aurait jamais entendu parler sans vous…'
+    : occFinal === 'famille'
+    ? 'ex : qu\'ils voient des animaux sauvages pour la première fois, qu\'on mange comme des locaux, qu\'ils rentrent en disant c\'était le meilleur voyage de leur vie…'
+    : occFinal === 'anniversaire'
+    ? 'ex : une surprise au dîner, un lieu accessible uniquement à pied, un moment où on réalise qu\'on ne pouvait pas faire ça sans vous…'
+    : surprise
+    ? 'ex : pas d\'Asie du Sud-Est, éviter juillet-août, on déteste les hôtels de chaîne…'
+    : 'ex : on veut se lever avant tout le monde pour avoir les sites pour nous, manger dans des endroits que les touristes ne trouvent pas, trouver au moins une heure seuls face à quelque chose de beau…';
+
   q.push({ id:'dream', surprise:surprise,
-    t: surprise ? 'Y a-t-il quelque chose à <em>éviter absolument</em> ?' : 'Quelle est la chose que vous voulez qu\'on <em>ne puisse pas faire</em> sans cet itinéraire ?',
-    s: surprise ? 'Destinations déjà vues, saisons à fuir, contraintes particulières.' : 'Une phrase suffit. Le cartographe la lit et en fait l\'ADN de votre voyage.',
+    t: dreamTitle,
+    s: 'Une phrase suffit. Le cartographe en fait l\'ADN de votre voyage.',
     body: function(){
       return '<div class="field">'
-        + '<textarea class="input" rows="5" placeholder="' + (surprise
-          ? 'ex : pas d\'Asie du Sud-Est, éviter juillet-août, on déteste les hôtels de chaîne…'
-          : 'ex : on veut se lever avant tout le monde pour avoir les sites pour nous, manger dans des endroits que les touristes ne trouvent pas, et trouver au moins une heure seuls face à quelque chose de beau…'
-        ) + '" oninput="state.dream=this.value">' + esc(state.dream) + '</textarea></div>';
+        + '<textarea class="input" rows="5" placeholder="' + dreamPH + '" oninput="state.dream=this.value">' + esc(state.dream) + '</textarea></div>';
     },
     footHTML: function(){
       return '<button class="btn gold" onclick="runGeneration()">' + ico('sparkle',18,1.7)
@@ -263,12 +374,19 @@ function deckToggle(field, val, el){
 
 function deckOccasion(id){
   state.occasion = state.occasion === id ? null : id;
+  /* Forcer le rythme selon l'occasion */
+  if(state.occasion === 'lune-de-miel') state.rythme = 'Lent';
+  else if(state.occasion === 'evg') state.rythme = 'Dense';
   const card = document.querySelector('#deck .dcard[data-card="' + state.deckIndex + '"]');
   if (card){
     const its = card.querySelectorAll('.occ');
     for (let i = 0; i < its.length; i++) its[i].classList.toggle('on', state.occasion === OCCASIONS[i].id);
   }
+  /* Reconstruire le deck car les questions contextuelles peuvent changer */
   const idxAtClick = state.deckIndex;
+  initDeck();
+  state.deckIndex = idxAtClick;
+  positionDeck();
   if (state.occasion) setTimeout(function(){
     if (state.deckIndex === idxAtClick) deckNext();
   }, 620);
