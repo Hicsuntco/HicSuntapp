@@ -1452,19 +1452,22 @@ async function confirmSuggestedDestination(){
   const s=state._suggested;
   if(!s){ toast('Erreur: pas de destination suggérée'); return; }
   state.destination=s.dest;
-  state.createTab='known'; /* Sortir du mode surprise pour la génération */
+  state.createTab='known';
   state._suggestedTagline=s.tagline||'';
   try{
     const ovEl=document.querySelector('.ov[data-ov="generating"]');
     if(ovEl){
       ovEl.innerHTML = generationView();
       const newGen=ovEl.querySelector('.gen');
-      requestAnimationFrame(function(){requestAnimationFrame(function(){
-        if(newGen) newGen.classList.add('run');
-      });});
-      runFullGeneration(true);
+      requestAnimationFrame(function(){
+        requestAnimationFrame(function(){
+          if(newGen) newGen.classList.add('run');
+          setTimeout(function(){ runFullGeneration(true); }, 100);
+        });
+      });
     } else {
-      runFullGeneration(false);
+      /* Ouvrir un nouvel overlay et attendre qu'il soit dans le DOM */
+      setTimeout(function(){ runFullGeneration(false); }, 50);
     }
   }catch(e){
     toast('Erreur: '+String(e&&e.message||e).slice(0,60));
