@@ -24,32 +24,40 @@ var GEO_SHAPES_SD = {
   '_default':{vb:'0 0 120 120',path:'M60,8 C74,8 86,16 94,28 C102,40 104,56 100,70 C96,84 86,94 74,102 C62,110 46,112 34,106 C22,100 12,88 8,74 C4,60 6,44 14,32 C22,20 34,10 48,8 Z',cities:{}}
 };
 function _geoShapeSD(dest){
-  var d=(dest||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  /* Normaliser : minuscules, sans accents, sans ponctuation */
+  var d=(dest||'').toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-z0-9 ]/g,' ')
+    .replace(/\s+/g,' ').trim();
   var keys=Object.keys(GEO_SHAPES_SD).filter(function(k){return k!=='_default';});
   for(var i=0;i<keys.length;i++){
     var kn=keys[i].normalize('NFD').replace(/[\u0300-\u036f]/g,'');
     if(d.includes(kn))return{key:keys[i],g:GEO_SHAPES_SD[keys[i]]};
   }
   /* Aliases étendus */
+  if(/indonesie|indonésia|bali|lombok|java|sumatra|flores/.test(d))return{key:'bali',g:GEO_SHAPES_SD.bali};
   if(/eolienn|lipari|stromboli|vulcano/.test(d))return{key:'éoliennes',g:GEO_SHAPES_SD['éoliennes']};
   if(/sicil|palerm|catane|agrigente/.test(d))return{key:'sicile',g:GEO_SHAPES_SD.sicile};
   if(/corse|ajaccio|bastia/.test(d))return{key:'corse',g:GEO_SHAPES_SD.corse};
   if(/malte|valette/.test(d))return{key:'malte',g:GEO_SHAPES_SD.malte};
   if(/sri lanka|colombo|kandy|galle/.test(d))return{key:'sri lanka',g:GEO_SHAPES_SD['sri lanka']};
   if(/maldiv|male|atoll/.test(d))return{key:'maldives',g:GEO_SHAPES_SD.maldives};
-  if(/thaïlande|thai|bangkok|phuket|chiang/.test(d))return{key:'thaïlande',g:GEO_SHAPES_SD['thaïlande']};
-  if(/grece|athenes|santorin|mykonos|corfou|rhodes/.test(d))return{key:'grèce',g:GEO_SHAPES_SD['grèce']};
-  if(/japon|tokyo|kyoto|osaka|hiroshima|sapporo/.test(d))return{key:'japon',g:GEO_SHAPES_SD.japon};
-  if(/maroc|marrakech|casablanca|fes|agadir|tanger/.test(d))return{key:'maroc',g:GEO_SHAPES_SD.maroc};
-  if(/espagne|madrid|barcelone|seville|anda|catalogne/.test(d))return{key:'espagne',g:GEO_SHAPES_SD.espagne};
-  if(/italie|rome|milan|florence|naples|toscane|amalfi|pouilles|venise|ombrie/.test(d))return{key:'italie',g:GEO_SHAPES_SD.italie};
-  if(/portugal|lisbonne|porto|algarve|douro/.test(d))return{key:'portugal',g:GEO_SHAPES_SD.portugal};
+  if(/thai|bangkok|phuket|chiang|koh/.test(d))return{key:'thaïlande',g:GEO_SHAPES_SD['thaïlande']};
+  if(/grec|athenes|santorin|mykonos|corfou|rhodes|crete|egee/.test(d))return{key:'grèce',g:GEO_SHAPES_SD['grèce']};
+  if(/japon|tokyo|kyoto|osaka|hiroshima|sapporo|okinawa/.test(d))return{key:'japon',g:GEO_SHAPES_SD.japon};
+  if(/maroc|marrakech|casablanca|fes|agadir|tanger|essaouira/.test(d))return{key:'maroc',g:GEO_SHAPES_SD.maroc};
+  if(/espagne|madrid|barcelone|seville|anda|catalogne|valence|majorque|ibiza/.test(d))return{key:'espagne',g:GEO_SHAPES_SD.espagne};
+  if(/italie|rome|milan|florence|naples|toscane|amalfi|pouilles|venise|ombrie|sardaigne|sicile/.test(d))return{key:'italie',g:GEO_SHAPES_SD.italie};
+  if(/portugal|lisbonne|porto|algarve|douro|madere/.test(d))return{key:'portugal',g:GEO_SHAPES_SD.portugal};
   if(/islande|reykjavik/.test(d))return{key:'islande',g:GEO_SHAPES_SD.islande};
   if(/perou|lima|cusco|machu/.test(d))return{key:'pérou',g:GEO_SHAPES_SD['pérou']};
-  if(/kenya|nairobi|masai|safari/.test(d))return{key:'kenya',g:GEO_SHAPES_SD.kenya};
-  if(/bali|ubud|seminyak|lombok/.test(d))return{key:'bali',g:GEO_SHAPES_SD.bali};
+  if(/kenya|nairobi|masai|safari|mombasa/.test(d))return{key:'kenya',g:GEO_SHAPES_SD.kenya};
   if(/jordanie|amman|petra|wadi/.test(d))return{key:'jordanie',g:GEO_SHAPES_SD.jordanie};
-  if(/sardaigne|cagliari|nuoro|sassari|olbia/.test(d))return{key:'sardaigne',g:GEO_SHAPES_SD.sardaigne};
+  if(/tunisie|tunis|djerba|hammamet|sfax/.test(d))return{key:'_default',g:GEO_SHAPES_SD._default};
+  if(/egypte|caire|louxor|assouan|hurghada/.test(d))return{key:'_default',g:GEO_SHAPES_SD._default};
+  if(/mexique|cancun|oaxaca|mexico|tulum/.test(d))return{key:'_default',g:GEO_SHAPES_SD._default};
+  if(/costa rica|san jose/.test(d))return{key:'_default',g:GEO_SHAPES_SD._default};
+  if(/vietnam|hanoi|saigon|hoi an|halong/.test(d))return{key:'_default',g:GEO_SHAPES_SD._default};
   return{key:'_default',g:GEO_SHAPES_SD._default};
 }
 function _sdMatchCity(loc,cities){
