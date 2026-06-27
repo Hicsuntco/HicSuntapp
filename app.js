@@ -52,6 +52,11 @@ var _GEO = {
   '_default':{vb:'0 0 100 100',path:'M50,8 C64,10 76,20 80,34 C84,48 80,62 76,74 C72,86 64,94 52,98 C40,102 28,98 20,88 C12,78 10,64 12,52 C14,40 16,26 24,18 C32,10 38,6 50,8Z',cities:{}}
 };
 function _geoGet(dest){
+  /* Déléguer à _geoShapeSD de screens-detail.js qui a toutes les shapes */
+  if(typeof _geoShapeSD === 'function'){
+    var r = _geoShapeSD(dest);
+    return r ? r.g : _GEO._default;
+  }
   var d=(dest||'').toLowerCase();
   var keys=Object.keys(_GEO).filter(function(k){return k!=='_default';});
   for(var i=0;i<keys.length;i++){if(d.includes(keys[i]))return _GEO[keys[i]];}
@@ -68,7 +73,7 @@ function _geoGet(dest){
   if(/japon|tokyo|kyoto|osaka/.test(d))return _GEO.japon;
   if(/inde|delhi|jaipur|rajasthan|kerala|goa/.test(d))return _GEO.inde;
   if(/sri lanka|colombo|kandy/.test(d))return _GEO['sri lanka'];
-  if(/bali|lombok|java/.test(d))return _GEO.bali;
+  if(/bali|lombok|java|indonesie|indonesia/.test(d))return _GEO.bali;
   if(/pérou|lima|cusco|machu/.test(d))return _GEO['pérou'];
   if(/mexique|cancún|oaxaca/.test(d))return _GEO.mexique;
   if(/kenya|nairobi|safari/.test(d))return _GEO.kenya;
@@ -77,6 +82,10 @@ function _geoGet(dest){
   return _GEO._default;
 }
 function _geoPts(plan,g){
+  /* Déléguer à _sdCityPts de screens-detail.js si disponible */
+  if(typeof _sdCityPts === 'function' && g && g.vb){
+    return _sdCityPts(plan, {g:g});
+  }
   var vb=g.vb.split(' ').map(Number),vbW=vb[2],vbH=vb[3],cities=g.cities||{};
   var cv=Object.values(cities),cxC=vbW/2,cyC=vbH/2;
   if(cv.length){cxC=cv.reduce(function(s,c){return s+c[0];},0)/cv.length;cyC=cv.reduce(function(s,c){return s+c[1];},0)/cv.length;}
