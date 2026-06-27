@@ -201,50 +201,50 @@ function _occasionDirective(){
   if(!id) return '';
   const map={
     'lune-de-miel':[
-      '╔══ LUNE DE MIEL — CE FILTRE S\'APPLIQUE À CHAQUE DÉCISION DE L\'ITINÉRAIRE ══╗',
+      '== LUNE DE MIEL — CE FILTRE S\'APPLIQUE À CHAQUE DÉCISION DE L\'ITINÉRAIRE ==',
       '• HÉBERGEMENTS : suites ou chambres avec terrasse/vue privative, lit king, bain ou jacuzzi si possible. Structures intimistes (< 12 chambres) pour le sentiment de cocon. Zéro chambre standard face à un parking.',
       '• REPAS : dîners en tête-à-tête uniquement — tables isolées, éclairage tamisé, vue imprenable. Au moins 1 dîner d\'exception (gastronomique, pieds dans le sable, terrasse privée ou expérience unique). Jamais de buffets ou restaurants bruyants le soir.',
       '• MOMENTS ROMANTIQUES OBLIGATOIRES : (1) coucher de soleil structuré — en bateau, sur un toit ou depuis un belvédère secret ; (2) massage en duo avec nom du spa, type de soin et prix précis ; (3) expérience exclusive à deux — bateau privé, pique-nique sur plage déserte, balade à cheval au coucher du soleil.',
       '• RYTHME : jamais de réveil < 7h30. Après-midis libres pour flâner ensemble. Pas de journée "marathon touristique".',
       '• DÉTAILS QUI COMPTENT : pétales de roses à l\'arrivée si disponible, champagne offert, accès piscine privée, service de chambre romantique, notes de bienvenue.',
       '• PROHIBÉ : auberges, hôtels de chaîne sans âme, buffets, activités de groupe bondées, bus locaux.',
-      '╚══════════════════════════════════════════════════════════════════════════════╝',
+      '==════════════════════════════════════════════════════════════════════════════',
     ].join('\n'),
     'anniversaire':[
-      '╔══ ANNIVERSAIRE — CÉLÉBRATION AU CŒUR DE L\'ITINÉRAIRE ══╗',
+      '== ANNIVERSAIRE — CÉLÉBRATION AU CŒUR DE L\'ITINÉRAIRE ==',
       '• MOMENT CLÉ : identifier le jour J (milieu du séjour si non précisé) et le rendre inoubliable — dîner de gala, expérience exclusive, surprise locale.',
       '• Au moins 1 expérience "première fois" : activité jamais tentée, lieu d\'exception, table impossible à trouver seul.',
       '• Hébergements avec valeur ajoutée : vue, standing, service. Mentionner les formules anniversaire disponibles (gâteau, décoration, chambre surclassée).',
       '• 1 gem cachée réservée au jour J : spot secret, chemin non balisé, crique inaccessible normalement.',
       '• Ton : légèreté, plaisir, spontanéité — laisser du vide pour les coups de cœur imprévus.',
-      '╚══════════════════════════════════════════════════════════╝',
+      '==════════════════════════════════════════════════════════',
     ].join('\n'),
     'evjf':[
-      '╔══ EVJF — PROGRAMME ENTRE FILLES ══╗',
+      '== EVJF — PROGRAMME ENTRE FILLES ==',
       '• HÉBERGEMENT : villa avec piscine privée ou grand appartement — espace commun pour soirées de groupe.',
       '• ACTIVITÉS PRIORITAIRES : spa privatisé pour le groupe, cours de cuisine ou atelier local (céramique, cocktails, parfum), sunset rooftop ou bar avec vue, plage/piscine avec service.',
       '• ESTHÉTIQUE : lieux instagrammables mais authentiques — pas de kitch. Couleurs, architecture, lumière favorable.',
       '• 1 dîner festif avec ambiance musicale ou show live.',
       '• Éviter : musées ennuyeux, randonnées épuisantes, hôtels formels. Favoriser mouvement, photos, rire.',
       '• Budget repas : restaurants trendy avec cocktails — intégrer les boissons dans l\'estimation.',
-      '╚═══════════════════════════════════╝',
+      '==═════════════════════════════════',
     ].join('\n'),
     'evg':[
-      '╔══ EVG — ADRÉNALINE ET COHÉSION DE GROUPE ══╗',
+      '== EVG — ADRÉNALINE ET COHÉSION DE GROUPE ==',
       '• ACTIVITÉS : quad, karting, surf, accrobranche, paintball, plongée, parapente, 4x4 — au moins 2 activités physiques intenses.',
       '• 1 soirée mémorable : bar à cocktails locaux, concert live ou sortie nocturne authentique (pas de club à touristes).',
       '• HÉBERGEMENTS : grande villa ou lodge avec espace commun (terrasse, piscine) pour le groupe.',
       '• REPAS : grillades, BBQ, street food de qualité, portions généreuses, au moins 1 tablée conviviale.',
       '• Éviter : gastronomie trop formelle, rythme lent. Chaque jour doit avoir une histoire à raconter.',
-      '╚═══════════════════════════════════════════╝',
+      '==═════════════════════════════════════════',
     ].join('\n'),
     'famille':_childrenDirective()||[
-      '╔══ EN FAMILLE ══╗',
+      '== EN FAMILLE ==',
       '• Hébergements spacieux avec piscine, espaces verts, activités sur place.',
       '• Activités adaptées tous âges : animaux, eau, découvertes sensorielles.',
       '• Rythme doux, horaires souples, restaurants menu enfant.',
       '• Pas de longues randonnées ni de musées sans espace interactif.',
-      '╚════════════════╝',
+      '==══════════════',
     ].join('\n'),
     'amis': [
       'ENTRE AMIS : partage, convivialité, expériences communes.',
@@ -267,7 +267,7 @@ function _occasionDirective(){
       '• Tips de sécurité spécifiques à la destination intégrés naturellement.',
       '• Moments libres pour flâner : mercados, cafés de quartier, bibliothèques, parcs.',
       '• Signaler quand une activité est difficile seul et proposer l\'alternative solo-friendly.',
-      '╚════════════════════╝',
+      '==══════════════════',
     ].join('\n'),
   };
   return map[id]||'';
@@ -547,11 +547,11 @@ function buildSkeletonPrompt(dc, batchSize, offset){
       ? '⚠️ DESTINATION IMPOSÉE : "'+dest+'". "dest" DOIT être "'+dest+'". Absolument aucune autre destination.' : '';
 
     return [
-      '╔═══════════════════════════════════════════════════════════════╗',
+      '═══════════════════════════════════════════════════════════════',
       '║  HIC SUNT · BEYOND THE KNOWN — CARTOGRAPHE SENIOR            ║',
       '║  Standard : directeur d\'une agence de voyage ultra-luxe       ║',
       '║  Exigence : cohérence logistique absolue + authenticité       ║',
-      '╚═══════════════════════════════════════════════════════════════╝',
+      '==═════════════════════════════════════════════════════════════',
       '',
       destLock,
       zoneConstraint ? zoneConstraint+'\n' : '',
