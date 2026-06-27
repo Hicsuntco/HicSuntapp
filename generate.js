@@ -1,4 +1,4 @@
-/* ── HIC SUNT · Sillage — moteur de génération IA ──────────────────────
+/* ── HIC SUNT · Sillage  -  moteur de génération IA ──────────────────────
    Connecté à l'Edge Function Supabase (super-endpoint).
    3 passes : ossature → jours détaillés → adresses & highlights        */
 
@@ -127,9 +127,9 @@ function _occasionLabel(id){
   return o?o.label:null;
 }
 function _antiTouristDirective(){
-  return 'EXIGENCE ÉDITORIALE HIC SUNT (non négociable, prioritaire sur tout le reste) : Hic Sunt signifie "Beyond the Known" — chaque étape doit éviter le circuit touristique de masse. '
-    + 'AUTO-VÉRIFICATION OBLIGATOIRE avant de valider chaque lieu : "Ce nom apparaît-il dans le top 5 des résultats Google Images, TripAdvisor ou Instagram pour cette destination ?" Si oui, c\'est interdit — trouve une alternative réelle et moins connue. '
-    + 'Exemples concrets de ce qui est INTERDIT sauf demande explicite du client : Jardin Majorelle à Marrakech, plage de Patong ou Kata à Phuket, Wat Pho/Wat Arun à Bangkok, Ubud central à Bali, Santorin/Oia, Eiffel/Louvre à Paris — et tout équivalent "carte postale" dans n\'importe quelle destination. '
+  return 'EXIGENCE ÉDITORIALE HIC SUNT (non négociable, prioritaire sur tout le reste) : Hic Sunt signifie "Beyond the Known"  -  chaque étape doit éviter le circuit touristique de masse. '
+    + 'AUTO-VÉRIFICATION OBLIGATOIRE avant de valider chaque lieu : "Ce nom apparaît-il dans le top 5 des résultats Google Images, TripAdvisor ou Instagram pour cette destination ?" Si oui, c\'est interdit  -  trouve une alternative réelle et moins connue. '
+    + 'Exemples concrets de ce qui est INTERDIT sauf demande explicite du client : Jardin Majorelle à Marrakech, plage de Patong ou Kata à Phuket, Wat Pho/Wat Arun à Bangkok, Ubud central à Bali, Santorin/Oia, Eiffel/Louvre à Paris  -  et tout équivalent "carte postale" dans n\'importe quelle destination. '
     + 'Remplace systématiquement par l\'alternative la plus secrète et la moins fréquentée de la même région : une crique voisine au lieu de la plage la plus citée, un marché de quartier au lieu du marché central, un village à 20-40 minutes au lieu de la ville-aimant-à-touristes, un riad/maison d\'hôtes tenu par des locaux au lieu de l\'adresse listée partout, un jardin privé ou une plantation discrète au lieu du jardin botanique le plus visité. '
     + 'Si l\'utilisateur mentionne explicitement vouloir éviter la foule/le tourisme de masse, c\'est une contrainte ABSOLUE : aucune plage/site bondé en haute saison, même célèbre, ne doit apparaître, même en filigrane ou en passage rapide. '
     + 'Les hébergements doivent aussi privilégier des adresses indépendantes et discrètes plutôt que les grandes chaînes archi-connues, sauf si le niveau de confort/style du client l\'exige explicitement.';
@@ -141,18 +141,18 @@ function _momentsPerDay(){ return RYTHME_MOMENTS[state.rythme] || 3; }
 
 function _transportDirective(){
   const t=state.transport||'Selon les étapes';
-  if(t==='Voiture de location') return 'TRANSPORT — Voiture de location : itinéraire 100% réalisable en voiture. Mentionner routes panoramiques, parkings, état des routes.';
-  if(t==='Train & transports locaux') return 'TRANSPORT — Train et bus locaux : étapes connectées par transport public fiable. Préciser les liaisons (ex: "Trenitalia 08:42, 2h15"). Éviter destinations enclavées.';
-  if(t==='Tout organisé') return 'TRANSPORT — Guide privé : transferts en véhicule privé, guides locaux pour chaque journée. Proposer prestataires nommés.';
-  return 'TRANSPORT — Mixte : voiture pour zones rurales, train pour grandes liaisons. Préciser le mode pour chaque transfert.';
+  if(t==='Voiture de location') return 'TRANSPORT  -  Voiture de location : itinéraire 100% réalisable en voiture. Mentionner routes panoramiques, parkings, état des routes.';
+  if(t==='Train & transports locaux') return 'TRANSPORT  -  Train et bus locaux : étapes connectées par transport public fiable. Préciser les liaisons (ex: "Trenitalia 08:42, 2h15"). Éviter destinations enclavées.';
+  if(t==='Tout organisé') return 'TRANSPORT  -  Guide privé : transferts en véhicule privé, guides locaux pour chaque journée. Proposer prestataires nommés.';
+  return 'TRANSPORT  -  Mixte : voiture pour zones rurales, train pour grandes liaisons. Préciser le mode pour chaque transfert.';
 }
 
 function _accomStyleDirective(){
   const a=state.accomStyle||'';
   if(!a||a==='L\'emplacement avant tout') return '';
-  if(a==='Charme & histoire') return 'HÉBERGEMENT — IMPÉRATIF : maisons d\'hôtes, riads, agriturismi, mas, bastides — tenus par des locaux, histoire tangible, aucune chaîne.';
-  if(a==='Design & contemporain') return 'HÉBERGEMENT — IMPÉRATIF : architecture remarquable, design soigné, matériaux nobles, service irréprochable. Boutique-hôtels primés.';
-  if(a==='Nature & immersion') return 'HÉBERGEMENT — IMPÉRATIF : lodges, glamping luxe, écolodges, cabanes — vue directe sur la nature depuis le lit.';
+  if(a==='Charme & histoire') return 'HÉBERGEMENT  -  IMPÉRATIF : maisons d\'hôtes, riads, agriturismi, mas, bastides  -  tenus par des locaux, histoire tangible, aucune chaîne.';
+  if(a==='Design & contemporain') return 'HÉBERGEMENT  -  IMPÉRATIF : architecture remarquable, design soigné, matériaux nobles, service irréprochable. Boutique-hôtels primés.';
+  if(a==='Nature & immersion') return 'HÉBERGEMENT  -  IMPÉRATIF : lodges, glamping luxe, écolodges, cabanes  -  vue directe sur la nature depuis le lit.';
   return '';
 }
 
@@ -160,7 +160,7 @@ function _fitnessDirective(){
   const f=state.fitnessLevel||'Modéré';
   if(f==='Tranquille') return 'MOBILITÉ : zéro randonnée, transports confortables, sites accessibles en véhicule, activités assises.';
   if(f==='Sportif') return 'NIVEAU SPORTIF : randonnées réelles (5-15km, dénivelé), vélo, kayak, outdoor exigeant.';
-  if(f==='Extrême') return 'NIVEAU EXTRÊME : trails techniques, sommets, via ferrata, expéditions — pas de limite physique.';
+  if(f==='Extrême') return 'NIVEAU EXTRÊME : trails techniques, sommets, via ferrata, expéditions  -  pas de limite physique.';
   return 'NIVEAU MODÉRÉ : quelques heures de marche/jour (3-8km), pas de trek exigeant.';
 }
 
@@ -178,7 +178,7 @@ function _childrenDirective(){
   const hasToddler=/\b[0-3]\b/.test(ages);
   const hasPrimaire=/\b[4-9]\b|\b1[0-2]\b/.test(ages);
   const hasAdo=/\b1[3-9]\b/.test(ages);
-  let d='FAMILLE avec enfants (âges : '+ages+') — contraintes absolues :';
+  let d='FAMILLE avec enfants (âges : '+ages+')  -  contraintes absolues :';
   if(hasToddler) d+=' BÉBÉ/TOUT-PETIT : lit bébé obligatoire, transferts < 30min, sieste 13h-15h dans le planning, activités sensorielles (animaux, eau, couleurs), chaises hautes et menu enfant au restaurant.';
   if(hasPrimaire) d+=' ENFANTS PRIMAIRE : activités ludo-éducatives (animaux, ateliers, aventure accessible), piscine essentielle, horaires souples coucher.';
   if(hasAdo) d+=' ADOLESCENTS : activités à sensations (snorkeling, quad, accrobranche), lieux cool, wifi hébergement, pas "bébé".';
@@ -201,72 +201,72 @@ function _occasionDirective(){
   if(!id) return '';
   const map={
     'lune-de-miel':[
-      '== LUNE DE MIEL — CE FILTRE S\'APPLIQUE À CHAQUE DÉCISION DE L\'ITINÉRAIRE ==',
-      '• HÉBERGEMENTS : suites ou chambres avec terrasse/vue privative, lit king, bain ou jacuzzi si possible. Structures intimistes (< 12 chambres) pour le sentiment de cocon. Zéro chambre standard face à un parking.',
-      '• REPAS : dîners en tête-à-tête uniquement — tables isolées, éclairage tamisé, vue imprenable. Au moins 1 dîner d\'exception (gastronomique, pieds dans le sable, terrasse privée ou expérience unique). Jamais de buffets ou restaurants bruyants le soir.',
-      '• MOMENTS ROMANTIQUES OBLIGATOIRES : (1) coucher de soleil structuré — en bateau, sur un toit ou depuis un belvédère secret ; (2) massage en duo avec nom du spa, type de soin et prix précis ; (3) expérience exclusive à deux — bateau privé, pique-nique sur plage déserte, balade à cheval au coucher du soleil.',
-      '• RYTHME : jamais de réveil < 7h30. Après-midis libres pour flâner ensemble. Pas de journée "marathon touristique".',
-      '• DÉTAILS QUI COMPTENT : pétales de roses à l\'arrivée si disponible, champagne offert, accès piscine privée, service de chambre romantique, notes de bienvenue.',
-      '• PROHIBÉ : auberges, hôtels de chaîne sans âme, buffets, activités de groupe bondées, bus locaux.',
+      '== LUNE DE MIEL  -  CE FILTRE S\'APPLIQUE À CHAQUE DÉCISION DE L\'ITINÉRAIRE ==',
+      '* HÉBERGEMENTS : suites ou chambres avec terrasse/vue privative, lit king, bain ou jacuzzi si possible. Structures intimistes (< 12 chambres) pour le sentiment de cocon. Zéro chambre standard face à un parking.',
+      '* REPAS : dîners en tête-à-tête uniquement  -  tables isolées, éclairage tamisé, vue imprenable. Au moins 1 dîner d\'exception (gastronomique, pieds dans le sable, terrasse privée ou expérience unique). Jamais de buffets ou restaurants bruyants le soir.',
+      '* MOMENTS ROMANTIQUES OBLIGATOIRES : (1) coucher de soleil structuré  -  en bateau, sur un toit ou depuis un belvédère secret ; (2) massage en duo avec nom du spa, type de soin et prix précis ; (3) expérience exclusive à deux  -  bateau privé, pique-nique sur plage déserte, balade à cheval au coucher du soleil.',
+      '* RYTHME : jamais de réveil < 7h30. Après-midis libres pour flâner ensemble. Pas de journée "marathon touristique".',
+      '* DÉTAILS QUI COMPTENT : pétales de roses à l\'arrivée si disponible, champagne offert, accès piscine privée, service de chambre romantique, notes de bienvenue.',
+      '* PROHIBÉ : auberges, hôtels de chaîne sans âme, buffets, activités de groupe bondées, bus locaux.',
       '==════════════════════════════════════════════════════════════════════════════',
     ].join('\n'),
     'anniversaire':[
-      '== ANNIVERSAIRE — CÉLÉBRATION AU CŒUR DE L\'ITINÉRAIRE ==',
-      '• MOMENT CLÉ : identifier le jour J (milieu du séjour si non précisé) et le rendre inoubliable — dîner de gala, expérience exclusive, surprise locale.',
-      '• Au moins 1 expérience "première fois" : activité jamais tentée, lieu d\'exception, table impossible à trouver seul.',
-      '• Hébergements avec valeur ajoutée : vue, standing, service. Mentionner les formules anniversaire disponibles (gâteau, décoration, chambre surclassée).',
-      '• 1 gem cachée réservée au jour J : spot secret, chemin non balisé, crique inaccessible normalement.',
-      '• Ton : légèreté, plaisir, spontanéité — laisser du vide pour les coups de cœur imprévus.',
+      '== ANNIVERSAIRE  -  CÉLÉBRATION AU CŒUR DE L\'ITINÉRAIRE ==',
+      '* MOMENT CLÉ : identifier le jour J (milieu du séjour si non précisé) et le rendre inoubliable  -  dîner de gala, expérience exclusive, surprise locale.',
+      '* Au moins 1 expérience "première fois" : activité jamais tentée, lieu d\'exception, table impossible à trouver seul.',
+      '* Hébergements avec valeur ajoutée : vue, standing, service. Mentionner les formules anniversaire disponibles (gâteau, décoration, chambre surclassée).',
+      '* 1 gem cachée réservée au jour J : spot secret, chemin non balisé, crique inaccessible normalement.',
+      '* Ton : légèreté, plaisir, spontanéité  -  laisser du vide pour les coups de cœur imprévus.',
       '==════════════════════════════════════════════════════════',
     ].join('\n'),
     'evjf':[
-      '== EVJF — PROGRAMME ENTRE FILLES ==',
-      '• HÉBERGEMENT : villa avec piscine privée ou grand appartement — espace commun pour soirées de groupe.',
-      '• ACTIVITÉS PRIORITAIRES : spa privatisé pour le groupe, cours de cuisine ou atelier local (céramique, cocktails, parfum), sunset rooftop ou bar avec vue, plage/piscine avec service.',
-      '• ESTHÉTIQUE : lieux instagrammables mais authentiques — pas de kitch. Couleurs, architecture, lumière favorable.',
-      '• 1 dîner festif avec ambiance musicale ou show live.',
-      '• Éviter : musées ennuyeux, randonnées épuisantes, hôtels formels. Favoriser mouvement, photos, rire.',
-      '• Budget repas : restaurants trendy avec cocktails — intégrer les boissons dans l\'estimation.',
+      '== EVJF  -  PROGRAMME ENTRE FILLES ==',
+      '* HÉBERGEMENT : villa avec piscine privée ou grand appartement  -  espace commun pour soirées de groupe.',
+      '* ACTIVITÉS PRIORITAIRES : spa privatisé pour le groupe, cours de cuisine ou atelier local (céramique, cocktails, parfum), sunset rooftop ou bar avec vue, plage/piscine avec service.',
+      '* ESTHÉTIQUE : lieux instagrammables mais authentiques  -  pas de kitch. Couleurs, architecture, lumière favorable.',
+      '* 1 dîner festif avec ambiance musicale ou show live.',
+      '* Éviter : musées ennuyeux, randonnées épuisantes, hôtels formels. Favoriser mouvement, photos, rire.',
+      '* Budget repas : restaurants trendy avec cocktails  -  intégrer les boissons dans l\'estimation.',
       '==═════════════════════════════════',
     ].join('\n'),
     'evg':[
-      '== EVG — ADRÉNALINE ET COHÉSION DE GROUPE ==',
-      '• ACTIVITÉS : quad, karting, surf, accrobranche, paintball, plongée, parapente, 4x4 — au moins 2 activités physiques intenses.',
-      '• 1 soirée mémorable : bar à cocktails locaux, concert live ou sortie nocturne authentique (pas de club à touristes).',
-      '• HÉBERGEMENTS : grande villa ou lodge avec espace commun (terrasse, piscine) pour le groupe.',
-      '• REPAS : grillades, BBQ, street food de qualité, portions généreuses, au moins 1 tablée conviviale.',
-      '• Éviter : gastronomie trop formelle, rythme lent. Chaque jour doit avoir une histoire à raconter.',
+      '== EVG  -  ADRÉNALINE ET COHÉSION DE GROUPE ==',
+      '* ACTIVITÉS : quad, karting, surf, accrobranche, paintball, plongée, parapente, 4x4  -  au moins 2 activités physiques intenses.',
+      '* 1 soirée mémorable : bar à cocktails locaux, concert live ou sortie nocturne authentique (pas de club à touristes).',
+      '* HÉBERGEMENTS : grande villa ou lodge avec espace commun (terrasse, piscine) pour le groupe.',
+      '* REPAS : grillades, BBQ, street food de qualité, portions généreuses, au moins 1 tablée conviviale.',
+      '* Éviter : gastronomie trop formelle, rythme lent. Chaque jour doit avoir une histoire à raconter.',
       '==═════════════════════════════════════════',
     ].join('\n'),
     'famille':_childrenDirective()||[
       '== EN FAMILLE ==',
-      '• Hébergements spacieux avec piscine, espaces verts, activités sur place.',
-      '• Activités adaptées tous âges : animaux, eau, découvertes sensorielles.',
-      '• Rythme doux, horaires souples, restaurants menu enfant.',
-      '• Pas de longues randonnées ni de musées sans espace interactif.',
+      '* Hébergements spacieux avec piscine, espaces verts, activités sur place.',
+      '* Activités adaptées tous âges : animaux, eau, découvertes sensorielles.',
+      '* Rythme doux, horaires souples, restaurants menu enfant.',
+      '* Pas de longues randonnées ni de musées sans espace interactif.',
       '==══════════════',
     ].join('\n'),
     'amis': [
       'ENTRE AMIS : partage, convivialité, expériences communes.',
-      '• Hébergements avec espaces communs (villa, appartement, terrasse partagée).',
-      '• Repas conviviaux : tablées, barbecue, street food de qualité, marchés.',
-      '• Activités en groupe : randonnée, sports nautiques, visite culturelle.',
-      '• 1 soirée mémorable par groupe (bar local avec musique live, restaurant festif).',
-      '• Liberté individuelle possible dans la journée — se retrouver le soir.',
+      '* Hébergements avec espaces communs (villa, appartement, terrasse partagée).',
+      '* Repas conviviaux : tablées, barbecue, street food de qualité, marchés.',
+      '* Activités en groupe : randonnée, sports nautiques, visite culturelle.',
+      '* 1 soirée mémorable par groupe (bar local avec musique live, restaurant festif).',
+      '* Liberté individuelle possible dans la journée  -  se retrouver le soir.',
     ].join('\n'),
     'pro': [
       'VOYAGE PROFESSIONNEL (séminaire/teambuilding/incentive) :',
-      '• Hébergements avec salle de réunion ou espace de travail si séminaire.',
-      '• Pour incentive : expériences premium qui marquent les esprits.',
-      '• Activités teambuilding : atelier culinaire collectif, olympiades locales, défi nature.',
-      '• 1 grand dîner de gala ou soirée de groupe.',
-      '• Logistique irréprochable — transferts ponctuels, pas d\'improvisation.',
+      '* Hébergements avec salle de réunion ou espace de travail si séminaire.',
+      '* Pour incentive : expériences premium qui marquent les esprits.',
+      '* Activités teambuilding : atelier culinaire collectif, olympiades locales, défi nature.',
+      '* 1 grand dîner de gala ou soirée de groupe.',
+      '* Logistique irréprochable  -  transferts ponctuels, pas d\'improvisation.',
     ].join('\n'),
-      '• Hébergements favorisant les rencontres (guesthouses avec table d\'hôtes) sans sacrifier la qualité.',
-      '• Activités réalisables seul et sûres : excursions avec guides locaux recommandés, petits groupes.',
-      '• Tips de sécurité spécifiques à la destination intégrés naturellement.',
-      '• Moments libres pour flâner : mercados, cafés de quartier, bibliothèques, parcs.',
-      '• Signaler quand une activité est difficile seul et proposer l\'alternative solo-friendly.',
+      '* Hébergements favorisant les rencontres (guesthouses avec table d\'hôtes) sans sacrifier la qualité.',
+      '* Activités réalisables seul et sûres : excursions avec guides locaux recommandés, petits groupes.',
+      '* Tips de sécurité spécifiques à la destination intégrés naturellement.',
+      '* Moments libres pour flâner : mercados, cafés de quartier, bibliothèques, parcs.',
+      '* Signaler quand une activité est difficile seul et proposer l\'alternative solo-friendly.',
       '==══════════════════',
     ].join('\n'),
   };
@@ -294,7 +294,7 @@ function _styleDirective(){
   if(lower.includes('photographier')||lower.includes('photo')) notes.push('golden hours, belvédères secrets, sujets photographiques uniques');
   if(lower.includes('une seule chose')) notes.push('rythme ultra-lent, 1 expérience par jour, approfondissement');
   if(lower.includes('limites')||lower.includes('physiques')) notes.push('activités exigeantes, dépassement de soi');
-  return notes.length ? 'MANIÈRE DE VOYAGER — intégrer dans chaque journée : '+notes.join(' · ')+'.' : '';
+  return notes.length ? 'MANIÈRE DE VOYAGER  -  intégrer dans chaque journée : '+notes.join(' · ')+'.' : '';
 }
 
 function _interestsDirective(){
@@ -320,7 +320,7 @@ function _interestsDirective(){
   if(lower.includes('sources thermales')||lower.includes('bains naturels')) notes.push('thermes et sources naturelles avec conditions d\'accès');
   if(lower.includes('nautiques')) notes.push('kayak, voile, paddle, jet-ski avec prestataires');
   if(lower.includes('ateliers artisanaux')) notes.push('ateliers artisans locaux, savoir-faire régionaux');
-  return notes.length ? 'EXPÉRIENCES PRIORITAIRES — au moins 1 par jour : '+notes.join(' · ')+'.' : '';
+  return notes.length ? 'EXPÉRIENCES PRIORITAIRES  -  au moins 1 par jour : '+notes.join(' · ')+'.' : '';
 }
 
 function _dreamDirective(){
@@ -328,7 +328,7 @@ function _dreamDirective(){
   const surprise=state.createTab==='surprise';
   return (surprise
     ? 'CONTRAINTES / À ÉVITER (respecter impérativement) : '
-    : 'ADN DU VOYAGE — ce texte définit l\'âme de tout l\'itinéraire, chaque étape doit y répondre : '
+    : 'ADN DU VOYAGE  -  ce texte définit l\'âme de tout l\'itinéraire, chaque étape doit y répondre : '
   )+state.dream;
 }
 
@@ -367,7 +367,7 @@ const CATEGORY_LABELS={
   food:'Table & saveurs', culture:'Patrimoine', outdoor:'Plein air', transit:'Transfert',
 };
 
-/* ── palettes par pays / région — vraiment distinctes visuellement ────── */
+/* ── palettes par pays / région  -  vraiment distinctes visuellement ────── */
 const THEME_PALETTES={
   /* Tropiques Asie (Thaïlande, Bali, Vietnam…) : vert jungle, corail, or temple */
   tropical:    { hike:'#2D9E6B', beach:'#E87A4A', spa:'#F0C060', food:'#D45A30', culture:'#C4803A', outdoor:'#48B89A', transit:'#7DA898' },
@@ -439,7 +439,7 @@ function _costOfLivingFactor(dest, region, country){
 /* ── fourchettes de prix de vols A/R au départ de Paris, par zone ──────
    Calibré sur des moyennes réelles observées (sources : comparateurs de vols,
    moyennes 2026). Volontairement large car les tarifs varient fortement
-   selon la saison et le délai de réservation — l'objectif est un budget
+   selon la saison et le délai de réservation  -  l'objectif est un budget
    crédible, pas un prix de billet exact. ── */
 const FLIGHT_BANDS={
   court:    [80, 320],   /* Maroc, Italie, Espagne, Portugal, Grèce, Croatie... */
@@ -477,7 +477,7 @@ function buildBrief(){
   const flightsLine=(state.flightOut||state.flightIn)
     ?'Vols : aller '+(state.flightOut||'non renseigné')+' / retour '+(state.flightIn||'non renseigné'):'';
   const lines=[
-    'Destination : '+(state.destination?state.destination:(surprise?'SURPRISE — choisis la destination la plus désirable pour ce profil':'')),
+    'Destination : '+(state.destination?state.destination:(surprise?'SURPRISE  -  choisis la destination la plus désirable pour ce profil':'')),
     'Départ : '+(state.origin||'Paris'),
     datesLine, durationLine,
     'Voyageurs : '+travelerLabel(),
@@ -493,7 +493,7 @@ function buildBrief(){
     state.dietary ? 'Régime / allergies : '+state.dietary : '',
     state.alreadyDone ? 'Déjà fait / à éviter : '+state.alreadyDone : '',
     flightsLine,
-    (surprise?'Contraintes / à éviter : ':'Ce voyage représente : ')+(state.dream||'—'),
+    (surprise?'Contraintes / à éviter : ':'Ce voyage représente : ')+(state.dream||' - '),
   ].filter(Boolean).join('\n');
   return {surprise:surprise, lines:lines, daysCount:daysCount};
 }
@@ -517,7 +517,7 @@ function buildSkeletonPrompt(dc, batchSize, offset){
     geoConstraint,
     zoneConstraint ? zoneConstraint : '',
     '━━━ RÈGLES LOGISTIQUES ABSOLUES (violations = itinéraire invalide) ━━━',
-    '1. TRACÉ LINÉAIRE : chaque étape dans la même direction générale. Visualise la carte — le tracé doit avoir du sens.',
+    '1. TRACÉ LINÉAIRE : chaque étape dans la même direction générale. Visualise la carte  -  le tracé doit avoir du sens.',
     '2. DISTANCES RÉALISTES : max '+maxKm+'km entre deux étapes consécutives (rythme '+rythme+'). Mentionner le trajet si > 45min.',
     '3. JOURS DE TRANSFERT : si le trajet excède 2h, dédier ce jour au trajet + arrivée. Ne pas charger un jour de transfert avec des activités.',
     '4. FERRIES/BATEAUX : toujours planifier aller ET retour avec dates précises. Jamais quitter le continent pour une île sans prévoir le retour dans le plan.',
@@ -548,7 +548,7 @@ function buildSkeletonPrompt(dc, batchSize, offset){
 
     return [
       '═══════════════════════════════════════════════════════════════',
-      '║  HIC SUNT · BEYOND THE KNOWN — CARTOGRAPHE SENIOR            ║',
+      '║  HIC SUNT · BEYOND THE KNOWN  -  CARTOGRAPHE SENIOR            ║',
       '║  Standard : directeur d\'une agence de voyage ultra-luxe       ║',
       '║  Exigence : cohérence logistique absolue + authenticité       ║',
       '==═════════════════════════════════════════════════════════════',
@@ -562,28 +562,28 @@ function buildSkeletonPrompt(dc, batchSize, offset){
       compact2.length?compact2.join(' | '):'Confort, découvertes authentiques.',
       '',
       '━━━ PHILOSOPHIE ÉDITORIALE ━━━',
-      '• NOMS RÉELS : restaurants, guides, excursions — décris-les précisément. Pour les HÉBERGEMENTS, propose un nom plausible et le bon standing : ils seront ensuite remplacés par de vrais établissements vérifiés.',
-      '• STANDING HÉBERGEMENTS : toujours indiquer la classification (Relais & Châteaux / 5⭐ / Boutique 4⭐ / Agriturismo bio / Maison d\'hôtes charme).',
-      '• RESTAURANTS : nom exact + quartier + spécialité signature + fourchette de prix + note Google si connue.',
-      '• EXCURSIONS : nom du prestataire ou du guide local + contact si disponible.',
-      '• ANCRAGE LOCAL : familles, producteurs, artisans. "Trattoria tenue par la même famille depuis 1974."',
-      '• HORAIRES PRATIQUES : meilleur moment, réservation conseillée, à éviter si surpeuplé.',
-      '• ANTI-TOURISTIQUE : pas de spots Instagram saturés. Penser comme un habitant cultivé, pas comme un guide Lonely Planet.',
-      '• LOGISTIQUE RÉALISTE : si le trajet d\'un jour dépasse 2h, c\'est un jour de route — pas de visite intensive ce jour-là.',
+      '* NOMS RÉELS : restaurants, guides, excursions  -  décris-les précisément. Pour les HÉBERGEMENTS, propose un nom plausible et le bon standing : ils seront ensuite remplacés par de vrais établissements vérifiés.',
+      '* STANDING HÉBERGEMENTS : toujours indiquer la classification (Relais & Châteaux / 5⭐ / Boutique 4⭐ / Agriturismo bio / Maison d\'hôtes charme).',
+      '* RESTAURANTS : nom exact + quartier + spécialité signature + fourchette de prix + note Google si connue.',
+      '* EXCURSIONS : nom du prestataire ou du guide local + contact si disponible.',
+      '* ANCRAGE LOCAL : familles, producteurs, artisans. "Trattoria tenue par la même famille depuis 1974."',
+      '* HORAIRES PRATIQUES : meilleur moment, réservation conseillée, à éviter si surpeuplé.',
+      '* ANTI-TOURISTIQUE : pas de spots Instagram saturés. Penser comme un habitant cultivé, pas comme un guide Lonely Planet.',
+      '* LOGISTIQUE RÉALISTE : si le trajet d\'un jour dépasse 2h, c\'est un jour de route  -  pas de visite intensive ce jour-là.',
       '',
       '━━━ CONSIGNES STRICTES ━━━',
       common.join('\n'),
       '',
-      '• "plan" : EXACTEMENT '+n+' entrées numérotées (jours 1→'+n+' sur '+dc+').',
-      '• "stays" : couvre les '+dc+' JOURS complets. Max '+Math.min(5,Math.max(1,Math.ceil(dc/4)))+' hébergements (1 par zone géographique distincte > 30km).',
-      '• Hébergement J1 = lieu d\'arrivée (aéroport proche). Dernier hébergement = près de l\'aéroport de départ.',
-      '• Prix hébergements RÉALISTES et DISTINCTS par type :',
+      '* "plan" : EXACTEMENT '+n+' entrées numérotées (jours 1→'+n+' sur '+dc+').',
+      '* "stays" : couvre les '+dc+' JOURS complets. Max '+Math.min(5,Math.max(1,Math.ceil(dc/4)))+' hébergements (1 par zone géographique distincte > 30km).',
+      '* Hébergement J1 = lieu d\'arrivée (aéroport proche). Dernier hébergement = près de l\'aéroport de départ.',
+      '* Prix hébergements RÉALISTES et DISTINCTS par type :',
       '  Sardaigne/Corse: agriturismo 65-95€ · boutique 95-145€ · resort 140-210€ · villa/charme 190-380€',
       '  Thaïlande: guesthouse 35-75€ · boutique-hôtel 75-135€ · resort plage 110-200€ · villa privée 180-400€',
       '  Maroc: maison d\'hôtes 55-95€ · riad médina 90-160€ · camp désert 130-230€ · resort Atlas 150-280€',
       '  Japon: ryokan 120-280€ · business hotel 80-130€ · boutique 100-200€',
       '  Ajuster × colFactor selon la destination',
-      '• Budget TOTAL réaliste pour '+dc+' jours × TOUS voyageurs (héberg+repas+activités+transport local, hors vols) :',
+      '* Budget TOTAL réaliste pour '+dc+' jours × TOUS voyageurs (héberg+repas+activités+transport local, hors vols) :',
       '  Éco 60-90€/pers/j · Confort 110-190€/pers/j · Luxe 220-450€/pers/j · Ultra 450€+/pers/j',
       '',
       '━━━ AUTO-VALIDATION AVANT DE RÉPONDRE ━━━',
@@ -598,18 +598,18 @@ function buildSkeletonPrompt(dc, batchSize, offset){
       destLock?'Rappel final : dest = "'+dest+'" sans exception.':'',
       '',
       'SCHÉMA (utilise des vraies données à la place des exemples) :',
-      '{"dest":"Sardaigne","country":"Italie","tagline":"Criques secrètes et maquis odorant sous le soleil d\'août","level":"Confort","dates":"14-22 août 2026 · '+dc+' jours","days_count":'+dc+',"budget":'+Math.round(dc*140*2)+',"season":"Août chaud, idéal mer — éviter mi-août pour Cagliari","coords":"39°13\'N · 9°07\'E","region":"Sardaigne","stays":['
+      '{"dest":"Sardaigne","country":"Italie","tagline":"Criques secrètes et maquis odorant sous le soleil d\'août","level":"Confort","dates":"14-22 août 2026 · '+dc+' jours","days_count":'+dc+',"budget":'+Math.round(dc*140*2)+',"season":"Août chaud, idéal mer  -  éviter mi-août pour Cagliari","coords":"39°13\'N · 9°07\'E","region":"Sardaigne","stays":['
       +'{"name":"Agriturismo Mandra Edera","type":"Agriturismo bio · charme","loc":"Chia / Extrême Sud","price":88,"nights":4,"blurb":"Crique privée à 800m, production fromagère, couchers de soleil sur l\'archipel"},'
-      +'{"name":"Su Gologone","type":"Relais & Châteaux · 4⭐","loc":"Oliena / Nuoro — centre","price":148,"nights":4,"blurb":"Source naturelle, jardins secrets, cuisine barbaricina authentique"}],'
-      +'"plan":[{"title":"Arrivée Cagliari — premiers pas dans le sud sauvage","loc":"Cagliari / Aéroport","night":"Agriturismo Mandra Edera","sky":"sun","temp":"29°","hook":"45min de route depuis l\'aéroport : la Sardaigne commence au premier virage côtier."}]}',
+      +'{"name":"Su Gologone","type":"Relais & Châteaux · 4⭐","loc":"Oliena / Nuoro  -  centre","price":148,"nights":4,"blurb":"Source naturelle, jardins secrets, cuisine barbaricina authentique"}],'
+      +'"plan":[{"title":"Arrivée Cagliari  -  premiers pas dans le sud sauvage","loc":"Cagliari / Aéroport","night":"Agriturismo Mandra Edera","sky":"sun","temp":"29°","hook":"45min de route depuis l\'aéroport : la Sardaigne commence au premier virage côtier."}]}',
     ].filter(Boolean).join('\n');
   }
 
-  /* Batches suivants — contexte complet */
-  const staysList=(state._genStays||[]).map(function(s){return '"'+s.name+'" ('+s.type+', '+s.loc+') — '+s.nights+' nuits';}).join('\n');
+  /* Batches suivants  -  contexte complet */
+  const staysList=(state._genStays||[]).map(function(s){return '"'+s.name+'" ('+s.type+', '+s.loc+')  -  '+s.nights+' nuits';}).join('\n');
   const lastSteps=(state._genLastSteps||[]).slice(-2).map(function(p){return p.n+'. '+p.loc+' ('+p.title+')';}).join(' → ');
   return [
-    'HIC SUNT — SUITE itinéraire '+dest+', '+dc+'j. Jours '+(offset+1)+'→'+(offset+n)+'.',
+    'HIC SUNT  -  SUITE itinéraire '+dest+', '+dc+'j. Jours '+(offset+1)+'→'+(offset+n)+'.',
     'MÊMES EXIGENCES : noms réels, logistique rigoureuse, ancrage local.',
     '',
     '━━━ BRIEF CLIENT ━━━',
@@ -621,9 +621,9 @@ function buildSkeletonPrompt(dc, batchSize, offset){
     staysList,
     '',
     common.join('\n'),
-    '• EXACTEMENT '+n+' entrées : jours '+(offset+1)+'→'+(offset+n)+'.',
-    '• Continuer géographiquement depuis la dernière étape.',
-    '• Vérifier : trajet réaliste ? ferry retour prévu ? nuits cohérentes ?',
+    '* EXACTEMENT '+n+' entrées : jours '+(offset+1)+'→'+(offset+n)+'.',
+    '* Continuer géographiquement depuis la dernière étape.',
+    '* Vérifier : trajet réaliste ? ferry retour prévu ? nuits cohérentes ?',
     '',
     '{"plan":[{"title":"","loc":"ville précise","night":"nom exact stays","sky":"sun","temp":"26°","hook":"phrase évocatrice 10 mots max"}]}',
   ].join('\n');
@@ -635,14 +635,14 @@ function buildDaysPrompt(skel, planSteps, offset){
   const nMoments=_momentsPerDay();
   const occ=state.occasion;
 
-  /* Directives compactes — une ligne par contrainte max */
+  /* Directives compactes  -  une ligne par contrainte max */
   const compact=[];
   if(occ==='lune-de-miel') compact.push('LUNE DE MIEL: suites/terrasse privée, dîners isolés éclairage tamisé, 1 massage duo nommé, 1 coucher soleil planifié, jamais buffet ni groupe.');
   else if(occ==='famille')  compact.push('FAMILLE (enfants: '+(state.childrenAges||'?')+'): marche<3km, visites<1h30, menu enfant, piscine hébergement, pas de musées sans espace interactif.');
   else if(occ==='evjf')     compact.push('EVJF: spa privatisé, rooftop/cocktails, lieux instagrammables, 1 dîner festif.');
   else if(occ==='evg')      compact.push('EVG: 2 activités sportives intenses, 1 soirée locale authentique, BBQ/tablée conviviale.');
   else if(occ==='anniversaire') compact.push('ANNIVERSAIRE: 1 moment exceptionnel jour J, gem caché, formule anniversaire si dispo.');
-  if(state.dietary)         compact.push('RÉGIME/ALLERGIE: '+state.dietary+' — vérifier chaque restaurant.');
+  if(state.dietary)         compact.push('RÉGIME/ALLERGIE: '+state.dietary+'  -  vérifier chaque restaurant.');
   if(state.alreadyDone)     compact.push('DÉJÀ FAIT/ÉVITER: '+state.alreadyDone);
   if(state.transport&&state.transport!=='Mixte') compact.push('TRANSPORT: '+state.transport+'.');
   if(state.accomStyle&&state.accomStyle!=='Peu importe') compact.push('HÉBERGEMENT: '+state.accomStyle+'.');
@@ -650,13 +650,13 @@ function buildDaysPrompt(skel, planSteps, offset){
   const styles=(state.styles||[]);
   if(styles.length) compact.push('STYLE: '+styles.join(', ')+'.');
   const interests=(state.interests||[]);
-  if(interests.length) compact.push('INTÉRÊTS: '+interests.join(', ')+' — au moins 1 par jour.');
+  if(interests.length) compact.push('INTÉRÊTS: '+interests.join(', ')+'  -  au moins 1 par jour.');
   if(state.dream) compact.push('ADN DU VOYAGE: '+state.dream.slice(0,120));
 
-  const steps=planSteps.map(function(p,i){return (offset+i+1)+'. '+p.title+' — '+p.loc+(p.hook?' ('+p.hook+')':'');}).join('\n');
+  const steps=planSteps.map(function(p,i){return (offset+i+1)+'. '+p.title+'  -  '+p.loc+(p.hook?' ('+p.hook+')':'');}).join('\n');
 
   return [
-    'HIC SUNT · CARTOGRAPHE — détail jours '+skel.dest+', jours '+(offset+1)+'→'+(offset+planSteps.length),
+    'HIC SUNT · CARTOGRAPHE  -  détail jours '+skel.dest+', jours '+(offset+1)+'→'+(offset+planSteps.length),
     'Standard Condé Nast. Noms RÉELS et vérifiables. JSON UNIQUEMENT.',
     '',
     'BRIEF: '+b.lines.replace(/\n/g,' | '),
@@ -665,14 +665,14 @@ function buildDaysPrompt(skel, planSteps, offset){
     'ÉTAPES:\n'+steps,
     '',
     'RÈGLES:',
-    '• Géo stricte: chaque lieu dans la zone de l\'étape (<15km). Sur île: sur cette île uniquement.',
-    '• desc: 2 phrases évocatrices max 40 mots (sensations, lumière, atmosphère).',
-    '• moments: '+nMoments+' items réels — {t:"HH:MM",k:"['+GEN_KINDS.slice(0,8).join('|')+']",ti:"NOM RÉEL",d:"détail 6 mots"}',
-    '• tip: conseil initié ultra-spécifique (heure, jour, lieu exact).',
-    '• restaurant: {name,type,price:"€/€€/€€€",note,rating:"4,x⭐",review}',
-    '• wellness: null ou {name,type,price,note} si spa/lune de miel.',
+    '* Géo stricte: chaque lieu dans la zone de l\'étape (<15km). Sur île: sur cette île uniquement.',
+    '* desc: 2 phrases évocatrices max 40 mots (sensations, lumière, atmosphère).',
+    '* moments: '+nMoments+' items réels  -  {t:"HH:MM",k:"['+GEN_KINDS.slice(0,8).join('|')+']",ti:"NOM RÉEL",d:"détail 6 mots"}',
+    '* tip: conseil initié ultra-spécifique (heure, jour, lieu exact).',
+    '* restaurant: {name,type,price:"€/€€/€€€",note,rating:"4,x⭐",review}',
+    '* wellness: null ou {name,type,price,note} si spa/lune de miel.',
     '',
-    'JSON EXACT — '+planSteps.length+' entrées dans "days":',
+    'JSON EXACT  -  '+planSteps.length+' entrées dans "days":',
     '{"days":[{"desc":"","tip":"","restaurant":{"name":"","type":"","price":"€€","note":"","rating":"","review":""},"wellness":null,"moments":[{"t":"","k":"","ti":"","d":""}]}]}',
   ].filter(Boolean).join('\n');
 }
@@ -705,7 +705,7 @@ function buildHighlightsPrompt(skel, days){
     ',"restaurants":'+
     (wantFood?'[{"name":"vrai nom resto","loc":"ville","type":"spécialité","price":"fourchette","note":"pourquoi y aller"}]':'[]')+
     '},"essentials":{"transport":["conseil vols","conseil transport local"],"visa":"info visa ressortissants français","bestTime":"'+
-    (skel.season||'à définir')+' — raison courte","toKnow":["info pratique 1","info culturelle 2","info sécurité 3"]},"budget_note":"fourchette totale par personne hors vols"}',
+    (skel.season||'à définir')+'  -  raison courte","toKnow":["info pratique 1","info culturelle 2","info sécurité 3"]},"budget_note":"fourchette totale par personne hors vols"}',
   ].filter(Boolean).join('\n');
 }
 
@@ -739,7 +739,7 @@ async function _callSupabase(prompt){
   if(!res.ok){
     const body=await res.text().catch(function(){return '';});
     console.error('[_callSupabase] HTTP',res.status,body.slice(0,200));
-    throw new Error('HTTP '+res.status+' — '+body.slice(0,80));
+    throw new Error('HTTP '+res.status+'  -  '+body.slice(0,80));
   }
   const data=await res.json();
   if(data.error) throw new Error(data.error);
@@ -826,8 +826,8 @@ function applyGenerated(skel, daysDetail, hilites, flightInfo){
   const detailDays=(daysDetail&&Array.isArray(daysDetail.days))?daysDetail.days:[];
   const plan=(Array.isArray(skel.plan)?skel.plan:[]).map(function(p,i){
     const dd=detailDays[i]||{};
-    const rawMoments=Array.isArray(dd.moments)&&dd.moments.length?dd.moments:[{t:'—',k:_momentIcon(p.title),ti:p.title||'Étape',d:''}];
-    const moments=rawMoments.slice(0,_momentsPerDay()).map(function(m){return [m.t||'—',_kind(m.k||_momentIcon(m.ti)),m.ti||'Moment',m.d||''];});
+    const rawMoments=Array.isArray(dd.moments)&&dd.moments.length?dd.moments:[{t:' - ',k:_momentIcon(p.title),ti:p.title||'Étape',d:''}];
+    const moments=rawMoments.slice(0,_momentsPerDay()).map(function(m){return [m.t||' - ',_kind(m.k||_momentIcon(m.ti)),m.ti||'Moment',m.d||''];});
     const tags=[];
     moments.forEach(function(m){if(tags.length<2&&!tags.some(function(t){return t[0]===m[1];}))tags.push(TAG_MAP[m[1]]||TAG_MAP.pin);});
     while(tags.length<2) tags.push(TAG_MAP.pin);
@@ -854,7 +854,7 @@ function applyGenerated(skel, daysDetail, hilites, flightInfo){
   });
   if(!plan.length) return false;
 
-  /* budget — calibré sur le niveau de confort, la durée et le nb de voyageurs */
+  /* budget  -  calibré sur le niveau de confort, la durée et le nb de voyageurs */
   const PPD_RANGE={'Éco':[60,100],'Confort':[120,220],'Luxe':[250,500],'Ultra':[500,900]};
   const ppd=PPD_RANGE[level]||PPD_RANGE['Confort'];
   const travelers=_clampInt(state.travelers,1,12,2);
@@ -943,7 +943,7 @@ function deriveBudget(stays, total, dest, region, country, travelers, flightInfo
 
   /* plancher réaliste de restauration : ~30€/jour/pers en demi-pension en zone
      "Europe de l'Ouest" (colFactor=1), ajusté au coût de vie réel de la destination.
-     C'est un MINIMUM absolu, pas une estimation — en dessous, le budget affiché
+     C'est un MINIMUM absolu, pas une estimation  -  en dessous, le budget affiché
      serait simplement faux (ex: 107€ pour une semaine en Sardaigne est intenable). */
   const FOOD_PER_DAY_PER_PERSON=30;
   const foodFloor=Math.round(FOOD_PER_DAY_PER_PERSON*colFactor*travelers*days);
@@ -955,8 +955,8 @@ function deriveBudget(stays, total, dest, region, country, travelers, flightInfo
   const accom=Math.min(stayCost, Math.round(total*0.55));
   const remainder=total-accom;
   /* vols = prix issu d'une recherche web fraîche si disponible et plausible (et
-     numériquement valide — on se méfie d'une réponse IA mal formée),
-     sinon fourchette statique par zone — plafonné à ce que le budget restant peut absorber */
+     numériquement valide  -  on se méfie d'une réponse IA mal formée),
+     sinon fourchette statique par zone  -  plafonné à ce que le budget restant peut absorber */
   const flightAmountNum=flightInfo?Number(flightInfo.amount):NaN;
   const hasRealFlight=isFinite(flightAmountNum)&&flightAmountNum>0&&flightAmountNum<20000;
   const flightsRaw=hasRealFlight?flightAmountNum:(Number(_flightEstimate(dest, region, country, travelers))||0);
@@ -1002,53 +1002,53 @@ function buildDestinationSuggestPrompt(excluded){
   const occ = state.occasion;
   const occasionDest = {
     'evjf': [
-      'OCCASION — EVJF : la destination DOIT offrir impérativement :',
-      '• Une scène de bien-être (spas, hammams, soins privatisables pour le groupe)',
-      '• Une vie nocturne ou des terrasses/rooftops de qualité (couchers de soleil mémorables)',
-      '• Des lieux photogéniques authentiques (architecture, nature, marchés colorés)',
-      '• Des ateliers locaux (céramique, cocktails, cuisine, parfum)',
-      '• Des restaurants festifs avec ambiance',
+      'OCCASION  -  EVJF : la destination DOIT offrir impérativement :',
+      '* Une scène de bien-être (spas, hammams, soins privatisables pour le groupe)',
+      '* Une vie nocturne ou des terrasses/rooftops de qualité (couchers de soleil mémorables)',
+      '* Des lieux photogéniques authentiques (architecture, nature, marchés colorés)',
+      '* Des ateliers locaux (céramique, cocktails, cuisine, parfum)',
+      '* Des restaurants festifs avec ambiance',
       'DESTINATIONS IDÉALES EVJF : Marrakech, Lisbonne, Porto, Séville, Barcelone, Valence, Côte d\'Azur, îles grecques (Santorin, Mykonos), Ibiza hors saison, Dubrovnik, Istanbul, Bali.',
       'ÉVITER : destinations sans vie sociale, zones trop isolées, destinations à fort jet-lag pour un court séjour.',
     ].join('\n'),
     'evg': [
-      'OCCASION — EVG : la destination DOIT offrir impérativement :',
-      '• Des activités sportives et à sensations (surf, quad, karting, paintball, accrobranche, jet ski)',
-      '• Une vie nocturne authentique (bars locaux, concerts, soirées)',
-      '• Des options de restauration conviviales (grillades, street food premium)',
-      '• Des espaces pour le groupe (villas, terrasses)',
+      'OCCASION  -  EVG : la destination DOIT offrir impérativement :',
+      '* Des activités sportives et à sensations (surf, quad, karting, paintball, accrobranche, jet ski)',
+      '* Une vie nocturne authentique (bars locaux, concerts, soirées)',
+      '* Des options de restauration conviviales (grillades, street food premium)',
+      '* Des espaces pour le groupe (villas, terrasses)',
       'DESTINATIONS IDÉALES EVG : Lisbonne, Porto, Madrid, Barcelone, Budapest, Prague, Riga, Tallinn, Marrakech, Agadir, îles Canaries, Lagos (Portugal), Algarve, Malte.',
       'ÉVITER : destinations trop luxe/calmes sans activités physiques, zones rurales sans vie sociale.',
     ].join('\n'),
     'lune-de-miel': [
-      'OCCASION — LUNE DE MIEL : la destination DOIT offrir :',
-      '• Des hôtels avec suites ou villas privées (piscine privée, terrasse, vue mer ou nature)',
-      '• Une scène gastronomique de qualité avec dîners romantiques',
-      '• Des paysages à couper le souffle (couchers de soleil, nature préservée)',
-      '• Une atmosphère intime et hors des sentiers touristiques de masse',
+      'OCCASION  -  LUNE DE MIEL : la destination DOIT offrir :',
+      '* Des hôtels avec suites ou villas privées (piscine privée, terrasse, vue mer ou nature)',
+      '* Une scène gastronomique de qualité avec dîners romantiques',
+      '* Des paysages à couper le souffle (couchers de soleil, nature préservée)',
+      '* Une atmosphère intime et hors des sentiers touristiques de masse',
       'DESTINATIONS IDÉALES LUNE DE MIEL : Maldives, Bora Bora, Seychelles, Bali, Sri Lanka, Santorin (hors saison), Côte Amalfitaine, Sicile sud, Madère, Jordanie (Pétra+Wadi Rum), îles Éoliennes, Lanzarote.',
     ].join('\n'),
     'famille': [
-      'OCCASION — EN FAMILLE : la destination DOIT offrir :',
-      '• Sécurité et accessibilité (hôpitaux, routes correctes, eau potable)',
-      '• Des activités pour tous les âges (plage, animaux, aventure douce)',
-      '• Des hébergements spacieux avec piscine et espace enfants',
-      '• Une gastronomie accessible aux enfants',
+      'OCCASION  -  EN FAMILLE : la destination DOIT offrir :',
+      '* Sécurité et accessibilité (hôpitaux, routes correctes, eau potable)',
+      '* Des activités pour tous les âges (plage, animaux, aventure douce)',
+      '* Des hébergements spacieux avec piscine et espace enfants',
+      '* Une gastronomie accessible aux enfants',
       'DESTINATIONS IDÉALES FAMILLE : Portugal (Algarve), Grèce (Rhodes, Crète), Îles Canaries, Sicile, Sardaigne, Costa Rica, Thaïlande (Chiang Mai + plages), Maroc (Marrakech + Essaouira), Jordanie, Maurice.',
     ].join('\n'),
     'anniversaire': [
-      'OCCASION — ANNIVERSAIRE : destination qui offre une expérience mémorable et unique :',
-      '• Un lieu d\'exception rarement visité (destination "wow")',
-      '• Au moins une expérience hors du commun possible (safari, trekking, plongée, temple isolé)',
-      '• Une gastronomie marquante',
+      'OCCASION  -  ANNIVERSAIRE : destination qui offre une expérience mémorable et unique :',
+      '* Un lieu d\'exception rarement visité (destination "wow")',
+      '* Au moins une expérience hors du commun possible (safari, trekking, plongée, temple isolé)',
+      '* Une gastronomie marquante',
       'DESTINATIONS IDÉALES ANNIVERSAIRE : Kenya (safari), Islande, Pérou (Machu Picchu), Japon, Éthiopie, Oman, Géorgie, Albanie côtière, îles Féroé.',
     ].join('\n'),
     'solo': [
-      'OCCASION — VOYAGE SOLO : destination sûre et propice aux rencontres :',
-      '• Infrastructure touristique développée (transports, hébergements variés)',
-      '• Culture locale riche et habitants accueillants',
-      '• Communauté de voyageurs solo présente',
-      '• Sécurité correcte (éviter zones à risque)',
+      'OCCASION  -  VOYAGE SOLO : destination sûre et propice aux rencontres :',
+      '* Infrastructure touristique développée (transports, hébergements variés)',
+      '* Culture locale riche et habitants accueillants',
+      '* Communauté de voyageurs solo présente',
+      '* Sécurité correcte (éviter zones à risque)',
       'DESTINATIONS IDÉALES SOLO : Japon, Portugal, Thaïlande, Géorgie, Vietnam, Colombie (Medellin+Cartagena), Maroc, Islande, Nouvelle-Zélande.',
     ].join('\n'),
   };
@@ -1080,9 +1080,9 @@ function buildDestinationSuggestPrompt(excluded){
     compact.length ? ('Préférences: '+compact.join(' | ')) : '',
     '',
     occ && occasionDest[occ] ? ('═══ CRITÈRES DESTINATION SELON L\'OCCASION ═══\n'+occasionDest[occ]+'\n') : '',
-    distConstraint ? ('═══ CONTRAINTE DISTANCE — RESPECTE IMPÉRATIVEMENT ═══\n'+distConstraint+'\n') : '',
+    distConstraint ? ('═══ CONTRAINTE DISTANCE  -  RESPECTE IMPÉRATIVEMENT ═══\n'+distConstraint+'\n') : '',
     excludeLine,
-    distConstraint ? ('RAPPEL FINAL — CONTRAINTE RÉDHIBITOIRE : '+distConstraint.split('.')[0]+'.') : '',
+    distConstraint ? ('RAPPEL FINAL  -  CONTRAINTE RÉDHIBITOIRE : '+distConstraint.split('.')[0]+'.') : '',
     '',
     'Réponds UNIQUEMENT en JSON compact :',
     '{"dest":"nom du pays/région","country":"pays","tagline":"phrase poétique évocatrice max 12 mots","teaser":"2 phrases qui donnent envie en lien avec l\'occasion et le brief max 35 mots","coords":"ex: 6°55′N · 79°51′E"}',
@@ -1252,7 +1252,7 @@ async function _fetchRealRestos(dest, places, level){
 /* ── validation : la destination renvoyee correspond-elle a celle demandee ? ──
    Comparaison volontairement souple (accents/casse ignorés, sous-chaîne dans
    un sens ou l'autre) car le client peut taper "Sardaigne" et l'IA répondre
-   "Sardaigne, Italie" ou l'inverse — ce n'est pas une erreur. ── */
+   "Sardaigne, Italie" ou l'inverse  -  ce n'est pas une erreur. ── */
 function _normDest(s){
   return (s||'').toString().toLowerCase()
     .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
@@ -1275,7 +1275,7 @@ async function callCartographe(){
   const b=buildBrief();
   const dc=b.daysCount;
 
-  /* Passe 1 — ossature, par lots de 7 jours pour les longs voyages */
+  /* Passe 1  -  ossature, par lots de 7 jours pour les longs voyages */
   let skel=null;
   for(let offset=0; offset<dc; offset+=SKEL_BATCH_SIZE){
     let batchResult=await _completeJSON(buildSkeletonPrompt(dc, SKEL_BATCH_SIZE, offset));
@@ -1288,7 +1288,7 @@ async function callCartographe(){
         if(retryResult && Array.isArray(retryResult.plan) && retryResult.plan.length && _destinationMatches(state.destination, retryResult.dest, retryResult.country)){
           skel=retryResult;
         } else if(retryResult && Array.isArray(retryResult.plan) && retryResult.plan.length){
-          /* la 2e tentative a échoué aussi sur la destination — on force quand même
+          /* la 2e tentative a échoué aussi sur la destination  -  on force quand même
              le nom demandé par le client plutôt que d'afficher une destination différente */
           skel=retryResult;
           skel.dest=state.destination;
@@ -1308,10 +1308,10 @@ async function callCartographe(){
   if(skel.plan.length>dc) skel.plan=skel.plan.slice(0,dc);
   skel.days_count=skel.plan.length;
 
-  /* recherche web du prix de vol — lancée en parallèle, dès que la destination est connue */
+  /* recherche web du prix de vol  -  lancée en parallèle, dès que la destination est connue */
   const flightPromise=_fetchFlightPriceFromWeb(skel.dest, skel.country, state.dateFrom, state.dateTo, state.travelers);
 
-  /* recherche web de VRAIS hébergements — remplace les noms potentiellement inventés */
+  /* recherche web de VRAIS hébergements  -  remplace les noms potentiellement inventés */
   if(Array.isArray(skel.stays) && skel.stays.length){
     const zones = skel.stays.map(function(s){ return s.loc || s.zone || skel.dest; });
     const realStays = await _fetchRealStays(skel.dest, zones, skel.level);
@@ -1348,7 +1348,7 @@ async function callCartographe(){
     }
   }
 
-  /* Passe 2 — détail éditorial des jours, par lots de 7 pour les longs voyages */
+  /* Passe 2  -  détail éditorial des jours, par lots de 7 pour les longs voyages */
   const allDays=[];
   for(let offset=0; offset<skel.plan.length; offset+=DAYS_BATCH_SIZE){
     const batch=skel.plan.slice(offset, offset+DAYS_BATCH_SIZE);
@@ -1358,7 +1358,7 @@ async function callCartographe(){
   }
   const daysDetail={days:allDays};
 
-  /* Passe 2.5 — vérification web des restaurants (anti-hallucination, premium) */
+  /* Passe 2.5  -  vérification web des restaurants (anti-hallucination, premium) */
   try{
     const restoIdx=[]; const places=[];
     allDays.forEach(function(dd, i){
@@ -1401,7 +1401,7 @@ async function callCartographe(){
     }
   }catch(e){ console.warn('[restos] exception', e); }
 
-  /* Passe 3 — adresses, gems, highlights */
+  /* Passe 3  -  adresses, gems, highlights */
   const hilites=await _completeJSON(buildHighlightsPrompt(skel, daysDetail));
 
   /* le prix du vol a eu tout ce temps pour revenir ; sinon on retombe sur l'estimation statique */
@@ -1431,7 +1431,7 @@ async function runDestinationSuggestion(excluded){
   let suggestion=null;
   try{const res=await Promise.all([suggestDestination(excluded),minShow]);suggestion=res[0];}catch(e){await minShow;}
   if(!suggestion||!suggestion.dest){
-    toast('Connexion limitée — réessayez');
+    toast('Connexion limitée  -  réessayez');
     closeOverlay();
     return;
   }
@@ -1478,7 +1478,7 @@ async function runFullGeneration(overlayAlreadyOpen){
      Durée moyenne mesurée : ~15s (3 passes API + traitement)
      On progresse de façon continue avec ralentissement vers 90%
      pour toujours attendre la vraie fin avant d'afficher 100%  ── */
-  const EST_DURATION = 16000; /* ms — durée estimée totale */
+  const EST_DURATION = 16000; /* ms  -  durée estimée totale */
   const startTime = Date.now();
   let currentPct = 0;
   let rafId = null;
@@ -1515,7 +1515,7 @@ async function runFullGeneration(overlayAlreadyOpen){
     if(linear < 0.70) target = (linear / 0.70) * 90;
     else target = 90 + ((linear - 0.70) / 0.30) * 3; /* max 93% tant que pas fini */
 
-    /* Progression fluide — jamais en arrière */
+    /* Progression fluide  -  jamais en arrière */
     if(target > currentPct) currentPct = Math.min(target, 93);
 
     const barI = el.querySelector('[data-gen-bar]');
@@ -1532,7 +1532,7 @@ async function runFullGeneration(overlayAlreadyOpen){
       timeLeft.textContent = currentPct >= 90 ? 'Finalisation…' : secs + 's';
     }
 
-    /* Label — mise à jour fluide sans flash */
+    /* Label  -  mise à jour fluide sans flash */
     const newLabel = getLabel(currentPct);
     if(newLabel !== lastLabel){
       lastLabel = newLabel;
@@ -1563,7 +1563,7 @@ async function runFullGeneration(overlayAlreadyOpen){
     await minShow;
   }
 
-  /* Fin réelle — compléter à 100% */
+  /* Fin réelle  -  compléter à 100% */
   done = true;
   if(rafId) cancelAnimationFrame(rafId);
 
@@ -1580,7 +1580,7 @@ async function runFullGeneration(overlayAlreadyOpen){
     console.error('[applyGenerated]', e);
     ok=false;
   }}
-  if(!ok) toast('Connexion limitée — itinéraire de démonstration');
+  if(!ok) toast('Connexion limitée  -  itinéraire de démonstration');
 
   /* ── PAYWALL ── */
   setTimeout(function(){
@@ -1677,7 +1677,7 @@ function _showPaywall(genEl, days){
   /* Stocker le refId pour vérification au retour */
   localStorage.setItem('hs_pending_ref', JSON.stringify({refId:refId, dest:it.dest, days:days, palier:palier, ts:Date.now()}));
 
-  /* Preview — J1 visible, reste flou */
+  /* Preview  -  J1 visible, reste flou */
   const previewDay = (it.plan && it.plan[0]) ? it.plan[0] : null;
   const previewHtml = previewDay
     ? '<div style="padding:16px 20px;border-bottom:1px solid var(--line)">'
@@ -1718,7 +1718,7 @@ function _showPaywall(genEl, days){
     + '<span style="font-size:16px">✦</span>'
     + '<span style="font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:'+accent+'">'+days+' jours d\'itinéraire complet</span>'
     + '</div>'
-    + '<p style="font-size:13px;color:var(--sub);line-height:1.5;margin:0">Activités, hébergements, restaurants secrets, pépites locales et budget détaillé — tout est prêt.</p>'
+    + '<p style="font-size:13px;color:var(--sub);line-height:1.5;margin:0">Activités, hébergements, restaurants secrets, pépites locales et budget détaillé  -  tout est prêt.</p>'
     + '</div></div>'
     /* Stats */
     + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:0 20px 20px">'
@@ -1736,13 +1736,13 @@ function _showPaywall(genEl, days){
     + '</div>'
     + '<button id="pw-close" style="width:36px;height:36px;border-radius:50%;background:var(--surface);border:1px solid var(--line);color:var(--sub);font-size:14px;cursor:pointer;-webkit-tap-highlight-color:transparent">✕</button>'
     + '</div>'
-    + '<a id="pw-pay" href="'+stripeUrl+'" target="_blank" rel="noopener" style="display:block;width:100%;padding:16px;background:var(--ink);color:var(--bg);border:none;border-radius:16px;font-family:var(--sans);font-size:16px;font-weight:600;text-align:center;text-decoration:none;cursor:pointer;box-sizing:border-box">Débloquer mon itinéraire — '+price+'</a>'
+    + '<a id="pw-pay" href="'+stripeUrl+'" target="_blank" rel="noopener" style="display:block;width:100%;padding:16px;background:var(--ink);color:var(--bg);border:none;border-radius:16px;font-family:var(--sans);font-size:16px;font-weight:600;text-align:center;text-decoration:none;cursor:pointer;box-sizing:border-box">Débloquer mon itinéraire  -  '+price+'</a>'
     + '<p style="text-align:center;font-size:11px;color:var(--sub);margin-top:10px">Paiement sécurisé · Stripe · Accès immédiat après paiement</p>'
     + '</div>';
 
   document.body.appendChild(pw);
 
-  /* Event listeners natifs — évite les problèmes de sanitisation innerHTML */
+  /* Event listeners natifs  -  évite les problèmes de sanitisation innerHTML */
   function closePw(){
     pw.remove();
     /* Fermer aussi l'overlay de génération pour revenir à l'écran principal */
@@ -1807,11 +1807,11 @@ function _openItineraryFallback(){
   },460);
 }
 
-/* ── Cartographe IA — contextuel à la destination ───────────────────── */
+/* ── Cartographe IA  -  contextuel à la destination ───────────────────── */
 function aiItinerarySummary(){
   const it=ITINERARY;
   const days=it.plan.map(function(p){return 'J'+p.n+' '+p.loc+' : '+p.title;}).join(' · ');
-  return it.dest+' · '+_days(it)+' jours · '+it.level+' · budget ~'+it.budgetTotal+'€ — '+days;
+  return it.dest+' · '+_days(it)+' jours · '+it.level+' · budget ~'+it.budgetTotal+'€  -  '+days;
 }
 async function aiCartographeReply(text){
   const prompt=[
@@ -1822,7 +1822,7 @@ async function aiCartographeReply(text){
     '',
     'Le voyageur demande : "'+text+'"',
     '',
-    'Réponds avec des conseils SPÉCIFIQUES à '+ITINERARY.dest+' — vrais noms de lieux, restaurants, activités locales.',
+    'Réponds avec des conseils SPÉCIFIQUES à '+ITINERARY.dest+'  -  vrais noms de lieux, restaurants, activités locales.',
     'Ton sobre et expert, 2-3 phrases max. Aucun emoji.',
     'JSON : {"reply":"...","chip":"étiquette courte ex: Jour 3 modifié · +150 €"}',
   ].join('\n');
