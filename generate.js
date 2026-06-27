@@ -1454,25 +1454,9 @@ async function confirmSuggestedDestination(){
   state.destination=s.dest;
   state.createTab='known';
   state._suggestedTagline=s.tagline||'';
-  try{
-    const ovEl=document.querySelector('.ov[data-ov="generating"]');
-    if(ovEl){
-      ovEl.innerHTML = generationView();
-      const newGen=ovEl.querySelector('.gen');
-      requestAnimationFrame(function(){
-        requestAnimationFrame(function(){
-          if(newGen) newGen.classList.add('run');
-          setTimeout(function(){ runFullGeneration(true); }, 100);
-        });
-      });
-    } else {
-      /* Ouvrir un nouvel overlay et attendre qu'il soit dans le DOM */
-      setTimeout(function(){ runFullGeneration(false); }, 50);
-    }
-  }catch(e){
-    toast('Erreur: '+String(e&&e.message||e).slice(0,60));
-    console.error('[confirmSuggested]',e);
-  }
+  /* Fermer l'overlay suggest, puis lancer la génération depuis un contexte propre */
+  closeAllOverlays();
+  setTimeout(function(){ runFullGeneration(false); }, 320);
 }
 
 /* ── Étape 2 : génération complète de l'itinéraire ────────────────────── */
