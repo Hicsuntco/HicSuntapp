@@ -54,16 +54,29 @@ function _geoConstraintDirective(dest, dc, rythme){
         + 'Choisir un axe nord→sud OU côte est→côte ouest et s\'y tenir sans retour en arrière.';
     }
   } else {
-    const ratio = Math.min(1, totalKm / countrySize);
+    /* Taille approximative du pays en km (diagonale) */
+    const COUNTRY_KM = {
+      france:1000,espagne:1000,italie:1300,allemagne:850,portugal:550,
+      maroc:1500,tunisie:750,algérie:2000,égypte:1500,
+      jordanie:420,turquie:1600,grèce:700,
+      thaïlande:1800,vietnam:1800,cambodge:500,laos:700,
+      japon:2400,chine:4000,inde:3000,népal:800,
+      pérou:1800,colombie:1800,mexique:2000,brésil:4000,
+      kenya:850,tanzanie:950,éthiopie:1600,maroc:1500,
+      australie:4000,nouvelle:1600,
+    };
+    const countrySize = Object.entries(COUNTRY_KM).find(function(e){ return d.includes(e[0]); });
+    const csKm = countrySize ? countrySize[1] : 1200;
+    const ratio = Math.min(1, totalKm / csKm);
     if(ratio <= 0.20){
       const zone = _suggestZone(d, dc, rythme);
-      directive = 'CONTRAINTE GÉOGRAPHIQUE STRICTE : avec '+dc+' jours en rythme '+rythme+', couvrir UNE seule région (~'+Math.round(totalKm)+'km sur '+countrySize+'km de pays). '
+      directive = 'CONTRAINTE GÉOGRAPHIQUE STRICTE : avec '+dc+' jours en rythme '+rythme+', couvrir UNE seule région (~'+Math.round(totalKm)+'km sur '+csKm+'km de pays). '
         + 'Zone recommandée : '+zone+'. INTERDIT de traverser tout le pays.';
     } else if(ratio <= 0.45){
       directive = 'CONTRAINTE GÉOGRAPHIQUE : avec '+dc+' jours, couvrir maximum 2 zones adjacentes (~'+Math.round(totalKm)+'km). '
         + 'Axe logique (nord→sud OU est→ouest). Environ '+zones+' étapes. Pas de retour en arrière.';
     } else if(ratio <= 0.70){
-      directive = 'CONTRAINTE GÉOGRAPHIQUE : traversée partielle possible (~'+Math.round(totalKm)+'km / '+countrySize+'km). '
+      directive = 'CONTRAINTE GÉOGRAPHIQUE : traversée partielle possible (~'+Math.round(totalKm)+'km / '+csKm+'km). '
         + 'Progression LINÉAIRE sans zigzags. Chaque étape dans la même direction que la précédente.';
     } else {
       directive = 'CONTRAINTE GÉOGRAPHIQUE : circuit complet envisageable (~'+Math.round(totalKm)+'km). '
