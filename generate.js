@@ -27,7 +27,7 @@ function _geoConstraintDirective(dest, dc, rythme){
 
   /* Coefficient de rythme : km/jour selon rythme */
   /* Sur une île, les distances sont courtes et le rythme plus lent */
-  const isIsland = /sardaigne|sicile|bali|sri lanka|islande|crète|corse|réunion|martinique|guadeloupe|malte|maldives|chypre/.test(d);
+  const isIsland = ['sardaigne','sicile','bali','sri lanka','islande','crete','corse','reunion','martinique','guadeloupe','malte','maldives','chypre','majorque','minorque','ibiza','capri','sicily','madere','canaries','lanzarote','fuerteventura'].some(function(k){ return d.includes(k); });
   const rythmeKm = isIsland
     ? {'intensif':50,'équilibré':35,'lent':20,'contemplati':15,'détente':12}
     : {'intensif':120,'équilibré':80,'lent':45,'contemplati':30,'détente':25};
@@ -139,36 +139,36 @@ function _antiTouristDirective(){
 const RYTHME_MOMENTS={'Lent':2,'Équilibré':3,'Intense':4};
 function _momentsPerDay(){ return RYTHME_MOMENTS[state.rythme] || 3; }
 
-function _rythmeDirective(){
-  const r=state.rythme||'Équilibré';
-  if(r==='Lent') return 'RYTHME LENT : maximum 1-2 activités par jour, larges plages libres non planifiées, rester au même endroit 2-3 nuits minimum, transferts < 45min. Les après-midis libres sont un luxe premium, pas un oubli.';
-  if(r==='Intense') return 'RYTHME INTENSE : 3-4 activités distinctes par jour, journées 7h→21h, transferts acceptables jusqu\'à 3h si le trajet vaut le détour, maximiser les expériences sans temps mort.';
-  return 'RYTHME ÉQUILIBRÉ : 2-3 activités significatives par jour, matinées actives, après-midis libres possibles, 1 transfert max par jour < 2h.';
-}
-
-function _fitnessDirective(){
-  const f=state.fitnessLevel||'Modéré';
-  if(f==='Sédentaire') return 'MOBILITÉ RÉDUITE : zéro randonnée, zéro escaliers excessifs. Transports confortables (voiture privée, bateau), hébergements plain-pied ou avec ascenseur, sites accessibles en véhicule, activités assises (croisière, dégustation, visite guidée en voiture).';
-  if(f==='Sportif') return 'NIVEAU SPORTIF : randonnées réelles (5-15km, dénivelé possible), vélo, kayak, snorkeling, activités outdoor exigeantes. Les journées physiques sont un plaisir, pas une contrainte.';
-  if(f==='Extrême') return 'NIVEAU EXTRÊME : randonnées de montagne, trails techniques, via ferrata, surf, plongée, expédition. Pas de limite physique dans les propositions.';
-  return 'NIVEAU MODÉRÉ : quelques heures de marche acceptables (3-8km/jour), pas de trek exigeant, escaliers OK, activités variées sans caractère physique extrême.';
-}
-
 function _transportDirective(){
-  const t=state.transport||'Mixte';
-  if(t==='Voiture de location') return 'TRANSPORT — Voiture de location : itinéraire organisé pour être 100% réalisable en voiture. Mentionner les routes panoramiques, parkings, état des routes. Chaque étape accessible en conduite raisonnable (< maxKm).';
-  if(t==='Transports en commun') return 'TRANSPORT — Train et bus locaux : choisir uniquement des étapes connectées par transport public fiable. Préciser les liaisons (ex: "Trenitalia 08:42, 2h15, 18€"). Éviter les destinations enclavées sans transports.';
-  if(t==='Avec un guide') return 'TRANSPORT — Organisé privé : guides locaux privés ou excursions organisées pour chaque journée, tout en véhicule privé. Proposer prestataires nommés.';
-  return 'TRANSPORT — Mixte : voiture de location pour zones rurales, train pour grandes liaisons. Préciser le mode recommandé pour chaque transfert.';
+  const t=state.transport||'Selon les étapes';
+  if(t==='Voiture de location') return 'TRANSPORT — Voiture de location : itinéraire 100% réalisable en voiture. Mentionner routes panoramiques, parkings, état des routes.';
+  if(t==='Train & transports locaux') return 'TRANSPORT — Train et bus locaux : étapes connectées par transport public fiable. Préciser les liaisons (ex: "Trenitalia 08:42, 2h15"). Éviter destinations enclavées.';
+  if(t==='Tout organisé') return 'TRANSPORT — Guide privé : transferts en véhicule privé, guides locaux pour chaque journée. Proposer prestataires nommés.';
+  return 'TRANSPORT — Mixte : voiture pour zones rurales, train pour grandes liaisons. Préciser le mode pour chaque transfert.';
 }
 
 function _accomStyleDirective(){
   const a=state.accomStyle||'';
-  if(!a||a==='Peu importe') return '';
-  if(a==='Charme & caractère') return 'HÉBERGEMENT — IMPÉRATIF : maisons d\'hôtes familiales, riads, agriturismi, mas, bastides — tenus par des locaux, histoire tangible, aucune chaîne hôtelière. L\'adresse doit avoir une âme et raconter quelque chose.';
-  if(a==='Design & contemporain') return 'HÉBERGEMENT — IMPÉRATIF : architecture remarquable, design intérieur soigné, matériaux locaux contemporains, service irréprochable. Boutique-hôtels primés, adresses plébiscitées par les revues de design.';
-  if(a==='Nature & immersion') return 'HÉBERGEMENT — IMPÉRATIF : lodges dans la nature, glamping de luxe, écolodges perchés, cabanes dans les arbres, pavillons ouverts sur le sauvage. Vue directe sur le paysage depuis le lit.';
+  if(!a||a==='L\'emplacement avant tout') return '';
+  if(a==='Charme & histoire') return 'HÉBERGEMENT — IMPÉRATIF : maisons d\'hôtes, riads, agriturismi, mas, bastides — tenus par des locaux, histoire tangible, aucune chaîne.';
+  if(a==='Design & contemporain') return 'HÉBERGEMENT — IMPÉRATIF : architecture remarquable, design soigné, matériaux nobles, service irréprochable. Boutique-hôtels primés.';
+  if(a==='Nature & immersion') return 'HÉBERGEMENT — IMPÉRATIF : lodges, glamping luxe, écolodges, cabanes — vue directe sur la nature depuis le lit.';
   return '';
+}
+
+function _fitnessDirective(){
+  const f=state.fitnessLevel||'Modéré';
+  if(f==='Tranquille') return 'MOBILITÉ : zéro randonnée, transports confortables, sites accessibles en véhicule, activités assises.';
+  if(f==='Sportif') return 'NIVEAU SPORTIF : randonnées réelles (5-15km, dénivelé), vélo, kayak, outdoor exigeant.';
+  if(f==='Extrême') return 'NIVEAU EXTRÊME : trails techniques, sommets, via ferrata, expéditions — pas de limite physique.';
+  return 'NIVEAU MODÉRÉ : quelques heures de marche/jour (3-8km), pas de trek exigeant.';
+}
+
+function _rythmeDirective(){
+  const r=state.rythme||'Équilibré';
+  if(r==='Lent') return 'RYTHME LENT : 1-2 activités/jour max, rester au même endroit plusieurs nuits, transferts <45min. Les après-midis libres sont un luxe, pas un oubli.';
+  if(r==='Dense') return 'RYTHME DENSE : 3-4 activités/jour, journées 7h→21h, maximiser les expériences, peu de temps mort.';
+  return 'RYTHME ÉQUILIBRÉ : 2-3 activités significatives/jour, matin actif, après-midi libre possible.';
 }
 
 function _childrenDirective(){
@@ -246,8 +246,22 @@ function _occasionDirective(){
       '• Pas de longues randonnées ni de musées sans espace interactif.',
       '╚════════════════╝',
     ].join('\n'),
-    'solo':[
-      '╔══ VOYAGE EN SOLO ══╗',
+    'amis': [
+      'ENTRE AMIS : partage, convivialité, expériences communes.',
+      '• Hébergements avec espaces communs (villa, appartement, terrasse partagée).',
+      '• Repas conviviaux : tablées, barbecue, street food de qualité, marchés.',
+      '• Activités en groupe : randonnée, sports nautiques, visite culturelle.',
+      '• 1 soirée mémorable par groupe (bar local avec musique live, restaurant festif).',
+      '• Liberté individuelle possible dans la journée — se retrouver le soir.',
+    ].join('\n'),
+    'pro': [
+      'VOYAGE PROFESSIONNEL (séminaire/teambuilding/incentive) :',
+      '• Hébergements avec salle de réunion ou espace de travail si séminaire.',
+      '• Pour incentive : expériences premium qui marquent les esprits.',
+      '• Activités teambuilding : atelier culinaire collectif, olympiades locales, défi nature.',
+      '• 1 grand dîner de gala ou soirée de groupe.',
+      '• Logistique irréprochable — transferts ponctuels, pas d\'improvisation.',
+    ].join('\n'),
       '• Hébergements favorisant les rencontres (guesthouses avec table d\'hôtes) sans sacrifier la qualité.',
       '• Activités réalisables seul et sûres : excursions avec guides locaux recommandés, petits groupes.',
       '• Tips de sécurité spécifiques à la destination intégrés naturellement.',
@@ -264,18 +278,23 @@ function _styleDirective(){
   if(!styles.length) return '';
   const lower=styles.join(' ').toLowerCase();
   const notes=[];
-  if(lower.includes('luxe'))              notes.push('hébergements haut de gamme avec services premium, adresses signature reconnues');
-  if(lower.includes('nature')||lower.includes('aventure')) notes.push('lodges nature, accès direct sentiers/sites naturels, activités outdoor');
-  if(lower.includes('détente')||lower.includes('bien-être')||lower.includes('spa')) notes.push('hébergements avec spa, massages planifiés, après-midis libres non négociables');
-  if(lower.includes('gastro')||lower.includes('culinaire')) notes.push('tables d\'exception locales, marchés producteurs, cours de cuisine avec chef local');
-  if(lower.includes('plage')||lower.includes('mer'))  notes.push('hébergements en front de mer ou accès direct plage/crique, activités nautiques');
-  if(lower.includes('art')||lower.includes('architecture')) notes.push('musées atypiques, ateliers d\'artistes, quartiers historiques, bâtiments remarquables');
-  if(lower.includes('road')||lower.includes('route')) notes.push('itinéraire voiture, haltes spontanées sur routes panoramiques, hébergements variés');
-  if(lower.includes('slow'))              notes.push('rythme très lent — ne pas tout voir, s\'ancrer vraiment dans chaque lieu, longues haltes');
-  if(lower.includes('culture')||lower.includes('authenticité')) notes.push('rencontres locales, artisans, patrimoine vivant loin des circuits de masse');
-  if(lower.includes('photo'))             notes.push('golden hours programmés, belvédères secrets, sujets photographiques uniques');
-  if(lower.includes('oenot')||lower.includes('vin')) notes.push('domaines viticoles et caves, dégustations producteurs, tables gastronomiques de vignobles');
-  return notes.length ? 'STYLE DE VOYAGE ('+styles.join(', ')+') — intégrer dans CHAQUE journée : '+notes.join(' · ')+'.' : '';
+  if(lower.includes('aube')||lower.includes('lever')) notes.push('sites tôt le matin avant les foules, golden hour planifiée');
+  if(lower.includes('habitant')) notes.push('tables d\'hôtes, repas chez l\'habitant, marchés de producteurs');
+  if(lower.includes('locaux')||lower.includes('bar que')) notes.push('bars et restaurants exclusivement locaux, zéro touristique');
+  if(lower.includes('marcher')||lower.includes('vue')) notes.push('randonnées avec point de vue exceptionnel, effort récompensé');
+  if(lower.includes('flâner')||lower.includes('perdre')) notes.push('temps libres non planifiés, quartiers à explorer seul');
+  if(lower.includes('histoire')) notes.push('hébergements avec âme et histoire, bâtisses remarquables');
+  if(lower.includes('savoirs-faire')||lower.includes('rapporter')) notes.push('ateliers artisanaux, rencontres de producteurs, cours pratiques');
+  if(lower.includes('foules')||lower.includes('fuir')) notes.push('destinations et horaires hors-afflux, sites alternatifs aux blockbusters');
+  if(lower.includes('nager')||lower.includes('eaux')) notes.push('criques sauvages, spots de baignade non balisés');
+  if(lower.includes('vivent')||lower.includes('comment les')) notes.push('quartiers résidentiels, marchés quotidiens, vie locale authentique');
+  if(lower.includes('léger')||lower.includes('changé')) notes.push('voyage minimaliste, immersion profonde');
+  if(lower.includes('manger le meilleur')) notes.push('meilleures tables locales de chaque étape');
+  if(lower.includes('rouler')||lower.includes('road')) notes.push('road trip, haltes spontanées, hébergements variés au fil de la route');
+  if(lower.includes('photographier')||lower.includes('photo')) notes.push('golden hours, belvédères secrets, sujets photographiques uniques');
+  if(lower.includes('une seule chose')) notes.push('rythme ultra-lent, 1 expérience par jour, approfondissement');
+  if(lower.includes('limites')||lower.includes('physiques')) notes.push('activités exigeantes, dépassement de soi');
+  return notes.length ? 'MANIÈRE DE VOYAGER — intégrer dans chaque journée : '+notes.join(' · ')+'.' : '';
 }
 
 function _interestsDirective(){
@@ -283,22 +302,25 @@ function _interestsDirective(){
   if(!interests.length) return '';
   const lower=interests.join(' ').toLowerCase();
   const notes=[];
-  if(lower.includes('randonnée')||lower.includes('hike')) notes.push('randonnées réelles avec noms de sentiers, dénivelé et durée précis');
-  if(lower.includes('plage')||lower.includes('crique'))   notes.push('plages et criques peu fréquentées avec horaires optimaux');
-  if(lower.includes('safari')||lower.includes('faune'))   notes.push('sorties safari avec guides nommés, faune endémique spécifique');
-  if(lower.includes('temple')||lower.includes('spiritua')) notes.push('sites spirituels authentiques, heures hors afflux touristique');
-  if(lower.includes('marché'))                            notes.push('marchés de producteurs locaux — heure d\'ouverture et spécialités');
-  if(lower.includes('gastro')||lower.includes('cuisine')) notes.push('tables locales incontournables, cours de cuisine avec habitant, spécialités régionales');
-  if(lower.includes('photo'))                             notes.push('golden hour et blue hour planifiés, belvédères secrets, sujets photographiques');
-  if(lower.includes('architect'))                         notes.push('patrimoine architectural précis, bâtiments remarquables avec histoire');
-  if(lower.includes('vin')||lower.includes('vignoble'))   notes.push('domaines viticoles et caves, dégustations producteurs avec rendez-vous');
-  if(lower.includes('bien-être')||lower.includes('spa'))  notes.push('spas locaux avec noms, tarifs et types de soins — dans la planification horaire');
-  if(lower.includes('plongée')||lower.includes('snorkel')||lower.includes('sous-marin')) notes.push('spots de plongée/snorkeling avec prestataires nommés et conditions idéales');
-  if(lower.includes('nocturn')||lower.includes('nightl')) notes.push('bars locaux, concerts, scène nocturne authentique non-touristique avec adresses');
-  if(lower.includes('vélo')||lower.includes('cycl'))      notes.push('pistes cyclables ou routes peu fréquentées, prestataires location nommés');
-  if(lower.includes('musée')||lower.includes('galerie'))  notes.push('musées insolites et galeries d\'art contemporain local — pas les blockbusters');
-  if(lower.includes('therme')||lower.includes('bain'))    notes.push('sources thermales et bains naturels locaux avec conditions d\'accès');
-  return notes.length ? 'INTÉRÊTS PRIORITAIRES ('+interests.join(', ')+') — planifier au moins 1 activité liée CHAQUE JOUR : '+notes.join(' · ')+'.' : '';
+  if(lower.includes('marchés de producteurs')) notes.push('marchés de producteurs locaux, horaires 7h-12h');
+  if(lower.includes('criques')||lower.includes('sans chemin')) notes.push('plages et criques non balisées, accessibles à pied ou en bateau');
+  if(lower.includes('restaurants que les guides')) notes.push('tables locales non touristiques, recommandations d\'habitants');
+  if(lower.includes('randonnées avec vue')) notes.push('sentiers nommés avec dénivelé, point de vue exceptionnel à l\'arrivée');
+  if(lower.includes('villages perchés')) notes.push('villages fortifiés, ruelles médiévales, loin des bus touristiques');
+  if(lower.includes('couchers de soleil')) notes.push('belvédères secrets pour coucher de soleil, horaire précis');
+  if(lower.includes('faune')||lower.includes('safaris')) notes.push('sorties safari avec guides nommés');
+  if(lower.includes('temples')||lower.includes('spiritualité')) notes.push('sites spirituels hors affluence, heures de visite calmes');
+  if(lower.includes('vignobles')||lower.includes('caves')) notes.push('domaines viticoles avec dégustation producteur');
+  if(lower.includes('cours de cuisine')) notes.push('cours de cuisine chez un habitant ou chef local');
+  if(lower.includes('plongée')||lower.includes('snorkeling')) notes.push('spots plongée/snorkeling avec prestataires locaux nommés');
+  if(lower.includes('architecture')) notes.push('bâtiments remarquables, quartiers patrimoniaux');
+  if(lower.includes('spas')||lower.includes('soins')||lower.includes('bains')) notes.push('spas ou hammams locaux avec noms et tarifs');
+  if(lower.includes('musique')||lower.includes('culturelle')) notes.push('concerts live, scène musicale locale');
+  if(lower.includes('vélo')||lower.includes('routes secondaires')) notes.push('itinéraires cyclables, location nommée');
+  if(lower.includes('sources thermales')||lower.includes('bains naturels')) notes.push('thermes et sources naturelles avec conditions d\'accès');
+  if(lower.includes('nautiques')) notes.push('kayak, voile, paddle, jet-ski avec prestataires');
+  if(lower.includes('ateliers artisanaux')) notes.push('ateliers artisans locaux, savoir-faire régionaux');
+  return notes.length ? 'EXPÉRIENCES PRIORITAIRES — au moins 1 par jour : '+notes.join(' · ')+'.' : '';
 }
 
 function _dreamDirective(){
