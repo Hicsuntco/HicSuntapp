@@ -680,33 +680,26 @@ function buildDaysPrompt(skel, planSteps, offset){
 
 /* ── Passe 3 : adresses, highlights, budget ─────────────────────────── */
 function buildHighlightsPrompt(skel, days){
-  const b=buildBrief();
   const dest=skel.dest||'';
-  const interests=(state.interests||[]).join(', ')||'';
-  const directives=[_antiTouristDirective(),_occasionDirective(),_interestsDirective(),_fitnessDirective(),_transportDirective(),_accomStyleDirective(),_childrenDirective(),_dietaryDirective(),_alreadyDoneDirective(),_styleDirective(),_dreamDirective()].filter(Boolean);
-  const locs=(skel.plan||[]).map(function(p){return p.loc;}).filter(function(v,i,a){return a.indexOf(v)===i;}).join(', ');
-  const wantSpa=interests.toLowerCase().includes('spa')||interests.toLowerCase().includes('bien-être')||state.occasion==='lune-de-miel';
-  const wantNature=interests.toLowerCase().includes('nature')||interests.toLowerCase().includes('randonn');
-  const wantBeach=interests.toLowerCase().includes('plage');
-  const wantFood=interests.toLowerCase().includes('gastro')||interests.toLowerCase().includes('cuisine');
+  const occ=state.occasion||'';
+  const interests=(state.interests||[]).slice(0,5).join(', ')||'';
+  const locs=(skel.plan||[]).map(function(p){return p.loc;}).filter(function(v,i,a){return a.indexOf(v)===i;}).slice(0,5).join(', ');
+  const wantSpa=occ==='lune-de-miel'||interests.toLowerCase().includes('spa')||interests.toLowerCase().includes('bain');
+  const wantBeach=interests.toLowerCase().includes('plage')||interests.toLowerCase().includes('crique');
+  const wantFood=interests.toLowerCase().includes('cuisine')||interests.toLowerCase().includes('restaurant');
+  const compact=[];
+  if(occ) compact.push('Occasion: '+occ);
+  if(state.dietary) compact.push('Régime: '+state.dietary);
+  if(state.dream) compact.push('Envie: '+state.dream.slice(0,80));
   return [
-    'Expert voyages Hic Sunt. Destination : '+dest+' · Étapes : '+locs,
-    'Intérêts client : '+interests,
-    directives.length?directives.join('\n'):'',
+    'Hic Sunt. Destination: '+dest+' | Étapes: '+locs+(compact.length?' | '+compact.join(' | '):''),
+    'Génère 4 gems cachées + sections demandées. JSON compact uniquement.',
     '',
-    'Les "gems" (pépites cachées) doivent refléter les directives de personnalisation ci-dessus si présentes (ex: lune de miel → lieu romantique peu connu ; famille → activité adaptée aux enfants).',
-    'Génère UNIQUEMENT les sections suivantes. JSON compact valide, aucun texte autour.',
-    '',
-    '{"gems":[{"name":"vrai nom lieu secret","loc":"ville","desc":"pourquoi y aller en 1 phrase","tip":"conseil pratique"}],"highlights":{"spas":'+
-    (wantSpa?'[{"name":"vrai spa local","loc":"ville","type":"ex: Massage ayurvédique","price":"ex: 35€/h","note":"1 phrase"}]':'[]')+
-    ',"cascades":'+
-    (wantNature?'[{"name":"nom cascade réelle","loc":"ville","desc":"accès et baignade","tip":"meilleur moment"}]':'[]')+
-    ',"beaches":'+
-    (wantBeach?'[{"name":"nom plage réelle","loc":"ville","desc":"ambiance et accès","tip":"conseil horaire"}]':'[]')+
-    ',"restaurants":'+
-    (wantFood?'[{"name":"vrai nom resto","loc":"ville","type":"spécialité","price":"fourchette","note":"pourquoi y aller"}]':'[]')+
-    '},"essentials":{"transport":["conseil vols","conseil transport local"],"visa":"info visa ressortissants français","bestTime":"'+
-    (skel.season||'à définir')+'  -  raison courte","toKnow":["info pratique 1","info culturelle 2","info sécurité 3"]},"budget_note":"fourchette totale par personne hors vols"}',
+    '{"gems":[{"name":"","loc":"","desc":"","tip":""}],"highlights":{'
+    +'"spas":'+  (wantSpa?  '[{"name":"","loc":"","type":"","price":"","note":""}]':'[]')
+    +',"beaches":'+(wantBeach?'[{"name":"","loc":"","desc":"","tip":""}]':'[]')
+    +',"restaurants":'+(wantFood?'[{"name":"","loc":"","type":"","price":"","note":""}]':'[]')
+    +'},"essentials":{"visa":"info ressortissants français","bestTime":"saison + raison","toKnow":["x","y","z"]},"budget_note":"fourchette/pers hors vols"}',
   ].filter(Boolean).join('\n');
 }
 
@@ -1402,8 +1395,13 @@ async function callCartographe(){
     }
   }catch(e){ console.warn('[restos] exception', e); }
 
-  /* Passe 3  -  adresses, gems, highlights */
-  const hilites=await _completeJSON(buildHighlightsPrompt(skel, daysDetail));
+  /* Passe 3  -  adresses, gems, highlights (optionnelle — ne bloque pas) */
+  let hilites = null;
+  try {
+    hilites = await _completeJSON(buildHighlightsPrompt(skel, daysDetail));
+  } catch(e) {
+    console.warn('[Passe3] Ignorée:', e && e.message);
+  }
 
   /* le prix du vol a eu tout ce temps pour revenir ; sinon on retombe sur l'estimation statique */
   let flightInfo=null;
