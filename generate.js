@@ -972,47 +972,98 @@ const DAYS_BATCH_SIZE = 7;
 /* ── Mode "Surprenez-moi" : suggestion légère avant génération complète ── */
 function buildDestinationSuggestPrompt(excluded){
   const b=buildBrief();
-  const directives=[_antiTouristDirective(),_occasionDirective(),_interestsDirective(),_rythmeDirective(),_fitnessDirective(),_transportDirective(),_accomStyleDirective(),_childrenDirective(),_dietaryDirective(),_alreadyDoneDirective(),_styleDirective(),_dreamDirective()].filter(Boolean);
   const excludeLine=(excluded&&excluded.length)?('Ne propose AUCUNE des destinations déjà suggérées et refusées : '+excluded.join(', ')+'.'):'';
-
-  /* Contrainte de distance selon la durée du séjour */
   const days = b.daysCount || 7;
   const origin = state.origin || 'Paris';
+
+  /* ── Directive destination selon l'occasion ── */
+  const occ = state.occasion;
+  const occasionDest = {
+    'evjf': [
+      'OCCASION — EVJF : la destination DOIT offrir impérativement :',
+      '• Une scène de bien-être (spas, hammams, soins privatisables pour le groupe)',
+      '• Une vie nocturne ou des terrasses/rooftops de qualité (couchers de soleil mémorables)',
+      '• Des lieux photogéniques authentiques (architecture, nature, marchés colorés)',
+      '• Des ateliers locaux (céramique, cocktails, cuisine, parfum)',
+      '• Des restaurants festifs avec ambiance',
+      'DESTINATIONS IDÉALES EVJF : Marrakech, Lisbonne, Porto, Séville, Barcelone, Valence, Côte d\'Azur, îles grecques (Santorin, Mykonos), Ibiza hors saison, Dubrovnik, Istanbul, Bali.',
+      'ÉVITER : destinations sans vie sociale, zones trop isolées, destinations à fort jet-lag pour un court séjour.',
+    ].join('\n'),
+    'evg': [
+      'OCCASION — EVG : la destination DOIT offrir impérativement :',
+      '• Des activités sportives et à sensations (surf, quad, karting, paintball, accrobranche, jet ski)',
+      '• Une vie nocturne authentique (bars locaux, concerts, soirées)',
+      '• Des options de restauration conviviales (grillades, street food premium)',
+      '• Des espaces pour le groupe (villas, terrasses)',
+      'DESTINATIONS IDÉALES EVG : Lisbonne, Porto, Madrid, Barcelone, Budapest, Prague, Riga, Tallinn, Marrakech, Agadir, îles Canaries, Lagos (Portugal), Algarve, Malte.',
+      'ÉVITER : destinations trop luxe/calmes sans activités physiques, zones rurales sans vie sociale.',
+    ].join('\n'),
+    'lune-de-miel': [
+      'OCCASION — LUNE DE MIEL : la destination DOIT offrir :',
+      '• Des hôtels avec suites ou villas privées (piscine privée, terrasse, vue mer ou nature)',
+      '• Une scène gastronomique de qualité avec dîners romantiques',
+      '• Des paysages à couper le souffle (couchers de soleil, nature préservée)',
+      '• Une atmosphère intime et hors des sentiers touristiques de masse',
+      'DESTINATIONS IDÉALES LUNE DE MIEL : Maldives, Bora Bora, Seychelles, Bali, Sri Lanka, Santorin (hors saison), Côte Amalfitaine, Sicile sud, Madère, Jordanie (Pétra+Wadi Rum), îles Éoliennes, Lanzarote.',
+    ].join('\n'),
+    'famille': [
+      'OCCASION — EN FAMILLE : la destination DOIT offrir :',
+      '• Sécurité et accessibilité (hôpitaux, routes correctes, eau potable)',
+      '• Des activités pour tous les âges (plage, animaux, aventure douce)',
+      '• Des hébergements spacieux avec piscine et espace enfants',
+      '• Une gastronomie accessible aux enfants',
+      'DESTINATIONS IDÉALES FAMILLE : Portugal (Algarve), Grèce (Rhodes, Crète), Îles Canaries, Sicile, Sardaigne, Costa Rica, Thaïlande (Chiang Mai + plages), Maroc (Marrakech + Essaouira), Jordanie, Maurice.',
+    ].join('\n'),
+    'anniversaire': [
+      'OCCASION — ANNIVERSAIRE : destination qui offre une expérience mémorable et unique :',
+      '• Un lieu d\'exception rarement visité (destination "wow")',
+      '• Au moins une expérience hors du commun possible (safari, trekking, plongée, temple isolé)',
+      '• Une gastronomie marquante',
+      'DESTINATIONS IDÉALES ANNIVERSAIRE : Kenya (safari), Islande, Pérou (Machu Picchu), Japon, Éthiopie, Oman, Géorgie, Albanie côtière, îles Féroé.',
+    ].join('\n'),
+    'solo': [
+      'OCCASION — VOYAGE SOLO : destination sûre et propice aux rencontres :',
+      '• Infrastructure touristique développée (transports, hébergements variés)',
+      '• Culture locale riche et habitants accueillants',
+      '• Communauté de voyageurs solo présente',
+      '• Sécurité correcte (éviter zones à risque)',
+      'DESTINATIONS IDÉALES SOLO : Japon, Portugal, Thaïlande, Géorgie, Vietnam, Colombie (Medellin+Cartagena), Maroc, Islande, Nouvelle-Zélande.',
+    ].join('\n'),
+  };
+
   var distConstraint = '';
   if(days <= 4){
-    distConstraint = 'CONTRAINTE ABSOLUE DE DISTANCE : séjour de '+days+' jours seulement. '
-      +'Vol aller-retour depuis '+origin+' max 3h. Destinations autorisées : Europe occidentale, Méditerranée, Afrique du Nord. '
-      +'INTERDIT : tout vol > 3h (pas d\'Asie, pas d\'Afrique subsaharienne, pas d\'Amériques, pas de Moyen-Orient lointain).';
+    distConstraint = 'CONTRAINTE ABSOLUE : séjour '+days+'j. Vol max 3h depuis '+origin+'. Europe occidentale et Méditerranée uniquement. INTERDIT : Asie, Amériques, Afrique sub-saharienne.';
   } else if(days <= 7){
-    distConstraint = 'CONTRAINTE ABSOLUE DE DISTANCE : séjour de '+days+' jours. '
-      +'Vol aller-retour depuis '+origin+' max 5h. Destinations autorisées : Europe, Méditerranée, Afrique du Nord, Afrique de l\'Ouest proche, Canaries, Açores, Turquie, Jordanie, Égypte. '
-      +'INTERDIT : Asie du Sud-Est, Asie de l\'Est, Amériques, Océanie, Asie centrale. Un vol de 10h pour 7 jours est inadapté.';
+    distConstraint = 'CONTRAINTE ABSOLUE : séjour '+days+'j. Vol max 5h depuis '+origin+'. Europe, Méditerranée, Maghreb, Canaries, Turquie, Jordanie, Égypte. INTERDIT : Asie du Sud-Est, Amériques.';
   } else if(days <= 10){
-    distConstraint = 'CONTRAINTE DE DISTANCE : séjour de '+days+' jours. '
-      +'Vol aller-retour depuis '+origin+' max 8h. Destinations autorisées : Europe, Maghreb, Afrique de l\'Est, Moyen-Orient, Inde, Sri Lanka, îles de l\'océan Indien, Asie centrale. '
-      +'Éviter l\'Asie du Sud-Est et les Amériques sauf si fortement justifié.';
+    distConstraint = 'CONTRAINTE : séjour '+days+'j. Vol max 8h. Europe, Maghreb, Afrique de l\'Est, Moyen-Orient, Inde, Sri Lanka, Océan Indien, Asie centrale.';
   } else if(days <= 14){
-    distConstraint = 'CONTRAINTE DE DISTANCE : séjour de '+days+' jours. '
-      +'Vol aller-retour depuis '+origin+' max 12h. Toutes destinations possibles sauf l\'Océanie et le Pacifique Sud lointain.';
+    distConstraint = 'CONTRAINTE : séjour '+days+'j. Vol max 12h. Toutes destinations sauf Océanie et Pacifique Sud lointain.';
   }
-  /* Au-delà de 14 jours : aucune restriction de distance */
+
+  const compact=[];
+  if(state.styles&&state.styles.length) compact.push('Style: '+state.styles.join(', '));
+  if(state.interests&&state.interests.length) compact.push('Intérêts: '+state.interests.join(', '));
+  if(state.dream) compact.push('Envie: '+state.dream.slice(0,100));
+  if(state.dietary) compact.push('Régime: '+state.dietary);
+  if(state.alreadyDone) compact.push('Éviter: '+state.alreadyDone);
 
   return [
     'Tu es le cartographe senior de Hic Sunt, maison de voyages haut de gamme spécialisée dans les destinations hors des sentiers battus.',
-    'Propose UNE SEULE destination (pays ou région), la plus désirable et la plus adaptée à ce profil.',
+    'Propose UNE SEULE destination parfaitement adaptée à ce profil.',
     '',
     '═══ BRIEF CLIENT ═══',
     b.lines,
+    compact.length ? ('Préférences: '+compact.join(' | ')) : '',
     '',
+    occ && occasionDest[occ] ? ('═══ CRITÈRES DESTINATION SELON L\'OCCASION ═══\n'+occasionDest[occ]+'\n') : '',
     distConstraint ? ('═══ CONTRAINTE DISTANCE — RESPECTE IMPÉRATIVEMENT ═══\n'+distConstraint+'\n') : '',
-    '═══ DIRECTIVES ═══',
-    directives.length?directives.join('\n'):'Aucune contrainte spécifique au-delà du brief ci-dessus.',
     excludeLine,
+    distConstraint ? ('RAPPEL FINAL — CONTRAINTE RÉDHIBITOIRE : '+distConstraint.split('.')[0]+'.') : '',
     '',
-    distConstraint ? ('RAPPEL FINAL — CONTRAINTE RÉDHIBITOIRE : '+distConstraint.split('.')[0]+'. Toute destination hors de cette zone est INVALIDE.') : '',
-    '',
-    'Réponds UNIQUEMENT en JSON compact valide :',
-    '{"dest":"nom du pays/région","country":"pays","tagline":"phrase poétique évocatrice (max 12 mots)","teaser":"2 phrases qui donnent envie, en lien avec le brief (max 35 mots)","coords":"ex: 6°55′N · 79°51′E"}',
+    'Réponds UNIQUEMENT en JSON compact :',
+    '{"dest":"nom du pays/région","country":"pays","tagline":"phrase poétique évocatrice max 12 mots","teaser":"2 phrases qui donnent envie en lien avec l\'occasion et le brief max 35 mots","coords":"ex: 6°55′N · 79°51′E"}',
   ].filter(Boolean).join('\n');
 }
 async function suggestDestination(excluded){
