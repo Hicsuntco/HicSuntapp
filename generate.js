@@ -1450,19 +1450,25 @@ async function retrySuggestion(){
 }
 async function confirmSuggestedDestination(){
   const s=state._suggested;
-  if(!s) return;
+  if(!s){ toast('Erreur: pas de destination suggérée'); return; }
   state.destination=s.dest;
+  state.createTab='known'; /* Sortir du mode surprise pour la génération */
   state._suggestedTagline=s.tagline||'';
-  const ovEl=document.querySelector('.ov[data-ov="generating"]');
-  if(ovEl){
-    ovEl.innerHTML = generationView();
-    const newGen=ovEl.querySelector('.gen');
-    requestAnimationFrame(function(){requestAnimationFrame(function(){
-      if(newGen) newGen.classList.add('run');
-    });});
-    runFullGeneration(true);
-  } else {
-    runFullGeneration(false);
+  try{
+    const ovEl=document.querySelector('.ov[data-ov="generating"]');
+    if(ovEl){
+      ovEl.innerHTML = generationView();
+      const newGen=ovEl.querySelector('.gen');
+      requestAnimationFrame(function(){requestAnimationFrame(function(){
+        if(newGen) newGen.classList.add('run');
+      });});
+      runFullGeneration(true);
+    } else {
+      runFullGeneration(false);
+    }
+  }catch(e){
+    toast('Erreur: '+String(e&&e.message||e).slice(0,60));
+    console.error('[confirmSuggested]',e);
   }
 }
 
