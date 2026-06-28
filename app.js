@@ -144,8 +144,48 @@ function mapView(){
 }
 function mapSelect(i){
   state.mapDay=i;
+  /* Mettre à jour le popup et les chips sans recharger la carte */
   var el=ovStack[ovStack.length-1];
-  if(el&&el.dataset.ov==='map')el.innerHTML=mapView();
+  if(!el||el.dataset.ov!=='map'){el&&(el.innerHTML=mapView());return;}
+
+  /* Mettre à jour les chips actifs */
+  el.querySelectorAll('.map-chip').forEach(function(c,j){
+    c.classList.toggle('on',j===i);
+  });
+
+  /* Mettre à jour les pins actifs */
+  el.querySelectorAll('.mpin').forEach(function(pin,j){
+    pin.classList.toggle('on',j===i);
+  });
+
+  /* Mettre à jour le popup */
+  var g=_geoGet(ITINERARY.dest||ITINERARY.destination||'');
+  var vb=g.vb.split(' ').map(Number),vbW=vb[2],vbH=vb[3];
+  var W=345,H=420,sc=Math.min(W/vbW,H/vbH)*0.88;
+  var ox=(W-vbW*sc)/2,oy=(H-vbH*sc)/2;
+  var pts=_geoPts(ITINERARY.plan||[],g);
+  var pin=pts[i]||{vx:vbW/2,vy:vbH/2};
+  var p=(ITINERARY.plan||[])[i];
+  var pCx=ox+pin.vx*sc,pCy=oy+pin.vy*sc;
+  var popL=Math.max(4,Math.min(pCx/W*100-20,50));
+  var popT=pCy/H>0.58?(pCy/H*100-22):(pCy/H*100+6);
+  var wx=p&&Array.isArray(p.wx)?p.wx:['sun','—'];
+  var popEl=el.querySelector('.map-pop');
+  if(p){
+    var popHtml='<div class="mp-k">Jour '+String(p.n).padStart(2,'0')+' · '+esc(p.loc||'')+'</div>'
+      +'<div class="mp-t">'+esc(p.title||'')+'</div>'
+      +'<div class="mp-m"><span class="mp-wx">'+ico(wx[0],13,1.7)+wx[1]+'</span>'
+      +'<span class="mp-l" onclick="openDay('+i+')">Détails ›</span></div>';
+    if(popEl){
+      popEl.style.left=popL.toFixed(1)+'%';
+      popEl.style.top=popT.toFixed(1)+'%';
+      popEl.innerHTML=popHtml;
+    }
+  }
+
+  /* Scroll le rail vers le chip actif */
+  var chip=el.querySelectorAll('.map-chip')[i];
+  if(chip) chip.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
 }
 
 function travelerLabel(){ return state.travelers + ' voyageur' + (state.travelers > 1 ? 's' : ''); }
