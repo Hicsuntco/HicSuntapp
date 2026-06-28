@@ -85,7 +85,6 @@ function geoMapSVG(W,H,activeIdx){
   var g=_geoGet(dest);
   var vb=g.vb.split(' ').map(Number),vbW=vb[2],vbH=vb[3];
   var accent=(it.palette&&(it.palette.culture||it.palette.beach))||'#C9A96E';
-  /* Dédupliquer par lieu, garder l'ordre exact du plan */
   var seen={},ordered=[];
   (it.plan||[]).forEach(function(p){
     var k=(p.loc||'').split(/[\/(,]/)[0].trim().toLowerCase();
@@ -93,8 +92,27 @@ function geoMapSVG(W,H,activeIdx){
   });
   var disp=ordered.slice(0,8).map(function(p,i){return Object.assign({},p,{n:i+1});});
   var pts=_geoPts(disp,g);
-  var sc=Math.min(W/vbW,H/vbH)*0.88,ox=(W-vbW*sc)/2,oy=(H-vbH*sc)/2;
-  /* Tracé dans l'ordre exact */
+
+  /* Recadrer sur la bounding box des points matchés + marge */
+  var matched=pts.filter(function(p){return p._matched!==false;});
+  var pad=Math.min(vbW,vbH)*0.18;
+  var minX=vbW*0.1,maxX=vbW*0.9,minY=vbH*0.1,maxY=vbH*0.9;
+  if(pts.length>0){
+    minX=pts.reduce(function(m,p){return Math.min(m,p.vx);},Infinity)-pad;
+    maxX=pts.reduce(function(m,p){return Math.max(m,p.vx);},0)+pad;
+    minY=pts.reduce(function(m,p){return Math.min(m,p.vy);},Infinity)-pad;
+    maxY=pts.reduce(function(m,p){return Math.max(m,p.vy);},0)+pad;
+    /* S'assurer qu'on ne sort pas du viewBox */
+    minX=Math.max(0,minX); minY=Math.max(0,minY);
+    maxX=Math.min(vbW,maxX); maxY=Math.min(vbH,maxY);
+    /* Zone min pour ne pas trop zoomer */
+    var zw=maxX-minX,zh=maxY-minY;
+    if(zw<vbW*0.15){var cx=(minX+maxX)/2;minX=cx-vbW*0.08;maxX=cx+vbW*0.08;}
+    if(zh<vbH*0.15){var cy=(minY+maxY)/2;minY=cy-vbH*0.08;maxY=cy+vbH*0.08;}
+  }
+  var zW=maxX-minX,zH=maxY-minY;
+  var sc=Math.min(W/zW,H/zH)*0.88,ox=(W-zW*sc)/2-minX*sc,oy=(H-zH*sc)/2-minY*sc;
+
   var rp='';
   if(pts.length>1){
     rp='M'+pts[0].vx.toFixed(1)+' '+pts[0].vy.toFixed(1);
@@ -114,7 +132,7 @@ function geoMapSVG(W,H,activeIdx){
   return '<svg class="map-svg" viewBox="0 0 '+W+' '+H+'" fill="none">'
     +'<rect width="'+W+'" height="'+H+'" fill="rgba(246,240,228,0.02)" rx="10"/>'
     +'<g transform="translate('+ox.toFixed(1)+','+oy.toFixed(1)+') scale('+sc.toFixed(4)+')">'
-    +'<path d="'+g.path+'" fill="'+hexA(accent,0.10)+'" stroke="'+hexA(accent,0.60)+'" stroke-width="'+(1.2/sc).toFixed(2)+'" stroke-linejoin="round" stroke-linecap="round"/>'
+    +'<path d="'+g.path+'" fill="'+hexA(accent,0.10)+'" stroke="'+hexA(accent,0.55)+'" stroke-width="'+(1.2/sc).toFixed(2)+'" stroke-linejoin="round" stroke-linecap="round"/>'
     +(rp?'<path d="'+rp+'" stroke="'+hexA(accent,0.85)+'" stroke-width="'+(1.5/sc).toFixed(2)+'" stroke-dasharray="'+(4/sc).toFixed(1)+' '+(3/sc).toFixed(1)+'" fill="none" style="animation:none !important;stroke-dashoffset:0 !important"/>':'')
     +pins+'</g></svg>';
 }
