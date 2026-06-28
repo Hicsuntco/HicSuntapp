@@ -52,60 +52,21 @@ var _GEO = {
   '_default':{vb:'0 0 100 100',path:'M50,8 C64,10 76,20 80,34 C84,48 80,62 76,74 C72,86 64,94 52,98 C40,102 28,98 20,88 C12,78 10,64 12,52 C14,40 16,26 24,18 C32,10 38,6 50,8Z',cities:{}}
 };
 function _geoGet(dest){
-  /* Déléguer à _geoShapeSD de screens-detail.js qui a toutes les shapes */
-  if(typeof _geoShapeSD === 'function'){
-    var r = _geoShapeSD(dest);
-    return r ? r.g : _GEO._default;
-  }
-  var d=(dest||'').toLowerCase();
-  var keys=Object.keys(_GEO).filter(function(k){return k!=='_default';});
-  for(var i=0;i<keys.length;i++){if(d.includes(keys[i]))return _GEO[keys[i]];}
-  if(/thaïlande|bangkok|phuket|chiang|krabi/.test(d))return _GEO['thaïlande'];
-  if(/sardaigne|cagliari|sassari/.test(d))return _GEO.sardaigne;
-  if(/italie|sicile|rome|milan|florence|naples/.test(d))return _GEO.italie;
-  if(/espagne|madrid|barcelone|séville/.test(d))return _GEO.espagne;
-  if(/france|paris|provence/.test(d))return _GEO.france;
-  if(/grèce|athènes|santorin|mykonos/.test(d))return _GEO['grèce'];
-  if(/portugal|lisbonne|porto/.test(d))return _GEO.portugal;
-  if(/maroc|marrakech|fès/.test(d))return _GEO.maroc;
-  if(/vietnam|hanoi|ho chi minh|hoi an/.test(d))return _GEO.vietnam;
-  if(/cambodge|angkor|phnom/.test(d))return _GEO.cambodge;
-  if(/japon|tokyo|kyoto|osaka/.test(d))return _GEO.japon;
-  if(/inde|delhi|jaipur|rajasthan|kerala|goa/.test(d))return _GEO.inde;
-  if(/sri lanka|colombo|kandy/.test(d))return _GEO['sri lanka'];
-  if(/bali|lombok|java|indonesie|indonesia/.test(d))return _GEO.bali;
-  if(/pérou|lima|cusco|machu/.test(d))return _GEO['pérou'];
-  if(/mexique|cancún|oaxaca/.test(d))return _GEO.mexique;
-  if(/kenya|nairobi|safari/.test(d))return _GEO.kenya;
-  if(/tanzanie|serengeti|zanzibar/.test(d))return _GEO.tanzanie;
-  if(/islande|reykjavik/.test(d))return _GEO.islande;
+  if(typeof _geoShapeSD==='function'){var r=_geoShapeSD(dest);return r?r.g:_GEO._default;}
   return _GEO._default;
 }
 function _geoPts(plan,g){
-  /* Déléguer à _sdCityPts de screens-detail.js si disponible */
-  if(typeof _sdCityPts === 'function' && g && g.vb){
-    return _sdCityPts(plan, {g:g});
-  }
-  var vb=g.vb.split(' ').map(Number),vbW=vb[2],vbH=vb[3],cities=g.cities||{};
-  var cv=Object.values(cities),cxC=vbW/2,cyC=vbH/2;
-  if(cv.length){cxC=cv.reduce(function(s,c){return s+c[0];},0)/cv.length;cyC=cv.reduce(function(s,c){return s+c[1];},0)/cv.length;}
+  var vb=(g.vb||'0 0 100 100').split(' ').map(Number),vbW=vb[2],vbH=vb[3],cities=g.cities||{};
   function match(loc){
-    var parts=(loc||'').split(/[\/\-,\(\)]/);
-    var tokens=parts.map(function(p){return p.trim().toLowerCase();}).filter(function(t){return t.length>=2;});
-    /* Test chaque token contre chaque ville */
+    var locL=(loc||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    var parts=locL.split(/[\/\-,\(\) ]/);
     for(var ci in cities){
-      var cl=ci.toLowerCase().trim();
-      for(var ti=0;ti<tokens.length;ti++){
-        var t=tokens[ti];
-        if(cl===t||cl.startsWith(t)||t.startsWith(cl)) return cities[ci];
+      var cl=ci.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+      if(locL.includes(cl)||cl.includes(locL.split(/[\/\-,]/)[0].trim())) return cities[ci];
+      for(var pi=0;pi<parts.length;pi++){
+        var t=parts[pi].trim();
+        if(t.length>=3&&(cl===t||cl.startsWith(t)||t.startsWith(cl))) return cities[ci];
       }
-    }
-    /* Test inverse : chaque mot de chaque ville contre le loc complet */
-    var locL=(loc||'').toLowerCase();
-    for(var ci2 in cities){
-      var cl2=cities[ci2]; // coord
-      var cityName=ci2.toLowerCase();
-      if(locL.includes(cityName)||cityName.includes(locL.split(/[\/\-,\(\)]/)[0].trim().toLowerCase())) return cl2;
     }
     return null;
   }
@@ -114,8 +75,9 @@ function _geoPts(plan,g){
   return plan.map(function(p,i){
     var m=matched[i];
     if(m)return{vx:m[0],vy:m[1],n:i+1,loc:p.loc,title:p.title,wx:p.wx};
-    var a=(fi/Math.max(1,fc))*Math.PI*2-Math.PI/2;fi++;
-    return{vx:cxC+Math.cos(a)*Math.min(vbW,vbH)*0.15,vy:cyC+Math.sin(a)*Math.min(vbW,vbH)*0.15,n:i+1,loc:p.loc,title:p.title,wx:p.wx};
+    /* Fallback : distribuer en ligne dans le centre du viewBox */
+    var t=fc>1?(fi/(fc-1)):0.5; fi++;
+    return{vx:vbW*0.15+t*vbW*0.7,vy:vbH*0.35+Math.sin(t*Math.PI)*vbH*0.15,n:i+1,loc:p.loc,title:p.title,wx:p.wx};
   });
 }
 function geoMapSVG(W,H,activeIdx){
