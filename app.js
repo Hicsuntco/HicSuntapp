@@ -92,27 +92,7 @@ function geoMapSVG(W,H,activeIdx){
   });
   var disp=ordered.slice(0,8).map(function(p,i){return Object.assign({},p,{n:i+1});});
   var pts=_geoPts(disp,g);
-
-  /* Recadrer sur la bounding box des points matchés + marge */
-  var matched=pts.filter(function(p){return p._matched!==false;});
-  var pad=Math.min(vbW,vbH)*0.18;
-  var minX=vbW*0.1,maxX=vbW*0.9,minY=vbH*0.1,maxY=vbH*0.9;
-  if(pts.length>0){
-    minX=pts.reduce(function(m,p){return Math.min(m,p.vx);},Infinity)-pad;
-    maxX=pts.reduce(function(m,p){return Math.max(m,p.vx);},0)+pad;
-    minY=pts.reduce(function(m,p){return Math.min(m,p.vy);},Infinity)-pad;
-    maxY=pts.reduce(function(m,p){return Math.max(m,p.vy);},0)+pad;
-    /* S'assurer qu'on ne sort pas du viewBox */
-    minX=Math.max(0,minX); minY=Math.max(0,minY);
-    maxX=Math.min(vbW,maxX); maxY=Math.min(vbH,maxY);
-    /* Zone min pour ne pas trop zoomer */
-    var zw=maxX-minX,zh=maxY-minY;
-    if(zw<vbW*0.15){var cx=(minX+maxX)/2;minX=cx-vbW*0.08;maxX=cx+vbW*0.08;}
-    if(zh<vbH*0.15){var cy=(minY+maxY)/2;minY=cy-vbH*0.08;maxY=cy+vbH*0.08;}
-  }
-  var zW=maxX-minX,zH=maxY-minY;
-  var sc=Math.min(W/zW,H/zH)*0.88,ox=(W-zW*sc)/2-minX*sc,oy=(H-zH*sc)/2-minY*sc;
-
+  var sc=Math.min(W/vbW,H/vbH)*0.88,ox=(W-vbW*sc)/2,oy=(H-vbH*sc)/2;
   var rp='';
   if(pts.length>1){
     rp='M'+pts[0].vx.toFixed(1)+' '+pts[0].vy.toFixed(1);
