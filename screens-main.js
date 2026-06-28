@@ -233,17 +233,29 @@ function savedTripCard(it){
   const icon = destIcon(it.destination);
   const accent = _destAccent(it.destination);
   const daysColor = accent.primary;
+  const occ = it.occasion || (it.data && it.data.occasion) || '';
+  const OCC_LABELS = {
+    'lune-de-miel': {label:'Lune de miel', emoji:'💍'},
+    'evjf':         {label:'EVJF',          emoji:'🌸'},
+    'evg':          {label:'EVG',           emoji:'🏆'},
+    'famille':      {label:'En famille',    emoji:'🧸'},
+    'anniversaire': {label:'Anniversaire',  emoji:'✦'},
+    'solo':         {label:'Solo',          emoji:'🧭'},
+    'amis':         {label:'Entre amis',    emoji:'🥂'},
+    'pro':          {label:'Voyage pro',    emoji:'💼'},
+  };
+  const occInfo = OCC_LABELS[occ];
   return '<div class="trip" style="position:relative" onclick="loadSavedItinerary(\''+it.id+'\')">'
     +'<button class="trip-del" onclick="event.stopPropagation();deleteSavedItinerary(\''+it.id+'\')" aria-label="Supprimer">'+ico('close',14,2)+'</button>'
     +'<div class="th" style="position:relative;overflow:hidden">'
-    /* fond sombre par destination */
     +'<div style="position:absolute;inset:0;background:'+bg+'"></div>'
-    /* lueur colorée thématique au centre */
     +'<div style="position:absolute;inset:0;background:radial-gradient(65% 65% at 50% 50%,'+accent.glow+',transparent)"></div>'
-    /* icône colorée selon le thème */
     +'<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:'+accent.primary+';opacity:0.85">'+ico(icon,36,1.3)+'</span>'
+    +(occInfo?'<span style="position:absolute;top:8px;left:8px;font-size:14px;line-height:1;opacity:0.9">'+occInfo.emoji+'</span>':'')
     +'</div>'
-    +'<div><div class="ti-n">'+esc(it.destination)+'</div>'
+    +'<div style="min-width:0;flex:1">'
+    +'<div class="ti-n">'+esc(it.destination)+'</div>'
+    +(occInfo?'<div style="font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:'+accent.primary+';margin-bottom:3px">'+occInfo.label+'</div>':'')
     +'<div class="ti-d">'+esc(it.dates)+'</div>'
     +'<div class="ti-days" style="color:'+daysColor+'">'+it.days+' jour'+(it.days>1?'s':'')+'</div>'
     +'<div class="ti-st"><span class="status ok">Sauvegardé</span></div>'

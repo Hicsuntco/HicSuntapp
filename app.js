@@ -628,7 +628,8 @@ async function saveItinerary(){
     if(!exists){
       /* Copie profonde pour éviter les problèmes de référence */
       const snapshot = JSON.parse(JSON.stringify(ITINERARY));
-      local.unshift({dest:ITINERARY.dest,dates:ITINERARY.dates,days:_days(),budget:ITINERARY.budgetTotal,data:snapshot,savedAt:Date.now()});
+      snapshot.occasion = snapshot.occasion || state.occasion || '';
+      local.unshift({dest:ITINERARY.dest,dates:ITINERARY.dates,days:_days(),budget:ITINERARY.budgetTotal,occasion:state.occasion||'',data:snapshot,savedAt:Date.now()});
       localStorage.setItem('hs_saved_trips', JSON.stringify(local.slice(0,50)));
     } else {
       /* Mettre à jour si existe déjà */
