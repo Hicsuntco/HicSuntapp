@@ -759,14 +759,15 @@ async function _callSupabase(prompt){
 }
 async function _completeJSON(prompt){
   for(let a=0;a<2;a++){
+    if(a>0) await new Promise(function(r){setTimeout(r,1200);});
     try{
       const txt=await _callSupabase(prompt);
       const j=parseItineraryJSON(txt);
       if(j) return j;
-      console.warn('[_completeJSON] JSON invalide, tentative',a+1,'réponse:',txt&&txt.slice(0,120));
+      console.warn('[_completeJSON] JSON invalide, tentative',a+1);
     }catch(e){
-      console.error('[_completeJSON] erreur tentative',a+1,e&&e.message||e);
-      toast('Erreur: '+String(e&&e.message||e).slice(0,60));
+      /* Ne pas afficher de toast sur les tentatives intermédiaires — seulement loguer */
+      console.warn('[_completeJSON] tentative',a+1,'échouée:',e&&e.message||e);
     }
   }
   return null;
@@ -1482,6 +1483,8 @@ async function runFullGeneration(overlayAlreadyOpen){
   /* Annuler toute animation de génération précédente encore active */
   if(window._genRafId){ cancelAnimationFrame(window._genRafId); window._genRafId=null; }
   window._genDone=false;
+  /* Session ID unique : toute boucle tick d'une session précédente est ignorée */
+  const sessionId = (window._genSessionId=(window._genSessionId||0)+1);
   const el = overlayAlreadyOpen
     ? document.querySelector('.ov[data-ov="generating"]')
     : openOverlay('generating',generationView(),{modal:true,carto:true});
@@ -1553,7 +1556,13 @@ async function runFullGeneration(overlayAlreadyOpen){
       lastLabel = newLabel;
       if(statusEl){
         statusEl.style.opacity=0;
-        setTimeout(function(){ if(!done){ statusEl.textContent=newLabel; statusEl.style.opacity=1; } },180);
+        var capturedSession=sessionId;
+        setTimeout(function(){
+          if(window._genSessionId===capturedSession && !window._genDone){
+            statusEl.textContent=newLabel;
+            statusEl.style.opacity=1;
+          }
+        },180);
       }
     }
 
@@ -1575,7 +1584,13 @@ async function runFullGeneration(overlayAlreadyOpen){
     console.log('[runFullGen] result=',result?'OK plan='+((result.skel&&result.skel.plan)||[]).length+' days='+((result.days&&result.days.days)||[]).length:'NULL');
   }catch(e){
     console.error('[runFullGen] exception callCartographe:',e&&e.message||e);
-    toast('Erreur génération: '+String(e&&e.message||e).slice(0,60));
+    var errMsg = String(e&&e.message||e);
+    /* "Load failed" = iOS Safari a coupé le réseau après 60s */
+    if(errMsg.toLowerCase().indexOf('load failed')>=0 || errMsg.toLowerCase().indexOf('network')>=0){
+      toast('Connexion interrompue - relancez la generation');
+    } else {
+      toast('Erreur: '+errMsg.slice(0,55));
+    }
     await minShow;
   }
 
