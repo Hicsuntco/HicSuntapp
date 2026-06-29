@@ -517,13 +517,21 @@ function buildSkeletonPrompt(dc, batchSize, offset){
   const common=[
     geoConstraint,
     zoneConstraint ? zoneConstraint : '',
-    '━━━ RÈGLES LOGISTIQUES ABSOLUES (violations = itinéraire invalide) ━━━',
-    '1. TRACÉ LINÉAIRE : chaque étape dans la même direction générale. Visualise la carte  -  le tracé doit avoir du sens.',
+    '=== ITINÉRAIRE GÉOGRAPHIQUEMENT COHÉRENT - RÈGLE ABSOLUE ===',
+    'CRITIQUE : Conçois un CIRCUIT LOGIQUE qui ne revient JAMAIS en arrière. Imagine la carte réelle du pays.',
+    'Le voyage doit suivre une BOUCLE ou une LIGNE continue : on avance toujours vers la destination suivante la plus proche, jamais de zigzag.',
+    'INTERDIT ABSOLU : revenir dans une ville déjà visitée puis repartir (ex: Colombo -> Sud -> Ella -> Kandy -> Negombo -> Kandy -> Ella = INVALIDE car repasse 2x par Kandy et Ella).',
+    'BON EXEMPLE (Sri Lanka) : Colombo (arrivée) -> côte sud (Tangalle, Mirissa) -> montagnes (Ella) -> Kandy -> Negombo -> Colombo (départ). Une seule boucle fluide.',
+    'Si le vol retour est dans la même ville que l\'arrivée, organise une BOUCLE qui y revient naturellement à la fin - PAS d\'aller-retours multiples.',
+    'Planifie mentalement le trajet AVANT : liste les zones dans l\'ordre géographique optimal, puis répartis les jours.',
+    '',
+    '=== RÈGLES LOGISTIQUES (violations = itinéraire invalide) ===',
+    '1. TRACÉ LINÉAIRE OU BOUCLE : jamais de retour arrière. Chaque étape plus proche de la suivante.',
     '2. DISTANCES RÉALISTES : max '+maxKm+'km entre deux étapes consécutives (rythme '+rythme+'). Mentionner le trajet si > 45min.',
-    '3. JOURS DE TRANSFERT : si le trajet excède 2h, dédier ce jour au trajet + arrivée. Ne pas charger un jour de transfert avec des activités.',
-    '4. FERRIES/BATEAUX : toujours planifier aller ET retour avec dates précises. Jamais quitter le continent pour une île sans prévoir le retour dans le plan.',
-    '5. UN HÉBERGEMENT PAR ZONE : ne changer d\'hébergement QUE si on change de zone géographique (>30km). Pas de changement d\'hôtel inutile.',
-    '6. COHÉRENCE "night" : le champ "night" de chaque jour = "name" EXACT d\'un hébergement de "stays". Obligatoire.',
+    '3. JOURS DE TRANSFERT : si trajet > 2h, dédier ce jour au trajet + arrivée.',
+    '4. FERRIES/BATEAUX : planifier aller ET retour avec dates précises.',
+    '5. UN HÉBERGEMENT PAR ZONE : changer d\'hébergement SEULEMENT en changeant de zone (>30km). Regrouper les nuits consécutives au même endroit.',
+    '6. COHÉRENCE "night" : champ "night" = "name" EXACT d\'un hébergement de "stays".',
     '7. SKY : sun, cloud, ou rain uniquement.',
     '8. JSON valide compact. Zéro texte autour.',
   ];
@@ -608,23 +616,30 @@ function buildSkeletonPrompt(dc, batchSize, offset){
 
   /* Batches suivants  -  contexte complet */
   const staysList=(state._genStays||[]).map(function(s){return '"'+s.name+'" ('+s.type+', '+s.loc+')  -  '+s.nights+' nuits';}).join('\n');
+  const allVisited=(state._genAllSteps||[]).map(function(p){return p.loc;}).filter(function(v,i,a){return a.indexOf(v)===i;});
   const lastSteps=(state._genLastSteps||[]).slice(-2).map(function(p){return p.n+'. '+p.loc+' ('+p.title+')';}).join(' → ');
+  const lastLoc=(state._genLastSteps&&state._genLastSteps.length)?state._genLastSteps[state._genLastSteps.length-1].loc:'';
   return [
     'HIC SUNT  -  SUITE itinéraire '+dest+', '+dc+'j. Jours '+(offset+1)+'→'+(offset+n)+'.',
     'MÊMES EXIGENCES : noms réels, logistique rigoureuse, ancrage local.',
     '',
-    '━━━ BRIEF CLIENT ━━━',
+    '=== BRIEF CLIENT ===',
     b.lines,
     '',
-    '━━━ CONTEXTE ━━━',
+    '=== CONTEXTE GÉOGRAPHIQUE - CRITIQUE ===',
+    'Tu es actuellement à : '+lastLoc,
     'Dernières étapes : '+lastSteps,
+    'Villes DÉJÀ VISITÉES (ne PAS y retourner sauf si c\'est l\'aéroport de départ final) : '+allVisited.join(', '),
+    'RÈGLE ABSOLUE : continue le circuit vers l\'AVANT depuis '+lastLoc+'. Ne reviens PAS dans une ville déjà visitée.',
+    'Si ces jours sont les DERNIERS du voyage, dirige-toi progressivement vers l\'aéroport de départ.',
+    '',
     'Hébergements établis (utiliser "name" EXACT dans "night") :',
     staysList,
     '',
     common.join('\n'),
     '* EXACTEMENT '+n+' entrées : jours '+(offset+1)+'→'+(offset+n)+'.',
-    '* Continuer géographiquement depuis la dernière étape.',
-    '* Vérifier : trajet réaliste ? ferry retour prévu ? nuits cohérentes ?',
+    '* Continuer géographiquement depuis '+lastLoc+' SANS retour arrière.',
+    '* Vérifier : trajet réaliste ? ferry retour prévu ? nuits cohérentes ? aucune ville déjà visitée ?',
     '',
     '{"plan":[{"title":"","loc":"ville précise","night":"nom exact stays","sky":"sun","temp":"26°","hook":"phrase évocatrice 10 mots max"}]}',
   ].join('\n');
@@ -1292,10 +1307,12 @@ async function callCartographe(){
       }
       state._genStays=skel.stays||[];
       state._genLastSteps=skel.plan.slice(-2); /* contexte pour batches suivants */
+      state._genAllSteps=skel.plan.slice(); /* toutes les étapes pour anti-retour */
     } else {
       const morePlan=(batchResult&&Array.isArray(batchResult.plan))?batchResult.plan:[];
       skel.plan=skel.plan.concat(morePlan);
       state._genLastSteps=skel.plan.slice(-2);
+      state._genAllSteps=skel.plan.slice();
     }
   }
   /* sécurité : si la génération par lots n'atteint pas dc, on tronque proprement */
@@ -1459,6 +1476,9 @@ async function confirmSuggestedDestination(){
 
 /* ── Étape 2 : génération complète de l'itinéraire ────────────────────── */
 async function runFullGeneration(overlayAlreadyOpen){
+  /* Annuler toute animation de génération précédente encore active */
+  if(window._genRafId){ cancelAnimationFrame(window._genRafId); window._genRafId=null; }
+  window._genDone=false;
   const el = overlayAlreadyOpen
     ? document.querySelector('.ov[data-ov="generating"]')
     : openOverlay('generating',generationView(),{modal:true,carto:true});
@@ -1498,7 +1518,7 @@ async function runFullGeneration(overlayAlreadyOpen){
 
   let lastLabel = '';
   function tick(){
-    if(done) return;
+    if(window._genDone) return;
     const elapsed = Date.now() - startTime;
     /* Courbe easing : progresse vite au début, ralentit vers 90% */
     const linear = Math.min(elapsed / EST_DURATION, 1);
@@ -1535,6 +1555,7 @@ async function runFullGeneration(overlayAlreadyOpen){
     }
 
     rafId = requestAnimationFrame(tick);
+    window._genRafId = rafId;
   }
 
   /* Initialisation */
@@ -1557,7 +1578,9 @@ async function runFullGeneration(overlayAlreadyOpen){
 
   /* Fin réelle  -  compléter à 100% */
   done = true;
+  window._genDone = true;
   if(rafId) cancelAnimationFrame(rafId);
+  if(window._genRafId){ cancelAnimationFrame(window._genRafId); window._genRafId=null; }
 
   const barI=el.querySelector('[data-gen-bar]');
   const barPct=el.querySelector('[data-gen-pct]');
