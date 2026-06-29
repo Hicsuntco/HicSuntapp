@@ -190,6 +190,7 @@ function deckQuestions(){
       else if(occ === 'famille') list = [
         'Une plage calme avec eau peu profonde',
         'Un parc naturel avec animaux à observer',
+        'Un safari pour voir des animaux sauvages',
         'Un atelier créatif pour enfants',
         'Une randonnée accessible avec récompense (vue, cascade)',
         'Un marché local animé',
@@ -209,6 +210,7 @@ function deckQuestions(){
         'Un bar ou restaurant avec comptoir (pour parler aux locaux)',
         'Un musée ou galerie hors des sentiers',
         'Une excursion en petit groupe organisée',
+        'Un safari ou observation de la faune sauvage',
         'Un coucher de soleil dans un endroit secret',
         'Une journée vélo sur des routes secondaires',
         'Un temple ou lieu de spiritualité au lever du soleil',
@@ -219,6 +221,7 @@ function deckQuestions(){
         'Un repas convivial dans un endroit mémorable',
         'Une randonnée avec pique-nique au sommet',
         'Un tour en bateau ou excursion en groupe',
+        'Un safari pour observer la faune sauvage',
         'Un atelier culinaire ou dégustation ensemble',
         'Un coucher de soleil depuis un belvédère',
         'Une activité sportive ou nautique en groupe',
