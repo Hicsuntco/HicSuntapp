@@ -120,11 +120,27 @@ function mapView(){
   var i=state.mapDay||0,p=(ITINERARY.plan||[])[i];
   var g=_geoGet(ITINERARY.dest||ITINERARY.destination||'');
   var vb=g.vb.split(' ').map(Number),vbW=vb[2],vbH=vb[3];
-  var W=345,H=420,sc=Math.min(W/vbW,H/vbH)*0.88;
-  var ox=(W-vbW*sc)/2,oy=(H-vbH*sc)/2;
-  var pts=_geoPts(ITINERARY.plan||[],g),pin=pts[i]||{vx:vbW/2,vy:vbH/2};
+  var W=345,H=420;
+  /* Dédupliquer comme dans geoMapSVG pour avoir les mêmes index */
+  var seen={},ordered=[];
+  (ITINERARY.plan||[]).forEach(function(pp){
+    var k=(pp.loc||'').split(/[\/(,]/)[0].trim().toLowerCase();
+    if(!seen[k]){seen[k]=true;ordered.push(pp);}
+  });
+  var disp=ordered.slice(0,8);
+  var allPts=_geoPts(disp,g);
+  /* Zoom sur la bounding box des étapes pour la grande carte */
+  var pad=Math.min(vbW,vbH)*0.22;
+  var minX=allPts.reduce(function(m,pt){return Math.min(m,pt.vx);},Infinity)-pad;
+  var maxX=allPts.reduce(function(m,pt){return Math.max(m,pt.vx);},0)+pad;
+  var minY=allPts.reduce(function(m,pt){return Math.min(m,pt.vy);},Infinity)-pad;
+  var maxY=allPts.reduce(function(m,pt){return Math.max(m,pt.vy);},0)+pad;
+  if(!isFinite(minX)){minX=0;maxX=vbW;minY=0;maxY=vbH;}
+  var zW=Math.max(maxX-minX,vbW*0.12),zH=Math.max(maxY-minY,vbH*0.12);
+  var sc=Math.min(W/zW,H/zH)*0.9,ox=(W-zW*sc)/2-minX*sc,oy=(H-zH*sc)/2-minY*sc;
+  var pin=allPts[i]||{vx:(minX+maxX)/2,vy:(minY+maxY)/2};
   var pCx=ox+pin.vx*sc,pCy=oy+pin.vy*sc;
-  var popL=Math.max(4,Math.min(pCx/W*100-20,50)),popT=pCy/H>0.58?(pCy/H*100-22):(pCy/H*100+6);
+  var popL=Math.max(4,Math.min(pCx/W*100-20,50)),popT=pCy/H>0.58?(pCy/H*100-24):(pCy/H*100+8);
   var wx=p&&Array.isArray(p.wx)?p.wx:['sun','—'];
   var pop=p?'<div class="map-pop" style="left:'+popL.toFixed(1)+'%;top:'+popT.toFixed(1)+'%">'
     +'<div class="mp-k">Jour '+String(p.n).padStart(2,'0')+' · '+esc(p.loc||'')+'</div>'
@@ -136,56 +152,50 @@ function mapView(){
     +'<div class="ov-scroll"><div class="bigmap">'
     +'<span class="map-coords">'+esc(ITINERARY.coords||ITINERARY.dest||'')+'</span>'
     +'<span class="map-rose">'+rose(26,1.1)+'</span>'
-    +geoMapSVG(W,H,i)+pop
+    +_bigMapSVG(W,H,i,g,allPts,sc,ox,oy)+pop
     +'</div><div class="map-rail">'+(ITINERARY.plan||[]).map(function(d,j){
       return '<button class="map-chip'+(j===i?' on':'')+'" onclick="mapSelect('+j+')">'
         +'<div class="mc-d">Jour '+String(d.n).padStart(2,'0')+'</div><div class="mc-l">'+esc(d.loc||'')+'</div></button>';
     }).join('')+'</div></div>';
 }
+/* Carte grand format zoomée sur les étapes */
+function _bigMapSVG(W,H,activeIdx,g,pts,sc,ox,oy){
+  var it=ITINERARY;
+  var accent=(it.palette&&(it.palette.culture||it.palette.beach))||'#C9A96E';
+  var rp='';
+  if(pts.length>1){
+    rp='M'+pts[0].vx.toFixed(1)+' '+pts[0].vy.toFixed(1);
+    for(var ri=1;ri<pts.length;ri++){
+      var mx=((pts[ri-1].vx+pts[ri].vx)/2).toFixed(1),my=((pts[ri-1].vy+pts[ri].vy)/2).toFixed(1);
+      rp+=' Q'+pts[ri-1].vx.toFixed(1)+' '+pts[ri-1].vy.toFixed(1)+' '+mx+' '+my;
+    }
+    rp+=' L'+pts[pts.length-1].vx.toFixed(1)+' '+pts[pts.length-1].vy.toFixed(1);
+  }
+  var pr=8/sc,pro=12/sc,fs=7/sc,fso=9/sc;
+  var pins=pts.map(function(p,i){
+    var on=activeIdx===i,r=on?pro:pr;
+    return '<g class="mpin'+(on?' on':'')+'" onclick="mapSelect('+i+')">'
+      +'<circle cx="'+p.vx.toFixed(1)+'" cy="'+p.vy.toFixed(1)+'" r="'+r.toFixed(1)+'"/>'
+      +'<text x="'+p.vx.toFixed(1)+'" y="'+(p.vy+r*0.38).toFixed(1)+'" font-size="'+(on?fso:fs).toFixed(1)+'">'+p.n+'</text></g>';
+  }).join('');
+  return '<svg class="map-svg" viewBox="0 0 '+W+' '+H+'" fill="none">'
+    +'<rect width="'+W+'" height="'+H+'" fill="rgba(246,240,228,0.02)" rx="10"/>'
+    +'<g transform="translate('+ox.toFixed(1)+','+oy.toFixed(1)+') scale('+sc.toFixed(4)+')">'
+    +'<path d="'+g.path+'" fill="'+hexA(accent,0.10)+'" stroke="'+hexA(accent,0.55)+'" stroke-width="'+(1.2/sc).toFixed(2)+'" stroke-linejoin="round" stroke-linecap="round"/>'
+    +(rp?'<path d="'+rp+'" stroke="'+hexA(accent,0.85)+'" stroke-width="'+(1.6/sc).toFixed(2)+'" stroke-dasharray="'+(4/sc).toFixed(1)+' '+(3/sc).toFixed(1)+'" fill="none" style="animation:none !important;stroke-dashoffset:0 !important"/>':'')
+    +pins+'</g></svg>';
+}
 function mapSelect(i){
   state.mapDay=i;
-  /* Mettre à jour le popup et les chips sans recharger la carte */
   var el=ovStack[ovStack.length-1];
-  if(!el||el.dataset.ov!=='map'){el&&(el.innerHTML=mapView());return;}
-
-  /* Mettre à jour les chips actifs */
-  el.querySelectorAll('.map-chip').forEach(function(c,j){
-    c.classList.toggle('on',j===i);
-  });
-
-  /* Mettre à jour les pins actifs */
-  el.querySelectorAll('.mpin').forEach(function(pin,j){
-    pin.classList.toggle('on',j===i);
-  });
-
-  /* Mettre à jour le popup */
-  var g=_geoGet(ITINERARY.dest||ITINERARY.destination||'');
-  var vb=g.vb.split(' ').map(Number),vbW=vb[2],vbH=vb[3];
-  var W=345,H=420,sc=Math.min(W/vbW,H/vbH)*0.88;
-  var ox=(W-vbW*sc)/2,oy=(H-vbH*sc)/2;
-  var pts=_geoPts(ITINERARY.plan||[],g);
-  var pin=pts[i]||{vx:vbW/2,vy:vbH/2};
-  var p=(ITINERARY.plan||[])[i];
-  var pCx=ox+pin.vx*sc,pCy=oy+pin.vy*sc;
-  var popL=Math.max(4,Math.min(pCx/W*100-20,50));
-  var popT=pCy/H>0.58?(pCy/H*100-22):(pCy/H*100+6);
-  var wx=p&&Array.isArray(p.wx)?p.wx:['sun','—'];
-  var popEl=el.querySelector('.map-pop');
-  if(p){
-    var popHtml='<div class="mp-k">Jour '+String(p.n).padStart(2,'0')+' · '+esc(p.loc||'')+'</div>'
-      +'<div class="mp-t">'+esc(p.title||'')+'</div>'
-      +'<div class="mp-m"><span class="mp-wx">'+ico(wx[0],13,1.7)+wx[1]+'</span>'
-      +'<span class="mp-l" onclick="openDay('+i+')">Détails ›</span></div>';
-    if(popEl){
-      popEl.style.left=popL.toFixed(1)+'%';
-      popEl.style.top=popT.toFixed(1)+'%';
-      popEl.innerHTML=popHtml;
-    }
+  if(el&&el.dataset.ov==='map'){
+    el.innerHTML=mapView();
+    /* Scroll le rail vers le chip actif après recharge */
+    requestAnimationFrame(function(){
+      var chip=el.querySelectorAll('.map-chip')[i];
+      if(chip) chip.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+    });
   }
-
-  /* Scroll le rail vers le chip actif */
-  var chip=el.querySelectorAll('.map-chip')[i];
-  if(chip) chip.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
 }
 
 function travelerLabel(){ return state.travelers + ' voyageur' + (state.travelers > 1 ? 's' : ''); }
