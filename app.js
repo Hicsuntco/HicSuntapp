@@ -596,6 +596,34 @@ async function _doSaveModified(mode){
   if(typeof refreshAuthTabs==='function') refreshAuthTabs();
 }
 
+/* Persiste l'historique de chat dans la sauvegarde existante (sans doublon, silencieux).
+   N'enregistre que si l'itinéraire a déjà été sauvegardé une fois. */
+async function saveChatHistory(){
+  if(!ITINERARY || !ITINERARY.chatHistory) return;
+  /* Local : mettre à jour l'entrée si elle existe */
+  try{
+    var local = JSON.parse(localStorage.getItem('hs_saved_trips')||'[]');
+    var i = local.findIndex(function(t){ return t.dest===ITINERARY.dest && t.dates===ITINERARY.dates; });
+    if(i>=0){
+      if(!local[i].data) local[i].data = {};
+      local[i].data.chatHistory = ITINERARY.chatHistory;
+      localStorage.setItem('hs_saved_trips', JSON.stringify(local.slice(0,50)));
+    }
+  }catch(e){ console.warn('saveChatHistory local:', e); }
+  /* Cloud : upsert si connecté ET déjà sauvegardé */
+  var token = localStorage.getItem('sb_token');
+  var userId = _getUserId();
+  if(token && userId){
+    try{
+      await fetch(SUPABASE_URL+'/rest/v1/itineraries?on_conflict=user_id,destination,dates',{
+        method:'POST',
+        headers:{'content-type':'application/json','apikey':SUPABASE_ANON,'Authorization':'Bearer '+token,'Prefer':'resolution=merge-duplicates,return=minimal'},
+        body:JSON.stringify({user_id:userId,destination:ITINERARY.dest,dates:ITINERARY.dates,days:_days(),budget:ITINERARY.budgetTotal,data:ITINERARY})
+      });
+    }catch(e){}
+  }
+}
+
 /* Met à jour la sauvegarde existante d'un itinéraire (après modif cartographe)
    sans créer de doublon. Met à jour la copie locale et la copie cloud si connecté. */
 async function updateSavedItinerary(){
@@ -1332,9 +1360,24 @@ document.addEventListener('DOMContentLoaded', function(){
   };
 
   /* ── Modifier l'itinéraire (IA) — version robuste ── */
+  window._chatBubble = function(role, text){
+    if(role==='user'){
+      return '<div style="background:var(--ink);color:var(--bg);border-radius:18px 18px 4px 18px;padding:12px 16px;max-width:80%;align-self:flex-end;font-size:15px;line-height:1.5">'+esc(text)+'</div>';
+    }
+    return '<div style="background:var(--surface);border:1px solid var(--line);border-radius:18px 18px 18px 4px;padding:14px 16px;max-width:84%;align-self:flex-start"><p style="font-size:15px;line-height:1.55;color:var(--ink);margin:0">'+esc(text)+'</p></div>';
+  };
   window.openAI = function(){
     var intro = typeof AI_INTRO !== 'undefined' ? AI_INTRO : "Je suis votre cartographe. Décrivez un changement — j'ajuste l'itinéraire, les étapes et le budget en direct.";
     var prompts = typeof AI_PROMPTS !== 'undefined' ? AI_PROMPTS : ['Ajoute un jour','Rythme plus lent','Budget réduit','Plus de gastronomie'];
+    /* Restaurer l'historique de conversation propre à cet itinéraire */
+    var history = (ITINERARY.chatHistory && Array.isArray(ITINERARY.chatHistory)) ? ITINERARY.chatHistory : [];
+    var historyHtml = '';
+    if(history.length){
+      historyHtml = history.map(function(m){ return window._chatBubble(m.role, m.text); }).join('');
+    } else {
+      historyHtml = '<div style="background:var(--surface);border:1px solid var(--line);border-radius:18px 18px 18px 4px;padding:14px 16px;max-width:84%;align-self:flex-start">'
+        +'<p style="font-size:15px;line-height:1.55;color:var(--ink);margin:0">'+esc(intro)+'</p></div>';
+    }
     var chatHtml = statusBar(false)
       +'<div style="display:flex;flex-direction:column;height:100%;background:var(--bg);overflow:hidden">'
       +'<div style="display:flex;align-items:center;gap:12px;padding:10px 16px 14px;border-bottom:0.5px solid var(--line);flex:none">'
@@ -1342,10 +1385,10 @@ document.addEventListener('DOMContentLoaded', function(){
       +'<div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#2d1f0a,#5a3c1a);display:flex;align-items:center;justify-content:center;flex:none">'+ico('sparkle',17,1.4)+'</div>'
       +'<div style="flex:1"><div style="font-size:15px;font-weight:600;color:var(--ink)">Cartographe</div>'
       +'<div style="font-size:11px;color:#34C759;font-weight:500;letter-spacing:0.2px">● En ligne — prêt à ajuster</div></div>'
+      +(history.length?'<button onclick="window._clearChat()" style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--sub);background:none;border:none;cursor:pointer;padding:6px">Effacer</button>':'')
       +'</div>'
       +'<div data-ai-chat style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;-webkit-overflow-scrolling:touch">'
-      +'<div style="background:var(--surface);border:1px solid var(--line);border-radius:18px 18px 18px 4px;padding:14px 16px;max-width:84%;align-self:flex-start">'
-      +'<p style="font-size:15px;line-height:1.55;color:var(--ink);margin:0">'+esc(intro)+'</p></div>'
+      +historyHtml
       +'</div>'
       +'<div style="padding:8px 12px 0;display:flex;gap:7px;overflow-x:auto;flex:none;scrollbar-width:none;-webkit-overflow-scrolling:touch">'
       +prompts.map(function(p){
@@ -1361,9 +1404,24 @@ document.addEventListener('DOMContentLoaded', function(){
       +'</div>'
       +'</div>';
     openOverlay('ai', chatHtml);
+    /* Scroll en bas pour voir les derniers messages */
+    requestAnimationFrame(function(){
+      var c=document.querySelector('[data-ai-chat]');
+      if(c) c.scrollTop=c.scrollHeight;
+    });
+  };
+  window._clearChat = function(){
+    if(ITINERARY) ITINERARY.chatHistory = [];
+    try{ if(ITINERARY._dirty===false||ITINERARY.id) saveChatHistory(); }catch(e){}
+    window.openAI();
   };
   window._aiSend = async function(msg){
     if(!msg||!msg.trim()) return;
+    msg = msg.trim();
+
+    /* Initialiser et enregistrer dans l'historique de cet itinéraire */
+    if(!ITINERARY.chatHistory || !Array.isArray(ITINERARY.chatHistory)) ITINERARY.chatHistory = [];
+    ITINERARY.chatHistory.push({role:'user', text:msg, at:Date.now()});
 
     /* Afficher le message utilisateur */
     var chat = document.querySelector('[data-ai-chat]');
@@ -1386,12 +1444,18 @@ document.addEventListener('DOMContentLoaded', function(){
         budget: it.budgetTotal,
       });
 
+      /* Contexte conversationnel : derniers échanges de cet itinéraire */
+      var convo = (ITINERARY.chatHistory||[]).slice(-8,-1).map(function(m){
+        return (m.role==='user'?'Voyageur':'Cartographe')+': '+m.text;
+      }).join('\n');
+
       var prompt = [
         'Tu es le cartographe de Hic Sunt — assistant d\'itinéraire de voyage de luxe.',
         '',
         'ITINÉRAIRE ACTUEL (JSON résumé) :',
         itSummary,
         '',
+        convo ? ('CONVERSATION PRÉCÉDENTE (pour continuité, tiens-en compte) :\n'+convo+'\n') : '',
         'DEMANDE DU VOYAGEUR : "'+msg+'"',
         '',
         'Réponds en JSON UNIQUEMENT avec les modifications à appliquer :',
@@ -1428,6 +1492,9 @@ document.addEventListener('DOMContentLoaded', function(){
 
       /* Afficher la réponse */
       chat.innerHTML += '<div class="bub them">'+esc(parsed.reply)+'</div>';
+      /* Enregistrer dans l'historique de cet itinéraire et persister */
+      ITINERARY.chatHistory.push({role:'assistant', text:parsed.reply, at:Date.now()});
+      try{ saveChatHistory(); }catch(e){ console.warn('saveChatHistory:', e); }
 
       /* Appliquer les changements à ITINERARY en préservant les données existantes */
       var changes = parsed.changes || {};
