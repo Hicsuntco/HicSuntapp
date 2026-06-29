@@ -758,16 +758,20 @@ async function _callSupabase(prompt){
   return data.result||'';
 }
 async function _completeJSON(prompt){
-  for(let a=0;a<2;a++){
-    if(a>0) await new Promise(function(r){setTimeout(r,1200);});
+  for(let a=0;a<3;a++){
+    if(a>0) await new Promise(function(r){setTimeout(r,a*1500);});
     try{
       const txt=await _callSupabase(prompt);
       const j=parseItineraryJSON(txt);
       if(j) return j;
       console.warn('[_completeJSON] JSON invalide, tentative',a+1);
     }catch(e){
-      /* Ne pas afficher de toast sur les tentatives intermédiaires — seulement loguer */
-      console.warn('[_completeJSON] tentative',a+1,'échouée:',e&&e.message||e);
+      var msg=String(e&&e.message||e).toLowerCase();
+      console.warn('[_completeJSON] tentative',a+1,'echouee:',e&&e.message||e);
+      /* Load failed = iOS Safari a coupe le reseau — attendre et reessayer */
+      if(msg.indexOf('load failed')>=0||msg.indexOf('network')>=0){
+        if(a<2) await new Promise(function(r){setTimeout(r,2000);});
+      }
     }
   }
   return null;
@@ -1555,14 +1559,16 @@ async function runFullGeneration(overlayAlreadyOpen){
     if(newLabel !== lastLabel){
       lastLabel = newLabel;
       if(statusEl){
+        if(window._genLabelTimeout) clearTimeout(window._genLabelTimeout);
+        statusEl.style.transition='opacity 0.15s';
         statusEl.style.opacity=0;
-        var capturedSession=sessionId;
-        setTimeout(function(){
-          if(window._genSessionId===capturedSession && !window._genDone){
-            statusEl.textContent=newLabel;
+        var capturedLabel=newLabel;
+        window._genLabelTimeout=setTimeout(function(){
+          if(!window._genDone){
+            statusEl.textContent=capturedLabel;
             statusEl.style.opacity=1;
           }
-        },180);
+        },160);
       }
     }
 
