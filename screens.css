@@ -278,7 +278,7 @@
 }
 .occ:active{transform:scale(0.95)}
 .occ.on{border-color:var(--ink);background:var(--ink);color:var(--onink)}
-.occ .o-e{font-size:22px;line-height:1}
+.occ .o-e{display:flex;align-items:center;justify-content:center;color:var(--gold-deep);margin-bottom:4px}
 .occ .o-t{font-family:var(--serif-text);font-weight:600;font-size:13px;margin-top:8px;color:inherit;line-height:1.2}
 .occ .o-d{font-size:10px;font-weight:300;color:var(--sub);margin-top:3px;line-height:1.4}
 .occ.on .o-d{color:rgba(246,240,228,0.55)}

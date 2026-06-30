@@ -44,7 +44,7 @@ function deckQuestions(){
       return '<div class="occ-grid">' + OCCASIONS.map(function(o){
         const on = state.occasion === o.id;
         return '<button class="occ' + (on?' on':'') + '" onclick="deckOccasion(\'' + o.id + '\')">'
-          + '<span class="o-e">' + o.emoji + '</span><div class="o-t">' + o.label + '</div><div class="o-d">' + o.desc + '</div></button>';
+          + '<span class="o-e">' + ico(o.ic||'compass',22,1.4) + '</span><div class="o-t">' + o.label + '</div><div class="o-d">' + o.desc + '</div></button>';
       }).join('') + '</div>';
     }, footLabel:'Pas d\'occasion particulière' });
 

@@ -159,14 +159,14 @@ const INTERESTS = [
 ];
 
 const OCCASIONS = [
-  { id:'lune-de-miel', label:'Lune de miel',   emoji:'💍', desc:'Intimité, romance, adresses d\'exception' },
-  { id:'anniversaire', label:'Anniversaire',   emoji:'✦',  desc:'Un moment qui restera gravé' },
-  { id:'evjf',         label:'EVJF',            emoji:'🌸', desc:'Entre filles — spas, fêtes, adresses tendance' },
-  { id:'evg',          label:'EVG',             emoji:'🏆', desc:'Entre amis — adrénaline, fêtes, expériences fortes' },
-  { id:'famille',      label:'En famille',      emoji:'🧸', desc:'Rythme doux, plaisir pour tous les âges' },
-  { id:'solo',         label:'En solo',         emoji:'🧭', desc:'Liberté totale, rencontres, immersion' },
-  { id:'amis',         label:'Entre amis',      emoji:'🥂', desc:'Partager, explorer, créer des souvenirs communs' },
-  { id:'pro',          label:'Voyage pro',      emoji:'💼', desc:'Séminaire, teambuilding, incentive' },
+  { id:'lune-de-miel', label:'Lune de miel',   ic:'heart',   desc:'Intimité, romance, adresses d\'exception' },
+  { id:'anniversaire', label:'Anniversaire',   ic:'star',    desc:'Un moment qui restera gravé' },
+  { id:'evjf',         label:'EVJF',            ic:'sparkle', desc:'Entre filles — spas, fêtes, adresses tendance' },
+  { id:'evg',          label:'EVG',             ic:'star',    desc:'Entre amis — adrénaline, fêtes, expériences fortes' },
+  { id:'famille',      label:'En famille',      ic:'users',   desc:'Rythme doux, plaisir pour tous les âges' },
+  { id:'solo',         label:'En solo',         ic:'compass', desc:'Liberté totale, rencontres, immersion' },
+  { id:'amis',         label:'Entre amis',      ic:'users',   desc:'Partager, explorer, créer des souvenirs communs' },
+  { id:'pro',          label:'Voyage pro',      ic:'doc',     desc:'Séminaire, teambuilding, incentive' },
 ];
 
 /* itinerary — vide par défaut, chargé depuis Supabase */

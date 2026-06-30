@@ -235,14 +235,14 @@ function savedTripCard(it){
   const daysColor = accent.primary;
   const occ = it.occasion || (it.data && it.data.occasion) || '';
   const OCC_LABELS = {
-    'lune-de-miel': {label:'Lune de miel', emoji:'💍'},
-    'evjf':         {label:'EVJF',          emoji:'🌸'},
-    'evg':          {label:'EVG',           emoji:'🏆'},
-    'famille':      {label:'En famille',    emoji:'🧸'},
-    'anniversaire': {label:'Anniversaire',  emoji:'✦'},
-    'solo':         {label:'Solo',          emoji:'🧭'},
-    'amis':         {label:'Entre amis',    emoji:'🥂'},
-    'pro':          {label:'Voyage pro',    emoji:'💼'},
+    'lune-de-miel': {label:'Lune de miel', ic:'heart'},
+    'evjf':         {label:'EVJF',          ic:'sparkle'},
+    'evg':          {label:'EVG',           ic:'star'},
+    'famille':      {label:'En famille',    ic:'users'},
+    'anniversaire': {label:'Anniversaire',  ic:'star'},
+    'solo':         {label:'Solo',          ic:'compass'},
+    'amis':         {label:'Entre amis',    ic:'users'},
+    'pro':          {label:'Voyage pro',    ic:'doc'},
   };
   const occInfo = OCC_LABELS[occ];
   return '<div class="trip" style="position:relative" onclick="loadSavedItinerary(\''+it.id+'\')">'
@@ -251,7 +251,7 @@ function savedTripCard(it){
     +'<div style="position:absolute;inset:0;background:'+bg+'"></div>'
     +'<div style="position:absolute;inset:0;background:radial-gradient(65% 65% at 50% 50%,'+accent.glow+',transparent)"></div>'
     +'<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:'+accent.primary+';opacity:0.85">'+ico(icon,36,1.3)+'</span>'
-    +(occInfo?'<span style="position:absolute;top:8px;left:8px;font-size:14px;line-height:1;opacity:0.9">'+occInfo.emoji+'</span>':'')
+    +(occInfo?'<span style="position:absolute;top:7px;left:7px;width:22px;height:22px;border-radius:50%;background:rgba(246,240,228,0.92);display:flex;align-items:center;justify-content:center;color:'+accent.primary+'">'+ico(occInfo.ic,12,1.6)+'</span>':'')
     +'</div>'
     +'<div style="min-width:0;flex:1">'
     +'<div class="ti-n">'+esc(it.destination)+'</div>'
