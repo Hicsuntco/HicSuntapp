@@ -239,7 +239,7 @@ function savedTripCard(it){
     'evjf':         {label:'EVJF',          ic:'sparkle'},
     'evg':          {label:'EVG',           ic:'star'},
     'famille':      {label:'En famille',    ic:'users'},
-    'anniversaire': {label:'Anniversaire',  ic:'star'},
+    'anniversaire': {label:'Anniversaire',  ic:'heart'},
     'solo':         {label:'Solo',          ic:'compass'},
     'amis':         {label:'Entre amis',    ic:'users'},
     'pro':          {label:'Voyage pro',    ic:'doc'},
