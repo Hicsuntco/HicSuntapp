@@ -60,24 +60,39 @@ function _geoPts(plan,g){
   function match(loc){
     var locL=(loc||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
     var parts=locL.split(/[\/\-,\(\) ]/);
+    /* 1. Match exact / inclusion sur le nom complet */
     for(var ci in cities){
       var cl=ci.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
       if(locL.includes(cl)||cl.includes(locL.split(/[\/\-,]/)[0].trim())) return cities[ci];
+    }
+    /* 2. Match par token (mot d'au moins 3 lettres) */
+    for(var ci2 in cities){
+      var cl2=ci2.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
       for(var pi=0;pi<parts.length;pi++){
         var t=parts[pi].trim();
-        if(t.length>=3&&(cl===t||cl.startsWith(t)||t.startsWith(cl))) return cities[ci];
+        if(t.length>=3&&(cl2===t||cl2.startsWith(t)||t.startsWith(cl2))) return cities[ci2];
       }
     }
     return null;
   }
   var matched=plan.map(function(p){return match(p.loc||'');});
-  var fc=matched.filter(function(m){return !m;}).length,fi=0;
+  /* Interpolation : les étapes non trouvées prennent une position
+     entre les deux étapes connues les plus proches (avant + après) */
+  function interp(i){
+    var before=null,after=null,bd=0,ad=0;
+    for(var j=i-1;j>=0;j--){ if(matched[j]){before=matched[j];bd=i-j;break;} }
+    for(var k=i+1;k<matched.length;k++){ if(matched[k]){after=matched[k];ad=k-i;break;} }
+    if(before&&after){
+      var tt=bd/(bd+ad);
+      return [before[0]+(after[0]-before[0])*tt, before[1]+(after[1]-before[1])*tt];
+    }
+    if(before) return [before[0],before[1]];
+    if(after) return [after[0],after[1]];
+    return [vbW*0.5,vbH*0.5];
+  }
   return plan.map(function(p,i){
-    var m=matched[i];
-    if(m)return{vx:m[0],vy:m[1],n:i+1,loc:p.loc,title:p.title,wx:p.wx};
-    /* Fallback : distribuer en ligne dans le centre du viewBox */
-    var t=fc>1?(fi/(fc-1)):0.5; fi++;
-    return{vx:vbW*0.15+t*vbW*0.7,vy:vbH*0.35+Math.sin(t*Math.PI)*vbH*0.15,n:i+1,loc:p.loc,title:p.title,wx:p.wx};
+    var m=matched[i]||interp(i);
+    return{vx:m[0],vy:m[1],n:i+1,loc:p.loc,title:p.title,wx:p.wx,_matched:!!matched[i]};
   });
 }
 function geoMapSVG(W,H,activeIdx){
