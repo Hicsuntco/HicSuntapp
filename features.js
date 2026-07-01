@@ -589,12 +589,12 @@ async function exportPDF(){
     return '<tr><td class="city">'+esc(a.loc)+'</td><td>'+a.nights+'</td><td>'+esc(a.type)+'</td><td class="price">'+eur(a.price)+' / nuit</td><td class="price">'+eur(a.price*a.nights)+'</td></tr>';
   }).join('');
   const stayTotal = it.accommodations.reduce(function(s,a){return s+a.price*a.nights;},0);
-  const budgetHTML = '<section class="leg-section" style="border-bottom:none"><div class="leg-head" style="--c:#C9965A">'
+  const budgetHTML = '<section class="leg-section" style="border-bottom:none"><div class="leg-head" style="--c:#8A6526">'
     + '<div class="leg-num" style="font-size:2.4rem">\u20AC</div><div><div class="leg-tag">Estimation</div><div class="leg-name">Budget du voyage</div></div></div>'
     + '<table><tr><th>\u00C9tape</th><th>Nuits</th><th>Type</th><th>Prix/nuit</th><th>Total</th></tr>'
     + stayRows
-    + '<tr class="total-row"><td colspan="4">H\u00E9bergement ('+travelerLabel()+')</td><td class="price" style="color:#C9965A">'+eur(stayTotal)+'</td></tr>'
-    + '<tr class="total-row" style="border-top-color:#C9965A"><td colspan="4"><strong>Total voyage estim\u00E9 (tout compris)</strong></td><td class="price" style="color:#C9965A;font-size:1.05rem;white-space:nowrap"><strong>'+eur(it.budgetTotal)+'</strong></td></tr>'
+    + '<tr class="total-row"><td colspan="4">H\u00E9bergement ('+travelerLabel()+')</td><td class="price" style="color:#8A6526">'+eur(stayTotal)+'</td></tr>'
+    + '<tr class="total-row" style="border-top-color:#8A6526"><td colspan="4"><strong>Total voyage estim\u00E9 (tout compris)</strong></td><td class="price" style="color:#8A6526;font-size:1.05rem;white-space:nowrap"><strong>'+eur(it.budgetTotal)+'</strong></td></tr>'
     + '</table></section>';
 
   /* ── PDF : fond ivoire clair, encre sombre, accents thématiques ── */
