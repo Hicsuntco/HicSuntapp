@@ -1,30 +1,30 @@
-/* ── HIC SUNT · Sillage — core: tokens, chrome, overlays, primitives ── */
-@import url('https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500;1,600&family=Jost:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap');
+/* ── HIC SUNT — core: tokens, chrome, overlays, primitives ── */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Hanken+Grotesk:wght@300;400;500;600;700&family=Spline+Sans+Mono:wght@400;500&display=swap');
 
 :root{
-  /* Surfaces — ivoire chaud profond, plus de matière */
-  --bg:#f5efe3; --surface:#fffdf8; --surface2:#efe8da; --surface-raised:#fffefb;
-  /* Encre — brun-noir profond, jamais pur noir (plus chaud, plus luxe) */
-  --ink:#1c1712; --ink-soft:#4a4136; --sub:#8a7f6f;
+  /* Surfaces — sable clair, papier & parchemin */
+  --bg:#F1E9D9; --surface:#FCFAF3; --surface2:#EDE3D0; --surface-raised:#FCFAF3;
+  /* Encre — brun-noir profond, jamais pur noir */
+  --ink:#221D16; --ink-soft:#5C5345; --sub:#756B58;
   /* Lignes */
-  --line:#e4d9c6; --line2:#eee6d6;
-  /* Or — patiné, profond, signature de la marque */
-  --gold:#9c7c44; --gold-soft:#bda268; --gold-deep:#7a5d2e; --gold-bright:#c9a96e;
+  --line:#ECE3D0; --line2:#E5DBC8;
+  /* Or — patiné, signature de la marque */
+  --gold:#A6824A; --gold-soft:#C9A96E; --gold-deep:#8A6526; --gold-bright:#E8C98C;
   /* Divers */
-  --onink:#f5efe3; --ph:#c5b9a0; --ok:#5d7a4e;
-  /* Typographie — Spectral éditorial chaleureux */
-  --serif:'Spectral',Georgia,'Times New Roman',serif;
-  --serif-text:'Spectral',Georgia,serif;
-  --sf:'Jost',-apple-system,'Helvetica Neue',sans-serif;
-  --sans:'Jost',-apple-system,sans-serif;
-  --mono:'Space Mono','SF Mono',monospace;
-  /* Géométrie — radius plus généreux et cohérent */
-  --card-radius:22px; --btn-radius:15px;
-  /* Ombres — plus subtiles, plus précises (luxe = discrétion) */
-  --shadow-card:0 1px 2px rgba(28,20,12,0.03),0 4px 16px rgba(28,20,12,0.05),0 20px 48px -28px rgba(28,20,12,0.28);
-  --shadow-float:0 24px 64px -28px rgba(28,20,10,0.42);
-  --shadow-raised:0 2px 8px rgba(28,20,12,0.05),0 12px 32px -16px rgba(28,20,12,0.18);
-  --tile-bg:linear-gradient(160deg,#efe9da,#e4dac6);
+  --onink:#F4EEDF; --ph:#928768; --ok:#5d7a4e;
+  /* Typographie — Playfair Display / Hanken Grotesk / Spline Sans Mono */
+  --serif:'Playfair Display',Georgia,'Times New Roman',serif;
+  --serif-text:'Playfair Display',Georgia,serif;
+  --sf:'Hanken Grotesk',-apple-system,'Helvetica Neue',sans-serif;
+  --sans:'Hanken Grotesk',-apple-system,sans-serif;
+  --mono:'Spline Sans Mono','SF Mono',monospace;
+  /* Géométrie — radius généreux et cohérent */
+  --card-radius:22px; --btn-radius:16px;
+  /* Ombres — douces, chaudes (papier & encre) */
+  --shadow-card:0 1px 2px rgba(70,50,25,0.04),0 4px 16px rgba(70,50,25,0.06),0 20px 44px -26px rgba(70,50,25,0.4);
+  --shadow-float:0 24px 64px -28px rgba(70,50,25,0.48);
+  --shadow-raised:0 12px 28px -18px rgba(70,50,25,0.5);
+  --tile-bg:linear-gradient(160deg,#EDE3D0,#E4D8C2);
   --tap-min:44px; --tap-comfortable:52px;
   --spring:cubic-bezier(0.34,1.2,0.4,1);
   --ease-out:cubic-bezier(0.22,1,0.36,1);
@@ -33,10 +33,10 @@
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 button,a{color:inherit;font:inherit;text-decoration:none}
 button{background:none;border:none}
-html,body{margin:0;padding:0;background:var(--bg)}
+html,body{margin:0;padding:0;background:linear-gradient(160deg,#E4D8C2,#EFE6D2)}
 body{
   font-family:var(--sf);color:var(--ink);
-  background:var(--bg);
+  background:linear-gradient(160deg,#E4D8C2,#EFE6D2);
   min-height:100%;
 }
 ::selection{background:rgba(156,124,68,0.22)}

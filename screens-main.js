@@ -203,26 +203,27 @@ function createView(){
 }
 
 /* ── Mes voyages ────────────────────────────────────────────────────── */
+/* Aplats vifs façon carte postale — direction Hic Sunt */
 const DEST_BG_MAP = {
-  'sri lanka':'linear-gradient(135deg,#0C160E,#1A3020)','japon':'linear-gradient(135deg,#0F0F14,#1a1025)',
-  'maroc':'linear-gradient(135deg,#140C05,#2a180a)','portugal':'linear-gradient(135deg,#0A0C14,#0d1520)',
-  'islande':'linear-gradient(135deg,#080C14,#101828)','pérou':'linear-gradient(135deg,#0A0D08,#111a0e)',
-  'thaïlande':'linear-gradient(135deg,#150F05,#221505)','kenya':'linear-gradient(135deg,#110D05,#1e1508)',
-  'indonesie':'linear-gradient(135deg,#0D1F0F,#162B18)','bali':'linear-gradient(135deg,#0D1F0F,#162B18)',
-  'philippines':'linear-gradient(135deg,#080C14,#0d1a28)','vietnam':'linear-gradient(135deg,#0F1A0D,#172514)',
-  'sardaigne':'linear-gradient(135deg,#170F08,#261A0E)','italie':'linear-gradient(135deg,#170F08,#261A0E)',
-  'sicile':'linear-gradient(135deg,#170F08,#261A0E)','grèce':'linear-gradient(135deg,#0A0C14,#131c2a)',
-  'espagne':'linear-gradient(135deg,#150A04,#221208)','croatie':'linear-gradient(135deg,#080C14,#0d1828)',
+  'sri lanka':'#2E9CC0','japon':'#129A8B',
+  'maroc':'#E86B4A','portugal':'#EE8B4C',
+  'islande':'#3E8FA6','pérou':'#A66B3E',
+  'thaïlande':'#D4943A','kenya':'#54AE6E',
+  'indonesie':'#3EA07C','bali':'#3EA07C',
+  'philippines':'#2E9CC0','vietnam':'#3EA07C',
+  'sardaigne':'#E8844A','italie':'#E8844A',
+  'sicile':'#E8844A','grèce':'#2878A8',
+  'espagne':'#D4943A','croatie':'#2878A8',
 };
-/* Couleur d'accent thématique par destination (remplace le noir opaque) */
+/* Couleur d'accent thématique par destination — libellés & badges hors aplat */
 const DEST_ACCENT_MAP = {
-  mediterranean:{ primary:'#E8844A', glow:'rgba(232,132,74,0.30)' },
-  desert:       { primary:'#D4943A', glow:'rgba(212,148,58,0.30)' },
-  alpine:       { primary:'#5B9FBE', glow:'rgba(91,159,190,0.30)' },
-  tropical:     { primary:'#4DAE7B', glow:'rgba(77,174,123,0.30)' },
-  urban:        { primary:'#9B85CC', glow:'rgba(155,133,204,0.30)' },
+  mediterranean:{ primary:'#E8844A', glow:'rgba(244,238,223,0.22)' },
+  desert:       { primary:'#D4943A', glow:'rgba(244,238,223,0.22)' },
+  alpine:       { primary:'#3E8FA6', glow:'rgba(244,238,223,0.22)' },
+  tropical:     { primary:'#54AE6E', glow:'rgba(244,238,223,0.22)' },
+  urban:        { primary:'#9B85CC', glow:'rgba(244,238,223,0.22)' },
 };
-function destBg(name){ const k=(name||'').toLowerCase(); for(const pat in DEST_BG_MAP){ if(k.includes(pat)) return DEST_BG_MAP[pat]; } return 'linear-gradient(135deg,#1a1610,#2a2018)'; }
+function destBg(name){ const k=(name||'').toLowerCase(); for(const pat in DEST_BG_MAP){ if(k.includes(pat)) return DEST_BG_MAP[pat]; } return '#A6824A'; }
 function destIcon(name){ const k=(name||'').toLowerCase(); if(/japon|tokyo|kyoto/.test(k)) return 'arch'; if(/maroc|marrakech/.test(k)) return 'compass'; if(/islande/.test(k)) return 'peaks'; if(/safari|kenya|afrique/.test(k)) return 'leaf'; if(/bali|indonesie|philippines|thaïlande|vietnam/.test(k)) return 'leaf'; if(/pérou|andes/.test(k)) return 'peaks'; return 'compass'; }
 function _destAccent(dest){
   const theme = (typeof _themeForDestination === 'function') ? _themeForDestination(dest, '', '') : 'mediterranean';
@@ -249,9 +250,9 @@ function savedTripCard(it){
     +'<button class="trip-del" onclick="event.stopPropagation();deleteSavedItinerary(\''+it.id+'\')" aria-label="Supprimer">'+ico('close',14,2)+'</button>'
     +'<div class="th" style="position:relative;overflow:hidden">'
     +'<div style="position:absolute;inset:0;background:'+bg+'"></div>'
-    +'<div style="position:absolute;inset:0;background:radial-gradient(65% 65% at 50% 50%,'+accent.glow+',transparent)"></div>'
-    +'<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:'+accent.primary+';opacity:0.85">'+ico(icon,36,1.3)+'</span>'
-    +(occInfo?'<span style="position:absolute;top:7px;left:7px;width:22px;height:22px;border-radius:50%;background:rgba(246,240,228,0.92);display:flex;align-items:center;justify-content:center;color:'+accent.primary+'">'+ico(occInfo.ic,12,1.6)+'</span>':'')
+    +'<div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(20,15,8,0.5),rgba(20,15,8,0.04) 60%)"></div>'
+    +'<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--onink);opacity:0.4">'+ico(icon,36,1.3)+'</span>'
+    +(occInfo?'<span style="position:absolute;top:7px;left:7px;display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:100px;background:var(--ink)"><span style="color:var(--gold-bright);display:flex">'+ico(occInfo.ic,11,1.7)+'</span></span>':'')
     +'</div>'
     +'<div style="min-width:0;flex:1">'
     +'<div class="ti-n">'+esc(it.destination)+'</div>'
