@@ -267,9 +267,9 @@ function voyagesView(){
   const labels = [['upcoming','À venir'],['past','Passés'],['draft','Brouillons']];
   return statusBar()
     + '<div class="px">'
-    +   '<h1 class="voy-title">Mes voyages</h1>'
-    +   '<div class="seg voy-seg">' + labels.map(function(l){
-          return '<button class="' + (seg === l[0] ? 'on' : '') + '" onclick="voySeg(\'' + l[0] + '\')">' + l[1] + '</button>';
+    +   '<h1 class="voy-title">Mes <em>voyages</em></h1>'
+    +   '<div class="voy-pills">' + labels.map(function(l){
+          return '<button class="voy-pill' + (seg === l[0] ? ' on' : '') + '" onclick="voySeg(\'' + l[0] + '\')">' + l[1] + '</button>';
         }).join('') + '</div>'
     +   '<div class="list" data-trips><div style="text-align:center;padding:40px 0"><div class="notif-load"><i></i></div></div></div>'
     + '</div>';
@@ -302,6 +302,11 @@ function profileView(){
     +       '<div><div class="prof-n">' + esc(USER.full || USER.name || 'Voyageur') + '</div>'
     +         '<div class="prof-m">' + (email ? esc(email) : 'Composez votre premier itinéraire') + '</div></div>'
     +     '</div>'
+    +   '</div>'
+    +   '<div class="prof-cercle-card" onclick="openCercle()">'
+    +     '<span class="pcc-ico">' + ico('sparkle', 20, 1.4) + '</span>'
+    +     '<div style="flex:1"><div class="pcc-t">Cercle Hic Sunt</div><div class="pcc-s">' + esc(CERCLE.tier) + ' · ' + CERCLE.points + ' points</div></div>'
+    +     '<span class="pcc-cta">Voir</span>'
     +   '</div>'
     +   '<div class="prof-list">' + rows.map(function(r){
           return '<div class="row" onclick="' + r[3] + '">'

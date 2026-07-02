@@ -279,20 +279,24 @@ textarea.input{resize:none;min-height:100px;line-height:1.55}
 
 
 /* ── voyages ── */
-.voy-title{font-family:var(--serif);font-weight:600;font-size:32px;letter-spacing:-0.5px;margin-top:8px}
-.voy-seg{margin-top:18px;margin-bottom:20px}
+.voy-title{font-family:var(--serif);font-weight:600;font-size:40px;letter-spacing:-0.5px;margin-top:8px}
+.voy-title em{font-style:italic;color:var(--gold)}
+.voy-pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;margin-bottom:20px}
+.voy-pill{padding:9px 16px;border-radius:100px;background:var(--surface);color:var(--ink-soft);font-size:13px;font-weight:500;border:1px solid var(--line);cursor:pointer;transition:transform 0.12s var(--spring)}
+.voy-pill:active{transform:scale(0.95)}
+.voy-pill.on{background:var(--ink);border-color:var(--ink);color:var(--onink);font-weight:600}
 
 /* ── profile ── */
 .prof-card{margin-top:10px;background:var(--surface);border:1px solid var(--line);border-radius:var(--card-radius);box-shadow:var(--shadow-card);padding:20px;position:relative;overflow:hidden}
 .prof-id{display:flex;align-items:center;gap:15px;position:relative}
 .prof-n{font-family:var(--serif-text);font-weight:600;font-size:22px;letter-spacing:-0.3px}
 .prof-m{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--sub);margin-top:4px}
-.prof-cercle{margin-top:18px;position:relative}
-.prof-tier{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
-.prof-tier b{color:var(--gold-deep)}
-.prof-tier span{color:var(--sub);font-weight:400}
-.prog{height:3px;background:var(--line2);border-radius:3px;margin-top:10px;overflow:hidden}
-.prog i{display:block;height:100%;background:var(--gold);border-radius:3px}
+.prof-cercle-card{margin-top:14px;padding:16px 18px;border-radius:18px;background:var(--ink);display:flex;align-items:center;gap:14px;cursor:pointer;transition:transform 0.12s var(--spring)}
+.prof-cercle-card:active{transform:scale(0.98)}
+.prof-cercle-card .pcc-ico{color:var(--gold-bright);display:flex}
+.prof-cercle-card .pcc-t{font-family:var(--serif);font-size:18px;color:var(--onink)}
+.prof-cercle-card .pcc-s{font-family:var(--mono);font-size:10px;color:#B8AE98;letter-spacing:.06em;margin-top:2px}
+.prof-cercle-card .pcc-cta{padding:8px 14px;border-radius:100px;border:1px solid #4A443A;color:var(--gold-bright);font-size:12px;font-weight:600;flex:none}
 .prof-list{margin-top:14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--card-radius);padding:4px 18px}
 
 /* ── Tableau de bord voyage en cours ─────────────────────────────── */
