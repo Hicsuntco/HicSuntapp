@@ -346,6 +346,7 @@ function setTab(name){
 function openItinerary(){
   const el = openOverlay('itinerary', itineraryView());
   requestAnimationFrame(function(){ requestAnimationFrame(function(){ revealOnScroll(el); }); });
+  if(typeof renderHicSuntMap === 'function') renderHicSuntMap('hs-map-mini', { dest: ITINERARY.dest, plan: ITINERARY.plan });
 }
 /* Ferme le chat et rafraîchit la vue itinéraire sous-jacente (ou l'ouvre) */
 function _returnToUpdatedItinerary(){
@@ -360,6 +361,7 @@ function _returnToUpdatedItinerary(){
       /* Rafraîchir son contenu en place */
       existing.innerHTML = itineraryView();
       requestAnimationFrame(function(){ requestAnimationFrame(function(){ revealOnScroll(existing); }); });
+      if(typeof renderHicSuntMap === 'function') renderHicSuntMap('hs-map-mini', { dest: ITINERARY.dest, plan: ITINERARY.plan });
     } else {
       openItinerary();
     }
@@ -384,7 +386,10 @@ function openDest(key){ openOverlay('destination', destinationView(key)); }
 function openDay(i){ openOverlay('day', dayDetailView(i)); }
 function openBooking(id){ openOverlay('booking', bookingView(id)); }
 function openAI(){ const el = openOverlay('ai', aiView()); requestAnimationFrame(function(){ aiScroll(); }); }
-function openMapOv(){ openOverlay('map', mapView()); }
+function openMapOv(){
+  openOverlay('map', mapView());
+  if(typeof renderHicSuntMap === 'function') renderHicSuntMap('hs-map-full', { dest: ITINERARY.dest, plan: ITINERARY.plan, activeIdx: state.mapDay||0, interactive:true, padding:72 });
+}
 function composeFromDest(key){
   state.destination = key;
   state.createTab = 'known';
@@ -1220,7 +1225,7 @@ document.addEventListener('DOMContentLoaded', function(){
     }).join('') : '<p style="font-size:13px;color:var(--sub);padding:8px 0">Aucun programme détaillé pour ce jour.</p>';
 
     return '<div class="carte-full">'
-      +'<div class="carte-map-bg">'+window.geoMapSVG(W,H,i)+'</div>'
+      +'<div class="carte-map-bg"><div id="hs-map-full" class="carte-map-real"></div></div>'
       +'<div class="carte-top">'
       +  '<button class="carte-pill" onclick="closeOverlay()">'+ico('back',16,2)+'<span class="serif">'+esc(ITINERARY.dest||'')+'</span>'+(nDays?'<span class="mono">· '+nDays+'J</span>':'')+'</button>'
       +  '<button class="carte-round" onclick="if(typeof openOffline===\'function\')openOffline()" aria-label="Hors-ligne">'+ico('download',18,1.7)+'</button>'
@@ -1238,7 +1243,10 @@ document.addEventListener('DOMContentLoaded', function(){
   window.mapSelect = function(i){
     state.mapDay=i;
     var el=ovStack[ovStack.length-1];
-    if(el&&el.dataset.ov==='map')el.innerHTML=window.mapView();
+    if(el&&el.dataset.ov==='map'){
+      el.innerHTML=window.mapView();
+      if(typeof renderHicSuntMap === 'function') renderHicSuntMap('hs-map-full', { dest: ITINERARY.dest, plan: ITINERARY.plan, activeIdx: i, interactive:true, padding:72 });
+    }
   };
 
   window.shareView = function(){

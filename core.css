@@ -1,6 +1,12 @@
 /* ── HIC SUNT — core: tokens, chrome, overlays, primitives ── */
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Hanken+Grotesk:wght@300;400;500;600;700&family=Spline+Sans+Mono:wght@400;500&display=swap');
 
+/* ── cartes réelles façon parchemin (Leaflet) ── */
+.leaflet-container{background:#ECE3D0;font-family:'Spline Sans Mono',monospace}
+.leaflet-tile{filter:sepia(.42) saturate(.78) brightness(1.04) hue-rotate(-6deg)}
+.leaflet-marker-icon{background:none;border:none}
+.leaflet-control-container{display:none}
+
 :root{
   /* Surfaces — sable clair, papier & parchemin */
   --bg:#F1E9D9; --surface:#FCFAF3; --surface2:#EDE3D0; --surface-raised:#FCFAF3;
