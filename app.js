@@ -181,7 +181,7 @@ function mapView(){
     +  '<button class="carte-round" onclick="if(typeof openOffline===\'function\')openOffline()" aria-label="Hors-ligne">'+ico('download',18,1.7)+'</button>'
     +'</div>'
     +'<div class="carte-sheet">'
-    +  '<div class="carte-handle"></div>'
+    +  '<div class="carte-handle-wrap"><div class="carte-handle"></div></div>'
     +  '<div class="hs-scroll carte-daychips">'+(ITINERARY.plan||[]).map(function(d,j){
         return '<button class="map-chip'+(j===i?' on':'')+'" onclick="mapSelect('+j+')"><span class="mono">J'+d.n+'</span><span class="serif">'+d.n+'</span></button>';
       }).join('')+'</div>'
@@ -389,6 +389,7 @@ function openAI(){ const el = openOverlay('ai', aiView()); requestAnimationFrame
 function openMapOv(){
   openOverlay('map', mapView());
   if(typeof renderHicSuntMap === 'function') renderHicSuntMap('hs-map-full', { dest: ITINERARY.dest, plan: ITINERARY.plan, activeIdx: state.mapDay||0, interactive:true, padding:72 });
+  if(typeof initCarteSheetDrag === 'function') requestAnimationFrame(initCarteSheetDrag);
 }
 function composeFromDest(key){
   state.destination = key;
@@ -1231,7 +1232,7 @@ document.addEventListener('DOMContentLoaded', function(){
       +  '<button class="carte-round" onclick="if(typeof openOffline===\'function\')openOffline()" aria-label="Hors-ligne">'+ico('download',18,1.7)+'</button>'
       +'</div>'
       +'<div class="carte-sheet">'
-      +  '<div class="carte-handle"></div>'
+      +  '<div class="carte-handle-wrap"><div class="carte-handle"></div></div>'
       +  '<div class="hs-scroll carte-daychips">'+(ITINERARY.plan||[]).map(function(d,j){
           return '<button class="map-chip'+(j===i?' on':'')+'" onclick="mapSelect('+j+')"><span class="mono">J'+d.n+'</span><span class="serif">'+d.n+'</span></button>';
         }).join('')+'</div>'
@@ -1246,6 +1247,7 @@ document.addEventListener('DOMContentLoaded', function(){
     if(el&&el.dataset.ov==='map'){
       el.innerHTML=window.mapView();
       if(typeof renderHicSuntMap === 'function') renderHicSuntMap('hs-map-full', { dest: ITINERARY.dest, plan: ITINERARY.plan, activeIdx: i, interactive:true, padding:72 });
+      if(typeof initCarteSheetDrag === 'function') requestAnimationFrame(initCarteSheetDrag);
     }
   };
 

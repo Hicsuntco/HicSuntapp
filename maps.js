@@ -173,3 +173,47 @@ function renderHicSuntMap(elId, opts){
     })();
   });
 }
+
+/**
+ * Rend la feuille inférieure de l'écran Carte glissable : on peut la tirer
+ * vers le bas (poignée) pour libérer de l'espace et voir la carte en dessous.
+ */
+function initCarteSheetDrag(){
+  const sheet = document.querySelector('.carte-sheet');
+  const handle = sheet && sheet.querySelector('.carte-handle-wrap');
+  if(!sheet || !handle) return;
+  const peekPx = 118; /* hauteur visible une fois repliée : poignée + jours */
+  let startY = 0, startTranslate = 0, maxTranslate = 0;
+
+  function currentTranslate(){
+    const m = getComputedStyle(sheet).transform;
+    if(!m || m === 'none') return 0;
+    const match = /matrix\(([^)]+)\)/.exec(m);
+    if(!match) return 0;
+    const parts = match[1].split(',').map(parseFloat);
+    return parts[5] || 0;
+  }
+  handle.addEventListener('pointerdown', function(e){
+    handle.setPointerCapture(e.pointerId);
+    startY = e.clientY;
+    startTranslate = currentTranslate();
+    maxTranslate = Math.max(0, sheet.offsetHeight - peekPx);
+    sheet.style.transition = 'none';
+  });
+  handle.addEventListener('pointermove', function(e){
+    if(!handle.hasPointerCapture || !handle.hasPointerCapture(e.pointerId)) return;
+    const delta = e.clientY - startY;
+    const next = Math.min(maxTranslate, Math.max(0, startTranslate + delta));
+    sheet.style.transform = 'translateY(' + next + 'px)';
+  });
+  function release(e){
+    if(!handle.hasPointerCapture || !handle.hasPointerCapture(e.pointerId)) return;
+    handle.releasePointerCapture(e.pointerId);
+    sheet.style.transition = 'transform 0.32s cubic-bezier(0.22,1,0.36,1)';
+    const cur = currentTranslate();
+    const snap = cur > maxTranslate / 2 ? maxTranslate : 0;
+    sheet.style.transform = 'translateY(' + snap + 'px)';
+  }
+  handle.addEventListener('pointerup', release);
+  handle.addEventListener('pointercancel', release);
+}

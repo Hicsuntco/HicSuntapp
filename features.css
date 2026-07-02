@@ -9,8 +9,10 @@
 .carte-pill .serif{font-size:16px}
 .carte-pill .mono{font-size:11px;color:var(--gold)}
 .carte-round{width:42px;height:42px;border-radius:50%;background:var(--surface);box-shadow:0 6px 16px -8px rgba(70,50,25,.4);display:flex;align-items:center;justify-content:center;color:var(--gold);cursor:pointer}
-.carte-sheet{position:absolute;bottom:0;left:0;right:0;background:var(--surface);border-radius:28px 28px 0 0;padding:14px 20px calc(28px + env(safe-area-inset-bottom,0px));box-shadow:0 -14px 40px -18px rgba(70,50,25,.3);max-height:58%;display:flex;flex-direction:column;z-index:15}
-.carte-handle{width:38px;height:4px;border-radius:2px;background:var(--line2);margin:0 auto 16px;flex:none}
+.carte-sheet{position:absolute;bottom:0;left:0;right:0;background:var(--surface);border-radius:28px 28px 0 0;padding:0 20px calc(28px + env(safe-area-inset-bottom,0px));box-shadow:0 -14px 40px -18px rgba(70,50,25,.3);max-height:58%;display:flex;flex-direction:column;z-index:15;transition:transform 0.32s cubic-bezier(0.22,1,0.36,1)}
+.carte-handle-wrap{width:100%;height:26px;display:flex;align-items:center;justify-content:center;flex:none;touch-action:none;cursor:grab;margin-top:2px;margin-bottom:6px}
+.carte-handle-wrap:active{cursor:grabbing}
+.carte-handle{width:38px;height:4px;border-radius:2px;background:var(--line2);pointer-events:none}
 .carte-daychips{display:flex;gap:8px;overflow-x:auto;padding-bottom:14px;margin:0 -20px;padding-left:20px;padding-right:20px;flex:none}
 .map-chip{flex:none;width:46px;height:58px;border-radius:14px;border:1px solid var(--line);background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;transition:all 0.18s}
 .map-chip .mono{font-size:9px;color:var(--sub)}
