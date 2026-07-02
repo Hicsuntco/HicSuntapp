@@ -172,8 +172,9 @@ function renderHicSuntMap(elId, opts){
         try{
           const pts = [];
           for(let i=0; i<stops.length; i++){
-            if(!window._hsMaps[elId]) return; /* la carte a été détruite entretemps */
+            if(window._hsMaps[elId] !== map) return; /* cette carte a été détruite ou remplacée entretemps */
             const result = await _geocode(stops[i].loc + destSuffix, iso2);
+            if(window._hsMaps[elId] !== map) return; /* détruite/remplacée pendant le géocodage */
             if(result && result.pt){
               const g = result.pt;
               pts.push({ lat:g.lat, lng:g.lng, idx: stops[i].idx });
