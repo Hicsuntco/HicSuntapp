@@ -1211,7 +1211,7 @@ async function _fetchRealStays(dest, zones, level){
         if(m){ try{ j = JSON.parse(m[0]); }catch(e){} }
       }
       if(!j || !Array.isArray(j.stays)) continue;
-      return j.stays.filter(function(s){ return s.name && s.name.trim(); });
+      return j.stays; /* ne pas filtrer : la correspondance par index avec `zones` doit rester intacte */
     }catch(e){}
   }
   return null;
@@ -1335,9 +1335,22 @@ async function callCartographe(){
     const zones = skel.stays.map(function(s){ return s.loc || s.zone || skel.dest; });
     const realStays = await _fetchRealStays(skel.dest, zones, skel.level);
     if(realStays && realStays.length){
-      /* remplacer chaque hébergement par le vrai trouvé pour la même zone (ordre) */
+      /* remplacer chaque hébergement par le vrai trouvé pour la même zone  -  matché
+         par nom de zone (comme pour les restaurants) plutôt que par simple index, car
+         l'IA peut omettre ou vider une entrée sans respecter l'ordre demandé. */
+      var normS=function(s){return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();};
+      var usedStay={};
       skel.stays = skel.stays.map(function(orig, i){
-        const real = realStays[i];
+        var zone = zones[i];
+        var real = null;
+        for(var m=0;m<realStays.length;m++){
+          if(usedStay[m]) continue;
+          var rz = normS(realStays[m] && realStays[m].zone);
+          if(rz && (rz===normS(zone) || rz.indexOf(normS(zone))>=0 || normS(zone).indexOf(rz)>=0)){
+            real = realStays[m]; usedStay[m]=true; break;
+          }
+        }
+        if(!real && realStays[i] && !usedStay[i]){ real = realStays[i]; usedStay[i]=true; }
         /* Valider que le nom réel est exploitable : non vide, pas un simple nombre,
            au moins 3 caractères. Sinon on garde l'original. */
         const validName = real && real.name && typeof real.name === 'string'
