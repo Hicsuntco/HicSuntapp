@@ -120,57 +120,68 @@ window._hsMaps = window._hsMaps || {};
 function renderHicSuntMap(elId, opts){
   opts = opts || {};
   _ensureLeaflet(function(){
-    const el = document.getElementById(elId);
-    if(!el || !window.L) return;
+    try{
+      const el = document.getElementById(elId);
+      if(!el){ console.warn('[renderHicSuntMap] élément introuvable:', elId); return; }
+      if(!window.L){ console.warn('[renderHicSuntMap] Leaflet non chargé (CDN bloqué ?)'); return; }
 
-    if(window._hsMaps[elId]){
-      try{ window._hsMaps[elId].remove(); }catch(e){}
-      delete window._hsMaps[elId];
-    }
-
-    const center = _destCenter(opts.dest);
-    const map = L.map(elId, {
-      zoomControl:false, attributionControl:false,
-      dragging: !!opts.interactive, scrollWheelZoom: !!opts.interactive,
-      doubleClickZoom: !!opts.interactive, boxZoom: !!opts.interactive,
-      keyboard: !!opts.interactive, touchZoom: !!opts.interactive, tap: !!opts.interactive,
-    }).setView(center, 6);
-    window._hsMaps[elId] = map;
-
-    _hsTileLayer().addTo(map);
-    map.getContainer().style.background = '#ECE3D0';
-    if(map.getPane('tilePane')){
-      map.getPane('tilePane').style.filter = 'sepia(.4) saturate(.82) brightness(1.04) hue-rotate(-6deg)';
-    }
-
-    const stops = _dedupPlanLocs(opts.plan);
-    if(!stops.length) return;
-    const iso2 = _destIso2(opts.dest);
-    const destSuffix = opts.dest ? (', ' + opts.dest) : '';
-
-    (async function(){
-      const pts = [];
-      for(let i=0; i<stops.length; i++){
-        if(!window._hsMaps[elId]) return; /* la carte a été détruite entretemps */
-        const result = await _geocode(stops[i].loc + destSuffix, iso2);
-        if(result && result.pt){
-          const g = result.pt;
-          pts.push({ lat:g.lat, lng:g.lng, idx: stops[i].idx });
-          const isActive = opts.activeIdx != null && stops[i].idx === opts.activeIdx;
-          L.marker([g.lat, g.lng], { icon: _hsMarkerIcon(isActive) }).addTo(map);
-          if(pts.length > 1){
-            const prev = pts[pts.length - 2];
-            L.polyline([[prev.lat, prev.lng], [g.lat, g.lng]], { color:'#221E18', weight:2, opacity:.5, dashArray:'2 8', lineCap:'round' }).addTo(map);
-          }
-          map.invalidateSize();
-          const latlngs = pts.map(function(p){ return [p.lat, p.lng]; });
-          if(latlngs.length > 1) map.fitBounds(latlngs, { padding:[opts.padding || 40, opts.padding || 40] });
-          else map.setView(latlngs[0], 12);
-        }
-        /* Respecter la limite Nominatim (≈1 req/s) seulement pour les vrais appels réseau */
-        if(i < stops.length - 1 && (!result || !result.cached)) await new Promise(function(r){ setTimeout(r, 1100); });
+      if(window._hsMaps[elId]){
+        try{ window._hsMaps[elId].remove(); }catch(e){}
+        delete window._hsMaps[elId];
       }
-    })();
+
+      const center = _destCenter(opts.dest);
+      const map = L.map(elId, {
+        zoomControl:false, attributionControl:false,
+        dragging: !!opts.interactive, scrollWheelZoom: !!opts.interactive,
+        doubleClickZoom: !!opts.interactive, boxZoom: !!opts.interactive,
+        keyboard: !!opts.interactive, touchZoom: !!opts.interactive, tap: !!opts.interactive,
+      }).setView(center, 6);
+      window._hsMaps[elId] = map;
+
+      _hsTileLayer().addTo(map);
+      map.getContainer().style.background = '#ECE3D0';
+      if(map.getPane('tilePane')){
+        map.getPane('tilePane').style.filter = 'sepia(.4) saturate(.82) brightness(1.04) hue-rotate(-6deg)';
+      }
+
+      const stops = _dedupPlanLocs(opts.plan);
+      if(!stops.length) return;
+      const iso2 = _destIso2(opts.dest);
+      const destSuffix = opts.dest ? (', ' + opts.dest) : '';
+
+      (async function(){
+        try{
+          const pts = [];
+          for(let i=0; i<stops.length; i++){
+            if(!window._hsMaps[elId]) return; /* la carte a été détruite entretemps */
+            const result = await _geocode(stops[i].loc + destSuffix, iso2);
+            if(result && result.pt){
+              const g = result.pt;
+              pts.push({ lat:g.lat, lng:g.lng, idx: stops[i].idx });
+              const isActive = opts.activeIdx != null && stops[i].idx === opts.activeIdx;
+              L.marker([g.lat, g.lng], { icon: _hsMarkerIcon(isActive) }).addTo(map);
+              if(pts.length > 1){
+                const prev = pts[pts.length - 2];
+                L.polyline([[prev.lat, prev.lng], [g.lat, g.lng]], { color:'#221E18', weight:2, opacity:.5, dashArray:'2 8', lineCap:'round' }).addTo(map);
+              }
+              map.invalidateSize();
+              const latlngs = pts.map(function(p){ return [p.lat, p.lng]; });
+              if(latlngs.length > 1) map.fitBounds(latlngs, { padding:[opts.padding || 40, opts.padding || 40] });
+              else map.setView(latlngs[0], 12);
+            }
+            /* Respecter la limite Nominatim (≈1 req/s) seulement pour les vrais appels réseau */
+            if(i < stops.length - 1 && (!result || !result.cached)) await new Promise(function(r){ setTimeout(r, 1100); });
+          }
+        }catch(err){
+          console.error('[renderHicSuntMap] géocodage:', err);
+          if(typeof toast === 'function') toast('Carte : ' + (err && err.message || 'erreur de géocodage'));
+        }
+      })();
+    }catch(err){
+      console.error('[renderHicSuntMap] init:', err);
+      if(typeof toast === 'function') toast('Carte : ' + (err && err.message || 'erreur d\'initialisation'));
+    }
   });
 }
 
