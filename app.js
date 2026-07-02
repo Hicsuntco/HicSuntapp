@@ -1133,6 +1133,13 @@ function buildApp(){
   }
 }
 
+/* ── Verrouillage du zoom natif de la page (Safari iOS ignore parfois
+   user-scalable=no hors PWA installée) — un pincer sur la carte doit
+   zoomer la carte Leaflet elle-même, jamais la page entière, sous
+   peine de faire disparaître la barre du haut et la feuille du bas. */
+document.addEventListener('gesturestart', function(e){ e.preventDefault(); });
+document.addEventListener('gesturechange', function(e){ e.preventDefault(); });
+
 document.addEventListener('DOMContentLoaded', function(){
   /* ── Déblocage propriétaire (tests) : ?hs=carto-perret-2026 ──
      Stocke l'email exempté. À usage personnel uniquement. */
