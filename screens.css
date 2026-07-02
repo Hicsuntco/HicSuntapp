@@ -137,21 +137,30 @@
 /* ── trip cards — carte postale pleine largeur ── */
 .trip-card{border-radius:22px;overflow:hidden;background:var(--surface);position:relative;box-shadow:0 12px 28px -18px rgba(70,50,25,.5);margin-bottom:16px;cursor:pointer;transition:transform 0.15s cubic-bezier(0.34,1.2,0.4,1),opacity 0.12s}
 .trip-card:active{transform:scale(0.985);opacity:0.94}
-.trip-card.draft{border:1.5px dashed var(--line2);box-shadow:none}
 .trip-card-hero{position:relative;height:150px;overflow:hidden}
-.trip-card.draft .trip-card-hero{background:var(--surface2) !important;display:flex;align-items:center;justify-content:center}
-.trip-card-wm{position:absolute;top:16px;right:14px;color:var(--onink);opacity:0.28}
-.trip-card-badge{position:absolute;top:14px;left:16px;display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:100px;background:var(--ink);color:var(--gold-bright)}
+.trip-card-wm{position:absolute;bottom:-6px;right:-6px;color:var(--onink);opacity:0.25}
+.trip-card-coords{position:absolute;top:16px;left:18px;font-size:11px;color:var(--onink);opacity:0.85;letter-spacing:.08em}
+.trip-card-badge{position:absolute;top:14px;right:44px;display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:100px;background:var(--ink);color:var(--gold-bright);max-width:calc(100% - 60px)}
 .trip-card-badge .mono{font-size:9px;color:var(--onink);letter-spacing:.1em}
-.trip-card-badge.draft{background:var(--surface);border:1px solid var(--line);color:var(--ink-soft);box-shadow:0 4px 12px -6px rgba(70,50,25,.3)}
-.trip-card-badge.draft .dot{width:7px;height:7px;border-radius:50%;background:var(--gold);display:inline-block}
-.trip-card-badge.draft span:last-child{font-size:11.5px;font-weight:600}
 .trip-card-cap{position:absolute;left:18px;bottom:14px}
 .trip-card-cap .serif{font-size:28px;color:var(--onink);line-height:.95}
 .trip-card-rule{width:30px;height:2px;background:var(--gold);margin:7px 0 5px}
 .trip-card-cap .mono{font-size:9px;color:var(--onink);opacity:0.75;letter-spacing:.12em}
 .trip-card-foot{padding:13px 18px;background:var(--surface);display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--sub)}
 .trip-card-foot .accent{font-size:14px;color:var(--gold);font-weight:600}
+
+/* ── trip card — brouillon ── */
+.trip-card.draft{background:var(--surface);border:1.5px dashed var(--line2);box-shadow:none}
+.trip-card.draft .trip-card-hero{height:118px;display:flex;align-items:center;justify-content:center}
+.trip-card.draft .trip-card-wm{opacity:0.5}
+.trip-card-draft-badge{position:relative;display:inline-flex;align-items:center;gap:7px;padding:8px 15px;border-radius:100px;background:var(--surface);border:1px solid var(--line);box-shadow:0 4px 12px -6px rgba(70,50,25,.3)}
+.trip-card-draft-badge .dot{width:7px;height:7px;border-radius:50%;background:var(--gold);display:inline-block}
+.trip-card-draft-badge span:last-child{font-size:11.5px;font-weight:600;color:var(--ink-soft)}
+.trip-card-draftfoot{padding:14px 18px;display:flex;justify-content:space-between;align-items:baseline}
+.trip-card-draftfoot .serif{font-size:24px;color:var(--ink-soft)}
+.trip-card-draftfoot .tcd-sub{font-size:13px;color:var(--sub);margin-top:1px}
+.trip-card-draftfoot .accent{font-size:13px;color:var(--gold);font-weight:600}
+
 .trip-del{position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;background:rgba(27,22,16,0.55);color:var(--onink);display:flex;align-items:center;justify-content:center;border:none;z-index:5;backdrop-filter:blur(4px)}
 .trip-del:active{background:rgba(27,22,16,0.8)}
 
