@@ -29,6 +29,33 @@
 <link rel="stylesheet" href="features.css?v=1782995339">
 </head>
 <body>
+<script>
+/* Attrape-erreurs visible — pour diagnostiquer sur un appareil sans accès
+   à la console (ex. iPhone sans Mac à proximité). Affiche le message et la
+   ligne en clair en bas de l'écran au lieu de laisser un écran cassé muet. */
+(function(){
+  function showErr(msg){
+    var d = document.getElementById('__hs_err');
+    if(!d){
+      d = document.createElement('div');
+      d.id = '__hs_err';
+      d.style.cssText = 'position:fixed;left:8px;right:8px;bottom:8px;z-index:999999;'
+        + 'font:12px/1.4 ui-monospace,monospace;background:#2a1215;color:#ff8a80;'
+        + 'padding:10px 14px;border-radius:10px;border:1px solid #5c2b2e;'
+        + 'white-space:pre-wrap;max-height:40vh;overflow:auto;box-shadow:0 8px 24px rgba(0,0,0,.4)';
+      document.body.appendChild(d);
+    }
+    d.textContent = (d.textContent ? d.textContent + '\n\n' : '') + msg;
+  }
+  window.addEventListener('error', function(e){
+    showErr('[erreur] ' + (e.message || 'inconnue') + (e.filename ? '\n' + e.filename.split('/').pop() + ':' + e.lineno : ''));
+  });
+  window.addEventListener('unhandledrejection', function(e){
+    var r = e.reason;
+    showErr('[promesse rejetée] ' + (r && r.message ? r.message : String(r)));
+  });
+})();
+</script>
 <div class="studio-head">
   <p class="studio-eyebrow">Hic Sunt · iOS</p>
   <h1 class="studio-title">Application <em>Sillage</em></h1>
