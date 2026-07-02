@@ -303,16 +303,16 @@ const TAB_DEFS = [
 ];
 function tabbarHTML(){
   return '<div class="tabbar">'
+    + '<div class="tabbar-pill">'
     + TAB_DEFS.map(function(t){
-      const isCreate = t[0] === 'create';
       return '<button class="tab-it" data-tabbtn="' + t[0] + '" onclick="setTab(\'' + t[0] + '\')">'
-        + (isCreate
-            ? '<span class="tab-ico tab-ico-create">' + ico(t[1], 22, 1.8) + '</span>'
-            : '<span class="tab-ico">' + ico(t[1], 23, 1.7) + '</span>')
+        + '<div class="tab-inner">'
+        + '<span class="tab-ico">' + ico(t[1], 23, 1.7) + '</span>'
         + '<span class="tab-lbl">' + t[2] + '</span>'
+        + '</div>'
         + '</button>';
     }).join('')
-    + '</div>';
+    + '</div></div>';
 }
 function setTab(name){
   state.tab = name;
