@@ -542,7 +542,7 @@ function itineraryView(){
 
     /* Carte */
     + '<div class="minimap" style="margin-top:18px;background:' + minimapBg + '" onclick="openMapOv()">'
-    +   geoMapSVG(345, 140, null) + wxChip(wx1[0], wx1[1])
+    +   '<div id="hs-map-mini" class="minimap-real"></div>' + wxChip(wx1[0], wx1[1])
     +   '<span class="mm-cap">' + esc(it.coords || it.dest) + '</span>'
     +   '<span class="minimap-cta">Voir la carte ' + ico('chevron',13,2.2) + '</span>'
     + '</div>'

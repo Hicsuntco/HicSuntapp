@@ -247,12 +247,50 @@ function savedTripCard(it){
   const isDraft = (typeof _classifyItinerary === 'function') ? _classifyItinerary(it) === 'draft' : false;
   const region = (typeof DESTS !== 'undefined' && DESTS[it.destination]) ? DESTS[it.destination].r : '';
   const budget = (typeof eur === 'function' && it.budget) ? eur(it.budget) : '';
+  const data = it.data || {};
+  const coords = data.coords || it.coords || '';
 
-  return '<div class="trip-card' + (isDraft ? ' draft' : '') + '" onclick="loadSavedItinerary(\''+it.id+'\')">'
+  if(isDraft){
+    return '<div class="trip-card draft" onclick="loadSavedItinerary(\''+it.id+'\')">'
+      +'<button class="trip-del" onclick="event.stopPropagation();deleteSavedItinerary(\''+it.id+'\')" aria-label="Supprimer">'+ico('close',14,2)+'</button>'
+      +'<div class="trip-card-hero" style="background:'+bg+'">'
+      +  '<span class="trip-card-wm">'+ico(icon,44,1.1)+'</span>'
+      +  '<span class="trip-card-draft-badge"><span class="dot"></span><span>Brouillon</span></span>'
+      +'</div>'
+      +'<div class="trip-card-draftfoot">'
+      +  '<div><div class="serif">'+esc(it.destination)+'</div><div class="tcd-sub">Dates à confirmer</div></div>'
+      +  '<span class="accent">Reprendre →</span>'
+      +'</div>'
+      +'</div>';
+  }
+
+  /* Étapes = lieux distincts parcourus (pas le nombre de jours) */
+  let stepsCount = 0;
+  if(Array.isArray(data.plan)){
+    const seen = {};
+    data.plan.forEach(function(p){
+      const k = ((p && p.loc) || '').split(/[\/(,]/)[0].trim().toLowerCase();
+      if(k && !seen[k]){ seen[k] = true; stepsCount++; }
+    });
+  }
+
+  /* Compte à rebours avant départ */
+  const dateFrom = it.date_from || data.dateFrom || it.dateFrom || '';
+  let countdown = '';
+  if(dateFrom){
+    const from = new Date(dateFrom); from.setHours(0,0,0,0);
+    const today = new Date(); today.setHours(0,0,0,0);
+    const daysLeft = Math.round((from - today) / 86400000);
+    if(daysLeft > 0) countdown = 'dans ' + daysLeft + ' j';
+    else if(daysLeft === 0) countdown = "aujourd'hui";
+  }
+
+  return '<div class="trip-card" onclick="loadSavedItinerary(\''+it.id+'\')">'
     +'<button class="trip-del" onclick="event.stopPropagation();deleteSavedItinerary(\''+it.id+'\')" aria-label="Supprimer">'+ico('close',14,2)+'</button>'
     +'<div class="trip-card-hero" style="background:'+bg+'">'
-    +  '<span class="trip-card-wm">'+ico(icon,44,1.1)+'</span>'
-    +  (occInfo ? '<span class="trip-card-badge"><span>'+ico(occInfo.ic,11,1.7)+'</span><span class="mono">'+esc(occInfo.label)+'</span></span>' : (isDraft ? '<span class="trip-card-badge draft"><span class="dot"></span><span>Brouillon</span></span>' : ''))
+    +  '<span class="trip-card-wm">'+ico(icon,64,1.1)+'</span>'
+    +  (coords ? '<span class="trip-card-coords mono">'+esc(coords)+'</span>' : '')
+    +  (occInfo ? '<span class="trip-card-badge"><span>'+ico(occInfo.ic,11,1.7)+'</span><span class="mono">'+esc(occInfo.label)+'</span></span>' : '')
     +  '<div class="trip-card-cap">'
     +    '<div class="serif">'+esc(it.destination)+'</div>'
     +    '<div class="trip-card-rule"></div>'
@@ -260,8 +298,8 @@ function savedTripCard(it){
     +  '</div>'
     +'</div>'
     +'<div class="trip-card-foot">'
-    +  '<span>'+esc(it.dates||'')+(it.days?' · '+it.days+' jour'+(it.days>1?'s':''):'')+'</span>'
-    +  (isDraft ? '<span class="accent">Reprendre →</span>' : (budget ? '<span class="accent">'+budget+'</span>' : ''))
+    +  '<span>'+esc(it.dates||'')+(stepsCount ? ' · '+stepsCount+' étape'+(stepsCount>1?'s':'') : '')+'</span>'
+    +  '<span class="accent">'+[budget, countdown].filter(Boolean).join(' · ')+'</span>'
     +'</div>'
     +'</div>';
 }
