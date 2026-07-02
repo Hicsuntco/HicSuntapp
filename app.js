@@ -135,7 +135,7 @@ function mapView(){
   var i=state.mapDay||0,p=(ITINERARY.plan||[])[i];
   var g=_geoGet(ITINERARY.dest||ITINERARY.destination||'');
   var vb=g.vb.split(' ').map(Number),vbW=vb[2],vbH=vb[3];
-  var W=345,H=420;
+  var W=390,H=514;
   /* Dédupliquer comme dans geoMapSVG pour avoir les mêmes index */
   var seen={},ordered=[];
   (ITINERARY.plan||[]).forEach(function(pp){
@@ -162,16 +162,33 @@ function mapView(){
     +'<div class="mp-t">'+esc(p.title||'')+'</div>'
     +'<div class="mp-m"><span class="mp-wx">'+ico(wx[0],13,1.7)+wx[1]+'</span>'
     +'<span class="mp-l" onclick="openDay('+i+')">Détails ›</span></div></div>':'';
-  return statusBar()
-    +navbar('Carte du voyage',{right:'<button class="nav-btn" onclick="if(typeof openOffline===\'function\')openOffline()" aria-label="Hors-ligne">'+ico('download',18,1.6)+'</button>'})
-    +'<div class="ov-scroll"><div class="bigmap">'
-    +'<span class="map-coords">'+esc(ITINERARY.coords||ITINERARY.dest||'')+'</span>'
-    +'<span class="map-rose">'+rose(26,1.1)+'</span>'
-    +_bigMapSVG(W,H,i,g,allPts,sc,ox,oy)+pop
-    +'</div><div class="map-rail">'+(ITINERARY.plan||[]).map(function(d,j){
-      return '<button class="map-chip'+(j===i?' on':'')+'" onclick="mapSelect('+j+')">'
-        +'<div class="mc-d">Jour '+String(d.n).padStart(2,'0')+'</div><div class="mc-l">'+esc(d.loc||'')+'</div></button>';
-    }).join('')+'</div></div>';
+
+  var nDays=(ITINERARY.plan||[]).length;
+  var moments=p&&Array.isArray(p.moments)?p.moments:[];
+  var agenda=moments.length?moments.map(function(m){
+    var time=Array.isArray(m)?m[0]:m.t;
+    var title=Array.isArray(m)?m[2]:(m.ti||m.title);
+    var desc=Array.isArray(m)?m[3]:(m.d||m.desc);
+    return '<div class="carte-mo"><div class="carte-mo-rail"><span class="carte-mo-dot"></span><span class="carte-mo-line"></span></div>'
+      +'<div class="carte-mo-b"><span class="mono">'+esc(time||'')+'</span><div class="carte-mo-t">'+esc(title||'')+'</div>'
+      +(desc?'<div class="carte-mo-d">'+esc(desc)+'</div>':'')+'</div></div>';
+  }).join('') : '<p style="font-size:13px;color:var(--sub);padding:8px 0">Aucun programme détaillé pour ce jour.</p>';
+
+  return '<div class="carte-full">'
+    +'<div class="carte-map-bg">'+_bigMapSVG(W,H,i,g,allPts,sc,ox,oy)+'</div>'
+    +'<div class="carte-top">'
+    +  '<button class="carte-pill" onclick="closeOverlay()">'+ico('back',16,2)+'<span class="serif">'+esc(ITINERARY.dest||'')+'</span>'+(nDays?'<span class="mono">· '+nDays+'J</span>':'')+'</button>'
+    +  '<button class="carte-round" onclick="if(typeof openOffline===\'function\')openOffline()" aria-label="Hors-ligne">'+ico('download',18,1.7)+'</button>'
+    +'</div>'
+    +'<div class="carte-sheet">'
+    +  '<div class="carte-handle"></div>'
+    +  '<div class="hs-scroll carte-daychips">'+(ITINERARY.plan||[]).map(function(d,j){
+        return '<button class="map-chip'+(j===i?' on':'')+'" onclick="mapSelect('+j+')"><span class="mono">J'+d.n+'</span><span class="serif">'+d.n+'</span></button>';
+      }).join('')+'</div>'
+    +  (p?'<div class="carte-daytitle"><span class="serif">Jour '+p.n+' · <em>'+esc(p.loc||'')+'</em></span><span class="mono">'+moments.length+' escale'+(moments.length>1?'s':'')+'</span></div>':'')
+    +  '<div class="carte-agenda">'+agenda+'</div>'
+    +'</div>'
+    +'</div>';
 }
 /* Carte grand format zoomée sur les étapes */
 function _bigMapSVG(W,H,activeIdx,g,pts,sc,ox,oy){
@@ -789,10 +806,10 @@ async function loadVoyagesTab(){
     const email = localStorage.getItem('hs_email');
     if(!token && !email){
       host.innerHTML = '<div style="text-align:center;padding:60px 24px">'
-        + '<div style="font-size:32px;margin-bottom:16px">✦</div>'
+        + '<div style="color:var(--gold);margin-bottom:16px;display:flex;justify-content:center">' + ico('sparkle',32,1.2) + '</div>'
         + '<p style="font-family:var(--serif);font-size:20px;font-weight:600;color:var(--ink);margin-bottom:8px">Vos voyages vous attendent</p>'
         + '<p style="color:var(--sub);font-size:14px;line-height:1.6;margin-bottom:24px">Composez votre premier itinéraire — il apparaîtra ici dès que vous l\'aurez enregistré.</p>'
-        + '<button onclick="setTab(\'discover\')" style="background:var(--ink);color:var(--bg);border:none;border-radius:14px;padding:14px 28px;font-family:var(--sans);font-size:15px;font-weight:500;cursor:pointer">Composer un itinéraire</button>'
+        + '<button onclick="setTab(\'discover\')" style="background:var(--ink);color:var(--onink);border:none;border-radius:14px;padding:14px 28px;font-family:var(--sans);font-size:15px;font-weight:500;cursor:pointer">Composer un itinéraire</button>'
         + '</div>';
     } else {
       host.innerHTML = '<p style="text-align:center;padding:40px 0;color:var(--sub);font-size:14px;font-style:italic">Aucun voyage enregistré pour le moment.</p>';
@@ -1179,7 +1196,7 @@ document.addEventListener('DOMContentLoaded', function(){
     var i=state.mapDay||0,p=(ITINERARY.plan||[])[i];
     var g=_geoGet(ITINERARY.dest||ITINERARY.destination||'');
     var vb=g.vb.split(' ').map(Number),vbW=vb[2],vbH=vb[3];
-    var W=345,H=420,sc=Math.min(W/vbW,H/vbH)*0.88;
+    var W=390,H=514,sc=Math.min(W/vbW,H/vbH)*0.88;
     var ox=(W-vbW*sc)/2,oy=(H-vbH*sc)/2;
     var pts=_geoPts(ITINERARY.plan||[],g),pin=pts[i]||{vx:vbW/2,vy:vbH/2};
     var pCx=ox+pin.vx*sc,pCy=oy+pin.vy*sc;
@@ -1190,16 +1207,33 @@ document.addEventListener('DOMContentLoaded', function(){
       +'<div class="mp-t">'+esc(p.title||'')+'</div>'
       +'<div class="mp-m"><span class="mp-wx">'+ico(wx[0],13,1.7)+wx[1]+'</span>'
       +'<span class="mp-l" onclick="openDay('+i+')">Détails ›</span></div></div>':'';
-    return statusBar()
-      +navbar('Carte du voyage',{right:'<button class="nav-btn" onclick="if(typeof openOffline===\'function\')openOffline()" aria-label="Hors-ligne">'+ico('download',18,1.6)+'</button>'})
-      +'<div class="ov-scroll"><div class="bigmap">'
-      +'<span class="map-coords">'+esc(ITINERARY.coords||ITINERARY.dest||'')+'</span>'
-      +'<span class="map-rose">'+rose(26,1.1)+'</span>'
-      +window.geoMapSVG(W,H,i)+pop
-      +'</div><div class="map-rail">'+(ITINERARY.plan||[]).map(function(d,j){
-        return '<button class="map-chip'+(j===i?' on':'')+'" onclick="mapSelect('+j+')">'
-          +'<div class="mc-d">Jour '+String(d.n).padStart(2,'0')+'</div><div class="mc-l">'+esc(d.loc||'')+'</div></button>';
-      }).join('')+'</div></div>';
+
+    var nDays=(ITINERARY.plan||[]).length;
+    var moments=p&&Array.isArray(p.moments)?p.moments:[];
+    var agenda=moments.length?moments.map(function(m){
+      var time=Array.isArray(m)?m[0]:m.t;
+      var title=Array.isArray(m)?m[2]:(m.ti||m.title);
+      var desc=Array.isArray(m)?m[3]:(m.d||m.desc);
+      return '<div class="carte-mo"><div class="carte-mo-rail"><span class="carte-mo-dot"></span><span class="carte-mo-line"></span></div>'
+        +'<div class="carte-mo-b"><span class="mono">'+esc(time||'')+'</span><div class="carte-mo-t">'+esc(title||'')+'</div>'
+        +(desc?'<div class="carte-mo-d">'+esc(desc)+'</div>':'')+'</div></div>';
+    }).join('') : '<p style="font-size:13px;color:var(--sub);padding:8px 0">Aucun programme détaillé pour ce jour.</p>';
+
+    return '<div class="carte-full">'
+      +'<div class="carte-map-bg">'+window.geoMapSVG(W,H,i)+'</div>'
+      +'<div class="carte-top">'
+      +  '<button class="carte-pill" onclick="closeOverlay()">'+ico('back',16,2)+'<span class="serif">'+esc(ITINERARY.dest||'')+'</span>'+(nDays?'<span class="mono">· '+nDays+'J</span>':'')+'</button>'
+      +  '<button class="carte-round" onclick="if(typeof openOffline===\'function\')openOffline()" aria-label="Hors-ligne">'+ico('download',18,1.7)+'</button>'
+      +'</div>'
+      +'<div class="carte-sheet">'
+      +  '<div class="carte-handle"></div>'
+      +  '<div class="hs-scroll carte-daychips">'+(ITINERARY.plan||[]).map(function(d,j){
+          return '<button class="map-chip'+(j===i?' on':'')+'" onclick="mapSelect('+j+')"><span class="mono">J'+d.n+'</span><span class="serif">'+d.n+'</span></button>';
+        }).join('')+'</div>'
+      +  (p?'<div class="carte-daytitle"><span class="serif">Jour '+p.n+' · <em>'+esc(p.loc||'')+'</em></span><span class="mono">'+moments.length+' escale'+(moments.length>1?'s':'')+'</span></div>':'')
+      +  '<div class="carte-agenda">'+agenda+'</div>'
+      +'</div>'
+      +'</div>';
   };
   window.mapSelect = function(i){
     state.mapDay=i;

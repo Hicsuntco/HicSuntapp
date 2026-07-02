@@ -229,47 +229,50 @@ function _destAccent(dest){
   const theme = (typeof _themeForDestination === 'function') ? _themeForDestination(dest, '', '') : 'mediterranean';
   return DEST_ACCENT_MAP[theme] || DEST_ACCENT_MAP.mediterranean;
 }
+const OCC_LABELS = {
+  'lune-de-miel': {label:'Lune de miel', ic:'heart'},
+  'evjf':         {label:'EVJF',          ic:'sparkle'},
+  'evg':          {label:'EVG',           ic:'star'},
+  'famille':      {label:'En famille',    ic:'users'},
+  'anniversaire': {label:'Anniversaire',  ic:'heart'},
+  'solo':         {label:'Solo',          ic:'compass'},
+  'amis':         {label:'Entre amis',    ic:'users'},
+  'pro':          {label:'Voyage pro',    ic:'doc'},
+};
 function savedTripCard(it){
   const bg = destBg(it.destination);
   const icon = destIcon(it.destination);
-  const accent = _destAccent(it.destination);
-  const daysColor = accent.primary;
   const occ = it.occasion || (it.data && it.data.occasion) || '';
-  const OCC_LABELS = {
-    'lune-de-miel': {label:'Lune de miel', ic:'heart'},
-    'evjf':         {label:'EVJF',          ic:'sparkle'},
-    'evg':          {label:'EVG',           ic:'star'},
-    'famille':      {label:'En famille',    ic:'users'},
-    'anniversaire': {label:'Anniversaire',  ic:'heart'},
-    'solo':         {label:'Solo',          ic:'compass'},
-    'amis':         {label:'Entre amis',    ic:'users'},
-    'pro':          {label:'Voyage pro',    ic:'doc'},
-  };
   const occInfo = OCC_LABELS[occ];
-  return '<div class="trip" style="position:relative" onclick="loadSavedItinerary(\''+it.id+'\')">'
+  const isDraft = (typeof _classifyItinerary === 'function') ? _classifyItinerary(it) === 'draft' : false;
+  const region = (typeof DESTS !== 'undefined' && DESTS[it.destination]) ? DESTS[it.destination].r : '';
+  const budget = (typeof eur === 'function' && it.budget) ? eur(it.budget) : '';
+
+  return '<div class="trip-card' + (isDraft ? ' draft' : '') + '" onclick="loadSavedItinerary(\''+it.id+'\')">'
     +'<button class="trip-del" onclick="event.stopPropagation();deleteSavedItinerary(\''+it.id+'\')" aria-label="Supprimer">'+ico('close',14,2)+'</button>'
-    +'<div class="th" style="position:relative;overflow:hidden">'
-    +'<div style="position:absolute;inset:0;background:'+bg+'"></div>'
-    +'<div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(20,15,8,0.5),rgba(20,15,8,0.04) 60%)"></div>'
-    +'<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--onink);opacity:0.4">'+ico(icon,36,1.3)+'</span>'
-    +(occInfo?'<span style="position:absolute;top:7px;left:7px;display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:100px;background:var(--ink)"><span style="color:var(--gold-bright);display:flex">'+ico(occInfo.ic,11,1.7)+'</span></span>':'')
+    +'<div class="trip-card-hero" style="background:'+bg+'">'
+    +  '<span class="trip-card-wm">'+ico(icon,44,1.1)+'</span>'
+    +  (occInfo ? '<span class="trip-card-badge"><span>'+ico(occInfo.ic,11,1.7)+'</span><span class="mono">'+esc(occInfo.label)+'</span></span>' : (isDraft ? '<span class="trip-card-badge draft"><span class="dot"></span><span>Brouillon</span></span>' : ''))
+    +  '<div class="trip-card-cap">'
+    +    '<div class="serif">'+esc(it.destination)+'</div>'
+    +    '<div class="trip-card-rule"></div>'
+    +    (region ? '<span class="mono">'+esc(region.toUpperCase())+'</span>' : '')
+    +  '</div>'
     +'</div>'
-    +'<div style="min-width:0;flex:1">'
-    +'<div class="ti-n">'+esc(it.destination)+'</div>'
-    +(occInfo?'<div style="font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:'+accent.primary+';margin-bottom:3px">'+occInfo.label+'</div>':'')
-    +'<div class="ti-d">'+esc(it.dates)+'</div>'
-    +'<div class="ti-days" style="color:'+daysColor+'">'+it.days+' jour'+(it.days>1?'s':'')+'</div>'
-    +'<div class="ti-st"><span class="status ok">Sauvegardé</span></div>'
-    +'</div></div>';
+    +'<div class="trip-card-foot">'
+    +  '<span>'+esc(it.dates||'')+(it.days?' · '+it.days+' jour'+(it.days>1?'s':''):'')+'</span>'
+    +  (isDraft ? '<span class="accent">Reprendre →</span>' : (budget ? '<span class="accent">'+budget+'</span>' : ''))
+    +'</div>'
+    +'</div>';
 }
 function voyagesView(){
   const seg = state._voySeg || 'upcoming';
   const labels = [['upcoming','À venir'],['past','Passés'],['draft','Brouillons']];
   return statusBar()
     + '<div class="px">'
-    +   '<h1 class="voy-title">Mes voyages</h1>'
-    +   '<div class="seg voy-seg">' + labels.map(function(l){
-          return '<button class="' + (seg === l[0] ? 'on' : '') + '" onclick="voySeg(\'' + l[0] + '\')">' + l[1] + '</button>';
+    +   '<h1 class="voy-title">Mes <em>voyages</em></h1>'
+    +   '<div class="voy-pills">' + labels.map(function(l){
+          return '<button class="voy-pill' + (seg === l[0] ? ' on' : '') + '" onclick="voySeg(\'' + l[0] + '\')">' + l[1] + '</button>';
         }).join('') + '</div>'
     +   '<div class="list" data-trips><div style="text-align:center;padding:40px 0"><div class="notif-load"><i></i></div></div></div>'
     + '</div>';
@@ -302,6 +305,11 @@ function profileView(){
     +       '<div><div class="prof-n">' + esc(USER.full || USER.name || 'Voyageur') + '</div>'
     +         '<div class="prof-m">' + (email ? esc(email) : 'Composez votre premier itinéraire') + '</div></div>'
     +     '</div>'
+    +   '</div>'
+    +   '<div class="prof-cercle-card" onclick="openCercle()">'
+    +     '<span class="pcc-ico">' + ico('sparkle', 20, 1.4) + '</span>'
+    +     '<div style="flex:1"><div class="pcc-t">Cercle Hic Sunt</div><div class="pcc-s">' + esc(CERCLE.tier) + ' · ' + CERCLE.points + ' points</div></div>'
+    +     '<span class="pcc-cta">Voir</span>'
     +   '</div>'
     +   '<div class="prof-list">' + rows.map(function(r){
           return '<div class="row" onclick="' + r[3] + '">'

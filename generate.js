@@ -1482,6 +1482,22 @@ async function confirmSuggestedDestination(){
   setTimeout(function(){ runFullGeneration(false); }, 320);
 }
 
+/* Met à jour l'état (fait / en cours / à venir) des 4 items de la checklist de génération */
+function _updateGenChecklist(el, pct){
+  const items = el.querySelectorAll('[data-gen-check]');
+  let activeSet = false;
+  for(let i = 0; i < items.length; i++){
+    const until = parseFloat(items[i].getAttribute('data-gen-until'));
+    items[i].classList.remove('done', 'active');
+    if(pct >= until){
+      items[i].classList.add('done');
+    } else if(!activeSet){
+      items[i].classList.add('active');
+      activeSet = true;
+    }
+  }
+}
+
 /* ── Étape 2 : génération complète de l'itinéraire ────────────────────── */
 async function runFullGeneration(overlayAlreadyOpen){
   /* Annuler toute animation de génération précédente encore active */
@@ -1546,6 +1562,7 @@ async function runFullGeneration(overlayAlreadyOpen){
 
     if(barI) barI.style.width = currentPct.toFixed(1) + '%';
     if(barPct) barPct.textContent = Math.round(currentPct) + '%';
+    _updateGenChecklist(el, currentPct);
 
     /* Temps restant estimé */
     if(timeLeft){
@@ -1612,6 +1629,7 @@ async function runFullGeneration(overlayAlreadyOpen){
   if(barI){ barI.style.transition='width 0.6s cubic-bezier(0.4,0,0.2,1)'; barI.style.width='100%'; }
   if(barPct) barPct.textContent='100%';
   if(timeLeft) timeLeft.textContent='';
+  _updateGenChecklist(el, 100);
   if(statusEl){statusEl.style.opacity=0;setTimeout(function(){statusEl.textContent='Votre voyage est prêt ✦';statusEl.style.opacity=1;},250);}
 
   let ok=false;

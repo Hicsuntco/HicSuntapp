@@ -272,48 +272,54 @@ function destinationView(key){
 }
 
 /* ── 5 · Génération (modal sombre) ──────────────────────────────────── */
+const GEN_CHECKLIST = [
+  { until: 20, label: 'Tracé des étapes' },
+  { until: 52, label: 'Adresses confidentielles choisies' },
+  { until: 86, label: 'Équilibrage du budget' },
+  { until: 100, label: 'Calage du rythme jour par jour' },
+];
+function genChecklistHTML(){
+  return GEN_CHECKLIST.map(function(c, i){
+    return '<div class="gen-check-it" data-gen-check="' + i + '" data-gen-until="' + c.until + '">'
+      + '<span class="gci-mark"><span class="gci-dot"></span><svg class="gci-check" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4 4 10-10"/></svg></span>'
+      + '<span class="gci-label">' + c.label + '</span>'
+      + '</div>';
+  }).join('');
+}
 function generationView(){
-  /* Globe animé centré — même identité que le splash */
-  const globe = '<svg class="gen-globe" viewBox="0 0 120 120" fill="none">'
-    + '<circle class="sg-ring" cx="60" cy="60" r="54"/>'
-    + '<ellipse class="sg-mer" cx="60" cy="60" rx="22" ry="54"/>'
-    + '<ellipse class="sg-mer sg-mer2" cx="60" cy="60" rx="44" ry="54"/>'
-    + '<line class="sg-eq" x1="6" y1="60" x2="114" y2="60"/>'
-    + '<line class="sg-tick" x1="60" y1="2" x2="60" y2="12"/>'
-    + '<line class="sg-tick" x1="60" y1="108" x2="60" y2="118"/>'
-    + '<line class="sg-tick" x1="2" y1="60" x2="12" y2="60"/>'
-    + '<line class="sg-tick" x1="108" y1="60" x2="118" y2="60"/>'
+  /* Rose des vents — même identité que la direction visuelle Hic Sunt */
+  const compass = '<svg class="gen-compass" width="250" height="250" viewBox="0 0 250 250" style="overflow:visible">'
+    + '<circle class="gc-r1" cx="125" cy="125" r="116" fill="none" stroke-width="1" stroke-dasharray="2 9"/>'
+    + '<circle cx="125" cy="125" r="92" fill="none" stroke-width="1" class="gc-r2"/>'
+    + '<circle cx="125" cy="125" r="78" fill="none" stroke-width="1" class="gc-r3"/>'
+    + '<g class="gc-ticks" stroke-width="1.4"><line x1="125" y1="33" x2="125" y2="46"/><line x1="217" y1="125" x2="204" y2="125"/><line x1="125" y1="217" x2="125" y2="204"/><line x1="33" y1="125" x2="46" y2="125"/></g>'
+    + '<g class="mono gc-labels" font-size="13" text-anchor="middle"><text x="125" y="26">N</text><text x="231" y="130">E</text><text x="125" y="234">S</text><text x="19" y="130">O</text></g>'
+    + '<g class="gc-needle"><polygon points="125,52 132,125 118,125" class="gc-needle-a"/><polygon points="125,198 132,125 118,125" class="gc-needle-b"/><circle cx="125" cy="125" r="6" class="gc-hub"/></g>'
+    + '<g class="gc-sparks"><path d="M196 56C196.3 58.4 198.6 60.7 201 61C198.6 61.3 196.3 63.6 196 66C195.7 63.6 193.4 61.3 191 61C193.4 60.7 195.7 58.4 196 56Z" style="animation-delay:0s"/><path d="M54 176C54.3 178 56 179.7 58 180C56 180.3 54.3 182 54 184C53.7 182 52 180.3 50 180C52 179.7 53.7 178 54 176Z" style="animation-delay:.8s"/><path d="M206 178C206.2 179.6 207.4 180.8 209 181C207.4 181.2 206.2 182.4 206 184C205.8 182.4 204.6 181.2 203 181C204.6 180.8 205.8 179.6 206 178Z" style="animation-delay:1.5s"/></g>'
     + '</svg>';
 
-  /* Route qui se trace — plus grande, 4 villes */
-  const route = '<svg class="gen-route" viewBox="0 0 220 220" fill="none">'
-    + '<path d="M28 188 Q55 148 88 142 Q118 136 140 108 Q162 80 192 36"/>'
-    + '<circle cx="28" cy="188" r="3.5"/>'
-    + '<circle cx="88" cy="142" r="3.5"/>'
-    + '<circle cx="140" cy="108" r="3.5"/>'
-    + '<circle cx="192" cy="36" r="3.5"/>'
-    + '</svg>';
+  let daysCount = '';
+  if(state.dateFrom && state.dateTo){
+    const d = Math.round((new Date(state.dateTo) - new Date(state.dateFrom)) / 86400000);
+    if(d > 0) daysCount = d + ' jour' + (d > 1 ? 's' : '');
+  }
+  const occLabel = (typeof _occasionLabel === 'function') ? _occasionLabel(state.occasion) : '';
+  const meta = [daysCount, occLabel, state.destination || ''].filter(Boolean).join(' · ');
 
-  return '<div class="gen">' + statusBar(true)
-    + '<div class="gen-body">'
-    /* Logo discret en haut */
-    +   '<div class="gen-logo">Hic <em>Sunt</em></div>'
-    /* Globe + carte superposés */
-    +   '<div class="gen-visual">'
-    +     '<div class="gen-globe-wrap">' + globe + '</div>'
-    +     '<div class="gen-map">' + graticule(220, 220, 40) + route + '</div>'
-    +   '</div>'
-    /* Statut en grand italic Spectral */
-    +   '<p class="gen-status" data-gen-status>Lecture de vos envies…</p>'
-    /* Barre de progression ultra-fine */
-    +   '<div class="gen-progress">'
-    +     '<div class="gen-progress-track"><div class="gen-progress-fill" data-gen-bar style="width:2%;transition:none"></div></div>'
-    +     '<div class="gen-progress-nums">'
-    +     '<span class="gen-progress-pct" data-gen-pct>0%</span>'
-    +     '<span class="gen-progress-time" data-gen-time>~16s</span>'
-    +     '</div>'
-    +   '</div>'
-    + '</div></div>';
+  return '<div class="gen">' + statusBar()
+    + '<div class="gen-top-space"></div>'
+    + '<div class="gen-compass-wrap">' + compass + '</div>'
+    + '<div class="gen-headline">'
+    +   '<div class="gen-kicker">Le cartographe compose</div>'
+    +   '<h1 class="gen-title">Nous traçons<br>votre <em>sillage</em></h1>'
+    +   '<p class="gen-sub">' + (meta ? esc(meta) + '<br>' : '') + '<span data-gen-status>Lecture de vos envies…</span></p>'
+    + '</div>'
+    + '<div class="gen-checklist">' + genChecklistHTML() + '</div>'
+    + '<div class="gen-progress-wrap">'
+    +   '<div class="gen-progress-row"><span class="gen-progress-label">Composition</span><span class="gen-progress-pct" data-gen-pct>0%</span></div>'
+    +   '<div class="gen-progress-track"><div class="gen-progress-fill" data-gen-bar style="width:2%;transition:none"></div></div>'
+    + '</div>'
+    + '</div>';
 }
 
 /* ── Suggestion de destination (mode "Surprenez-moi") ────────────────── */
@@ -496,50 +502,61 @@ function itineraryView(){
   const themeLabel = THEME_LABEL[theme] || 'Sur-mesure';
   const minimapBg = 'linear-gradient(135deg,' + hexA(ac,0.06) + ' 0%,var(--surface) 100%)';
 
-  return (
-    /* ── Navbar ── */
-    navbar(it.dest, {
-      right: '<button class="nav-btn" onclick="openOverlay(\'share\', shareView())" aria-label="Partager">' + ico('share',18,1.5) + '</button>'
-    })
+  /* ── Hero plein cadre — aplat destination, façon carte postale ── */
+  const heroBg = (typeof destBg === 'function') ? destBg(it.dest) : ac;
+  const heroIcon = (typeof destIcon === 'function') ? destIcon(it.dest) : 'compass';
+  const occId = state.occasion || it.occasion || '';
+  const occInfo = (typeof OCCASIONS !== 'undefined') ? OCCASIONS.find(function(o){ return o.id === occId; }) : null;
 
-    /* ── Hero éditorial fond clair ── */
-    + '<div style="flex:none;padding:0 20px 28px;border-bottom:1px solid var(--line2)">'
-    /* Eyebrow thème + coordonnées */
-    +   '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">'
-    +     '<span style="font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:' + ac + '">' + esc(themeLabel) + '</span>'
-    +     '<span style="font-family:var(--mono);font-size:8px;letter-spacing:1.5px;color:var(--sub)">' + esc(it.coords||'') + '</span>'
+  return (
+    '<div class="itin-hero-panel" style="background:' + heroBg + '">'
+    +   '<svg class="itin-hero-waves" viewBox="0 0 390 300" fill="none"><g stroke="rgba(244,238,223,.28)" stroke-width="1.2"><path d="M-40 190 Q 120 150 280 190 T 600 190"/><path d="M-40 225 Q 120 185 280 225 T 600 225"/><path d="M-40 260 Q 120 220 280 260 T 600 260"/></g></svg>'
+    +   '<span class="itin-hero-wm">' + ico(heroIcon, 96, 1.1) + '</span>'
+    +   '<div class="itin-hero-top">'
+    +     '<button class="ihx-btn" onclick="closeOverlay()" aria-label="Retour">' + ico('back',17,2) + '</button>'
+    +     '<div style="display:flex;gap:10px">'
+    +       '<button class="ihx-btn" onclick="openOverlay(\'share\', shareView())" aria-label="Partager">' + ico('share',16,1.6) + '</button>'
+    +       '<button class="ihx-btn" onclick="openAI()" aria-label="Cartographe">' + ico('sparkle',16,1.6) + '</button>'
+    +     '</div>'
     +   '</div>'
-    /* Titre */
-    +   '<h1 style="font-family:var(--serif);font-weight:600;font-size:44px;letter-spacing:-1.2px;color:var(--ink);line-height:1;margin:0 0 10px">' + esc(it.dest) + '</h1>'
-    /* Trait couleur sous le titre */
-    +   '<div style="width:48px;height:3px;background:' + ac + ';border-radius:2px;margin-bottom:12px"></div>'
-    /* Tagline */
-    +   '<p style="font-family:var(--serif);font-style:italic;font-size:14px;color:var(--sub);line-height:1.6;margin:0 0 20px;max-width:280px">' + esc(it.tag) + '</p>'
-    /* Pills */
-    +   '<div style="display:flex;flex-wrap:wrap;gap:7px">'
-    +     '<span style="font-family:var(--mono);font-size:8.5px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;padding:7px 14px;border-radius:20px;background:' + hexA(ac,0.1) + ';color:' + ac + ';border:1px solid ' + hexA(ac,0.25) + '">' + esc(it.dates) + '</span>'
-    +     '<span style="font-family:var(--mono);font-size:8.5px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;padding:7px 14px;border-radius:20px;background:var(--surface);color:var(--ink-soft);border:1px solid var(--line)">' + esc(it.level) + '</span>'
+    +   (it.coords ? '<div class="itin-hero-coords mono">' + esc(it.coords) + '</div>' : '')
+    +   '<div class="itin-hero-cap">'
+    +     (occInfo ? '<div class="itin-hero-badge"><span>' + ico(occInfo.ic,12,1.7) + '</span><span class="mono">' + esc(occInfo.label) + '</span></div>' : '')
+    +     '<h1>' + esc(it.dest) + '</h1>'
+    +     (it.tag ? '<div class="itin-hero-tag">' + esc(it.tag) + '</div>' : '')
     +   '</div>'
     + '</div>'
 
     /* ── Contenu scrollable ── */
     + '<div class="ov-scroll has-foot px">'
 
+    /* Chips durée / étapes / budget */
+    + '<div style="display:flex;gap:10px;margin-top:22px">'
+    +   '<div class="itin-stat"><div class="mono">DURÉE</div><div class="serif">' + nDays + ' jour' + (nDays>1?'s':'') + '</div></div>'
+    +   '<div class="itin-stat"><div class="mono">ÉTAPES</div><div class="serif">' + (it.accommodations||[]).length + '</div></div>'
+    +   '<div class="itin-stat dark" style="flex:1.25"><div class="mono">BUDGET</div><div class="serif">' + eur(it.budgetTotal) + '</div></div>'
+    + '</div>'
+
+    /* Dates */
+    +   (it.dates ? '<div class="mono" style="font-size:10px;color:var(--gold);letter-spacing:.14em;margin-top:20px">' + esc(it.dates).toUpperCase() + '</div>' : '')
+
     /* Carte */
-    + '<div class="minimap" style="margin-top:16px;background:' + minimapBg + '" onclick="openMapOv()">'
+    + '<div class="minimap" style="margin-top:18px;background:' + minimapBg + '" onclick="openMapOv()">'
     +   geoMapSVG(345, 140, null) + wxChip(wx1[0], wx1[1])
     +   '<span class="mm-cap">' + esc(it.coords || it.dest) + '</span>'
+    +   '<span class="minimap-cta">Voir la carte ' + ico('chevron',13,2.2) + '</span>'
     + '</div>'
 
     /* Actions */
-    + '<div class="tools" style="margin-top:16px">'
+    + '<div class="mono" style="font-size:10px;color:var(--gold);letter-spacing:.2em;margin:20px 0 12px">EXPLORER L\'ITINÉRAIRE</div>'
+    + '<div class="tools">'
     +   '<button class="tool" onclick="openOverlay(\'budget\', budgetView())">'
     +     ico('wallet',20,1.5) + '<div class="tl-t">Budget</div><div class="tl-s">' + eur(it.budgetTotal) + '</div>'
     +   '</button>'
     +   '<button class="tool" onclick="openActivities()">'
     +     ico('ticket',20,1.5) + '<div class="tl-t">Activités</div><div class="tl-s">' + ACTIVITIES.length + ' exp.</div>'
     +   '</button>'
-    +   '<button class="tool" onclick="openOverlay(\'gems\', gemsView())">'
+    +   '<button class="tool dark" onclick="openOverlay(\'gems\', gemsView())">'
     +     ico('star',18,1.5) + '<div class="tl-t">Pépites</div><div class="tl-s">' + ((it.gems||[]).length) + ' adresses</div>'
     +   '</button>'
     +   '<button class="tool" onclick="openAI()">'

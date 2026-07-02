@@ -54,20 +54,35 @@
 .season .m.best span{color:var(--gold-deep);font-weight:700}
 .season-note{font-size:13px;font-weight:300;color:var(--sub);line-height:1.55;margin-top:12px}
 
-/* ── itinerary ── */
-.itin-hero{padding-top:8px}
-/* iOS Title1 for destination in itinerary */
-.itin-hero h1{font-family:var(--serif);font-weight:600;font-size:42px;letter-spacing:-1px;margin-top:8px;line-height:1.04}
-.itin-tag{font-family:var(--serif);font-style:italic;font-weight:400;font-size:18px;color:var(--ink-soft);margin-top:8px;line-height:1.4}
-.itin-pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+/* ── itinerary — hero plein cadre façon carte postale ── */
+.itin-hero-panel{position:relative;height:300px;flex:none;overflow:hidden;padding-top:env(safe-area-inset-top,0px)}
+.itin-hero-waves{position:absolute;inset:0;width:100%;height:100%}
+.itin-hero-wm{position:absolute;top:36px;right:-10px;color:var(--onink);opacity:0.16;pointer-events:none}
+.itin-hero-top{display:flex;justify-content:space-between;align-items:center;padding:14px 18px 0;position:relative;z-index:2}
+.ihx-btn{width:40px;height:40px;border-radius:50%;background:var(--surface);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px -5px rgba(60,40,20,.4);color:var(--ink);cursor:pointer;transition:transform 0.12s var(--spring)}
+.ihx-btn:active{transform:scale(0.88)}
+.itin-hero-coords{position:absolute;top:64px;left:20px;font-size:12px;color:var(--onink);opacity:0.8;letter-spacing:.1em;z-index:2}
+.itin-hero-cap{position:absolute;left:20px;right:20px;bottom:18px;z-index:2}
+.itin-hero-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border-radius:100px;background:var(--ink);margin-bottom:12px;color:var(--gold-bright)}
+.itin-hero-badge .mono{font-size:10px;color:var(--onink);letter-spacing:.14em}
+.itin-hero-cap h1{font-family:var(--serif);font-weight:600;font-size:44px;line-height:.92;color:var(--onink);margin:0}
+.itin-hero-tag{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--gold-bright);margin-top:4px}
 
-.minimap{height:140px;border-radius:var(--card-radius);border:1px solid var(--line);background:var(--surface);position:relative;overflow:hidden;margin-top:22px;cursor:pointer;box-shadow:var(--shadow-raised);transition:transform 0.15s var(--spring)}
+.itin-stat{flex:1;padding:14px 15px;border-radius:16px;background:var(--surface);border:1px solid var(--line)}
+.itin-stat .mono{font-size:9px;color:var(--gold);letter-spacing:.14em;margin-bottom:6px}
+.itin-stat .serif{font-size:22px}
+.itin-stat.dark{background:var(--ink);border-color:var(--ink)}
+.itin-stat.dark .mono{color:var(--gold-bright)}
+.itin-stat.dark .serif{color:var(--onink)}
+
+.minimap{height:180px;border-radius:var(--card-radius);border:1px solid var(--line);background:var(--surface);position:relative;overflow:hidden;cursor:pointer;box-shadow:var(--shadow-raised);transition:transform 0.15s var(--spring)}
 .minimap:active{transform:scale(0.98)}
 .minimap .wx-chip{position:absolute;top:12px;right:12px;z-index:3}
 .minimap .mm-cap{position:absolute;left:14px;bottom:12px;font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--sub);z-index:3}
+.minimap-cta{position:absolute;bottom:12px;right:12px;z-index:3;display:inline-flex;align-items:center;gap:7px;padding:9px 15px;border-radius:100px;background:var(--ink);color:var(--onink);font-size:13px;font-weight:600;box-shadow:0 6px 16px -8px rgba(0,0,0,.5)}
 
 /* ── tool grid — more generous spacing ── */
-.tools{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:22px}
+.tools{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .tool{
   background:var(--surface-raised);border:1px solid var(--line);border-radius:18px;
   padding:18px 16px;cursor:pointer;text-align:left;color:var(--ink);
@@ -81,6 +96,10 @@
 /* iOS Headline size */
 .tool .tl-t{font-family:var(--serif);font-weight:500;font-size:18px;margin-top:12px;color:inherit;letter-spacing:-0.2px}
 .tool .tl-s{font-family:var(--mono);font-size:8.5px;letter-spacing:0.8px;text-transform:uppercase;color:var(--sub);margin-top:5px}
+.tool.dark{background:var(--ink);border-color:var(--ink)}
+.tool.dark .ico{color:var(--gold-bright)}
+.tool.dark .tl-t{color:var(--onink)}
+.tool.dark .tl-s{color:#B8AE98}
 
 .ai-banner{display:flex;align-items:center;gap:14px;border:1px solid var(--line);background:var(--surface);border-radius:var(--card-radius);padding:16px;margin-top:20px;cursor:pointer;transition:transform 0.15s cubic-bezier(0.34,1.2,0.4,1)}
 .ai-banner:active{transform:scale(0.985)}
@@ -223,54 +242,54 @@
 .conf .c-ref{font-family:var(--mono);font-size:10px;letter-spacing:1.4px;color:var(--sub);margin-top:16px}
 .conf-acts{padding:0 28px 46px;display:flex;flex-direction:column;gap:11px}
 
-/* ── generation ── */
-.gen{flex:1;display:flex;flex-direction:column;color:var(--ink);opacity:0;transition:opacity 0.7s ease;background:var(--bg);position:relative}
+/* ── generation — rose des vents (direction Hic Sunt) ── */
+@keyframes hs-spin{to{transform:rotate(360deg)}}
+@keyframes hs-pulse{0%,100%{opacity:.25;transform:scale(.85)}50%{opacity:1;transform:scale(1)}}
+.gen{flex:1;display:flex;flex-direction:column;color:var(--ink);opacity:0;transition:opacity 0.7s ease;background:var(--bg);position:relative;overflow:hidden}
 .gen.run{opacity:1}
-.gen::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 48%,rgba(156,124,68,0.10) 0%,transparent 65%);pointer-events:none}
-.gen-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 32px;gap:28px;position:relative}
-.gen-logo{font-family:var(--serif);font-weight:600;font-size:15px;letter-spacing:0.5px;opacity:0.45}
-.gen-logo em{font-style:italic;color:var(--gold-soft)}
-.gen-visual{position:relative;width:240px;height:240px;display:flex;align-items:center;justify-content:center}
-.gen-globe-wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
-.gen-globe{width:190px;height:190px;stroke:var(--gold-deep);fill:none;opacity:0.3;animation:genGlobeRotate 20s linear infinite}
-@keyframes genGlobeRotate{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-.gen-globe .sg-ring{stroke-width:0.7}
-.gen-globe .sg-mer{stroke-width:0.4}
-.gen-globe .sg-eq{stroke-width:0.4}
-.gen-globe .sg-tick{stroke-width:1.5;opacity:0.5}
-.gen-map{position:absolute;inset:0;border-radius:50%;overflow:hidden;background:transparent}
-.gen-map .grat{opacity:0.12}
-.gen-route{position:absolute;inset:0;pointer-events:none}
-.gen-route path{stroke:var(--gold-soft);stroke-width:1.6;fill:none;stroke-linecap:round;stroke-dasharray:320;stroke-dashoffset:320;animation:genDraw 3.4s var(--ease-out) infinite}
-@keyframes genDraw{
-  0%{stroke-dashoffset:320;opacity:0}
-  8%{opacity:1}
-  65%{stroke-dashoffset:0;opacity:1}
-  82%,100%{stroke-dashoffset:0;opacity:0}
+.gen-top-space{height:54px;flex:none}
+.gen-compass-wrap{position:relative;height:300px;display:flex;align-items:center;justify-content:center;flex:none}
+.gen-compass{overflow:visible}
+.gen-compass .gc-r1{stroke:#D8C9AC;transform-origin:125px 125px;animation:hs-spin 80s linear infinite}
+.gen-compass .gc-r2{stroke:#CDBC9B}
+.gen-compass .gc-r3{stroke:#E0D3B7}
+.gen-compass .gc-ticks{stroke:var(--gold)}
+.gen-compass .gc-labels{fill:var(--gold)}
+.gen-compass .gc-needle{transform-origin:125px 125px;animation:hs-spin 11s linear infinite}
+.gen-compass .gc-needle-a{fill:var(--gold)}
+.gen-compass .gc-needle-b{fill:#D8C9AC}
+.gen-compass .gc-hub{fill:var(--surface);stroke:var(--gold);stroke-width:1.6}
+.gen-compass .gc-sparks path{fill:var(--gold);animation:hs-pulse 2.4s ease-in-out infinite}
+.gen-headline{text-align:center;padding:6px 38px 0;flex:none}
+.gen-kicker{font-family:var(--mono);font-size:11px;color:var(--gold);letter-spacing:.24em;text-transform:uppercase;margin-bottom:14px}
+.gen-title{font-family:var(--serif);font-size:34px;line-height:1.04;color:var(--ink)}
+.gen-title em{font-style:italic;color:var(--gold)}
+.gen-sub{font-size:14px;color:var(--sub);margin-top:13px;line-height:1.5;transition:opacity 0.28s ease}
+.gen-checklist{
+  margin:22px 24px 0;background:var(--surface);border:1px solid var(--line);border-radius:22px;
+  padding:18px 20px;box-shadow:var(--shadow-card);
+  display:flex;flex-direction:column;gap:13px;flex:none;
 }
-.gen-route circle{fill:var(--gold);opacity:0;animation:genPin 3.4s var(--ease-out) infinite}
-.gen-route circle:nth-of-type(1){animation-delay:0.4s}
-.gen-route circle:nth-of-type(2){animation-delay:1.0s}
-.gen-route circle:nth-of-type(3){animation-delay:1.7s}
-.gen-route circle:nth-of-type(4){animation-delay:2.4s}
-@keyframes genPin{
-  0%,5%{opacity:0;transform:scale(0.3)}
-  22%{opacity:1;transform:scale(1.2)}
-  30%{transform:scale(1)}
-  78%{opacity:0.7}
-  92%,100%{opacity:0}
-}
+.gen-check-it{display:flex;align-items:center;gap:12px;font-size:14px;color:var(--ph);transition:color 0.25s ease}
+.gci-mark{width:18px;height:18px;border-radius:50%;border:2px solid var(--line2);flex:none;display:flex;align-items:center;justify-content:center;position:relative;transition:border-color 0.25s ease,background 0.25s ease}
+.gci-dot{display:none}
+.gci-check{color:var(--surface);opacity:0;transition:opacity 0.2s ease}
+.gen-check-it.active{color:var(--ink);font-weight:600}
+.gen-check-it.active .gci-mark{border-color:var(--gold);border-top-color:transparent;animation:hs-spin .9s linear infinite}
+.gen-check-it.done{color:var(--ink-soft)}
+.gen-check-it.done .gci-mark{border-color:var(--gold);background:var(--gold);animation:none}
+.gen-check-it.done .gci-check{opacity:1}
+.gen-progress-wrap{margin:auto 24px 54px;flex:none}
+.gen-progress-row{display:flex;justify-content:space-between;margin-bottom:9px}
+.gen-progress-label{font-family:var(--mono);font-size:10px;color:var(--sub);letter-spacing:.16em;text-transform:uppercase}
+.gen-progress-pct{font-family:var(--mono);font-size:11px;color:var(--gold)}
+.gen-progress-track{height:5px;border-radius:3px;background:var(--line2);overflow:hidden}
+.gen-progress-fill{height:100%;border-radius:3px;background:var(--ink);transition:width 0.3s linear}
 /* Bloquer animations sur SVG carte géo */
 .map-svg path,.map-svg circle,.map-svg g,.minimap svg path,.minimap svg circle,.bigmap svg path,.bigmap svg circle{animation:none !important;stroke-dashoffset:unset !important}
-.gen-status{font-family:var(--serif);font-style:italic;font-size:20px;line-height:1.45;color:var(--gold-deep);transition:opacity 0.28s ease;min-height:30px;text-align:center;max-width:260px}
-.gen-progress{display:flex;flex-direction:column;align-items:center;gap:10px;width:220px}
-.gen-progress-track{width:100%;height:1px;background:rgba(28,20,12,0.10);border-radius:1px;overflow:hidden}
-.gen-progress-fill{height:100%;background:linear-gradient(to right,var(--gold-deep),var(--gold-soft));border-radius:1px;transition:width 0.3s linear}
-.gen-progress-nums{display:flex;align-items:center;gap:12px}
-.gen-progress-pct{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--ink-soft)}
-.gen-progress-time{font-family:var(--mono);font-size:9px;letter-spacing:0.5px;color:var(--sub)}
 
 /* ── suggestion de destination (mode Surprenez-moi) ── */
+.gen-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 32px;gap:28px;position:relative}
 .gen.suggest .gen-body{gap:14px;text-align:center}
 .sugg-dest{font-family:var(--serif);font-weight:600;font-size:42px;letter-spacing:-0.5px;color:var(--onink)}
 .sugg-tag{font-family:var(--serif);font-style:italic;font-size:16px;color:var(--gold-soft);line-height:1.4}
