@@ -389,7 +389,6 @@ function openAI(){ const el = openOverlay('ai', aiView()); requestAnimationFrame
 function openMapOv(){
   openOverlay('map', mapView());
   if(typeof renderHicSuntMap === 'function') renderHicSuntMap('hs-map-full', { dest: ITINERARY.dest, plan: ITINERARY.plan, activeIdx: state.mapDay||0, interactive:true, padding:72 });
-  if(typeof initCarteSheetDrag === 'function') requestAnimationFrame(initCarteSheetDrag);
 }
 function composeFromDest(key){
   state.destination = key;
@@ -1254,7 +1253,6 @@ document.addEventListener('DOMContentLoaded', function(){
     if(el&&el.dataset.ov==='map'){
       el.innerHTML=window.mapView();
       if(typeof renderHicSuntMap === 'function') renderHicSuntMap('hs-map-full', { dest: ITINERARY.dest, plan: ITINERARY.plan, activeIdx: i, interactive:true, padding:72 });
-      if(typeof initCarteSheetDrag === 'function') requestAnimationFrame(initCarteSheetDrag);
     }
   };
 
