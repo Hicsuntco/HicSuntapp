@@ -99,23 +99,25 @@
 .tile .t-rule{width:26px;height:1.5px;background:var(--gold-bright);margin:7px 0 6px}
 .tile .t-r{font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--onink);opacity:0.75}
 
-/* ── trip cards — more spacious ── */
-.trip{
-  display:grid;grid-template-columns:100px 1fr;gap:14px;
-  background:var(--surface);border:1px solid var(--line);
-  border-radius:var(--card-radius);padding:14px;margin-bottom:12px;
-  cursor:pointer;align-items:center;
-  transition:transform 0.15s cubic-bezier(0.34,1.2,0.4,1),opacity 0.12s;
-}
-.trip:active{transform:scale(0.978);opacity:0.9}
-.trip .th{height:100px;border-radius:14px;position:relative;overflow:hidden;border:1px solid var(--line2)}
-.trip .th .wm{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--ink);opacity:0.22}
-/* iOS Title2 size for card name */
-.trip .ti-n{font-family:var(--serif-text);font-weight:600;font-size:20px;letter-spacing:-0.3px}
-.trip .ti-d{font-family:var(--mono);font-size:9px;letter-spacing:0.8px;text-transform:uppercase;color:var(--sub);margin-top:6px}
-.trip .ti-days{font-family:var(--mono);font-size:8px;letter-spacing:0.8px;text-transform:uppercase;color:var(--gold-deep);margin-top:4px}
-.trip .ti-st{margin-top:10px}
-.trip-del{position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;background:rgba(27,22,16,0.55);color:#fff;display:flex;align-items:center;justify-content:center;border:none;z-index:2;backdrop-filter:blur(4px)}
+/* ── trip cards — carte postale pleine largeur ── */
+.trip-card{border-radius:22px;overflow:hidden;background:var(--surface);position:relative;box-shadow:0 12px 28px -18px rgba(70,50,25,.5);margin-bottom:16px;cursor:pointer;transition:transform 0.15s cubic-bezier(0.34,1.2,0.4,1),opacity 0.12s}
+.trip-card:active{transform:scale(0.985);opacity:0.94}
+.trip-card.draft{border:1.5px dashed var(--line2);box-shadow:none}
+.trip-card-hero{position:relative;height:150px;overflow:hidden}
+.trip-card.draft .trip-card-hero{background:var(--surface2) !important;display:flex;align-items:center;justify-content:center}
+.trip-card-wm{position:absolute;top:16px;right:14px;color:var(--onink);opacity:0.28}
+.trip-card-badge{position:absolute;top:14px;left:16px;display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:100px;background:var(--ink);color:var(--gold-bright)}
+.trip-card-badge .mono{font-size:9px;color:var(--onink);letter-spacing:.1em}
+.trip-card-badge.draft{background:var(--surface);border:1px solid var(--line);color:var(--ink-soft);box-shadow:0 4px 12px -6px rgba(70,50,25,.3)}
+.trip-card-badge.draft .dot{width:7px;height:7px;border-radius:50%;background:var(--gold);display:inline-block}
+.trip-card-badge.draft span:last-child{font-size:11.5px;font-weight:600}
+.trip-card-cap{position:absolute;left:18px;bottom:14px}
+.trip-card-cap .serif{font-size:28px;color:var(--onink);line-height:.95}
+.trip-card-rule{width:30px;height:2px;background:var(--gold);margin:7px 0 5px}
+.trip-card-cap .mono{font-size:9px;color:var(--onink);opacity:0.75;letter-spacing:.12em}
+.trip-card-foot{padding:13px 18px;background:var(--surface);display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--sub)}
+.trip-card-foot .accent{font-size:14px;color:var(--gold);font-weight:600}
+.trip-del{position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;background:rgba(27,22,16,0.55);color:var(--onink);display:flex;align-items:center;justify-content:center;border:none;z-index:5;backdrop-filter:blur(4px)}
 .trip-del:active{background:rgba(27,22,16,0.8)}
 
 /* ── deck (questionnaire) ── */
