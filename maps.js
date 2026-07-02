@@ -103,11 +103,29 @@ const HS_TILE_URL = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png
 function _hsTileLayer(){
   return L.tileLayer(HS_TILE_URL, { subdomains:'abcd', maxZoom:18, attribution:'&copy; OpenStreetMap &amp; CARTO' });
 }
-function _hsMarkerIcon(active){
-  const html = active
-    ? '<div style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:#221E18;box-shadow:0 3px 8px rgba(0,0,0,.45)"><span style="width:9px;height:9px;border-radius:50%;background:#E8C98C"></span></div>'
-    : '<div style="width:14px;height:14px;border-radius:50%;background:#A6824A;border:2px solid #FCFAF3;box-shadow:0 1px 4px rgba(0,0,0,.3)"></div>';
-  return L.divIcon({ html:html, className:'', iconSize:[1,1], iconAnchor: active ? [13,13] : [7,7] });
+/* kind: 'active' (jour consulté) · 'end' (première/dernière étape) · 'mid' (étape intermédiaire) */
+function _hsMarkerIcon(kind, label){
+  const shadow = '0 1px 3px #F1E9D9, 0 0 2px #F1E9D9';
+  const escFn = typeof esc === 'function' ? esc : function(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); };
+  const name = label ? escFn(label) : '';
+  let html;
+  if(kind === 'active'){
+    html = '<div style="display:flex;align-items:center;gap:6px;transform:translate(-13px,-13px)">'
+      + '<span style="width:26px;height:26px;border-radius:50%;background:#221E18;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(0,0,0,.45)"><span style="width:9px;height:9px;border-radius:50%;background:#E8C98C"></span></span>'
+      + (name ? '<span style="font-family:\'Playfair Display\',serif;font-weight:600;font-size:14px;color:#221D16;white-space:nowrap;text-shadow:' + shadow + '">' + name + '</span>' : '')
+      + '</div>';
+  } else if(kind === 'end'){
+    html = '<div style="display:flex;align-items:center;gap:5px;transform:translate(-8px,-8px)">'
+      + '<span style="width:16px;height:16px;border-radius:50%;background:#FCFAF3;border:3px solid #A6824A;box-shadow:0 1px 4px rgba(0,0,0,.3)"></span>'
+      + (name ? '<span style="font-family:\'Spline Sans Mono\',monospace;font-weight:600;font-size:11px;color:#3F3729;white-space:nowrap;text-shadow:' + shadow + '">' + name + '</span>' : '')
+      + '</div>';
+  } else {
+    html = '<div style="display:flex;align-items:center;gap:5px;transform:translate(-7px,-7px)">'
+      + '<span style="width:14px;height:14px;border-radius:50%;background:#A6824A;border:2px solid #FCFAF3;box-shadow:0 1px 4px rgba(0,0,0,.3)"></span>'
+      + (name ? '<span style="font-family:\'Spline Sans Mono\',monospace;font-weight:600;font-size:11px;color:#3F3729;white-space:nowrap;text-shadow:' + shadow + '">' + name + '</span>' : '')
+      + '</div>';
+  }
+  return L.divIcon({ html:html, className:'', iconSize:[1,1], iconAnchor:[0,0] });
 }
 
 /* Registre des cartes actives (par id d'élément) pour pouvoir les nettoyer avant reconstruction */
@@ -160,10 +178,16 @@ function renderHicSuntMap(elId, opts){
               const g = result.pt;
               pts.push({ lat:g.lat, lng:g.lng, idx: stops[i].idx });
               const isActive = opts.activeIdx != null && stops[i].idx === opts.activeIdx;
-              L.marker([g.lat, g.lng], { icon: _hsMarkerIcon(isActive) }).addTo(map);
+              const kind = isActive ? 'active' : (i === 0 || i === stops.length - 1 ? 'end' : 'mid');
+              L.marker([g.lat, g.lng], { icon: _hsMarkerIcon(kind, stops[i].loc) }).addTo(map);
               if(pts.length > 1){
                 const prev = pts[pts.length - 2];
-                L.polyline([[prev.lat, prev.lng], [g.lat, g.lng]], { color:'#221E18', weight:2, opacity:.5, dashArray:'2 8', lineCap:'round' }).addTo(map);
+                /* Tracé complet en pointillés fins */
+                L.polyline([[prev.lat, prev.lng], [g.lat, g.lng]], { color:'#221E18', weight:2, opacity:.38, dashArray:'2 8', lineCap:'round' }).addTo(map);
+                /* Étape en cours mise en avant par un trait plein doré */
+                if(isActive){
+                  L.polyline([[prev.lat, prev.lng], [g.lat, g.lng]], { color:'#A6824A', weight:4, lineCap:'round' }).addTo(map);
+                }
               }
               map.invalidateSize();
               const latlngs = pts.map(function(p){ return [p.lat, p.lng]; });
@@ -183,73 +207,4 @@ function renderHicSuntMap(elId, opts){
       if(typeof toast === 'function') toast('Carte : ' + (err && err.message || 'erreur d\'initialisation'));
     }
   });
-}
-
-/**
- * Rend la feuille inférieure de l'écran Carte glissable : on peut la tirer
- * vers le bas (poignée) pour libérer de l'espace et voir la carte en dessous.
- *
- * Écouteurs de mouvement/relâchement liés une seule fois sur `window` (pas
- * de fuite : ils ne font rien tant qu'aucun drag n'est en cours) plutôt que
- * Pointer Events + setPointerCapture, dont le pointerup peut ne pas se
- * déclencher de façon fiable sur mobile Safari — un pointerup manqué
- * laissait la feuille bloquée à la position du dernier mouvement, y
- * compris repliée après un simple tap.
- */
-let _carteSheetDrag = null;
-function _carteSheetMove(clientY){
-  if(!_carteSheetDrag) return;
-  const d = _carteSheetDrag;
-  const delta = clientY - d.startY;
-  d.moved = Math.max(d.moved, Math.abs(delta));
-  const next = Math.min(d.maxTranslate, Math.max(0, d.startTranslate + delta));
-  d.sheet.style.transform = 'translateY(' + next + 'px)';
-}
-function _carteSheetEnd(){
-  if(!_carteSheetDrag) return;
-  const d = _carteSheetDrag;
-  d.sheet.style.transition = 'transform 0.32s cubic-bezier(0.22,1,0.36,1)';
-  /* Un tap (déplacement négligeable) revient toujours à l'état déplié */
-  if(d.moved < 6){
-    d.sheet.style.transform = 'translateY(' + d.startTranslate + 'px)';
-  } else {
-    const m = getComputedStyle(d.sheet).transform;
-    let cur = 0;
-    if(m && m !== 'none'){
-      const match = /matrix\(([^)]+)\)/.exec(m);
-      if(match) cur = parseFloat(match[1].split(',')[5]) || 0;
-    }
-    d.sheet.style.transform = 'translateY(' + (cur > d.maxTranslate / 2 ? d.maxTranslate : 0) + 'px)';
-  }
-  _carteSheetDrag = null;
-}
-if(!window._hsCarteSheetBound){
-  window._hsCarteSheetBound = true;
-  window.addEventListener('touchmove', function(e){ if(_carteSheetDrag && e.touches[0]) _carteSheetMove(e.touches[0].clientY); }, { passive:true });
-  window.addEventListener('touchend', _carteSheetEnd);
-  window.addEventListener('touchcancel', _carteSheetEnd);
-  window.addEventListener('mousemove', function(e){ if(_carteSheetDrag) _carteSheetMove(e.clientY); });
-  window.addEventListener('mouseup', _carteSheetEnd);
-}
-function initCarteSheetDrag(){
-  const sheet = document.querySelector('.carte-sheet');
-  const handle = sheet && sheet.querySelector('.carte-handle-wrap');
-  if(!sheet || !handle) return;
-  const peekPx = 118; /* hauteur visible une fois repliée : poignée + jours */
-  function currentTranslate(){
-    const m = getComputedStyle(sheet).transform;
-    if(!m || m === 'none') return 0;
-    const match = /matrix\(([^)]+)\)/.exec(m);
-    return match ? (parseFloat(match[1].split(',')[5]) || 0) : 0;
-  }
-  function start(clientY){
-    _carteSheetDrag = {
-      sheet: sheet, startY: clientY, moved: 0,
-      startTranslate: currentTranslate(),
-      maxTranslate: Math.max(0, sheet.offsetHeight - peekPx),
-    };
-    sheet.style.transition = 'none';
-  }
-  handle.addEventListener('touchstart', function(e){ if(e.touches[0]) start(e.touches[0].clientY); }, { passive:true });
-  handle.addEventListener('mousedown', function(e){ start(e.clientY); e.preventDefault(); });
 }
