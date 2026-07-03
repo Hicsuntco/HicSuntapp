@@ -406,10 +406,11 @@
   -webkit-appearance:none;
 }
 .send-btn{
-  width:36px;height:36px;border-radius:50%;
+  width:38px;height:38px;border-radius:13px;
   background:var(--ink);color:var(--onink);
   border:none;display:flex;align-items:center;justify-content:center;
   flex:none;cursor:pointer;
+  box-shadow:0 3px 8px -3px rgba(34,29,22,.5);
   transition:transform 0.12s cubic-bezier(0.34,1.2,0.4,1);
   -webkit-tap-highlight-color:transparent;
 }
