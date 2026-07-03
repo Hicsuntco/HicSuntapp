@@ -152,8 +152,12 @@ function toast(msg){
 /* ── navbar ── */
 function navbar(title, opts){
   opts = opts || {};
+  /* Sur fond sombre (photo hero), .ghost retire tout fond au bouton — invisible
+     sur une image chargée. Par défaut le bouton retour est "ghost" sur fond
+     clair, mais PAS sur fond sombre (sauf demande explicite via opts.ghost). */
+  const ghost = opts.solidBack ? false : (opts.ghost !== undefined ? opts.ghost : !opts.dark);
   const back = opts.noBack ? '<span class="nav-spacer"></span>'
-    : '<button class="nav-btn' + (opts.solidBack ? '' : ' ghost') + '" onclick="closeOverlay()" aria-label="Retour">' + ico('back', 20, 1.7) + '</button>';
+    : '<button class="nav-btn' + (ghost ? ' ghost' : '') + '" onclick="closeOverlay()" aria-label="Retour">' + ico('back', 20, 1.7) + '</button>';
   const right = opts.right || '<span class="nav-spacer"></span>';
   return '<div class="navbar' + (opts.dark ? ' on-dark' : '') + '">' + back
     + (title ? '<span class="nav-title">' + esc(title) + '</span>' : '')
