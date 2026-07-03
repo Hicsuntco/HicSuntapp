@@ -793,6 +793,24 @@ function _momentIcon(ti){
 }
 
 /* ── application du JSON → ITINERARY ────────────────────────────────── */
+/* Format compact et TOUJOURS cohérent d'une plage de dates (indépendant du
+   texte libre généré par l'IA, qui variait d'un voyage à l'autre — parfois
+   "4 septembre – 26 septembre 2026" au lieu de "4–26 septembre 2026",
+   provoquant un retour à la ligne sur les cartes voyage). */
+function _fmtDateRangeCompact(dateFromISO, dateToISO){
+  if(!dateFromISO || !dateToISO) return '';
+  const from = new Date(dateFromISO), to = new Date(dateToISO);
+  if(isNaN(from) || isNaN(to)) return '';
+  const monthYear = function(d){ return d.toLocaleDateString('fr-FR',{month:'long',year:'numeric'}); };
+  const full = function(d){ return d.toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}); };
+  if(monthYear(from) === monthYear(to)){
+    return from.getDate()+'–'+full(to);
+  }
+  if(from.getFullYear() === to.getFullYear()){
+    return from.toLocaleDateString('fr-FR',{day:'numeric',month:'long'})+' – '+full(to);
+  }
+  return full(from)+' – '+full(to);
+}
 function applyGenerated(skel, daysDetail, hilites, flightInfo){
   const dest=skel.dest||state.destination||'Votre voyage';
   const level=['Éco','Confort','Luxe','Ultra'].includes(skel.level)?skel.level:(state.budget||'Confort');
@@ -894,9 +912,12 @@ function applyGenerated(skel, daysDetail, hilites, flightInfo){
   Object.assign(ITINERARY,{
     dest:dest, country:skel.country||'', tag:skel.tagline||'Itinéraire composé pour vous',
     dates:(function(){
-      var raw=skel.dates||'Sur-mesure';
       var realN=plan.length;
-      // Corriger le nombre de jours dans la string dates
+      var compact=_fmtDateRangeCompact(state.dateFrom, state.dateTo);
+      if(compact) return compact+' · '+realN+' jour'+(realN>1?'s':'');
+      // Repli : pas de dates précisées par le client, on garde le texte de l'IA
+      // (nombre de jours corrigé) plutôt que rien.
+      var raw=skel.dates||'Sur-mesure';
       raw=raw.replace(/\d+\s*jours?/i, realN+' jours');
       return raw;
     })(), days:plan.length, level:level,
