@@ -421,6 +421,20 @@ function accCard(a){
 /* ── 6 · Itinéraire ─────────────────────────────────────────────────── */
 function itineraryView(){
   if(typeof _repairPlanMoments==='function') _repairPlanMoments(ITINERARY.plan);
+  /* Même filet de sécurité que budgetView() : les vues sont des chaînes HTML
+     générées une fois, pas liées en direct aux données — corriger
+     ITINERARY.budgetTotal ailleurs ne met pas à jour un écran déjà ouvert.
+     Il faut resynchroniser à chaque (re)génération de cette vue aussi. */
+  if(typeof BUDGET!=='undefined' && BUDGET.total && ITINERARY.budgetTotal!==BUDGET.total){
+    ITINERARY.budgetTotal=BUDGET.total;
+    /* Persister silencieusement si ce voyage est déjà sauvegardé, pour que la
+       resynchronisation ne soit pas à refaire à chaque rechargement de l'app. */
+    try{
+      var _localTrips=JSON.parse(localStorage.getItem('hs_saved_trips')||'[]');
+      var _ti=_localTrips.findIndex(function(t){ return t.dest===ITINERARY.dest && t.dates===ITINERARY.dates; });
+      if(_ti>=0){ _localTrips[_ti].budget=ITINERARY.budgetTotal; _localTrips[_ti].data=JSON.parse(JSON.stringify(ITINERARY)); localStorage.setItem('hs_saved_trips', JSON.stringify(_localTrips)); }
+    }catch(e){}
+  }
   const it = ITINERARY;
   const wx1 = it.plan[0] ? it.plan[0].wx : ['sun','30°'];
   const palette = it.palette || {};
