@@ -834,17 +834,8 @@ async function loadSavedItinerary(id){
         || {};
     }
 
-    /* ── 5. Rebuild BUDGET global depuis ITINERARY ── */
-    if(typeof BUDGET !== 'undefined'){
-      BUDGET.total = ITINERARY.budgetTotal || 0;
-      BUDGET.spent = 0;
-      BUDGET.lines = (ITINERARY.accommodations||[]).map(function(a){
-        return {i:a.i||'bed', n:a.n||'Hébergement', sub:a.loc||'', amount:(a.price||0)*(a.nights||1), paid:false};
-      });
-      if(!BUDGET.lines.length) BUDGET.lines = [{i:'wallet',n:'Budget estimé',sub:'tout compris',amount:ITINERARY.budgetTotal||0,paid:false}];
-    }
-
-    /* ── 6. Rebuild ACTIVITIES depuis le plan ── */
+    /* ── 5. Rebuild ACTIVITIES depuis le plan (avant le budget : deriveBudget
+       affiche le nombre d'activités suggérées dans sa répartition) ── */
     if(typeof deriveActivities === 'function'){
       try{ deriveActivities(ITINERARY.plan); }catch(e){ console.warn('deriveActivities',e); }
     } else if(typeof ACTIVITIES !== 'undefined'){
@@ -854,6 +845,30 @@ async function loadSavedItinerary(id){
           ACTIVITIES.push({id:'a'+p.n+'_'+mi,day:p.n,n:m[2]||'',tag:m[3]||'',loc:p.loc||'',dur:'~2h',price:0,i:m[1]||'pin'});
         });
       });
+    }
+
+    /* ── 6. Rebuild BUDGET global depuis ITINERARY ──
+       Recalculer via deriveBudget() (mêmes planchers repas/transferts réalistes
+       qu'à la génération) plutôt qu'une reconstruction simplifiée qui se contente
+       de recopier ITINERARY.budgetTotal tel quel : sinon un voyage sauvegardé
+       avant ce correctif rechargeait indéfiniment un montant obsolète, différent
+       de celui recalculé ailleurs (écran Itinéraire ≠ écran Budget). */
+    if(typeof deriveBudget === 'function'){
+      try{
+        var _reloadedBudget = deriveBudget(
+          ITINERARY.accommodations||[], ITINERARY.budgetTotal||0,
+          ITINERARY.dest||'', ITINERARY.region||'', ITINERARY.country||'',
+          state.travelers||2, ITINERARY._flightInfo||null
+        );
+        if(_reloadedBudget) ITINERARY.budgetTotal = _reloadedBudget;
+      }catch(e){ console.warn('deriveBudget on load:', e); }
+    } else if(typeof BUDGET !== 'undefined'){
+      BUDGET.total = ITINERARY.budgetTotal || 0;
+      BUDGET.spent = 0;
+      BUDGET.lines = (ITINERARY.accommodations||[]).map(function(a){
+        return {i:a.i||'bed', n:a.n||'Hébergement', sub:a.loc||'', amount:(a.price||0)*(a.nights||1), paid:false};
+      });
+      if(!BUDGET.lines.length) BUDGET.lines = [{i:'wallet',n:'Budget estimé',sub:'tout compris',amount:ITINERARY.budgetTotal||0,paid:false}];
     }
 
     /* ── 6. Ouverture de l'écran ── */
