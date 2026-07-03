@@ -420,6 +420,7 @@ function accCard(a){
 
 /* ── 6 · Itinéraire ─────────────────────────────────────────────────── */
 function itineraryView(){
+  if(typeof _repairPlanMoments==='function') _repairPlanMoments(ITINERARY.plan);
   const it = ITINERARY;
   const wx1 = it.plan[0] ? it.plan[0].wx : ['sun','30°'];
   const palette = it.palette || {};
@@ -548,6 +549,7 @@ function itineraryView(){
 
 /* ── 7 · Détail d'un jour ───────────────────────────────────────────── */
 function dayDetailView(idx){
+  if(typeof _repairPlanMoments==='function') _repairPlanMoments(ITINERARY.plan);
   const it = ITINERARY;
   const p = it.plan[idx];
   if (!p) return statusBar() + navbar('Jour');

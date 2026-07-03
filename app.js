@@ -1035,6 +1035,10 @@ document.addEventListener('DOMContentLoaded', function(){
     toast('Les codes promo s\'appliquent directement sur la page de paiement Stripe.');
   };
   window.mapView = function(){
+    /* Filet de sécurité : répare les jours vides même si ce voyage était déjà
+       chargé en mémoire avant le déploiement du correctif (session en cours,
+       PWA non relancée) — pas seulement au chargement depuis Mes voyages. */
+    if(typeof _repairPlanMoments==='function') _repairPlanMoments(ITINERARY.plan);
     var i=state.mapDay||0,p=(ITINERARY.plan||[])[i];
     var g=_geoGet(ITINERARY.dest||ITINERARY.destination||'');
     var vb=g.vb.split(' ').map(Number),vbW=vb[2],vbH=vb[3];
