@@ -834,6 +834,15 @@ async function loadSavedItinerary(id){
         || {};
     }
 
+    /* ── 4bis. Vérifier que les nuits d'hébergement correspondent à la durée
+       réelle du voyage — un voyage sauvegardé avant ce correctif peut avoir
+       des hébergements dont la somme des nuits ne correspond pas au nombre
+       de jours du plan, faussant le budget (hébergement + planchers repas/
+       transferts) à chaque rechargement. ── */
+    if(typeof _normalizeStayNights === 'function'){
+      try{ _normalizeStayNights(ITINERARY.accommodations, (ITINERARY.plan||[]).length); }catch(e){}
+    }
+
     /* ── 5. Rebuild ACTIVITIES depuis le plan (avant le budget : deriveBudget
        affiche le nombre d'activités suggérées dans sa répartition) ── */
     if(typeof deriveActivities === 'function'){

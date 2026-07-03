@@ -588,6 +588,7 @@ function buildSkeletonPrompt(dc, batchSize, offset){
       '',
       '* "plan" : EXACTEMENT '+n+' entrées numérotées (jours 1→'+n+' sur '+dc+').',
       '* "stays" : couvre les '+dc+' JOURS complets. Max '+Math.min(5,Math.max(1,Math.ceil(dc/4)))+' hébergements (1 par zone géographique distincte > 30km).',
+      '* IMPÉRATIF : la somme des "nights" de TOUS les hébergements doit être EXACTEMENT '+dc+' (jamais plus, jamais moins) — sinon le budget affiché au client est faux.',
       '* Hébergement J1 = lieu d\'arrivée (aéroport proche). Dernier hébergement = près de l\'aéroport de départ.',
       '* Prix hébergements RÉALISTES et DISTINCTS par type :',
       '  Sardaigne/Corse: agriturismo 65-95€ · boutique 95-145€ · resort 140-210€ · villa/charme 190-380€',
@@ -840,6 +841,23 @@ function _fmtDateRangeCompact(dateFromISO, dateToISO){
   }
   return full(from)+' – '+full(to);
 }
+/* Garde-fou réutilisable (génération + rechargement d'un voyage sauvegardé) :
+   la somme des nuits par hébergement DOIT correspondre à la durée réelle du
+   voyage (dc jours). Sans ça, le coût d'hébergement total et les planchers
+   repas/transferts (calculés sur ce nombre de nuits) sont faussés — ex: 3
+   hébergements totalisant 10 nuits pour un voyage de 5 jours, doublant le
+   budget affiché. Mute "stays" en place. */
+function _normalizeStayNights(stays, dc){
+  if(!Array.isArray(stays) || !stays.length || !(dc>0)) return;
+  if(stays.length>dc) stays.length=Math.max(1,dc);
+  const sum=stays.reduce(function(s,a){return s+(Number(a.nights)||0);},0);
+  if(sum===dc) return;
+  let running=0;
+  stays.forEach(function(a,i){
+    if(i===stays.length-1){ a.nights=Math.max(1,dc-running); }
+    else{ a.nights=Math.max(1,Math.round((Number(a.nights)||1)*(dc/Math.max(1,sum)))); running+=a.nights; }
+  });
+}
 function applyGenerated(skel, daysDetail, hilites, flightInfo){
   const dest=skel.dest||state.destination||'Votre voyage';
   const level=['Éco','Confort','Luxe','Ultra'].includes(skel.level)?skel.level:(state.budget||'Confort');
@@ -878,6 +896,8 @@ function applyGenerated(skel, daysDetail, hilites, flightInfo){
     };
   });
   while(stays.length<1) stays.push({id:'a1',n:'Hébergement local',i:'bed',type:'Hôtel-boutique',loc:dest,tag:'Sélection',rate:'4,9',nights:2,price:accRange[0],am:['bed','wifi','pool'],blurb:''});
+
+  _normalizeStayNights(stays, dc);
 
   const findStay=function(name){
     if(!name) return null;
