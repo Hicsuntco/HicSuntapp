@@ -1028,31 +1028,28 @@ function deriveBudget(stays, total, dest, region, country, travelers, flightInfo
   const TRANSFER_PER_DAY_PER_PERSON=8;
   const transferFloor=Math.round(TRANSFER_PER_DAY_PER_PERSON*colFactor*travelers*days);
 
-  /* hébergement = coût réel, plafonné pour laisser de la place aux autres postes */
-  const accom=Math.min(stayCost, Math.round(total*0.55));
-  const remainder=total-accom;
   /* vols = prix issu d'une recherche web fraîche si disponible et plausible (et
      numériquement valide  -  on se méfie d'une réponse IA mal formée),
-     sinon fourchette statique par zone  -  plafonné à ce que le budget restant peut absorber */
+     sinon fourchette statique par zone */
   const flightAmountNum=flightInfo?Number(flightInfo.amount):NaN;
   const hasRealFlight=isFinite(flightAmountNum)&&flightAmountNum>0&&flightAmountNum<20000;
   const flightsRaw=hasRealFlight?flightAmountNum:(Number(_flightEstimate(dest, region, country, travelers))||0);
-  const flights=Math.min(flightsRaw, Math.max(0,Math.round(remainder*0.65)));
-  let afterFlights=remainder-flights;
 
-  /* si ce qui reste ne couvre même pas les planchers repas+transferts, le budget total
-     affiché était sous-évalué pour ce voyage : on relève le total plutôt que d'afficher
-     des montants irréalistes (ex: 107€ de repas pour une semaine) */
-  const essentialAfterFlights=foodFloor+transferFloor;
-  if(afterFlights<essentialAfterFlights){
-    const gap=essentialAfterFlights-afterFlights;
-    total+=gap;
-    afterFlights=essentialAfterFlights;
-  }
-  /* le reste au-delà des planchers repas/transferts va aux activités */
+  /* Plancher réaliste calculé UNIQUEMENT à partir de coûts réels/invariants
+     (hébergement réel, vols réel/estimé, planchers repas+transferts) — jamais
+     à partir du total précédent. C'est essentiel : deriveBudget() est rappelée
+     à chaque ouverture d'un voyage sauvegardé (avec le total déjà recalculé la
+     fois précédente en entrée). Si ce plancher dépendait du total reçu, il
+     grossirait indéfiniment à chaque rappel au lieu de se stabiliser. */
+  const minTotal=stayCost+flightsRaw+foodFloor+transferFloor;
+  total=Math.max(total, minTotal);
+
+  const accom=stayCost;
+  const flights=flightsRaw;
   const food=foodFloor;
   const transfers=transferFloor;
-  const activities=Math.max(0,afterFlights-food-transfers);
+  /* le reste au-delà des coûts réels et planchers va aux activités */
+  const activities=Math.max(0, total-accom-flights-food-transfers);
   const flightSub=(state.origin||'Paris')+' · aller-retour · '+travelerLabel()+(hasRealFlight&&flightInfo.source?' · estimation '+flightInfo.source:' · estimation')
 
   BUDGET.total=total; BUDGET.spent=0;
