@@ -92,9 +92,3 @@ const AI_PROMPTS = [
   'Plus de gastronomie locale',
 ];
 const AI_INTRO = 'Je suis votre cartographe. Décrivez un changement — j\'ajuste l\'itinéraire, les étapes et le budget en direct.';
-function aiReply(t){
-  /* Repli local pur texte, utilisé seulement quand l'appel au cartographe IA
-     a échoué — ne doit jamais afficher de chip de confirmation puisqu'aucune
-     modification n'a réellement été appliquée à l'itinéraire dans ce cas. */
-  return { t:"Je n'ai pas pu joindre le cartographe à l'instant, réessayez dans quelques secondes.", chip:'' };
-}
