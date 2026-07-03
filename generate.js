@@ -792,6 +792,24 @@ function _momentIcon(ti){
   if(/safari|animaux|faune/.test(s)) return 'leaf';
   return 'pin';
 }
+/* Répare les jours dont les moments sont vides ("— Moment" x2 à l'écran) :
+   séquelle d'anciens voyages sauvegardés avant que la génération ne gère
+   correctement ce cas, ou d'une réponse IA incomplète pour ce jour. Un
+   moment sans titre réel, sans heure et sans détail n'apporte rien —
+   autant le retirer plutôt que d'afficher un texte générique cassé. */
+function _repairPlanMoments(plan){
+  if(!Array.isArray(plan)) return;
+  plan.forEach(function(p){
+    if(!p || !Array.isArray(p.moments)) return;
+    var real=p.moments.filter(function(m){
+      var title=Array.isArray(m)?m[2]:(m.ti||m.title||'');
+      var desc=Array.isArray(m)?m[3]:(m.d||m.desc||'');
+      var time=Array.isArray(m)?m[0]:(m.t||'');
+      return (title && title!=='Moment') || (desc && desc.trim()) || (time && time.trim() && time.trim()!=='-');
+    });
+    p.moments = real.length ? real : [[' - ', _kind(_momentIcon(p.title)), p.title||p.loc||'Étape', '', false]];
+  });
+}
 
 /* ── application du JSON → ITINERARY ────────────────────────────────── */
 /* Format compact et TOUJOURS cohérent d'une plage de dates (indépendant du
@@ -889,6 +907,7 @@ function applyGenerated(skel, daysDetail, hilites, flightInfo){
     };
   });
   if(!plan.length) return false;
+  _repairPlanMoments(plan);
 
   /* budget  -  calibré sur le niveau de confort, la durée et le nb de voyageurs */
   const PPD_RANGE={'Éco':[60,100],'Confort':[120,220],'Luxe':[250,500],'Ultra':[500,900]};
