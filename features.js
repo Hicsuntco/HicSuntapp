@@ -55,7 +55,7 @@ function activitiesView(){
             return '<div class="act" onclick="openActivityDetail(\'' + a.id + '\')" style="cursor:pointer">' + '<span class="a-th">' + ico(a.i, 26, 1.3) + '</span>'
               + '<div class="ac-m"><div class="ac-tag">' + esc(a.tag) + '</div><div class="ac-n">' + esc(a.n) + '</div>'
               + '<div class="ac-s">' + esc(a.loc) + ' · ' + esc(a.dur) + '</div></div>'
-              + '<div class="ac-r"><span class="ac-p">~' + eur(a.price) + '</span></div></div>';
+              + '<div class="ac-r"><span class="ac-p">' + (a.free || !a.price ? 'Gratuit' : '~' + eur(a.price)) + '</span></div></div>';
           }).join('');
       }).join('')
     + '</div>';
@@ -70,7 +70,7 @@ function openActivityDetail(id){
     +   '<span class="eyebrow" style="display:block;margin-top:18px">' + esc(a.tag) + ' · Jour ' + a.day + '</span>'
     +   '<h1 style="font-family:var(--serif);font-weight:600;font-size:26px;letter-spacing:-0.4px;margin-top:6px">' + esc(a.n) + '</h1>'
     +   '<div class="book-meta" style="margin-top:4px">' + esc(a.loc) + ' · ' + esc(a.dur) + '</div>'
-    +   '<p class="book-desc" style="margin-top:14px">Une suggestion de votre cartographe pour s\'intégrer naturellement à votre journée à ' + esc(a.loc) + '. Budget indicatif ~' + eur(a.price) + ' par personne — à organiser sur place ou auprès d\'un prestataire local.</p>'
+    +   '<p class="book-desc" style="margin-top:14px">Une suggestion de votre cartographe pour s\'intégrer naturellement à votre journée à ' + esc(a.loc) + '. ' + (a.free || !a.price ? 'En accès libre, aucune réservation nécessaire.' : 'Budget indicatif ~' + eur(a.price) + ' par personne — à organiser sur place ou auprès d\'un prestataire local.') + '</p>'
     + '</div>';
   openOverlay('activity-detail', html);
 }
