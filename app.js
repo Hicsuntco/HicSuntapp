@@ -1283,47 +1283,31 @@ document.addEventListener('DOMContentLoaded', function(){
 
   /* ── Modifier l'itinéraire (IA) — version robuste ── */
   window._chatBubble = function(role, text){
-    if(role==='user'){
-      return '<div style="background:var(--ink);color:var(--bg);border-radius:18px 18px 4px 18px;padding:12px 16px;max-width:80%;align-self:flex-end;font-size:15px;line-height:1.5">'+esc(text)+'</div>';
-    }
-    return '<div style="background:var(--surface);border:1px solid var(--line);border-radius:18px 18px 18px 4px;padding:14px 16px;max-width:84%;align-self:flex-start"><p style="font-size:15px;line-height:1.55;color:var(--ink);margin:0">'+esc(text)+'</p></div>';
+    return '<div class="bub '+(role==='user'?'me':'them')+'">'+esc(text)+'</div>';
   };
   window.openAI = function(){
     var intro = typeof AI_INTRO !== 'undefined' ? AI_INTRO : "Je suis votre cartographe. Décrivez un changement — j'ajuste l'itinéraire, les étapes et le budget en direct.";
     var prompts = typeof AI_PROMPTS !== 'undefined' ? AI_PROMPTS : ['Ajoute un jour','Rythme plus lent','Budget réduit','Plus de gastronomie'];
     /* Restaurer l'historique de conversation propre à cet itinéraire */
     var history = (ITINERARY.chatHistory && Array.isArray(ITINERARY.chatHistory)) ? ITINERARY.chatHistory : [];
-    var historyHtml = '';
-    if(history.length){
-      historyHtml = history.map(function(m){ return window._chatBubble(m.role, m.text); }).join('');
-    } else {
-      historyHtml = '<div style="background:var(--surface);border:1px solid var(--line);border-radius:18px 18px 18px 4px;padding:14px 16px;max-width:84%;align-self:flex-start">'
-        +'<p style="font-size:15px;line-height:1.55;color:var(--ink);margin:0">'+esc(intro)+'</p></div>';
-    }
-    var chatHtml = statusBar(false)
-      +'<div style="display:flex;flex-direction:column;height:100%;background:var(--bg);overflow:hidden">'
-      +'<div style="display:flex;align-items:center;gap:12px;padding:10px 16px 14px;border-bottom:0.5px solid var(--line);flex:none">'
-      +'<button onclick="closeOverlay()" style="width:32px;height:32px;border-radius:50%;background:var(--surface);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;flex:none">'+ico('back',17,1.6)+'</button>'
-      +'<div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#2d1f0a,#5a3c1a);display:flex;align-items:center;justify-content:center;flex:none">'+ico('sparkle',17,1.4)+'</div>'
-      +'<div style="flex:1"><div style="font-size:15px;font-weight:600;color:var(--ink)">Cartographe</div>'
-      +'<div style="font-size:11px;color:#34C759;font-weight:500;letter-spacing:0.2px">● En ligne — prêt à ajuster</div></div>'
-      +(history.length?'<button onclick="window._clearChat()" style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--sub);background:none;border:none;cursor:pointer;padding:6px">Effacer</button>':'')
+    var historyHtml = history.length
+      ? history.map(function(m){ return window._chatBubble(m.role, m.text); }).join('')
+      : '<span class="day-sep">Assistant d\'itinéraire</span><div class="bub them">'+esc(intro)+'</div>';
+    var chatHtml = statusBar()
+      +'<div class="chat-nav"><button class="nav-btn ghost" onclick="closeOverlay()" aria-label="Retour">'+ico('back',20,1.7)+'</button>'
+      +  '<div class="chat-id"><span class="chat-av">'+ico('sparkle',18,1.6)+'<span class="on-dot"></span></span>'
+      +  '<span><span class="chat-n">Cartographe</span><br><span class="chat-st">Assistant · en ligne</span></span></div>'
+      +  (history.length?'<button onclick="window._clearChat()" style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--sub);background:none;border:none;cursor:pointer;padding:6px;flex:none">Effacer</button>':'')
       +'</div>'
-      +'<div data-ai-chat style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;-webkit-overflow-scrolling:touch">'
-      +historyHtml
+      +'<div data-ai-chat class="chat-scroll">'
+      +  historyHtml
       +'</div>'
-      +'<div style="padding:8px 12px 0;display:flex;gap:7px;overflow-x:auto;flex:none;scrollbar-width:none;-webkit-overflow-scrolling:touch">'
-      +prompts.map(function(p){
-        return '<button onclick="window._aiSend(\'' + p.replace(/'/g,"\'") + '\')" style="white-space:nowrap;padding:8px 14px;background:var(--surface);border:1px solid var(--line);border-radius:20px;font-family:var(--sans);font-size:13px;color:var(--ink);cursor:pointer;-webkit-tap-highlight-color:transparent;flex:none">'+esc(p)+'</button>';
-      }).join('')
-      +'</div>'
-      +'<div style="padding:10px 12px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));display:flex;gap:8px;align-items:center;flex:none;border-top:0.5px solid var(--line);background:var(--bg)">'
-      +'<input id="ai-fb" placeholder="Décrivez un changement…" '
-      +'onkeydown="if(event.key===\'Enter\'){event.preventDefault();window._aiSend(this.value)}" '
-      +'style="flex:1;padding:11px 16px;background:var(--surface);border:1px solid var(--line);border-radius:22px;font-family:var(--sans);font-size:15px;color:var(--ink);outline:none;-webkit-appearance:none;min-width:0">'
-      +'<button onclick="var i=document.getElementById(\'ai-fb\');window._aiSend(i.value)" '
-      +'style="width:40px;height:40px;border-radius:50%;background:var(--ink);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;flex:none">'+ico('arrowup',17,1.7)+'</button>'
-      +'</div>'
+      +'<div class="quick">'+prompts.map(function(p){
+        return '<button class="chip" onclick="window._aiSend(\'' + p.replace(/'/g,"\\'") + '\')">'+esc(p)+'</button>';
+      }).join('')+'</div>'
+      +'<div class="composer">'
+      +  '<input id="ai-fb" data-ai-input placeholder="Décrivez un changement…" onkeydown="if(event.key===\'Enter\'){event.preventDefault();window._aiSend(this.value)}">'
+      +  '<button class="send-btn" onclick="var i=document.getElementById(\'ai-fb\');window._aiSend(i.value)" aria-label="Envoyer">'+ico('arrowup',18,1.8)+'</button>'
       +'</div>';
     openOverlay('ai', chatHtml);
     /* Scroll en bas pour voir les derniers messages */
@@ -1350,10 +1334,10 @@ document.addEventListener('DOMContentLoaded', function(){
     var inp = document.getElementById('ai-fb') || document.querySelector('[data-ai-input]');
     if(!chat) return;
     if(inp) inp.value = '';
-    chat.innerHTML += '<div style="background:var(--ink);color:var(--bg);border-radius:18px 18px 4px 18px;padding:12px 16px;max-width:80%;align-self:flex-end;font-size:15px;line-height:1.5">'+esc(msg)+'</div>';
+    chat.innerHTML += '<div class="bub me">'+esc(msg)+'</div>';
     /* Indicateur de typing */
     var typingId = 'typing-'+Date.now();
-    chat.innerHTML += '<div id="'+typingId+'" style="background:var(--surface);border:1px solid var(--line);border-radius:18px 18px 18px 4px;padding:14px 16px;max-width:80%;align-self:flex-start"><div style="display:flex;gap:5px;align-items:center"><span style="width:7px;height:7px;border-radius:50%;background:var(--sub);opacity:0.5;animation:typingDot 1.2s ease-in-out infinite"></span><span style="width:7px;height:7px;border-radius:50%;background:var(--sub);opacity:0.5;animation:typingDot 1.2s ease-in-out 0.2s infinite"></span><span style="width:7px;height:7px;border-radius:50%;background:var(--sub);opacity:0.5;animation:typingDot 1.2s ease-in-out 0.4s infinite"></span></div></div>';
+    chat.innerHTML += '<div id="'+typingId+'" class="typing"><i></i><i></i><i></i></div>';
     chat.scrollTop = chat.scrollHeight;
 
     try{
@@ -1384,18 +1368,19 @@ document.addEventListener('DOMContentLoaded', function(){
         '{',
         '  "reply": "Message naturel et élégant expliquant les changements (1-2 phrases, ton cartographe)",',
         '  "changes": {',
-        '    "plan": [liste des jours modifiés avec TOUS leurs champs: {n, loc, title, category, desc, wx, tags, moments, tip}] ou null si pas de changement,',
-        '    "stays": [liste des hébergements modifiés {id, n, type, loc, price, nights, blurb}] ou null,',
+        '    "plan": [jours modifiés — inclure UNIQUEMENT les champs qui changent (n est obligatoire, le reste est fusionné avec l\'existant) : {n, loc?, title?, category?, desc?, wx?, tags?, moments?, tip?}] ou null si aucun changement de plan,',
+        '    "stays": [hébergements modifiés {id, n, type, loc, price, nights, blurb}] ou null,',
         '    "budgetTotal": nouveau budget total ou null,',
         '    "days": nouveau nombre de jours ou null',
         '  }',
         '}',
         '',
         'RÈGLES :',
-        '- Ne retourner dans "plan" que les jours réellement modifiés (pas tous les jours)',
+        '- Ne retourner dans "plan" que les jours réellement modifiés (pas tous les jours), et seulement les champs qui changent — pas besoin de tout réécrire.',
         '- Si on ajoute un jour, l\'ajouter à la fin avec n = dernier_jour + 1',
         '- Respecter la cohérence géographique — pas d\'allers-retours',
         '- Les hébergements doivent avoir des prix réalistes et distincts',
+        '- IMPÉRATIF : si "reply" affirme un changement déjà fait ("je réorganise", "nous remplaçons", "voici votre itinéraire mis à jour"…), "changes" DOIT contenir les données correspondantes. N\'annonce jamais un changement sans le fournir — dans ce cas, formule plutôt "reply" comme une proposition ("Voulez-vous que je...", "Je peux...") et laisse "changes" à null.',
         '- Répondre UNIQUEMENT en JSON valide, sans markdown',
       ].join('\n');
 
@@ -1492,6 +1477,11 @@ document.addEventListener('DOMContentLoaded', function(){
           + '<button onclick="_promptSaveModified()" style="background:transparent;color:var(--gold-deep);border:1px solid var(--gold-soft);border-radius:12px;padding:9px 16px;font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer">Enregistrer les changements</button>'
           + '</div>';
         chat.innerHTML += actionsHTML;
+      } else {
+        /* Transparence : le voyageur ne doit jamais se demander si un
+           changement a réellement eu lieu. S'il n'y en a pas, on le dit
+           clairement plutôt que de laisser une réponse ambiguë sans suite. */
+        chat.innerHTML += '<div style="margin:2px 0 4px 4px;font-size:11.5px;color:var(--sub);font-style:italic">Aucune modification appliquée à l\'itinéraire.</div>';
       }
 
       chat.scrollTop = chat.scrollHeight;
