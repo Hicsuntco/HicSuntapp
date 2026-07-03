@@ -1060,8 +1060,9 @@ document.addEventListener('DOMContentLoaded', function(){
       var time=Array.isArray(m)?m[0]:m.t;
       var title=Array.isArray(m)?m[2]:(m.ti||m.title);
       var desc=Array.isArray(m)?m[3]:(m.d||m.desc);
+      var showTime=time && !(typeof _isPlaceholderTime==='function' && _isPlaceholderTime(time));
       return '<div class="carte-mo"><div class="carte-mo-rail"><span class="carte-mo-dot"></span><span class="carte-mo-line"></span></div>'
-        +'<div class="carte-mo-b"><span class="mono">'+esc(time||'')+'</span><div class="carte-mo-t">'+esc(title||'')+'</div>'
+        +'<div class="carte-mo-b">'+(showTime?'<span class="mono">'+esc(time)+'</span>':'')+'<div class="carte-mo-t">'+esc(title||'')+'</div>'
         +(desc?'<div class="carte-mo-d">'+esc(desc)+'</div>':'')+'</div></div>';
     }).join('') : '<p style="font-size:13px;color:var(--sub);padding:8px 0">Aucun programme détaillé pour ce jour.</p>';
 

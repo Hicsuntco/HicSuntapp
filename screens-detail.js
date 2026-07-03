@@ -637,8 +637,9 @@ function dayDetailView(idx){
         var md = Array.isArray(m) ? m[3] : (m && m.d) || '';
         var mCat = (typeof KIND_CATEGORY!=='undefined' && mk && KIND_CATEGORY[mk]) || 'culture';
         var mColor = (mCat && palette[mCat]) || catColor;
+        var mtShown = (typeof _isPlaceholderTime==='function' && _isPlaceholderTime(mt)) ? '' : mt;
         return '<div class="moment">'
-          + '<span class="mo-t">' + esc(mt) + '</span>'
+          + '<span class="mo-t">' + esc(mtShown) + '</span>'
           + '<span class="mo-i" style="color:'+mColor+'">' + ico(mk,15,1.6) + '</span>'
           + '<div><div class="mo-ti">' + esc(mti) + '</div>' + (md ? '<div class="mo-d">' + esc(md) + '</div>' : '') + '</div>'
           + '</div>';

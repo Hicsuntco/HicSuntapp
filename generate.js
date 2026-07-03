@@ -792,6 +792,9 @@ function _momentIcon(ti){
   if(/safari|animaux|faune/.test(s)) return 'leaf';
   return 'pin';
 }
+/* Un temps de repli ("-", "–", "—"…) n'est pas une vraie heure : à masquer
+   à l'affichage plutôt que de montrer un tiret orphelin sans information. */
+function _isPlaceholderTime(t){ return /^[\s\-–—_]*$/.test(String(t||'')); }
 /* Répare les jours dont les moments sont vides ("— Moment" x2 à l'écran) :
    séquelle d'anciens voyages sauvegardés avant que la génération ne gère
    correctement ce cas, ou d'une réponse IA incomplète pour ce jour. Un
@@ -811,8 +814,7 @@ function _repairPlanMoments(plan){
       /* le "vide" a été stocké avec différents caractères de tiret selon la
          version de la génération (-, –, —) ou juste des espaces : les traiter
          tous comme équivalents plutôt que de comparer à un seul caractère. */
-      var timeIsPlaceholder=/^[\s\-–—_]*$/.test(time);
-      return (title && title!=='Moment') || !!desc.trim() || (!timeIsPlaceholder && !!time.trim());
+      return (title && title!=='Moment') || !!desc.trim() || (!_isPlaceholderTime(time) && !!time.trim());
     });
     p.moments = real.length ? real : [[' - ', _kind(_momentIcon(p.title)), p.title||p.loc||'Étape', '', false]];
     }catch(e){ console.warn('[_repairPlanMoments]', e && e.message || e); try{ if(typeof window!=='undefined' && window.hsDebug) window.hsDebug('[repair] erreur jour '+(p&&p.n)+': '+(e&&e.message||e)); }catch(e2){} }
