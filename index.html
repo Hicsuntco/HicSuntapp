@@ -23,10 +23,10 @@
 <link rel="shortcut icon" href="/favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="core.css?v=1783042100">
-<link rel="stylesheet" href="screens.css?v=1783042100">
-<link rel="stylesheet" href="overlays.css?v=1783042100">
-<link rel="stylesheet" href="features.css?v=1783042100">
+<link rel="stylesheet" href="core.css?v=1783047800">
+<link rel="stylesheet" href="screens.css?v=1783047800">
+<link rel="stylesheet" href="overlays.css?v=1783047800">
+<link rel="stylesheet" href="features.css?v=1783047800">
 </head>
 <body>
 <script>
@@ -47,6 +47,7 @@
     }
     d.textContent = (d.textContent ? d.textContent + '\n\n' : '') + msg;
   }
+  window.hsDebug = showErr; /* pour du diagnostic ponctuel visible à l'écran */
   window.addEventListener('error', function(e){
     showErr('[erreur] ' + (e.message || 'inconnue') + (e.filename ? '\n' + e.filename.split('/').pop() + ':' + e.lineno : ''));
   });
@@ -64,15 +65,15 @@
 <div class="stage">
   <div class="phone"><div class="screen"></div></div>
 </div>
-<script src="data.js?v=1783042100"></script>
-<script src="extra-data.js?v=1783042100"></script>
-<script src="screens-main.js?v=1783042100"></script>
-<script src="screens-detail.js?v=1783042100"></script>
-<script src="screens-extra.js?v=1783042100"></script>
-<script src="deck.js?v=1783042100"></script>
-<script src="features.js?v=1783042100"></script>
-<script src="generate.js?v=1783042100"></script>
-<script src="maps.js?v=1783042100"></script>
-<script src="app.js?v=1783042100"></script>
+<script src="data.js?v=1783047800"></script>
+<script src="extra-data.js?v=1783047800"></script>
+<script src="screens-main.js?v=1783047800"></script>
+<script src="screens-detail.js?v=1783047800"></script>
+<script src="screens-extra.js?v=1783047800"></script>
+<script src="deck.js?v=1783047800"></script>
+<script src="features.js?v=1783047800"></script>
+<script src="generate.js?v=1783047800"></script>
+<script src="maps.js?v=1783047800"></script>
+<script src="app.js?v=1783047800"></script>
 </body>
 </html>
