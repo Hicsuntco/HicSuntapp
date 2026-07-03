@@ -508,7 +508,7 @@ async function exportPDF(){
     b.innerHTML = content;
     b.style.cssText = [
       'width:36px','height:36px',
-      'border-radius:50%',
+      'border-radius:11px',
       'background:rgba(26,22,16,0.55)',
       'backdrop-filter:blur(12px)',
       '-webkit-backdrop-filter:blur(12px)',
