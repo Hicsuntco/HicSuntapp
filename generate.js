@@ -2022,17 +2022,22 @@ async function aiCartographeReply(text){
     ']}',
     'op:"add" = un seul moment dans "value" (objet, pas de liste). "day" = numéro du jour concerné (1, 2, 3…).',
   ].join('\n');
-  try{
-    const txt=await _callSupabase(prompt);
-    let s=String(txt||'').trim().replace(/^```(?:json)?/i,'').replace(/```$/,'').trim();
-    const a=s.indexOf('{'), b=s.lastIndexOf('}');
-    if(a>=0&&b>a) s=s.slice(a,b+1);
-    const j=JSON.parse(s);
-    if(j&&j.reply){
-      const applied=_applyAiChanges(Array.isArray(j.changes)?j.changes:[]);
-      return {t:String(j.reply), chip:applied?(j.chip?String(j.chip):'Itinéraire mis à jour'):''};
-    }
-  }catch(e){}
+  /* 2 tentatives : un aller-retour réseau raté (mobile instable) ne doit pas
+     faire silencieusement basculer sur le repli local qui ne change rien. */
+  for(let attempt=0; attempt<2; attempt++){
+    if(attempt>0) await new Promise(function(r){ setTimeout(r, 1200); });
+    try{
+      const txt=await _callSupabase(prompt);
+      let s=String(txt||'').trim().replace(/^```(?:json)?/i,'').replace(/```$/,'').trim();
+      const a=s.indexOf('{'), b=s.lastIndexOf('}');
+      if(a>=0&&b>a) s=s.slice(a,b+1);
+      const j=JSON.parse(s);
+      if(j&&j.reply){
+        const applied=_applyAiChanges(Array.isArray(j.changes)?j.changes:[]);
+        return {t:String(j.reply), chip:applied?(j.chip?String(j.chip):'Itinéraire mis à jour'):''};
+      }
+    }catch(e){ console.warn('[aiCartographeReply] tentative',attempt+1,'échouée:',e&&e.message||e); }
+  }
   return null;
 }
 async function aiSend(text){
@@ -2043,7 +2048,9 @@ async function aiSend(text){
   aiScroll();
   const typing=document.createElement('div'); typing.className='typing'; typing.innerHTML='<i></i><i></i><i></i>'; chat.appendChild(typing); aiScroll();
   let r=await aiCartographeReply(text);
-  if(!r) r=(typeof aiReply==='function')?aiReply(text):{t:"J'ajuste l'itinéraire en conséquence.",chip:'Itinéraire mis à jour'};
+  /* Repli si l'appel IA échoue (réseau, JSON invalide…) : ne JAMAIS prétendre
+     qu'un changement a été appliqué puisqu'aucun ne l'a été dans ce cas. */
+  if(!r) r=(typeof aiReply==='function')?aiReply(text):{t:"Je n'ai pas pu joindre le cartographe, réessayez dans un instant.",chip:''};
   typing.remove();
   const b=document.createElement('div'); b.className='bub them'; b.textContent=r.t; chat.appendChild(b);
   if(r.chip){
