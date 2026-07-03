@@ -779,6 +779,7 @@ async function loadSavedItinerary(id){
         wellness:   p.wellness || null,
       };
     }).filter(Boolean);
+    if(typeof _repairPlanMoments==='function') _repairPlanMoments(ITINERARY.plan);
 
     /* Normaliser les hébergements */
     ITINERARY.accommodations = ITINERARY.accommodations.map(function(a){
