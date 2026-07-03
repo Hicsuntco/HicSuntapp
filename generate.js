@@ -1914,18 +1914,113 @@ function aiItinerarySummary(){
   const days=it.plan.map(function(p){return 'J'+p.n+' '+p.loc+' : '+p.title;}).join(' · ');
   return it.dest+' · '+_days(it)+' jours · '+it.level+' · budget ~'+it.budgetTotal+'€  -  '+days;
 }
+/* Résumé jour par jour (activités + resto) donné à l'IA pour qu'elle sache
+   précisément quoi modifier quand le voyageur demande un changement. */
+function _aiPlanDetail(){
+  return (ITINERARY.plan||[]).map(function(p){
+    const acts=(Array.isArray(p.moments)?p.moments:[]).map(function(m){
+      return Array.isArray(m) ? m[2] : (m.ti||m.title||'');
+    }).filter(Boolean).join(', ');
+    const resto=p.restaurant&&p.restaurant.name?(' · resto: '+p.restaurant.name):'';
+    return 'Jour '+p.n+' ('+(p.loc||'')+') : '+(acts||'—')+resto;
+  }).join('\n');
+}
+/* Applique les changements structurés renvoyés par l'IA à ITINERARY.plan.
+   Retourne true si au moins un changement a réellement été appliqué —
+   le chip de confirmation ne doit JAMAIS s'afficher si rien n'a changé. */
+function _applyAiChanges(changes){
+  if(!Array.isArray(changes) || !changes.length || !Array.isArray(ITINERARY.plan)) return false;
+  var applied=false;
+  changes.forEach(function(c){
+    if(!c || !c.field) return;
+    var dayIdx=ITINERARY.plan.findIndex(function(p){ return p.n===Number(c.day); });
+    if(dayIdx<0) return;
+    var day=ITINERARY.plan[dayIdx];
+    if(c.field==='moments' && c.value){
+      if(c.op==='add' && typeof c.value==='object' && !Array.isArray(c.value)){
+        var m=c.value;
+        var entry=[m.t||' - ', _kind(m.k||_momentIcon(m.ti)), m.ti||'Moment', m.d||'', !!m.free];
+        day.moments=(Array.isArray(day.moments)?day.moments:[]).concat([entry]);
+        applied=true;
+      } else if(c.op==='replace' && Array.isArray(c.value) && c.value.length){
+        day.moments=c.value.map(function(m){
+          return [m.t||' - ', _kind(m.k||_momentIcon(m.ti)), m.ti||'Moment', m.d||'', !!m.free];
+        });
+        applied=true;
+      } else if(c.op==='remove' && typeof c.value==='string'){
+        var before=(Array.isArray(day.moments)?day.moments:[]).length;
+        day.moments=(day.moments||[]).filter(function(m){
+          var title=Array.isArray(m)?m[2]:(m.ti||'');
+          return title.toLowerCase().indexOf(String(c.value).toLowerCase())<0;
+        });
+        if(day.moments.length!==before) applied=true;
+      }
+    } else if(c.field==='restaurant' && c.value && typeof c.value==='object'){
+      day.restaurant=Object.assign({}, day.restaurant||{}, c.value);
+      applied=true;
+    } else if((c.field==='desc'||c.field==='tip') && typeof c.value==='string' && c.value.trim()){
+      day[c.field]=c.value.trim();
+      applied=true;
+    }
+  });
+  if(applied){
+    if(typeof deriveActivities==='function'){ try{ deriveActivities(ITINERARY.plan); }catch(e){} }
+    _refreshOpenItineraryViews();
+    _silentlyPersistItineraryEdit();
+  }
+  return applied;
+}
+/* Re-rend les écrans itinéraire/carte déjà ouverts pour que le changement
+   soit visible immédiatement, sans attendre une fermeture/réouverture. */
+function _refreshOpenItineraryViews(){
+  if(typeof ovStack==='undefined') return;
+  ovStack.forEach(function(el){
+    var kind=el && el.dataset && el.dataset.ov;
+    try{
+      if(kind==='itinerary' && typeof itineraryView==='function') el.innerHTML=itineraryView();
+      else if(kind==='map' && typeof window.mapView==='function'){
+        el.innerHTML=window.mapView();
+        if(typeof renderHicSuntMap==='function') renderHicSuntMap('hs-map-full', { dest:ITINERARY.dest, plan:ITINERARY.plan, activeIdx:state.mapDay||0, interactive:true, padding:72 });
+      }
+    }catch(e){}
+  });
+}
+/* Persiste silencieusement l'édition dans la sauvegarde locale existante
+   (sans toast ni appel réseau cloud) — seulement si ce voyage était déjà
+   enregistré, pour ne pas créer de sauvegarde surprise. */
+function _silentlyPersistItineraryEdit(){
+  try{
+    var local=JSON.parse(localStorage.getItem('hs_saved_trips')||'[]');
+    var idx=local.findIndex(function(t){ return t.dest===ITINERARY.dest && t.dates===ITINERARY.dates; });
+    if(idx>=0){
+      local[idx].data=JSON.parse(JSON.stringify(ITINERARY));
+      local[idx].savedAt=Date.now();
+      localStorage.setItem('hs_saved_trips', JSON.stringify(local));
+    }
+  }catch(e){}
+}
 async function aiCartographeReply(text){
   const prompt=[
     'Tu es le cartographe de Hic Sunt, assistant voyage expert sur la destination.',
     'Itinéraire actuel : '+aiItinerarySummary(),
+    'Programme détaillé par jour :\n'+_aiPlanDetail(),
     'Destination : '+ITINERARY.dest+(ITINERARY.country?' ('+ITINERARY.country+')':''),
     'Saison : '+(ITINERARY.season||'non précisée'),
     '',
     'Le voyageur demande : "'+text+'"',
     '',
+    'Si la demande implique une VRAIE modification de l\'itinéraire (ajouter/retirer/remplacer une activité, changer un restaurant, une description), décris-la précisément dans "changes". Si c\'est une simple question ou un conseil sans modification, laisse "changes" à [].',
     'Réponds avec des conseils SPÉCIFIQUES à '+ITINERARY.dest+'  -  vrais noms de lieux, restaurants, activités locales.',
     'Ton sobre et expert, 2-3 phrases max. Aucun emoji.',
-    'JSON : {"reply":"...","chip":"étiquette courte ex: Jour 3 modifié · +150 €"}',
+    '',
+    'JSON UNIQUEMENT :',
+    '{"reply":"...","chip":"étiquette courte si modification réelle sinon vide, ex: Jour 3 modifié","changes":[',
+    '  {"day":3,"field":"moments","op":"add","value":{"t":"18:00","k":"wave","ti":"nom réel","d":"détail 6 mots","free":false}},',
+    '  {"day":3,"field":"moments","op":"remove","value":"mot du titre à retirer"},',
+    '  {"day":3,"field":"restaurant","value":{"name":"","type":"","price":"€€","note":"","rating":"4,x⭐","review":""}},',
+    '  {"day":3,"field":"desc","value":"nouveau texte"}',
+    ']}',
+    'op:"add" = un seul moment dans "value" (objet, pas de liste). "day" = numéro du jour concerné (1, 2, 3…).',
   ].join('\n');
   try{
     const txt=await _callSupabase(prompt);
@@ -1933,7 +2028,10 @@ async function aiCartographeReply(text){
     const a=s.indexOf('{'), b=s.lastIndexOf('}');
     if(a>=0&&b>a) s=s.slice(a,b+1);
     const j=JSON.parse(s);
-    if(j&&j.reply) return {t:String(j.reply),chip:j.chip?String(j.chip):''};
+    if(j&&j.reply){
+      const applied=_applyAiChanges(Array.isArray(j.changes)?j.changes:[]);
+      return {t:String(j.reply), chip:applied?(j.chip?String(j.chip):'Itinéraire mis à jour'):''};
+    }
   }catch(e){}
   return null;
 }
