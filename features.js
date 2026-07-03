@@ -5,6 +5,11 @@
 function budgetView(){
   const b = BUDGET || {total:0, spent:0, lines:[]};
   if(!b.total && ITINERARY.budgetTotal) b.total = ITINERARY.budgetTotal;
+  /* Filet de sécurité : si un ajustement précédent (chat Cartographe) a
+     laissé BUDGET.total et ITINERARY.budgetTotal désynchronisés, l'écran
+     Itinéraire afficherait un prix différent de celui-ci. BUDGET.total,
+     issu de la répartition détaillée, fait foi. */
+  if(b.total && ITINERARY.budgetTotal !== b.total) ITINERARY.budgetTotal = b.total;
   if(!b.lines || !b.lines.length) b.lines = [{i:'wallet',n:'Budget estimé',sub:'tout compris',amount:b.total,paid:false}];
   const pct = Math.round(b.spent / b.total * 100);
   const rest = b.total - b.spent;
@@ -101,29 +106,6 @@ function reviewsView(){
           + '<p>' + esc(r.t) + '</p></div>';
       }).join('')
     + '</div>';
-}
-
-/* ── 16 · Cartographe IA ────────────────────────────────────────────── */
-function aiView(){
-  return statusBar()
-    + '<div class="chat-nav"><button class="nav-btn ghost" onclick="closeOverlay()" aria-label="Retour">' + ico('back',20,1.7) + '</button>'
-    +   '<div class="chat-id"><span class="chat-av">' + ico('sparkle',18,1.6) + '<span class="on-dot"></span></span>'
-    +   '<span><span class="chat-n">Cartographe</span><br><span class="chat-st">Assistant · en ligne</span></span></div></div>'
-    + '<div class="chat-scroll" data-ai-chat>'
-    +   '<span class="day-sep">Assistant d\'itinéraire</span>'
-    +   '<div class="bub them">' + esc(AI_INTRO) + '</div>'
-    + '</div>'
-    + '<div class="quick">' + AI_PROMPTS.map(function(p){
-        return '<button class="chip" onclick="aiSend(\'' + p.replace(/'/g, "\\'") + '\')">' + esc(p) + '</button>';
-      }).join('') + '</div>'
-    + '<div class="composer">'
-    +   '<input data-ai-input placeholder="Décrivez un changement…" onkeydown="if(event.key===\'Enter\')aiSend(this.value)">'
-    +   '<button class="send-btn" onclick="aiSend(document.querySelector(\'[data-ai-input]\').value)" aria-label="Envoyer">' + ico('arrowup',18,1.8) + '</button>'
-    + '</div>';
-}
-function aiScroll(){
-  const c = document.querySelector('[data-ai-chat]');
-  if (c) c.scrollTop = c.scrollHeight;
 }
 
 /* ── 22 · Cercle Hic Sunt ───────────────────────────────────────────── */

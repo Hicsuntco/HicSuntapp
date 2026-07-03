@@ -251,7 +251,6 @@ function revealOnScroll(container){
 function openDest(key){ openOverlay('destination', destinationView(key)); }
 function openDay(i){ openOverlay('day', dayDetailView(i)); }
 function openBooking(id){ openOverlay('booking', bookingView(id)); }
-function openAI(){ const el = openOverlay('ai', aiView()); requestAnimationFrame(function(){ aiScroll(); }); }
 function openMapOv(){
   openOverlay('map', mapView());
   if(typeof renderHicSuntMap === 'function') renderHicSuntMap('hs-map-full', { dest: ITINERARY.dest, plan: ITINERARY.plan, activeIdx: state.mapDay||0, interactive:true, padding:72 });
@@ -1443,15 +1442,21 @@ document.addEventListener('DOMContentLoaded', function(){
         changed = true;
       }
 
-      /* Recalculer le budget en préservant les vols */
+      /* Recalculer le budget en préservant les vols. deriveBudget() peut
+         relever le total (planchers repas/transferts réalistes) — il faut
+         récupérer cette valeur de retour, sinon ITINERARY.budgetTotal reste
+         à l'ancien montant pendant que BUDGET.total (écran Budget) affiche
+         le nouveau : les deux écrans montrent alors un prix différent pour
+         le même voyage. */
       if(changed && typeof deriveBudget === 'function'){
         try{
-          deriveBudget(
+          var recalcedBudget = deriveBudget(
             ITINERARY.accommodations||[], ITINERARY.budgetTotal||0,
             ITINERARY.dest||'', ITINERARY.region||'', ITINERARY.country||'',
             state.travelers||2,
             ITINERARY._flightInfo||null /* préserver les vols */
           );
+          if(recalcedBudget) ITINERARY.budgetTotal = recalcedBudget;
         }catch(e){ console.warn('deriveBudget after AI change:', e); }
       }
 
