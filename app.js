@@ -1038,6 +1038,14 @@ document.addEventListener('DOMContentLoaded', function(){
     /* Filet de sécurité : répare les jours vides même si ce voyage était déjà
        chargé en mémoire avant le déploiement du correctif (session en cours,
        PWA non relancée) — pas seulement au chargement depuis Mes voyages. */
+    if(typeof window.hsDebug==='function' && !window._hsMapViewDebugged){
+      window._hsMapViewDebugged=true;
+      try{
+        var dbgDay=(ITINERARY.plan||[])[state.mapDay||0];
+        window.hsDebug('[diag] _repairPlanMoments='+(typeof _repairPlanMoments)
+          +' | jour='+(dbgDay&&dbgDay.n)+' | moments avant='+JSON.stringify(dbgDay&&dbgDay.moments).slice(0,200));
+      }catch(e){ window.hsDebug('[diag] erreur: '+(e&&e.message||e)); }
+    }
     if(typeof _repairPlanMoments==='function') _repairPlanMoments(ITINERARY.plan);
     var i=state.mapDay||0,p=(ITINERARY.plan||[])[i];
     var g=_geoGet(ITINERARY.dest||ITINERARY.destination||'');
