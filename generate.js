@@ -808,13 +808,12 @@ function _repairPlanMoments(plan){
       var desc=Array.isArray(m)?m[3]:(m.d||m.desc||'');
       var time=Array.isArray(m)?m[0]:(m.t||'');
       title=String(title||''); desc=String(desc||''); time=String(time||'');
-      return (title && title!=='Moment') || desc.trim() || (time.trim() && time.trim()!=='-');
+      /* le "vide" a été stocké avec différents caractères de tiret selon la
+         version de la génération (-, –, —) ou juste des espaces : les traiter
+         tous comme équivalents plutôt que de comparer à un seul caractère. */
+      var timeIsPlaceholder=/^[\s\-–—_]*$/.test(time);
+      return (title && title!=='Moment') || !!desc.trim() || (!timeIsPlaceholder && !!time.trim());
     });
-    if(!real.length && p.moments.length && typeof window!=='undefined' && window.hsDebug){
-      /* diagnostic ponctuel : confirmer que la réparation s'est bien déclenchée
-         et montrer ce qui était stocké avant, pour valider ou invalider le fix */
-      try{ window.hsDebug('[repair] Jour '+p.n+' — '+p.moments.length+' moment(s) vide(s) remplacé(s). Avant: '+JSON.stringify(p.moments).slice(0,300)); }catch(e2){}
-    }
     p.moments = real.length ? real : [[' - ', _kind(_momentIcon(p.title)), p.title||p.loc||'Étape', '', false]];
     }catch(e){ console.warn('[_repairPlanMoments]', e && e.message || e); try{ if(typeof window!=='undefined' && window.hsDebug) window.hsDebug('[repair] erreur jour '+(p&&p.n)+': '+(e&&e.message||e)); }catch(e2){} }
   });
