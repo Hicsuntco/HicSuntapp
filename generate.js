@@ -686,13 +686,14 @@ function buildDaysPrompt(skel, planSteps, offset){
     'RÈGLES:',
     '* Géo stricte: chaque lieu dans la zone de l\'étape (<15km). Sur île: sur cette île uniquement.',
     '* desc: 2 phrases évocatrices max 40 mots (sensations, lumière, atmosphère).',
-    '* moments: '+nMoments+' items réels  -  {t:"HH:MM",k:"['+GEN_KINDS.slice(0,8).join('|')+']",ti:"NOM RÉEL",d:"détail 6 mots"}',
+    '* moments: '+nMoments+' items réels  -  {t:"HH:MM",k:"['+GEN_KINDS.slice(0,8).join('|')+']",ti:"NOM RÉEL",d:"détail 6 mots",free:true|false}',
+    '* free: true si l\'activité est en accès libre et non réservable (plage publique, point de vue, photo, balade, marché à parcourir, coucher de soleil, rue/place, église) — false si elle a un coût réel (visite guidée, musée/site payant, spa, excursion, activité nautique encadrée, cours, location).',
     '* tip: conseil initié ultra-spécifique (heure, jour, lieu exact).',
     '* restaurant: {name,type,price:"€/€€/€€€",note,rating:"4,x⭐",review}',
     '* wellness: null ou {name,type,price,note} si spa/lune de miel.',
     '',
     'JSON EXACT  -  '+planSteps.length+' entrées dans "days":',
-    '{"days":[{"desc":"","tip":"","restaurant":{"name":"","type":"","price":"€€","note":"","rating":"","review":""},"wellness":null,"moments":[{"t":"","k":"","ti":"","d":""}]}]}',
+    '{"days":[{"desc":"","tip":"","restaurant":{"name":"","type":"","price":"€€","note":"","rating":"","review":""},"wellness":null,"moments":[{"t":"","k":"","ti":"","d":"","free":false}]}]}',
   ].filter(Boolean).join('\n');
 }
 
@@ -862,7 +863,7 @@ function applyGenerated(skel, daysDetail, hilites, flightInfo){
   const plan=(Array.isArray(skel.plan)?skel.plan:[]).map(function(p,i){
     const dd=detailDays[i]||{};
     const rawMoments=Array.isArray(dd.moments)&&dd.moments.length?dd.moments:[{t:' - ',k:_momentIcon(p.title),ti:p.title||'Étape',d:''}];
-    const moments=rawMoments.slice(0,_momentsPerDay()).map(function(m){return [m.t||' - ',_kind(m.k||_momentIcon(m.ti)),m.ti||'Moment',m.d||''];});
+    const moments=rawMoments.slice(0,_momentsPerDay()).map(function(m){return [m.t||' - ',_kind(m.k||_momentIcon(m.ti)),m.ti||'Moment',m.d||'',!!m.free];});
     const tags=[];
     moments.forEach(function(m){if(tags.length<2&&!tags.some(function(t){return t[0]===m[1];}))tags.push(TAG_MAP[m[1]]||TAG_MAP.pin);});
     while(tags.length<2) tags.push(TAG_MAP.pin);
@@ -946,6 +947,15 @@ function applyGenerated(skel, daysDetail, hilites, flightInfo){
 /* ── activités & budget dérivés ─────────────────────────────────────── */
 const ACT_PRICE={peaks:78,arch:55,leaf:62,wave:95,droplet:48,fork:120,sun:52,star:88,camera:60,ticket:70,moon:64,compass:58,pin:50,plane:0,bed:0};
 const ACT_DUR=['2 h','3 h','4 h','2 h 30','5 h','3 h 30'];
+/* Filet de sécurité si l'IA n'a pas correctement rempli "free" : mots-clés
+   d'activités en accès libre, non réservables (plage publique, point de vue,
+   photo, balade, marché à parcourir…). */
+const FREE_ACT_RX=/plage|point de vue|belvédère|vue panoramique|photo|coucher de soleil|lever de soleil|balade|promenade|marché|flânerie|rue|place|église|jardin public|front de mer|quartier/i;
+function _isFreeActivity(m){
+  if(m[4]===true) return true;
+  if(m[4]===false) return false;
+  return FREE_ACT_RX.test((m[2]||'')+' '+(m[3]||''));
+}
 function deriveActivities(plan){
   if(typeof ACTIVITIES==='undefined') return;
   try{
@@ -954,13 +964,13 @@ function deriveActivities(plan){
       (Array.isArray(p.moments)?p.moments:[]).forEach(function(m){
         /* exclure les transferts/déplacements : ce ne sont pas de vraies activités réservables */
         if(m[1]==='plane'||m[1]==='bed'||m[1]==='compass') return;
-        picks.push({day:p.n,i:m[1],n:m[2],loc:p.loc,tag:(TAG_MAP[m[1]]||TAG_MAP.pin)[1]});
+        picks.push({day:p.n,i:m[1],n:m[2],loc:p.loc,tag:(TAG_MAP[m[1]]||TAG_MAP.pin)[1],free:_isFreeActivity(m)});
       });
     });
     ACTIVITIES.length=0;
     picks.forEach(function(a,i){
-      const base=ACT_PRICE[a.i]||55;
-      ACTIVITIES.push({id:'ac'+(i+1),day:a.day,i:a.i,n:a.n,loc:a.loc,dur:ACT_DUR[i%ACT_DUR.length],rate:['4,9','4,95','4,8','4,88','4,92','4,97'][i%6],price:base+(i%2?7:0),tag:a.tag});
+      const base=a.free?0:(ACT_PRICE[a.i]||55)+(i%2?7:0);
+      ACTIVITIES.push({id:'ac'+(i+1),day:a.day,i:a.i,n:a.n,loc:a.loc,dur:ACT_DUR[i%ACT_DUR.length],rate:['4,9','4,95','4,8','4,88','4,92','4,97'][i%6],price:base,tag:a.tag,free:a.free});
     });
     window._actSource = 'deriveActivities-ok (' + picks.length + ' picks bruts)';
   }catch(e){
