@@ -16,5 +16,12 @@ Attribution-ShareAlike (CC BY-SA) — attribution ci-dessous.
 | kenya.jpg | Acacia au coucher du soleil, Maasai Mara | Wikimedia Commons, "Maasai Mara National Reserve Kenya.jpg" | CC BY-SA |
 | indonesie.jpg | Rizières en terrasse, Bali | Wikimedia Commons, "Bali Rice Terrace.JPG" | CC BY-SA 2.5 |
 | sardaigne.jpg | Côte de la Costa Smeralda | Wikimedia Commons, "Costa Smeralda vista panoramica.jpg" | CC BY-SA |
+| vietnam.jpg | Baie d'Ha Long, vue d'ensemble | Wikimedia Commons, "Ha Long Bay, Vietnam, View from above.jpg" | CC BY 4.0 |
+| italie.jpg | Positano, côte amalfitaine | Wikimedia Commons, "Positano-Amalfi Coast-Italy.jpg" | CC BY-SA |
+| sicile.jpg | Cefalù, panorama | Wikimedia Commons, "Panorama view of Cefalu, Sicily, Italy (12755655315).jpg" | CC BY-SA 2.0 |
+| grece.jpg | Oia, Santorin | Wikimedia Commons, "Panoramic view of Oia, Santorini island (Thira), Greece.jpg" | CC BY-SA 3.0 |
+| espagne.jpg | Cour des Lions, Alhambra, Grenade | Wikimedia Commons, "Alhambra - Granada.jpg" | CC BY-SA |
+| croatie.jpg | Remparts de Dubrovnik | Wikimedia Commons, "Dubrovnik - Croatia.jpg" | CC BY-SA |
+| philippines.jpg | Grand lagon, El Nido, Palawan | Wikimedia Commons, "El Nido Palawan Big Lagoon.jpg" | CC BY-SA |
 
 Source originale de chaque fichier : `https://commons.wikimedia.org/wiki/File:<nom du fichier ci-dessus>`
