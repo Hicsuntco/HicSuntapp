@@ -587,10 +587,18 @@ async function _removeCompanionUI(id){
    pour rester dans la direction visuelle de l'app. */
 function openAddCompanion(){
   openOverlay('add-companion', addCompanionView(), {modal:true});
-  requestAnimationFrame(function(){
+  /* Ne PAS focus() immédiatement : la feuille glisse encore depuis le bas
+     (transition transform 0.38s) quand ce code s'exécute. Sur iOS réel, le
+     clavier qui apparaît pendant que le parent est encore en cours
+     d'animation (position:absolute + transform) fait scroller le contenu
+     hors champ  -  l'utilisateur se retrouve devant un écran vide bien que
+     le formulaire soit bien là, juste scrollé hors de la zone visible.
+     Attendre la fin de la transition avant de déclencher le clavier évite
+     ce conflit (invisible en test headless, sans clavier virtuel réel). */
+  setTimeout(function(){
     const inp = document.getElementById('companion-name');
     if(inp) inp.focus();
-  });
+  }, 420);
 }
 function addCompanionView(){
   return '<div class="ov-scroll px" style="padding-top:28px">'
