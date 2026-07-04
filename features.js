@@ -186,8 +186,43 @@ async function exportPDF(){
     caribbean:     { c1: palette.beach   ||'#30C0C0', c2: palette.food    ||'#E0A030' },
   };
   const sig = SIG_PDF[themeName] || SIG_PDF.tropical;
-  const sigColor  = sig.c1;
-  const sigColor2 = sig.c2;
+  /* Priorité à la teinte RÉELLE du pays — même dégradé deux tons que les
+     cards de l'app (DEST_BG_MAP) — pour que le PDF porte la même identité
+     visuelle que "Mes voyages" plutôt qu'un thème générique par famille de
+     destination. Fallback sur le thème générique si le pays n'est pas dans
+     ce référentiel (destinations composées par l'IA hors catalogue). */
+  const destPair = (function(){
+    if(typeof DEST_BG_MAP === 'undefined' || typeof _stripAccents !== 'function') return null;
+    const k = _stripAccents(it.dest||'');
+    for(const pat in DEST_BG_MAP){ if(k.includes(_stripAccents(pat))) return DEST_BG_MAP[pat]; }
+    return null;
+  })();
+  const sigColor  = destPair ? destPair[0] : sig.c1;
+  const sigColor2 = destPair ? destPair[1] : sig.c2;
+
+  /* ── Photo de couverture : même photo que les cards de l'app, encodée en
+     data-URI. Le PDF peut être ouvert dans une fenêtre d'impression séparée
+     ou enregistré comme fichier .html autonome — un chemin relatif n'y
+     résoudrait plus, une image encodée s'affiche partout, hors-ligne compris. ── */
+  async function _imgToDataURL(url){
+    try{
+      const res = await fetch(url);
+      if(!res.ok) return null;
+      const blob = await res.blob();
+      return await new Promise(function(resolve){
+        const reader = new FileReader();
+        reader.onload = function(){ resolve(reader.result); };
+        reader.onerror = function(){ resolve(null); };
+        reader.readAsDataURL(blob);
+      });
+    }catch(e){ return null; }
+  }
+  const heroPhotoPath = (typeof destPhoto === 'function') ? destPhoto(it.dest||'') : null;
+  const heroPhotoUrl = heroPhotoPath ? await _imgToDataURL(heroPhotoPath) : null;
+
+  /* Petit emblème boussole — signature graphique réutilisée en couverture et
+     en pied de page, à la manière d'un cachet de cire d'une maison de voyage. */
+  const MARK_SVG = '<svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1"><circle cx="20" cy="20" r="17.5"/><circle cx="20" cy="20" r="12" stroke-dasharray="1 4"/><path d="M20 6v6M20 28v6M6 20h6M28 20h6" stroke-width="1.1"/><path d="M20 11l3.4 8-3.4 8-3.4-8z" fill="currentColor" stroke="none" opacity=".9"/></svg>';
 
   /* ── PDF layout par thème : fond, typographie, structure ── */
   /* Chaque thème a une identité visuelle distincte */
@@ -266,7 +301,7 @@ async function exportPDF(){
   it.plan.forEach(function(p){ usedCats[p.category] = true; });
   (it.gems||[]).length && (usedCats.culture = true);
   const legendHTML = Object.keys(usedCats).map(function(c){
-    return '<div class="legend-item"><div class="legend-dot" style="background:'+(palette[c]||sigColor)+'"></div><span style="color:'+(palette[c]||sigColor)+'">'+(CAT_LABEL[c]||c)+'</span></div>';
+    return '<div class="legend-item" style="color:'+(palette[c]||sigColor)+'"><div class="legend-dot"></div><span>'+(CAT_LABEL[c]||c)+'</span></div>';
   }).join('');
 
   /* ── jours regroupés par étape ── */
@@ -334,12 +369,13 @@ async function exportPDF(){
     if (!curStop || dayInStop >= curStop.nights) { dayInStop = 0; stopIdx++; sectionHTML += '</section>'; }
   });
 
-  /* ── pépites cachées ── */
-  const gemsHTML = (it.gems && it.gems.length) ? '<section class="leg-section"><div class="leg-head" style="--c:'+(palette.culture||sigColor)+'">'
-    + '<div class="leg-num">\u2726</div><div><div class="leg-tag">R\u00E9capitulatif</div><div class="leg-name">Adresses secr\u00E8tes</div></div></div>'
+  /* ── pépites cachées : chapitre à part, traitement sombre "confidentiel" ── */
+  const gemsHTML = (it.gems && it.gems.length) ? '<section class="leg-section gems-chapter">'
+    + '<div class="gems-eyebrow">\u2726 \u2726 \u2726</div>'
+    + '<h2 class="gems-title">Adresses d\u2019initi\u00E9s</h2>'
+    + '<p class="gems-sub">Ce que peu de voyageurs d\u00E9couvrent \u2014 r\u00E9serv\u00E9 \u00E0 cet itin\u00E9raire.</p>'
     + '<div class="cards">' + it.gems.map(function(g){
-        const color = palette.culture || sigColor;
-        return '<div class="card" style="--bg:'+hexA(color,0.07)+';--b:'+hexA(color,0.22)+';--c:'+color+'">'
+        return '<div class="card" style="--bg:rgba(243,236,221,.05);--b:rgba(243,236,221,.16);--c:'+sigColor+'">'
           + '<div class="card-label">\u2726 Pépite</div>'
           + '<div class="card-name">'+esc(g.name)+'</div>'
           + (g.loc ? '<div class="card-note" style="margin-top:0">'+esc(g.loc)+'</div>' : '')
@@ -393,31 +429,38 @@ async function exportPDF(){
     + 'html{scroll-behavior:smooth}'
     + 'body{background:'+PDF_THEME.bg+';color:'+PDF_THEME.ink+';font-family:Epilogue,sans-serif;font-weight:300;line-height:1.7;-webkit-font-smoothing:antialiased}'
     + '.close-btn{position:fixed;top:18px;right:18px;width:38px;height:38px;border-radius:50%;background:'+PDF_THEME.ink+';color:'+PDF_THEME.bg+';border:none;font-size:18px;font-family:Epilogue,sans-serif;cursor:pointer;z-index:99;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,0.18)}'
-    /* ── Hero : fond ivoire avec gradient de couleur thématique très léger ── */
-    + '.hero{padding:4.5rem 2.5rem 3rem;position:relative;overflow:hidden;border-bottom:'+PDF_THEME.dividerStyle+'}'
-    + '.hero-bg{position:absolute;inset:0;background:'+PDF_THEME.heroBgStyle+'}'
-    + '.hero-eyebrow{font-size:.6rem;letter-spacing:.4em;text-transform:uppercase;color:'+sigColor+';margin-bottom:1.2rem;position:relative;z-index:2}'
-    + '.hero h1{font-family:Fraunces,serif;font-weight:'+PDF_THEME.heroWeight+';font-size:'+PDF_THEME.heroSize+';line-height:1;margin-bottom:1.4rem;position:relative;z-index:2;color:'+PDF_THEME.ink+'}'
+    /* ── Hero : photo pleine largeur (même image que les cards de l'app) sous
+       un voile sombre teinté couleur pays ; sans photo, dégradé thématique. ── */
+    + '.hero{position:relative;min-height:430px;display:flex;flex-direction:column;justify-content:flex-end;padding:3rem 2.5rem 2.4rem;overflow:hidden;color:#F6F0E4}'
+    + '.hero-bg{position:absolute;inset:0;background-size:cover;background-position:center}'
+    + '.hero.no-photo .hero-bg{background-image:linear-gradient(135deg,'+sigColor+','+sigColor2+')}'
+    + '.hero-veil{position:absolute;inset:0;background:linear-gradient(175deg,rgba(12,9,6,.4) 0%,rgba(12,9,6,.52) 45%,rgba(12,9,6,.88) 100%)}'
+    + '.hero-mark{position:absolute;top:1.8rem;right:2rem;z-index:2;color:rgba(246,240,228,.75)}'
+    + '.hero-eyebrow{font-size:.6rem;letter-spacing:.4em;text-transform:uppercase;color:'+sigColor+';margin-bottom:1rem;position:relative;z-index:2}'
+    + '.hero h1{font-family:Fraunces,serif;font-weight:500;font-size:clamp(2.4rem,7vw,3.4rem);line-height:1;margin-bottom:.6rem;position:relative;z-index:2;color:#F6F0E4}'
     + '.hero h1 em{font-style:italic;color:'+sigColor+'}'
-    + '.hero-pills{display:flex;flex-wrap:wrap;gap:.5rem;position:relative;z-index:2;margin-bottom:1.2rem}'
-    + '.pill{font-size:.62rem;letter-spacing:.08em;padding:.3rem .85rem;border-radius:20px;border:1px solid;font-weight:400}'
-    + '.hero-meta{font-size:.62rem;letter-spacing:.25em;text-transform:uppercase;color:'+PDF_THEME.sub+';position:relative;z-index:2}'
-    + '.hero-tag{font-family:Fraunces,serif;font-style:italic;font-size:1rem;color:'+PDF_THEME.sub+';margin-bottom:1rem;position:relative;z-index:2}'
-    /* ── Timeline ── */
+    + '.hero-tag{font-family:Fraunces,serif;font-style:italic;font-size:1.05rem;color:rgba(246,240,228,.85);margin-bottom:.9rem;position:relative;z-index:2}'
+    + '.hero-meta{font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(246,240,228,.65);position:relative;z-index:2;margin-bottom:1.4rem}'
+    + '.hero-specs{display:flex;flex-wrap:wrap;gap:.55rem;position:relative;z-index:2}'
+    + '.hero-spec{background:rgba(246,240,228,.1);border:1px solid rgba(246,240,228,.24);border-radius:10px;padding:.5rem .9rem}'
+    + '.hero-spec-l{font-size:.5rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(246,240,228,.6);margin-bottom:.15rem}'
+    + '.hero-spec-v{font-family:Fraunces,serif;font-size:1rem;color:#F6F0E4}'
+    /* ── Journey : circuit complet, ligne continue et étapes ── */
     + '.timeline-wrap{background:'+PDF_THEME.panel+';border-top:1px solid '+PDF_THEME.line+';border-bottom:1px solid '+PDF_THEME.line+';padding:1.6rem 1.5rem;overflow-x:auto}'
-    + '.tl-label{font-size:.55rem;letter-spacing:.4em;text-transform:uppercase;color:'+PDF_THEME.sub+';margin-bottom:1.2rem}'
-    + '.timeline{display:flex;gap:1.4rem;width:max-content}'
+    + '.tl-label{font-size:.55rem;letter-spacing:.4em;text-transform:uppercase;color:'+PDF_THEME.sub+';margin-bottom:1.4rem}'
+    + '.timeline{display:flex;gap:1.4rem;width:max-content;position:relative}'
+    + '.timeline::before{content:"";position:absolute;top:6px;left:6px;right:6px;height:1px;background:linear-gradient(to right,'+sigColor+','+sigColor2+')}'
     + '.tl-stop{flex:none;min-width:88px;position:relative;padding-top:18px}'
-    + '.tl-stop::before{content:"";position:absolute;top:6px;left:-16px;right:-16px;height:1px;background:'+PDF_THEME.line+'}'
-    + '.tl-stop.start::before{left:6px}.tl-stop.end::before{right:6px}'
-    + '.tl-dot{width:12px;height:12px;border-radius:50%;border:2px solid var(--c);background:'+PDF_THEME.bg+';position:absolute;top:0;left:0}'
+    + '.tl-dot{width:12px;height:12px;border-radius:50%;border:2px solid var(--c);background:'+PDF_THEME.bg+';position:absolute;top:0;left:0;box-shadow:0 0 0 3px '+PDF_THEME.panel+'}'
+    + '.tl-stop.start .tl-dot,.tl-stop.end .tl-dot{width:14px;height:14px;top:-1px}'
     + '.tl-city{font-family:Fraunces,serif;font-size:.78rem;color:'+PDF_THEME.ink+';white-space:nowrap;margin-bottom:.1rem}'
+    + '.tl-stop.start .tl-city,.tl-stop.end .tl-city{font-style:italic}'
     + '.tl-dates{font-size:.54rem;color:var(--c);letter-spacing:.06em;white-space:nowrap}'
     + '.tl-nights{font-size:.5rem;color:'+PDF_THEME.sub+';white-space:nowrap}'
     /* ── Légende catégories ── */
-    + '.legend-bar{background:'+PDF_THEME.panel+';border-bottom:1px solid '+PDF_THEME.line+';padding:1rem 2.5rem;display:flex;flex-wrap:wrap;gap:1.1rem}'
-    + '.legend-item{display:flex;align-items:center;gap:.4rem;font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;color:'+PDF_THEME.sub+'}'
-    + '.legend-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}'
+    + '.legend-bar{background:'+PDF_THEME.panel+';border-bottom:1px solid '+PDF_THEME.line+';padding:1rem 2.5rem;display:flex;flex-wrap:wrap;gap:.6rem}'
+    + '.legend-item{display:inline-flex;align-items:center;gap:.4rem;font-size:.58rem;letter-spacing:.08em;text-transform:uppercase;padding:.32rem .8rem;border-radius:100px;border:1px solid currentColor;opacity:.92}'
+    + '.legend-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;background:currentColor}'
     /* ── Sections jours ── */
     + '.leg-section{padding:2.6rem 2.5rem;border-bottom:1px solid '+PDF_THEME.line+'}'
     + '.leg-head{display:flex;gap:1.2rem;align-items:flex-start;margin-bottom:1.6rem}'
@@ -428,7 +471,7 @@ async function exportPDF(){
     /* ── Cards hébergement/restaurant ── */
     + '.cards{display:grid;gap:.7rem;margin-bottom:1.6rem}'
     + '@media(min-width:640px){.cards{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}}'
-    + '.card{border-radius:8px;padding:1rem 1.1rem;border:1px solid var(--b);background:var(--bg)}'
+    + '.card{border-radius:10px;padding:1.1rem 1.2rem;border:1px solid var(--b);border-top:3px solid var(--c);background:var(--bg)}'
     + '.card-label{font-size:.55rem;letter-spacing:.25em;text-transform:uppercase;font-weight:500;color:var(--c);margin-bottom:.5rem}'
     + '.card-name{font-family:Fraunces,serif;font-size:.95rem;font-weight:300;color:'+PDF_THEME.ink+';margin-bottom:.3rem;line-height:1.3}'
     + '.card-desc{font-size:.74rem;color:'+PDF_THEME.sub+';line-height:1.6}'
@@ -458,33 +501,45 @@ async function exportPDF(){
     + 'td.city{color:'+PDF_THEME.ink+'}'
     + 'td.price{color:'+PDF_THEME.ink+';font-weight:500}'
     + '.total-row td{border-top:1px solid '+hexA(sigColor,0.3)+';color:'+PDF_THEME.ink+';font-weight:500;padding-top:1rem}'
+    /* ── Chapitre pépites : traitement sombre "confidentiel" ── */
+    + '.gems-chapter{background:linear-gradient(160deg,#18130E,#241C14);text-align:center}'
+    + '.gems-eyebrow{letter-spacing:.5em;font-size:.6rem;color:'+sigColor+';opacity:.85;margin-bottom:1rem}'
+    + '.gems-title{font-family:Fraunces,serif;font-style:italic;font-weight:300;font-size:1.9rem;color:#F3ECDD;margin-bottom:.5rem}'
+    + '.gems-sub{font-size:.78rem;color:rgba(243,236,221,.6);margin-bottom:2rem}'
+    + '.gems-chapter .cards{text-align:left}'
+    + '.gems-chapter .card-name{color:#F3ECDD}'
+    + '.gems-chapter .card-desc,.gems-chapter .card-note{color:rgba(243,236,221,.62)}'
     /* ── Footer ── */
     + '.foot{padding:2.6rem 2.5rem;text-align:center;border-top:1px solid '+PDF_THEME.line+'}'
+    + '.foot-mark{display:flex;justify-content:center;color:'+sigColor+';margin-bottom:.9rem}'
     + '.foot h3{font-family:Fraunces,serif;font-style:italic;font-weight:300;font-size:1.5rem;color:'+sigColor+';margin-bottom:.4rem}'
     + '.foot p{font-size:.6rem;color:'+PDF_THEME.sub+';letter-spacing:.2em;text-transform:uppercase}'
     + '.foot-line{width:32px;height:1px;background:'+sigColor+';opacity:.3;margin:.8rem auto}'
-    + '@media print{body{background:#fff}}'
+    + '@media print{body{background:#fff}.hero{-webkit-print-color-adjust:exact;print-color-adjust:exact}.gems-chapter{-webkit-print-color-adjust:exact;print-color-adjust:exact}}'
     + '@media(min-width:640px){.hero,.timeline-wrap,.legend-bar,.leg-section,.foot{padding-left:4rem;padding-right:4rem}}'
     + '</style></head><body>'
-    + '<section class="hero"><div class="hero-bg"></div>'
-    + '<div class="hero-eyebrow">Itin\u00E9raire compos\u00E9 \u00B7 Hic Sunt \u00B7 '+esc(it.country||it.dest)+'</div>'
+    + '<section class="hero'+(heroPhotoUrl?'':' no-photo')+'">'
+    + '<div class="hero-bg"'+(heroPhotoUrl?' style="background-image:url(\''+heroPhotoUrl+'\')"':'')+'></div>'
+    + '<div class="hero-veil"></div>'
+    + '<div class="hero-mark">'+MARK_SVG+'</div>'
+    + '<div class="hero-eyebrow">Itin\u00E9raire sur-mesure \u00B7 '+esc(it.country||it.dest)+'</div>'
     + '<h1>'+esc(it.dest)+'</h1>'
     + '<div class="hero-tag">'+esc(it.tag)+'</div>'
-    + '<div class="hero-pills">'
-    + '<span class="pill" style="color:'+sigColor+';border-color:'+hexA(sigColor,0.3)+'">'+esc(it.dates)+'</span>'
-    + '<span class="pill" style="color:'+(palette.beach||sigColor2)+';border-color:'+hexA(palette.beach||sigColor2,0.3)+'">'+it.days+' jours</span>'
-    + '<span class="pill" style="color:'+(palette.food||sigColor2)+';border-color:'+hexA(palette.food||sigColor2,0.3)+'">'+esc(it.level)+'</span>'
-    + '<span class="pill" style="color:'+PDF_THEME.sub+';border-color:'+PDF_THEME.line+'">'+travelerLabel()+'</span>'
+    + '<div class="hero-meta">'+esc(it.dates||'')+' \u00B7 '+esc(travelerLabel())+(it.coords?' \u00B7 '+esc(it.coords):'')+(it.season?' \u00B7 '+esc(it.season):'')+'</div>'
+    + '<div class="hero-specs">'
+    +   '<div class="hero-spec"><div class="hero-spec-l">Dur\u00E9e</div><div class="hero-spec-v">'+it.days+' jours</div></div>'
+    +   '<div class="hero-spec"><div class="hero-spec-l">\u00C9tapes</div><div class="hero-spec-v">'+stops.length+'</div></div>'
+    +   '<div class="hero-spec"><div class="hero-spec-l">Niveau</div><div class="hero-spec-v">'+esc(it.level)+'</div></div>'
+    +   '<div class="hero-spec"><div class="hero-spec-l">Budget</div><div class="hero-spec-v">'+eur(it.budgetTotal)+'</div></div>'
     + '</div>'
-    + '<div class="hero-meta">'+esc(it.coords||'')+(it.season?' \u00B7 '+esc(it.season):'')+'</div>'
     + '</section>'
-    + '<div class="timeline-wrap"><div class="tl-label">Circuit complet</div><div class="timeline">'+timelineHTML+'</div></div>'
+    + '<div class="timeline-wrap"><div class="tl-label">Circuit complet \u00B7 '+stops.length+' \u00E9tape'+(stops.length>1?'s':'')+'</div><div class="timeline">'+timelineHTML+'</div></div>'
     + '<div class="legend-bar">'+legendHTML+'</div>'
     + sectionHTML
     + gemsHTML
     + essentialsHTML
     + budgetHTML
-    + '<div class="foot"><h3>Beau voyage \u2728</h3><div class="foot-line"></div>'
+    + '<div class="foot"><div class="foot-mark">'+MARK_SVG+'</div><h3>Beau voyage \u2728</h3><div class="foot-line"></div>'
     + '<p>'+esc(it.dest)+' \u00B7 '+esc(it.dates)+' \u00B7 Hic Sunt \u00B7 Beyond the Known</p></div>'
     + '</body></html>';
 
