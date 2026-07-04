@@ -538,6 +538,7 @@ function buildSkeletonPrompt(dc, batchSize, offset){
     '7. SKY : sun, cloud, ou rain uniquement.',
     '8. JSON valide compact. Zéro texte autour.',
     '9. JAMAIS de référence de jour dans un champ texte ("J8", "Jour 10", "J10-12", "jours 8 à 10", etc.) — le numéro de jour est déjà déterminé par la position dans "plan", ne JAMAIS l\'écrire dans "title" ni "hook". Ces champs décrivent le LIEU/l\'activité, jamais le calendrier.',
+    (dc<=6 ? '10. VOYAGE COURT ('+dc+' jours) : rester dans UNE SEULE région compacte, PAS d\'aller-retour lointain qui sacrifie plusieurs jours au seul trajet. Un transfert de plus de 2h ne se justifie QUE s\'il est suivi d\'au moins 2 nuits sur place — jamais pour une seule nuit isolée avant de repartir. Mieux vaut 2-3 zones proches et bien vécues qu\'une zone lointaine ajoutée juste pour la "cocher".' : '10. RÉPARTITION : plus le voyage est long, plus chaque zone doit avoir un nombre de nuits proportionnel à la distance parcourue pour l\'atteindre — un aller-retour lointain ne se justifie que par un séjour sur place d\'au moins 2-3 nuits.'),
   ];
 
   if(isFirst){
