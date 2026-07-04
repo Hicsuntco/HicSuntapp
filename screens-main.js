@@ -15,7 +15,7 @@ const DEST_MUSE = [
 function tileHTML(key){
   const d = DESTS[key];
   return '<div class="tile" onclick="openDest(\'' + key.replace(/'/g, "\\'") + '\')">'
-    + '<div class="wash" style="background:' + d.bg + '"></div>'
+    + '<div class="wash" style="' + destBgStyle(key) + '"></div>'
     + '<span class="wm">' + ico(d.i, 30, 1.3) + '</span>'
     + '<span class="code">' + (DEST_CODES[key] || '—') + '</span>'
     + '<div class="t-cap"><div class="t-n">' + esc(key) + '</div><div class="t-rule"></div><div class="t-r">' + esc(d.r) + '</div></div>'
@@ -234,6 +234,28 @@ function destBg(name){
   for(const pat in DEST_BG_MAP){ if(k.includes(_stripAccents(pat))){ pair=DEST_BG_MAP[pat]; break; } }
   return 'linear-gradient(135deg,'+pair[0]+' 0%,'+pair[1]+' 100%)';
 }
+/* Photos libres de droit (Wikimedia Commons, voir images/dest/CREDITS.md) —
+   utilisées quand disponibles pour la destination, sinon on retombe sur le
+   dégradé de destBg(). Bali partage la photo de l'Indonésie. */
+const DEST_PHOTO_MAP = {
+  'sri lanka':'sri-lanka', 'japon':'japon', 'maroc':'maroc', 'portugal':'portugal',
+  'islande':'islande', 'perou':'perou', 'thailande':'thailande', 'kenya':'kenya',
+  'indonesie':'indonesie', 'bali':'indonesie', 'sardaigne':'sardaigne',
+};
+function destPhoto(name){
+  const k=_stripAccents(name);
+  for(const pat in DEST_PHOTO_MAP){ if(k.includes(_stripAccents(pat))) return 'images/dest/'+DEST_PHOTO_MAP[pat]+'.jpg'; }
+  return null;
+}
+/* Style de fond à appliquer au conteneur hero d'une destination : photo si on
+   en a une, sinon le dégradé de secours — à utiliser avec .hero-veil pour la
+   lisibilité du texte par-dessus. */
+function destBgStyle(name){
+  const photo = destPhoto(name);
+  return photo
+    ? 'background-image:url(\''+photo+'\');background-size:cover;background-position:center'
+    : 'background:'+destBg(name);
+}
 function destIcon(name){ const k=_stripAccents(name); if(/japon|tokyo|kyoto/.test(k)) return 'arch'; if(/maroc|marrakech/.test(k)) return 'compass'; if(/islande/.test(k)) return 'peaks'; if(/safari|kenya|afrique/.test(k)) return 'leaf'; if(/bali|indonesie|philippines|thailande|vietnam/.test(k)) return 'leaf'; if(/perou|andes/.test(k)) return 'peaks'; return 'compass'; }
 function _destAccent(dest){
   const theme = (typeof _themeForDestination === 'function') ? _themeForDestination(dest, '', '') : 'mediterranean';
@@ -250,7 +272,7 @@ const OCC_LABELS = {
   'pro':          {label:'Voyage pro',    ic:'doc'},
 };
 function savedTripCard(it){
-  const bg = destBg(it.destination);
+  const bgStyle = destBgStyle(it.destination);
   const icon = destIcon(it.destination);
   const occ = it.occasion || (it.data && it.data.occasion) || '';
   const occInfo = OCC_LABELS[occ];
@@ -263,7 +285,8 @@ function savedTripCard(it){
   if(isDraft){
     return '<div class="trip-card draft" onclick="loadSavedItinerary(\''+it.id+'\')">'
       +'<button class="trip-del" onclick="event.stopPropagation();deleteSavedItinerary(\''+it.id+'\')" aria-label="Supprimer">'+ico('close',14,2)+'</button>'
-      +'<div class="trip-card-hero" style="background:'+bg+'">'
+      +'<div class="trip-card-hero" style="'+bgStyle+'">'
+      +  '<div class="hero-veil"></div>'
       +  '<span class="trip-card-wm">'+ico(icon,44,1.1)+'</span>'
       +  '<span class="trip-card-draft-badge"><span class="dot"></span><span>Brouillon</span></span>'
       +'</div>'
@@ -297,7 +320,8 @@ function savedTripCard(it){
 
   return '<div class="trip-card" onclick="loadSavedItinerary(\''+it.id+'\')">'
     +'<button class="trip-del" onclick="event.stopPropagation();deleteSavedItinerary(\''+it.id+'\')" aria-label="Supprimer">'+ico('close',14,2)+'</button>'
-    +'<div class="trip-card-hero" style="background:'+bg+'">'
+    +'<div class="trip-card-hero" style="'+bgStyle+'">'
+    +  '<div class="hero-veil"></div>'
     +  '<span class="trip-card-wm">'+ico(icon,64,1.1)+'</span>'
     +  (coords ? '<span class="trip-card-coords mono">'+esc(coords)+'</span>' : '')
     +  (occInfo ? '<span class="trip-card-badge"><span>'+ico(occInfo.ic,11,1.7)+'</span><span class="mono">'+esc(occInfo.label)+'</span></span>' : '')
