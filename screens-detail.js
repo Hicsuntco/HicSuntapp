@@ -363,7 +363,7 @@ function accThemeAccent(a, it){
 /* Nom propre d'un hébergement : si a.n est vide ou un simple numéro, tenter
    d'extraire le vrai nom depuis le blurb (souvent "Nom — description"), sinon fallback. */
 function accDisplayName(a){
-  var dispName = (a.n||'').trim();
+  var dispName = String(a.n||'').trim();
   if(!dispName || /^\d+$/.test(dispName)){
     var fromBlurb = (a.blurb||'').split(/[—–\-,]/)[0].trim();
     dispName = (fromBlurb && fromBlurb.length>2 && !/^\d+$/.test(fromBlurb)) ? fromBlurb : (a.type||'Hébergement');

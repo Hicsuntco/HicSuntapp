@@ -1255,7 +1255,7 @@ document.addEventListener('DOMContentLoaded', function(){
     var guests=(state&&state.travelers)||2;
     var checkin=it.dateFrom||'';
     var checkout=it.dateTo||'';
-    var name=(a.n||'').trim();
+    var name=String(a.n||'').trim();
     var loc=(a.loc||it.dest||'').trim();
     var nameQ=encodeURIComponent(name);
     var cityQ=encodeURIComponent(loc);
@@ -1579,7 +1579,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
     accs.forEach(function(a){
       var price=Number(a.price)||0, nights=Number(a.nights)||1;
-      var name=(a.n||'').trim();
+      var name=String(a.n||'').trim();
       var loc=(a.loc||it.dest||'').trim();
       var fullQ=encodeURIComponent(name+(loc?', '+loc:''));
       var nameLoc=encodeURIComponent(name+(loc?' '+loc:''));
