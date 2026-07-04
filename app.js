@@ -202,7 +202,7 @@ function setTab(name){
       }
       if (name === 'create')   v.innerHTML = createView();
       if (name === 'voyages')  { v.innerHTML = voyagesView(); loadVoyagesTab(); }
-      if (name === 'profile')  v.innerHTML = profileView();
+      if (name === 'profile')  { v.innerHTML = profileView(); if(typeof loadProfileTab === 'function') loadProfileTab(); }
       v.scrollTop = 0;
     }
   }
@@ -639,6 +639,68 @@ async function loadItineraries(){
   /* Pas de cloud : renvoyer les locaux (ou tableau vide, jamais null si on a du local) */
   return localTrips.length ? localTrips : (token ? [] : null);
 }
+
+/* ── Mon Cercle · compagnons de route (table Supabase "travel_companions") ──
+   Liste personnelle (pas de mécanisme d'acceptation mutuelle — chacun compose
+   son propre cercle) : nécessite la table ci-dessous, à créer une fois dans
+   l'éditeur SQL Supabase du projet (voir NOTES_MON_CERCLE.sql à la racine du
+   repo pour le script complet). Sans compte connecté, la fonctionnalité est
+   simplement indisponible (pas de repli localStorage : un cercle est une
+   donnée de compte, pas un brouillon local). */
+async function loadCompanions(){
+  const token = localStorage.getItem('sb_token');
+  if(!token) return [];
+  try{
+    const res = await fetch(SUPABASE_URL+'/rest/v1/travel_companions?select=*&order=created_at.asc',{
+      headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+token}
+    });
+    if(!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
+  }catch(e){ return []; }
+}
+async function addCompanion(name){
+  const token = localStorage.getItem('sb_token');
+  const userId = _getUserId();
+  if(!token || !userId) { toast('Connectez-vous pour composer votre Cercle'); return null; }
+  name = (name||'').trim();
+  if(!name) return null;
+  try{
+    const res = await fetch(SUPABASE_URL+'/rest/v1/travel_companions',{
+      method:'POST',
+      headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+token,'content-type':'application/json','Prefer':'return=representation'},
+      body:JSON.stringify({user_id:userId, name:name})
+    });
+    if(!res.ok) { toast('Impossible d\'ajouter ce compagnon'); return null; }
+    const rows = await res.json();
+    return Array.isArray(rows) ? rows[0] : null;
+  }catch(e){ toast('Impossible d\'ajouter ce compagnon'); return null; }
+}
+async function removeCompanion(id){
+  const token = localStorage.getItem('sb_token');
+  if(!token) return false;
+  try{
+    const res = await fetch(SUPABASE_URL+'/rest/v1/travel_companions?id=eq.'+encodeURIComponent(id),{
+      method:'DELETE',
+      headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+token}
+    });
+    return res.ok;
+  }catch(e){ return false; }
+}
+/* Invite un proche à rejoindre Hic Sunt — partage un lien, ne modifie pas
+   le Cercle : ajouter quelqu'un à son Cercle se fait par son prénom (voir
+   addCompanion), séparément de l'invitation à télécharger l'app. */
+async function inviteCompanion(){
+  const url = 'https://hic-suntapp.vercel.app/?ref=cercle';
+  const text = 'Rejoins-moi sur Hic Sunt pour composer des itinéraires de voyage sur-mesure : ' + url;
+  if(navigator.share){
+    try{ await navigator.share({ title:'Hic Sunt', text:text, url:url }); return; }
+    catch(e){ return; }
+  }
+  try{ await navigator.clipboard.writeText(text); toast('Lien copié — collez-le dans Messages'); }
+  catch(e){ toast('Partage indisponible sur ce navigateur'); }
+}
+
 /* ── Filtrage des itinéraires par onglet ─────────────────────────────── */
 function _classifyItinerary(it){
   const data = it.data || {};
@@ -1313,12 +1375,14 @@ document.addEventListener('DOMContentLoaded', function(){
     var historyHtml = history.length
       ? history.map(function(m){ return window._chatBubble(m.role, m.text); }).join('')
       : '<span class="day-sep">Assistant d\'itinéraire</span><div class="bub them">'+esc(intro)+'</div>';
+    var dayCount = (ITINERARY.plan||[]).length || ITINERARY.days || 0;
     var chatHtml = statusBar()
       +'<div class="chat-nav"><button class="nav-btn ghost" onclick="closeOverlay()" aria-label="Retour">'+ico('back',20,1.7)+'</button>'
       +  '<div class="chat-id"><span class="chat-av">'+ico('sparkle',18,1.6)+'<span class="on-dot"></span></span>'
-      +  '<span><span class="chat-n">Cartographe</span><br><span class="chat-st">Assistant · en ligne</span></span></div>'
+      +  '<span><span class="chat-n">Le cartographe</span><br><span class="chat-st">Compose votre sillage</span></span></div>'
       +  (history.length?'<button onclick="window._clearChat()" style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--sub);background:none;border:none;cursor:pointer;padding:6px;flex:none">Effacer</button>':'')
       +'</div>'
+      +  (ITINERARY.dest ? '<div class="chat-context">'+esc(ITINERARY.dest)+(dayCount?' · '+dayCount+' jour'+(dayCount>1?'s':''):'')+'</div>' : '')
       +'<div data-ai-chat class="chat-scroll">'
       +  historyHtml
       +'</div>'
@@ -1344,6 +1408,11 @@ document.addEventListener('DOMContentLoaded', function(){
   window._aiSend = async function(msg){
     if(!msg||!msg.trim()) return;
     msg = msg.trim();
+
+    /* Repères avant modification — pour afficher un delta réel (jours,
+       budget) dans la carte de confirmation, plutôt qu'un texte vague. */
+    var beforeDayCount = (ITINERARY.plan||[]).length;
+    var beforeBudget = ITINERARY.budgetTotal || 0;
 
     /* Initialiser et enregistrer dans l'historique de cet itinéraire */
     if(!ITINERARY.chatHistory || !Array.isArray(ITINERARY.chatHistory)) ITINERARY.chatHistory = [];
@@ -1417,8 +1486,11 @@ document.addEventListener('DOMContentLoaded', function(){
         return;
       }
 
-      /* Afficher la réponse */
-      chat.innerHTML += '<div class="bub them">'+esc(parsed.reply)+'</div>';
+      /* Afficher la réponse — les mentions "Jour N …" sont mises en valeur
+         (échappées d'abord, la mise en forme est ajoutée après coup : aucun
+         balisage venant de la réponse elle-même n'est jamais interprété). */
+      var replyHtml = esc(parsed.reply).replace(/(Jour\s+\d+[^.,;!?]*)/g, '<em class="chat-hl">$1</em>');
+      chat.innerHTML += '<div class="bub them">'+replyHtml+'</div>';
       /* Enregistrer dans l'historique de cet itinéraire et persister */
       ITINERARY.chatHistory.push({role:'assistant', text:parsed.reply, at:Date.now()});
       try{ saveChatHistory(); }catch(e){ console.warn('saveChatHistory:', e); }
@@ -1491,6 +1563,27 @@ document.addEventListener('DOMContentLoaded', function(){
 
       if(changed){
         ITINERARY._dirty = true;
+
+        /* Carte de confirmation façon "réservation" — jour touché + delta
+           réel de jours/budget, jamais un chiffre inventé. */
+        var afterDayCount = (ITINERARY.plan||[]).length;
+        var dayDelta = afterDayCount - beforeDayCount;
+        var budgetDelta = (ITINERARY.budgetTotal||0) - beforeBudget;
+        var touchedN = Array.isArray(changes.plan) && changes.plan.length ? changes.plan[changes.plan.length-1].n : null;
+        var touchedDay = touchedN != null ? (ITINERARY.plan||[]).find(function(p){ return p.n === touchedN; }) : null;
+        if(touchedDay || dayDelta || budgetDelta){
+          var cccTitle = touchedDay
+            ? ('Jour '+touchedDay.n+(dayDelta>0?' ajouté':' modifié')+(touchedDay.loc?' · '+esc(touchedDay.loc):''))
+            : 'Itinéraire mis à jour';
+          var cccParts = [];
+          if(dayDelta) cccParts.push((dayDelta>0?'+':'')+dayDelta+' jour'+(Math.abs(dayDelta)>1?'s':''));
+          if(budgetDelta) cccParts.push('budget '+(budgetDelta>0?'+':'-')+eur(Math.abs(budgetDelta)));
+          chat.innerHTML += '<div class="chat-change-card"><span class="ccc-ico">'+ico('cal',18,1.6)+'</span>'
+            + '<div><div class="ccc-t">'+cccTitle+'</div>'
+            + (cccParts.length ? '<div class="ccc-s">'+cccParts.join(' · ')+'</div>' : '')
+            + '</div></div>';
+        }
+
         /* Bloc d'actions : voir + enregistrer (avec choix remplacer/garder les deux) */
         var actionsHTML = '<div style="margin:10px 0 4px 40px;display:flex;flex-direction:column;gap:8px;align-items:flex-start">'
           + '<button onclick="_returnToUpdatedItinerary()" style="background:var(--ink);color:var(--bg);border:none;border-radius:12px;padding:10px 16px;font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer">Voir l\'itinéraire mis à jour →</button>'

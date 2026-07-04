@@ -355,8 +355,21 @@
   box-shadow:0 2px 12px rgba(122,93,46,0.35);
 }
 .on-dot{position:absolute;bottom:1px;right:1px;width:10px;height:10px;border-radius:50%;background:#34C759;border:2px solid var(--bg)}
-.chat-n{font-size:15px;font-weight:600;letter-spacing:-0.2px;color:var(--ink)}
-.chat-st{font-family:var(--mono);font-size:9px;letter-spacing:0.8px;color:var(--sub);text-transform:uppercase;margin-top:1px}
+.chat-n{font-family:var(--serif);font-size:19px;font-weight:600;letter-spacing:-0.2px;color:var(--ink);line-height:1.15}
+.chat-st{font-family:var(--mono);font-size:8.5px;letter-spacing:1.4px;color:var(--sub);text-transform:uppercase;margin-top:2px}
+.chat-context{text-align:center;font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--sub);padding:10px 0 2px;flex:none;background:var(--bg)}
+/* ── Carte de changement appliqué (façon "réservation confirmée") ── */
+.chat-change-card{
+  align-self:flex-start;max-width:86%;margin:2px 0 4px 4px;
+  display:flex;align-items:center;gap:12px;
+  padding:12px 14px;border-radius:16px;
+  background:var(--surface);border:1px solid var(--line);
+}
+.ccc-ico{width:34px;height:34px;border-radius:10px;background:var(--ink);color:var(--gold-bright);display:flex;align-items:center;justify-content:center;flex:none}
+.ccc-t{font-family:var(--serif-text);font-weight:600;font-size:14px;color:var(--ink);line-height:1.3}
+.ccc-s{font-family:var(--mono);font-size:9.5px;letter-spacing:.5px;color:var(--gold-deep);text-transform:uppercase;margin-top:3px}
+/* mise en avant d'un repère de jour dans une réponse ("Jour 5 — flâner") */
+.chat-hl{font-family:var(--serif-text);font-style:italic;color:var(--gold-deep);font-weight:600}
 .chat-scroll{
   flex:1;overflow-y:auto;
   padding:16px 14px;
