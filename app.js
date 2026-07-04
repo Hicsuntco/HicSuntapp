@@ -256,8 +256,12 @@ function openDest(key){ openOverlay('destination', destinationView(key)); }
 function openDay(i){ openOverlay('day', dayDetailView(i)); }
 function openBooking(id){ openOverlay('booking', bookingView(id)); }
 function openMapOv(){
-  openOverlay('map', mapView());
+  const el = openOverlay('map', mapView());
   if(typeof renderHicSuntMap === 'function') renderHicSuntMap('hs-map-full', { dest: ITINERARY.dest, plan: ITINERARY.plan, activeIdx: state.mapDay||0, interactive:true, padding:72 });
+  requestAnimationFrame(function(){
+    var chip = el.querySelector('.map-chip.on');
+    if(chip) chip.scrollIntoView({ behavior:'auto', block:'nearest', inline:'center' });
+  });
 }
 function composeFromDest(key){
   state.destination = key;
@@ -1115,8 +1119,18 @@ document.addEventListener('DOMContentLoaded', function(){
     if(el&&el.dataset.ov==='map'){
       el.innerHTML=window.mapView();
       if(typeof renderHicSuntMap === 'function') renderHicSuntMap('hs-map-full', { dest: ITINERARY.dest, plan: ITINERARY.plan, activeIdx: i, interactive:true, padding:72 });
+      _hsScrollChipIntoView(el);
     }
   };
+  /* Fait défiler le rail des jours pour garder la puce sélectionnée visible —
+     sans ça, choisir un jour hors du cadre visible (ex. J9) change le contenu
+     mais laisse le rail affiché sur les puces précédentes, sans puce active visible. */
+  function _hsScrollChipIntoView(container){
+    requestAnimationFrame(function(){
+      var chip = container.querySelector('.map-chip.on');
+      if(chip) chip.scrollIntoView({ behavior:'smooth', block:'nearest', inline:'center' });
+    });
+  }
 
   window.shareView = function(){
     var it=ITINERARY;

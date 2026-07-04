@@ -168,35 +168,88 @@ function renderHicSuntMap(elId, opts){
       const iso2 = _destIso2(opts.dest);
       const destSuffix = opts.dest ? (', ' + opts.dest) : '';
 
+      /* Position (dans stops[]) de l'étape du jour actif : la dernière étape
+         dont l'index de plan précède ou égale le jour consulté. */
+      let activePos = -1;
+      if(opts.activeIdx != null){
+        activePos = 0;
+        for(let k=0; k<stops.length; k++){ if(stops[k].idx <= opts.activeIdx) activePos = k; }
+      }
+
+      /* Ordre de géocodage : si un jour est actif, on part de son étape et on
+         alterne vers les voisins, pour que la carte se centre vite sur le
+         jour consulté au lieu d'attendre le géocodage séquentiel de tout le
+         voyage (un itinéraire qui traverse tout un archipel peut prendre
+         plusieurs dizaines de secondes en séquentiel). Sinon (aperçu global,
+         sans jour actif) on garde l'ordre naturel du voyage. */
+      const order = [];
+      if(activePos >= 0){
+        order.push(activePos);
+        for(let d=1; d<stops.length; d++){
+          if(activePos + d < stops.length) order.push(activePos + d);
+          if(activePos - d >= 0) order.push(activePos - d);
+        }
+      } else {
+        for(let k=0; k<stops.length; k++) order.push(k);
+      }
+
+      const resolved = new Array(stops.length).fill(null);
+      const drawnSeg = {};
+      let focusBounds = null; /* limité au jour actif ± voisins immédiats */
+      let allBounds = null; /* aperçu global (pas de jour actif) */
+
       (async function(){
         try{
-          const pts = [];
-          for(let i=0; i<stops.length; i++){
+          for(let oi=0; oi<order.length; oi++){
+            const pos = order[oi];
             if(window._hsMaps[elId] !== map) return; /* cette carte a été détruite ou remplacée entretemps */
-            const result = await _geocode(stops[i].loc + destSuffix, iso2);
+            const result = await _geocode(stops[pos].loc + destSuffix, iso2);
             if(window._hsMaps[elId] !== map) return; /* détruite/remplacée pendant le géocodage */
             if(result && result.pt){
               const g = result.pt;
-              pts.push({ lat:g.lat, lng:g.lng, idx: stops[i].idx });
-              const isActive = opts.activeIdx != null && stops[i].idx === opts.activeIdx;
-              const kind = isActive ? 'active' : (i === 0 || i === stops.length - 1 ? 'end' : 'mid');
-              L.marker([g.lat, g.lng], { icon: _hsMarkerIcon(kind, stops[i].loc) }).addTo(map);
-              if(pts.length > 1){
-                const prev = pts[pts.length - 2];
-                /* Tracé complet en pointillés fins */
-                L.polyline([[prev.lat, prev.lng], [g.lat, g.lng]], { color:'#221E18', weight:2, opacity:.38, dashArray:'2 8', lineCap:'round' }).addTo(map);
-                /* Étape en cours mise en avant par un trait plein doré */
-                if(isActive){
-                  L.polyline([[prev.lat, prev.lng], [g.lat, g.lng]], { color:'#A6824A', weight:4, lineCap:'round' }).addTo(map);
+              resolved[pos] = g;
+              const isActive = pos === activePos;
+              const kind = isActive ? 'active' : (pos === 0 || pos === stops.length - 1 ? 'end' : 'mid');
+              L.marker([g.lat, g.lng], { icon: _hsMarkerIcon(kind, stops[pos].loc) }).addTo(map);
+
+              /* Relier les étapes adjacentes déjà résolues, dans l'ordre réel
+                 du voyage (indépendant de l'ordre de géocodage) — garantit un
+                 tracé fidèle même quand l'étape active est géocodée en premier. */
+              [pos - 1, pos + 1].forEach(function(n){
+                if(n < 0 || n >= stops.length) return;
+                const a = Math.min(pos, n), b = Math.max(pos, n);
+                const key = a + '-' + b;
+                if(drawnSeg[key] || !resolved[a] || !resolved[b]) return;
+                drawnSeg[key] = true;
+                const pa = resolved[a], pb = resolved[b];
+                L.polyline([[pa.lat, pa.lng], [pb.lat, pb.lng]], { color:'#221E18', weight:2, opacity:.38, dashArray:'2 8', lineCap:'round' }).addTo(map);
+                if(a === activePos || b === activePos){
+                  L.polyline([[pa.lat, pa.lng], [pb.lat, pb.lng]], { color:'#A6824A', weight:4, lineCap:'round' }).addTo(map);
                 }
-              }
+              });
+
               map.invalidateSize();
-              const latlngs = pts.map(function(p){ return [p.lat, p.lng]; });
-              if(latlngs.length > 1) map.fitBounds(latlngs, { padding:[opts.padding || 40, opts.padding || 40] });
-              else map.setView(latlngs[0], 12);
+              if(activePos >= 0){
+                /* Vue centrée sur le jour actif : n'inclure que son étape et
+                   ses voisins immédiats déjà résolus, jamais tout le voyage —
+                   sinon un itinéraire étalé sur tout un archipel force un
+                   zoom arrière qui ne montre plus rien de précis. */
+                if(pos >= activePos - 1 && pos <= activePos + 1){
+                  const ll = L.latLng(g.lat, g.lng);
+                  focusBounds = focusBounds ? focusBounds.extend(ll) : L.latLngBounds(ll, ll);
+                  if(focusBounds.getNorthEast().equals(focusBounds.getSouthWest())) map.setView(focusBounds.getCenter(), 11);
+                  else map.fitBounds(focusBounds, { padding:[opts.padding || 40, opts.padding || 40], maxZoom:12 });
+                }
+              } else {
+                /* Aperçu global : on garde le comportement historique (tout inclure). */
+                const ll = L.latLng(g.lat, g.lng);
+                allBounds = allBounds ? allBounds.extend(ll) : L.latLngBounds(ll, ll);
+                if(allBounds.getNorthEast().equals(allBounds.getSouthWest())) map.setView(allBounds.getCenter(), 12);
+                else map.fitBounds(allBounds, { padding:[opts.padding || 40, opts.padding || 40] });
+              }
             }
             /* Respecter la limite Nominatim (≈1 req/s) seulement pour les vrais appels réseau */
-            if(i < stops.length - 1 && (!result || !result.cached)) await new Promise(function(r){ setTimeout(r, 1100); });
+            if(oi < order.length - 1 && (!result || !result.cached)) await new Promise(function(r){ setTimeout(r, 1100); });
           }
         }catch(err){
           console.error('[renderHicSuntMap] géocodage:', err);
