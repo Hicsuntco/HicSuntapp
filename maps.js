@@ -80,6 +80,36 @@ async function _geocode(query, iso2){
     return { pt: pt, cached: false };
   }catch(e){ return null; }
 }
+/* Certains lieux générés par l'IA sont préfixés d'un mot générique
+   ("Aéroport Manado Sam Ratulangi", "Gare de X"...) que Nominatim ne
+   reconnaît pas tel quel — contrairement à "Manado Sam Ratulangi" ou
+   "Manado" seul, qui résolvent très bien. Sans repli, ce genre de libellé
+   fait échouer le géocodage silencieusement : le marqueur et le recentrage
+   de la carte sur cette étape n'ont jamais lieu (la carte reste bloquée sur
+   la vue de secours très large, comme si elle "ne s'adaptait plus"). */
+const _GEO_GENERIC_PREFIX = /^(l['’]\s*)?(a[eé]roport(?:\s+(?:de|international)?)?|gare(?:\s+de)?|port(?:\s+de)?|ville\s+de|centre[- ]ville\s+de)\s+/i;
+function _geoQueryVariants(loc){
+  const base = (loc || '').trim();
+  const variants = [base];
+  const stripped = base.replace(_GEO_GENERIC_PREFIX, '').trim();
+  if(stripped && stripped.toLowerCase() !== base.toLowerCase()) variants.push(stripped);
+  const words = base.split(/\s+/).filter(Boolean);
+  if(words.length > 2){
+    const lastTwo = words.slice(-2).join(' ');
+    if(!variants.some(function(v){ return v.toLowerCase() === lastTwo.toLowerCase(); })) variants.push(lastTwo);
+  }
+  return variants;
+}
+async function _geocodeWithFallback(loc, destSuffix, iso2){
+  const variants = _geoQueryVariants(loc);
+  let result = null;
+  for(let i=0; i<variants.length; i++){
+    result = await _geocode(variants[i] + destSuffix, iso2);
+    if(result && result.pt) return result;
+    if(i < variants.length - 1) await new Promise(function(r){ setTimeout(r, 1100); });
+  }
+  return null;
+}
 function _destIso2(dest){
   const shape = (typeof _geoShapeSD === 'function') ? _geoShapeSD(dest) : null;
   return (shape && DEST_ISO2[shape.key]) || '';
@@ -216,7 +246,7 @@ function renderHicSuntMap(elId, opts){
           for(let oi=0; oi<order.length; oi++){
             const pos = order[oi];
             if(window._hsMaps[elId] !== map) return; /* cette carte a été détruite ou remplacée entretemps */
-            const result = await _geocode(stops[pos].loc + destSuffix, iso2);
+            const result = await _geocodeWithFallback(stops[pos].loc, destSuffix, iso2);
             if(window._hsMaps[elId] !== map) return; /* détruite/remplacée pendant le géocodage */
             if(result && result.pt){
               const g = result.pt;
