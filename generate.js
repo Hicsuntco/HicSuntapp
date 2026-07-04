@@ -911,7 +911,10 @@ function applyGenerated(skel, daysDetail, hilites, flightInfo){
       price=Math.max(accRange[0],Math.min(accRange[1],Math.round(price*vary)));
     }
     return {
-      id:'a'+(i+1), n:s.name||('Hébergement '+(i+1)), i:_stayIcon(s.type),
+      /* String(...) : l'IA renvoie parfois "name" comme un nombre nu plutôt
+         qu'une chaîne — sans coercion, le nombre reste tel quel (truthy) et
+         casse tout code qui appelle .trim()/.toLowerCase() sur "n" plus loin. */
+      id:'a'+(i+1), n:String(s.name||('Hébergement '+(i+1))), i:_stayIcon(s.type),
       type:s.type||'Hôtel-boutique', loc:s.loc||dest,
       tag:stayTags[i%stayTags.length]||'Sélection', rate:stayRates[i%stayRates.length]||'4,9',
       nights:_clampInt(s.nights,1,21,2), price:price,
@@ -925,8 +928,8 @@ function applyGenerated(skel, daysDetail, hilites, flightInfo){
   const findStay=function(name){
     if(!name) return null;
     const k=String(name).toLowerCase().trim();
-    return stays.find(function(s){return s.n.toLowerCase()===k;})
-        ||stays.find(function(s){return s.n.toLowerCase().includes(k)||k.includes(s.n.toLowerCase());});
+    return stays.find(function(s){return String(s.n||'').toLowerCase()===k;})
+        ||stays.find(function(s){var sn=String(s.n||'').toLowerCase(); return sn.includes(k)||k.includes(sn);});
   };
 
   /* jours enrichis avec le détail éditorial + catégorie thématique */
