@@ -1007,8 +1007,12 @@ function applyGenerated(skel, daysDetail, hilites, flightInfo){
   _repairPlanTitles(plan);
 
   /* budget  -  calibré sur le niveau de confort, la durée et le nb de voyageurs */
+  /* fourchettes calibrées sur l'Europe de l'Ouest (colFactor=1)  -  ajustées
+     au coût de vie réel de la destination : sans ça, un Confort en
+     Indonésie (colFactor 0.55) était budgété au même prix/jour qu'en
+     Suisse, gonflant artificiellement le total affiché. */
   const PPD_RANGE={'Éco':[60,100],'Confort':[120,220],'Luxe':[250,500],'Ultra':[500,900]};
-  const ppd=PPD_RANGE[level]||PPD_RANGE['Confort'];
+  const ppd=(PPD_RANGE[level]||PPD_RANGE['Confort']).map(function(v){return Math.round(v*colFactor);});
   const travelers=_clampInt(state.travelers,1,12,2);
   const minBudget=Math.round(ppd[0]*travelers*dc);
   const maxBudget=Math.round(ppd[1]*travelers*dc);
@@ -1053,7 +1057,7 @@ function applyGenerated(skel, daysDetail, hilites, flightInfo){
     ITINERARY.budget_note=hilites.budget_note||'';
   }
 
-  deriveActivities(plan);
+  deriveActivities(plan, dest, skel.region, skel.country);
   const finalBudgetTotal=deriveBudget(stays, budgetTotal, dest, skel.region, skel.country, travelers, flightInfo);
   if(finalBudgetTotal && finalBudgetTotal!==budgetTotal) ITINERARY.budgetTotal=finalBudgetTotal;
   if(typeof SEASON!=='undefined'&&skel.season){SEASON.best=skel.season;SEASON.note=skel.season;}
@@ -1072,20 +1076,38 @@ function _isFreeActivity(m){
   if(m[4]===false) return false;
   return FREE_ACT_RX.test((m[2]||'')+' '+(m[3]||''));
 }
-function deriveActivities(plan){
+/* Un moment "transit" (ferry, vol, transfert, arrivée/départ terminal/port…)
+   n'est pas une activité réservable, même quand l'IA lui a attribué à tort
+   une icône thématique (ex: "Ternate port arrivée" en "arch") : sans ce
+   filtre textuel, ces créneaux de déplacement se retrouvent listés comme
+   de vraies expériences sur l'écran Activités. */
+const TRANSIT_ACT_RX=/\bvols?\b|aéro|ferry|traversée|transfert|embarquement|débarquement|\barriv[ée]e?\b|\bdépart\b|terminal|\bport\b/i;
+/* L'IA réutilise parfois pour "loc" le libellé du jour entier plutôt qu'un
+   lieu précis, notamment sur les jours de transfert ("Manado → Togian
+   Islands (320km)")  -  toutes les activités du jour héritaient alors du
+   MÊME trajet complet en sous-titre. On n'en garde que la destination. */
+function _actLocLabel(loc, fallback){
+  const s=String(loc||'').replace(/\(.*?\)/g,'').trim();
+  const parts=s.split(/→|->/);
+  const picked=(parts.length>1?parts[parts.length-1]:s).trim();
+  return picked || fallback || '';
+}
+function deriveActivities(plan, dest, region, country){
   if(typeof ACTIVITIES==='undefined') return;
   try{
+    const colFactor=Number(_costOfLivingFactor(dest, region, country))||1;
     const picks=[];
     (Array.isArray(plan)?plan:[]).forEach(function(p){
       (Array.isArray(p.moments)?p.moments:[]).forEach(function(m){
         /* exclure les transferts/déplacements : ce ne sont pas de vraies activités réservables */
         if(m[1]==='plane'||m[1]==='bed'||m[1]==='compass') return;
-        picks.push({day:p.n,i:m[1],n:m[2],loc:p.loc,tag:(TAG_MAP[m[1]]||TAG_MAP.pin)[1],free:_isFreeActivity(m)});
+        if(TRANSIT_ACT_RX.test((m[2]||'')+' '+(m[3]||''))) return;
+        picks.push({day:p.n,i:m[1],n:m[2],loc:_actLocLabel(p.loc, dest),tag:(TAG_MAP[m[1]]||TAG_MAP.pin)[1],free:_isFreeActivity(m)});
       });
     });
     ACTIVITIES.length=0;
     picks.forEach(function(a,i){
-      const base=a.free?0:(ACT_PRICE[a.i]||55)+(i%2?7:0);
+      const base=a.free?0:Math.round(((ACT_PRICE[a.i]||55)+(i%2?7:0))*colFactor);
       ACTIVITIES.push({id:'ac'+(i+1),day:a.day,i:a.i,n:a.n,loc:a.loc,dur:ACT_DUR[i%ACT_DUR.length],rate:['4,9','4,95','4,8','4,88','4,92','4,97'][i%6],price:base,tag:a.tag,free:a.free});
     });
     window._actSource = 'deriveActivities-ok (' + picks.length + ' picks bruts)';
