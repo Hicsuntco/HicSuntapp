@@ -241,6 +241,8 @@ const DEST_PHOTO_MAP = {
   'sri lanka':'sri-lanka', 'japon':'japon', 'maroc':'maroc', 'portugal':'portugal',
   'islande':'islande', 'perou':'perou', 'thailande':'thailande', 'kenya':'kenya',
   'indonesie':'indonesie', 'bali':'indonesie', 'sardaigne':'sardaigne',
+  'vietnam':'vietnam', 'italie':'italie', 'sicile':'sicile', 'grece':'grece',
+  'espagne':'espagne', 'croatie':'croatie', 'philippines':'philippines',
 };
 function destPhoto(name){
   const k=_stripAccents(name);
