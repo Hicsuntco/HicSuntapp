@@ -259,6 +259,80 @@ function destBgStyle(name){
     : 'background:'+destBg(name);
 }
 function destIcon(name){ const k=_stripAccents(name); if(/japon|tokyo|kyoto/.test(k)) return 'arch'; if(/maroc|marrakech/.test(k)) return 'compass'; if(/islande/.test(k)) return 'peaks'; if(/safari|kenya|afrique/.test(k)) return 'leaf'; if(/bali|indonesie|philippines|thailande|vietnam/.test(k)) return 'leaf'; if(/perou|andes/.test(k)) return 'peaks'; return 'compass'; }
+
+/* ── Profil · statistiques réelles ("carnet de voyage") ──────────────────
+   Regroupe les clés régionales de _geoShapeSD (ex. sardaigne, sicile, corse,
+   majorque, eoliennes) sous leur pays réel, pour que "pays visités" compte
+   des PAYS et pas des régions du même pays. */
+const REGION_TO_COUNTRY = {
+  sardaigne:'italie', sicile:'italie', eoliennes:'italie',
+  corse:'france', majorque:'espagne',
+};
+/* Code ISO 3166-1 alpha-3 + libellé par pays — clés = celles de _geoShapeSD
+   (après regroupement région → pays) plus les destinations du catalogue
+   Découvrir qui n'ont pas de forme géo dédiée (sri_lanka déjà présente). */
+const COUNTRY_META = {
+  france:{code:'FRA', label:'France'}, espagne:{code:'ESP', label:'Espagne'},
+  italie:{code:'ITA', label:'Italie'}, portugal:{code:'PRT', label:'Portugal'},
+  grece:{code:'GRC', label:'Grèce'}, maroc:{code:'MAR', label:'Maroc'},
+  japon:{code:'JPN', label:'Japon'}, thaïlande:{code:'THA', label:'Thaïlande'},
+  vietnam:{code:'VNM', label:'Vietnam'}, cambodge:{code:'KHM', label:'Cambodge'},
+  laos:{code:'LAO', label:'Laos'}, islande:{code:'ISL', label:'Islande'},
+  perou:{code:'PER', label:'Pérou'}, kenya:{code:'KEN', label:'Kenya'},
+  jordanie:{code:'JOR', label:'Jordanie'}, mexique:{code:'MEX', label:'Mexique'},
+  egypte:{code:'EGY', label:'Égypte'}, turquie:{code:'TUR', label:'Turquie'},
+  australie:{code:'AUS', label:'Australie'}, costa_rica:{code:'CRI', label:'Costa Rica'},
+  sri_lanka:{code:'LKA', label:'Sri Lanka'}, indonesie:{code:'IDN', label:'Indonésie'},
+  maldives:{code:'MDV', label:'Maldives'}, cuba:{code:'CUB', label:'Cuba'},
+  croatie:{code:'HRV', label:'Croatie'}, malte:{code:'MLT', label:'Malte'},
+  polynesie:{code:'PYF', label:'Polynésie'},
+};
+const WORLD_COUNTRIES_COUNT = 195;
+/* Clé pays (après regroupement région→pays) pour une destination libre —
+   null si non reconnue (destination composée par l'IA hors référentiel). */
+function _countryKeyFromDest(dest){
+  if(typeof _geoShapeSD !== 'function') return null;
+  const shape = _geoShapeSD(dest);
+  if(!shape || shape.key === '_default') return null;
+  return REGION_TO_COUNTRY[shape.key] || shape.key;
+}
+/* Style d'un badge pays du carnet de voyage : réutilise le dégradé/couleur
+   déjà défini pour les cards de destination (destBg), avec un fallback pour
+   les pays qui n'ont pas d'entrée dans DEST_BG_MAP. */
+function _countryBadgeBg(key, label){
+  const fallback = {
+    france:'#3E8FA6', cambodge:'#1F7A5C', laos:'#1F7A5C', jordanie:'#B5791F',
+    mexique:'#932E2E', egypte:'#B5791F', turquie:'#0E7490', australie:'#B5791F',
+    costa_rica:'#1F7A5C', cuba:'#932E2E', maldives:'#0E7490', malte:'#1D5D82',
+    polynesie:'#0E7490',
+  };
+  if(fallback[key]) return 'linear-gradient(135deg,'+fallback[key]+' 0%,'+fallback[key]+'CC 100%)';
+  return destBg(label);
+}
+/* Agrège les statistiques réelles depuis les voyages sauvegardés de la
+   personne (cloud + local) : pays distincts visités, nombre de voyages
+   composés, jours cumulés, et adresses (hébergements + pépites) sauvegardées.
+   Ne fabrique jamais de chiffre — une valeur manquante reste à 0. */
+async function loadProfileStats(){
+  const items = (typeof loadItineraries === 'function') ? (await loadItineraries() || []) : [];
+  const countries = {}; /* key -> {code,label} */
+  let totalDays = 0, addresses = 0;
+  items.forEach(function(it){
+    const dest = it.destination || (it.data && it.data.dest) || '';
+    const key = _countryKeyFromDest(dest);
+    if(key && COUNTRY_META[key] && !countries[key]) countries[key] = COUNTRY_META[key];
+    const data = it.data || {};
+    const days = Number(it.days || data.days) || (Array.isArray(data.plan) ? data.plan.length : 0);
+    totalDays += days;
+    addresses += (data.accommodations||[]).length + (data.gems||[]).length;
+  });
+  return {
+    voyages: items.length,
+    countries: Object.keys(countries).map(function(k){ return Object.assign({key:k}, countries[k]); }),
+    days: totalDays,
+    addresses: addresses,
+  };
+}
 function _destAccent(dest){
   const theme = (typeof _themeForDestination === 'function') ? _themeForDestination(dest, '', '') : 'mediterranean';
   return DEST_ACCENT_MAP[theme] || DEST_ACCENT_MAP.mediterranean;
@@ -363,12 +437,20 @@ function profileView(){
   const email = localStorage.getItem('hs_email') || '';
   /* Connecté si token présent OU email stocké (auth Google réussie) */
   const connected = !!token || !!email;
+  const premium = (typeof _hasActivePremiumStatus === 'function') && _hasActivePremiumStatus();
 
   const rows = [
-    ['compass','Mes préférences de voyage','Styles, budget et rythme par défaut', "openOverlay('prefs', prefsView())"],
+    ['sparkle','Cercle Hic Sunt', esc(CERCLE.tier) + ' · ' + CERCLE.points + ' points', 'openCercle()'],
+    ['compass','Préférences de voyage','Styles, budget et rythme par défaut', "openOverlay('prefs', prefsView())"],
+    ['star','Abonnement Premium', premium ? 'Actif' : 'Débloqué à l\'achat d\'un itinéraire', premium ? "openCercle()" : "setTab('create')"],
+    ['bookmark','Adresses sauvegardées','<span data-prof-addr-count>…</span>', "openSavedAddresses()"],
     ['bell','Notifications', (NOTIFS.filter(function(n){return n.unread;}).length || 'Aucune') + ' non lue' + (NOTIFS.filter(function(n){return n.unread;}).length>1?'s':''), "openOverlay('notifications', notificationsView())"],
   ];
   if(connected) rows.push(['logout','Déconnexion','', 'logout()']);
+
+  const statSkeleton = ['Pays','Voyages','Jours'].map(function(l){
+    return '<div class="prof-stat"><div class="ps-v">—</div><div class="ps-l">' + l + '</div></div>';
+  }).join('');
 
   return statusBar()
     + '<div class="px">'
@@ -377,15 +459,18 @@ function profileView(){
     +     '<div class="prof-id">'
     +       '<span class="avatar" style="width:64px;height:64px;font-size:22px">' + (USER.initials || '✦') + '</span>'
     +       '<div><div class="prof-n">' + esc(USER.full || USER.name || 'Voyageur') + '</div>'
-    +         '<div class="prof-m">' + (email ? esc(email) : 'Composez votre premier itinéraire') + '</div></div>'
+    +         (premium
+              ? '<div class="prof-badge">' + ico('sparkle',11,2) + '<span>Explorateur · Premium</span></div>'
+              : '<div class="prof-m">' + (email ? esc(email) : 'Composez votre premier itinéraire') + '</div>')
+    +       '</div>'
     +     '</div>'
     +   '</div>'
-    +   '<div class="prof-cercle-card" onclick="openCercle()">'
-    +     '<span class="pcc-ico">' + ico('sparkle', 20, 1.4) + '</span>'
-    +     '<div style="flex:1"><div class="pcc-t">Cercle Hic Sunt</div><div class="pcc-s">' + esc(CERCLE.tier) + ' · ' + CERCLE.points + ' points</div></div>'
-    +     '<span class="pcc-cta">Voir</span>'
-    +   '</div>'
-    +   '<div class="prof-list">' + rows.map(function(r){
+    +   '<div class="prof-stats" data-prof-stats>' + statSkeleton + '</div>'
+    +   '<div class="prof-circle-card" data-prof-circle><div class="cc-row"><div class="circle-empty-ico">' + ico('users',18,1.5) + '</div>'
+    +     '<div style="flex:1"><div class="cc-t">Mon Cercle</div><div class="cc-s">Chargement…</div></div></div></div>'
+    +   '<div class="section-h" style="margin-top:20px"><h2>Carnet de voyage</h2><span class="meta" data-prof-badges-meta>…</span></div>'
+    +   '<div class="prof-badges" data-prof-badges><div class="cv-empty">Chargement…</div></div>'
+    +   '<div class="prof-list" style="margin-top:20px">' + rows.map(function(r){
           return '<div class="row" onclick="' + r[3] + '">'
             + '<span class="r-ico">' + ico(r[0], 20, 1.5) + '</span>'
             + '<div class="r-main"><div class="r-t">' + r[1] + '</div>' + (r[2] ? '<div class="r-s">' + r[2] + '</div>' : '') + '</div>'
@@ -394,4 +479,126 @@ function profileView(){
     +   (connected ? '' : '<button class="btn" style="width:100%;margin-top:20px" onclick="openOverlay(\'welcome\', welcomeView(), {modal:true})">Se connecter</button>')
     +   '<p style="text-align:center;font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub);margin-top:32px">Hic Sunt · Beyond the Known</p>'
     + '</div>';
+}
+/* Remplit les blocs asynchrones du profil (stats, Cercle, carnet de voyage)
+   avec de vraies données — jamais de chiffre fabriqué : à vide, on l'affiche
+   comme tel plutôt que d'inventer une valeur. */
+async function loadProfileTab(){
+  const scope = screenEl();
+  if(!scope || !scope.querySelector('[data-prof-stats]')) return;
+  const connected = !!(localStorage.getItem('sb_token') || localStorage.getItem('hs_email'));
+
+  const statsP = (typeof loadProfileStats === 'function') ? loadProfileStats() : Promise.resolve({voyages:0,countries:[],days:0,addresses:0});
+  const companionsP = connected && typeof loadCompanions === 'function' ? loadCompanions() : Promise.resolve([]);
+  const [stats, companions] = await Promise.all([statsP, companionsP]);
+  window._profStats = stats;
+  window._profCompanions = companions;
+
+  const statsEl = scope.querySelector('[data-prof-stats]');
+  if(statsEl){
+    statsEl.innerHTML = [
+      [stats.countries.length, 'Pays'], [stats.voyages, 'Voyages'], [stats.days, 'Jours'],
+    ].map(function(s){
+      return '<div class="prof-stat"><div class="ps-v">' + s[0] + '</div><div class="ps-l">' + s[1] + '</div></div>';
+    }).join('');
+  }
+
+  const addrCount = scope.querySelector('[data-prof-addr-count]');
+  if(addrCount) addrCount.textContent = stats.addresses ? (stats.addresses + ' adresse' + (stats.addresses>1?'s':'')) : 'Aucune pour l\'instant';
+
+  const circleEl = scope.querySelector('[data-prof-circle]');
+  if(circleEl) circleEl.innerHTML = _circleCardHTML(companions, connected);
+
+  const badgesEl = scope.querySelector('[data-prof-badges]');
+  const badgesMeta = scope.querySelector('[data-prof-badges-meta]');
+  if(badgesMeta) badgesMeta.textContent = stats.countries.length + ' / ' + WORLD_COUNTRIES_COUNT + ' régions';
+  if(badgesEl){
+    badgesEl.innerHTML = stats.countries.map(function(c){
+      return '<div class="cv-badge" style="background:' + _countryBadgeBg(c.key, c.label) + '">'
+        + ico(destIcon(c.label), 22, 1.4) + '<span class="cv-code">' + c.code + '</span></div>';
+    }).join('') + '<div class="cv-badge-add" onclick="setTab(\'discover\')">' + ico('plus', 20, 1.6) + '</div>';
+  }
+}
+function _circleCardHTML(companions, connected){
+  const hues = ['#3EA07C','#2E9CC0','#E86B4A','#D4943A','#9B85CC'];
+  const shown = companions.slice(0,4);
+  const avatars = shown.map(function(c,i){
+    const initials = (c.name||'?').trim().split(/\s+/).map(function(w){ return w[0]||''; }).join('').toUpperCase().slice(0,2) || '?';
+    return '<span class="circle-av" style="background:' + hues[i%hues.length] + '">' + esc(initials) + '</span>';
+  }).join('');
+  const more = companions.length>4 ? '<span class="circle-av more">+' + (companions.length-4) + '</span>' : '';
+  const label = !connected ? 'Connectez-vous pour composer votre Cercle'
+    : companions.length === 0 ? 'Aucun compagnon pour l\'instant'
+    : companions.length + ' compagnon' + (companions.length>1?'s':'') + ' de route';
+  return '<div class="cc-row">'
+    + (companions.length ? '<div class="circle-avatars">' + avatars + more + '</div>' : '<div class="circle-empty-ico">' + ico('users',18,1.5) + '</div>')
+    + '<div style="flex:1;min-width:0"><div class="cc-t">Mon Cercle</div><div class="cc-s">' + esc(label) + '</div></div>'
+    + '</div>'
+    + '<div class="cc-actions">'
+    +   '<button class="cc-btn" onclick="inviteCompanion()">Inviter</button>'
+    +   '<button class="cc-btn ghost" onclick="openAddCompanion()">+ Ajouter</button>'
+    + '</div>';
+}
+/* Ajout d'un compagnon — petite bottom-sheet plutôt qu'un prompt() natif,
+   pour rester dans la direction visuelle de l'app. */
+function openAddCompanion(){
+  openOverlay('add-companion', addCompanionView(), {modal:true});
+  requestAnimationFrame(function(){
+    const inp = document.getElementById('companion-name');
+    if(inp) inp.focus();
+  });
+}
+function addCompanionView(){
+  return '<div class="ov-scroll px" style="padding-top:28px">'
+    +   '<div class="carte-handle-wrap"><div class="carte-handle"></div></div>'
+    +   '<h1 style="font-family:var(--serif);font-weight:600;font-size:22px;margin-bottom:6px">Ajouter un compagnon</h1>'
+    +   '<p style="color:var(--sub);font-size:13px;margin-bottom:18px">Un prénom suffit — retrouvez-le dans votre Cercle.</p>'
+    +   '<input id="companion-name" placeholder="Prénom" style="width:100%;padding:14px 16px;border-radius:14px;border:1px solid var(--line);background:var(--surface);font-size:15px;font-family:var(--sans)" onkeydown="if(event.key===\'Enter\'){event.preventDefault();window._submitCompanion()}">'
+    +   '<button class="btn" style="width:100%;margin-top:16px" onclick="window._submitCompanion()">Ajouter</button>'
+    + '</div>';
+}
+window._submitCompanion = async function(){
+  const inp = document.getElementById('companion-name');
+  const name = inp ? inp.value.trim() : '';
+  if(!name) return;
+  const row = (typeof addCompanion === 'function') ? await addCompanion(name) : null;
+  closeOverlay();
+  if(row){
+    toast(name + ' a rejoint votre Cercle ✓');
+    if(typeof loadProfileTab === 'function') loadProfileTab();
+  }
+};
+/* Liste agrégée des hébergements + pépites sauvegardés sur tous les voyages
+   (pas seulement le voyage en cours) — vue simple en lecture seule. */
+function openSavedAddresses(){
+  openOverlay('addresses', savedAddressesView());
+  _loadSavedAddressesBody();
+}
+function savedAddressesView(){
+  return statusBar() + navbar('Adresses sauvegardées')
+    + '<div class="ov-scroll px" data-addr-body>'
+    +   '<p style="text-align:center;padding:40px 0;color:var(--sub)">Chargement…</p>'
+    + '</div>';
+}
+async function _loadSavedAddressesBody(){
+  const body = document.querySelector('[data-addr-body]');
+  if(!body) return;
+  const items = (typeof loadItineraries === 'function') ? (await loadItineraries() || []) : [];
+  const rows = [];
+  items.forEach(function(it){
+    const dest = it.destination || (it.data && it.data.dest) || '';
+    const data = it.data || {};
+    (data.accommodations||[]).forEach(function(a){
+      rows.push({ n:a.n, sub:(a.type||'Hébergement') + ' · ' + esc(dest), i:'bed' });
+    });
+    (data.gems||[]).forEach(function(g){
+      rows.push({ n:g.name, sub:'Pépite · ' + esc(dest), i:'star' });
+    });
+  });
+  if(!rows.length){ body.innerHTML = '<p style="text-align:center;padding:40px 0;color:var(--sub);font-style:italic">Aucune adresse sauvegardée pour l\'instant.</p>'; return; }
+  body.innerHTML = '<span class="eyebrow" style="display:block;margin:10px 0 4px">' + rows.length + ' adresse' + (rows.length>1?'s':'') + '</span>'
+    + rows.map(function(r){
+      return '<div class="row"><span class="r-ico">' + ico(r.i,20,1.5) + '</span>'
+        + '<div class="r-main"><div class="r-t">' + esc(String(r.n||'Adresse')) + '</div><div class="r-s">' + r.sub + '</div></div></div>';
+    }).join('');
 }

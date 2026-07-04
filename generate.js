@@ -1807,6 +1807,18 @@ function _checkPaymentToken(dest, days){
   });
 }
 
+/* État premium affiché sur le profil : propriétaire toujours actif, sinon
+   au moins un déblocage payant encore valide (48h) — jamais un abonnement
+   récurrent fabriqué, puisque ce modèle n'existe pas côté paiement. */
+function _hasActivePremiumStatus(){
+  const email = (localStorage.getItem('hs_email')||'').toLowerCase().trim();
+  if(email==='charlottegperret@gmail.com') return true;
+  try{
+    const paid = JSON.parse(localStorage.getItem('hs_paid_tokens')||'[]');
+    const now = Date.now();
+    return paid.some(function(t){ return (now - t.ts) < 48*3600*1000; });
+  }catch(e){ return false; }
+}
 function _grantPayment(dest, days){
   const palier = _getPalier(days);
   const paid = JSON.parse(localStorage.getItem('hs_paid_tokens') || '[]');
