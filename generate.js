@@ -845,6 +845,44 @@ function _repairPlanTitles(plan){
     }catch(e){ console.warn('[_repairPlanTitles]', e && e.message || e); }
   });
 }
+/* Remplace les créneaux de vol inventés par l'IA (heures fictives) par le
+   vol réel trouvé sur le web (buildFlightSearchPrompt / _fetchFlightPriceFromWeb).
+   S'il n'y a pas de vol réel trouvé (recherche infructueuse = trajet sans vol
+   pertinent), on ne force rien : le jour garde ses moments tels quels. */
+/* Tronque les moments d'un jour au quota habituel SANS jamais retirer un vol
+   réel qu'on vient d'injecter  -  retire en priorité les autres moments,
+   en partant de la fin. */
+function _trimKeepFlights(moments, cap){
+  while(moments.length>cap){
+    let idx=-1;
+    for(let i=moments.length-1;i>=0;i--){ if(moments[i][1]!=='plane'){ idx=i; break; } }
+    if(idx<0) break; /* que des vols  -  rien de plus à retirer */
+    moments.splice(idx,1);
+  }
+}
+function _injectFlightMoments(plan, flightInfo, dest){
+  if(!Array.isArray(plan) || !plan.length || !flightInfo) return;
+  const origin = state.origin || 'Paris';
+  const cap = _momentsPerDay();
+  const first = plan[0], last = plan[plan.length-1];
+  /* voyage d'un seul jour : les deux vols tombent sur le même jour  -  ne
+     purger les moments "plane" inventés qu'une fois, avant d'injecter les deux. */
+  [first, last].forEach(function(p){ if(!Array.isArray(p.moments)) p.moments=[]; });
+  if(flightInfo.outbound || flightInfo.inbound){
+    first.moments = first.moments.filter(function(m){return m[1]!=='plane';});
+    if(last!==first) last.moments = last.moments.filter(function(m){return m[1]!=='plane';});
+  }
+  if(flightInfo.outbound){
+    const air = flightInfo.outbound.airline ? ('Vol '+flightInfo.outbound.airline) : 'Vol direct';
+    first.moments.unshift([flightInfo.outbound.arrTime, 'plane', 'Atterrissage à '+(first.loc||dest), air, false]);
+  }
+  if(flightInfo.inbound){
+    const air = flightInfo.inbound.airline ? ('Vol '+flightInfo.inbound.airline) : 'Vol direct';
+    last.moments.push([flightInfo.inbound.depTime, 'plane', 'Envol retour vers '+origin, air, false]);
+  }
+  _trimKeepFlights(first.moments, cap);
+  if(last!==first) _trimKeepFlights(last.moments, cap);
+}
 
 /* ── application du JSON → ITINERARY ────────────────────────────────── */
 /* Format compact et TOUJOURS cohérent d'une plage de dates (indépendant du
@@ -964,6 +1002,7 @@ function applyGenerated(skel, daysDetail, hilites, flightInfo){
     };
   });
   if(!plan.length) return false;
+  _injectFlightMoments(plan, flightInfo, dest);
   _repairPlanMoments(plan);
   _repairPlanTitles(plan);
 
@@ -1244,17 +1283,24 @@ function _isDestinationValid(dest, country, days){
   return true;
 }
 
-/* ── recherche web du prix de vol (appel séparé, avec fallback statique) ── */
+/* ── recherche web du prix + horaires de vol réels (avec fallback statique) ── */
 function buildFlightSearchPrompt(dest, country, dateFrom, dateTo, travelers){
   const origin = state.origin || 'Paris';
-  const period = (dateFrom && dateTo) ? ('autour des dates '+dateFrom+' au '+dateTo) : 'pour les prochains mois';
+  const period = (dateFrom && dateTo) ? ('le '+dateFrom+' (aller) et le '+dateTo+' (retour)') : 'pour les prochains mois';
   return [
-    'Cherche sur le web une fourchette de prix réaliste et actuelle pour un vol aller-retour en classe économique de '+origin+' vers '+(dest||'')+' ('+(country||'')+'), '+period+'.',
-    'Base-toi sur des comparateurs de vols fiables (Google Flights, Kayak, Skyscanner, sites de compagnies aériennes).',
+    'Cherche sur le web un vol aller-retour réaliste et actuel en classe économique de '+origin+' vers '+(dest||'')+' ('+(country||'')+'), '+period+'.',
+    'Base-toi sur des comparateurs de vols fiables (Google Flights, Kayak, Skyscanner, sites de compagnies aériennes) pour le prix ET les horaires (compagnie, heures de départ/arrivée réalistes pour cette liaison, avec éventuelle escale).',
     'Réponds UNIQUEMENT en JSON compact, sans texte ni markdown autour, au format exact :',
-    '{"perPersonMin":0,"perPersonMax":0,"source":"nom du comparateur utilisé"}',
-    'Les deux valeurs sont en euros, par personne, aller-retour. Si tu ne trouves rien de fiable, réponds {"perPersonMin":0,"perPersonMax":0,"source":""}.',
+    '{"perPersonMin":0,"perPersonMax":0,"source":"nom du comparateur utilisé",'
+    +'"outbound":{"airline":"","depTime":"HH:MM","arrTime":"HH:MM"},'
+    +'"inbound":{"airline":"","depTime":"HH:MM","arrTime":"HH:MM"}}',
+    '"outbound" = vol aller (départ '+origin+', arrivée près de '+(dest||'')+') le jour '+(dateFrom||'du début du séjour')+'.',
+    '"inbound" = vol retour (départ près de '+(dest||'')+', arrivée '+origin+') le jour '+(dateTo||'de fin du séjour')+'.',
+    'Les prix sont en euros, par personne, aller-retour. Si tu ne trouves rien de fiable, réponds {"perPersonMin":0,"perPersonMax":0,"source":"","outbound":null,"inbound":null}.',
   ].join('\n');
+}
+function _validFlightLeg(leg){
+  return !!(leg && typeof leg==='object' && /^\d{1,2}:\d{2}$/.test(leg.depTime||'') && /^\d{1,2}:\d{2}$/.test(leg.arrTime||''));
 }
 async function _fetchFlightPriceFromWeb(dest, country, dateFrom, dateTo, travelers){
   try{
@@ -1271,7 +1317,11 @@ async function _fetchFlightPriceFromWeb(dest, country, dateFrom, dateTo, travele
     if(!j || !j.perPersonMin || !j.perPersonMax) return null;
     const perPerson = Math.round((j.perPersonMin+j.perPersonMax)/2);
     if(!isFinite(perPerson) || perPerson<=0) return null;
-    return { amount: perPerson*Math.max(1,travelers||1), source: j.source||'' };
+    return {
+      amount: perPerson*Math.max(1,travelers||1), source: j.source||'',
+      outbound: _validFlightLeg(j.outbound)?j.outbound:null,
+      inbound: _validFlightLeg(j.inbound)?j.inbound:null,
+    };
   }catch(e){ return null; }
 }
 

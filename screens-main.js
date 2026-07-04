@@ -373,16 +373,6 @@ function savedTripCard(it){
       +'</div>';
   }
 
-  /* Étapes = lieux distincts parcourus (pas le nombre de jours) */
-  let stepsCount = 0;
-  if(Array.isArray(data.plan)){
-    const seen = {};
-    data.plan.forEach(function(p){
-      const k = ((p && p.loc) || '').split(/[\/(,]/)[0].trim().toLowerCase();
-      if(k && !seen[k]){ seen[k] = true; stepsCount++; }
-    });
-  }
-
   /* Compte à rebours avant départ */
   const dateFrom = it.date_from || data.dateFrom || it.dateFrom || '';
   let countdown = '';
@@ -408,7 +398,11 @@ function savedTripCard(it){
     +  '</div>'
     +'</div>'
     +'<div class="trip-card-foot">'
-    +  '<span>'+esc(it.dates||'')+(stepsCount ? ' · '+stepsCount+' étape'+(stepsCount>1?'s':'') : '')+'</span>'
+    /* it.dates inclut déjà "· N jours" (généré ainsi par le Cartographe) —
+       y ajouter le nombre d'étapes rendait la ligne trop longue pour tenir
+       sur une seule ligne (le nombre d'étapes reste visible sur l'écran
+       détail de l'itinéraire). */
+    +  '<span class="tcf-dates">'+esc(it.dates||'')+'</span>'
     +  '<span class="accent">'+[budget, countdown].filter(Boolean).join(' · ')+'</span>'
     +'</div>'
     +'</div>';
