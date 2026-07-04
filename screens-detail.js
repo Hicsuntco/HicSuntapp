@@ -179,8 +179,13 @@ function destinationView(key){
   const d = DESTS[key];
   const scores = SEASONS_BY_DEST[key] || [1,1,1,2,2,2,2,2,2,1,1,1];
   const k = key.replace(/'/g, "\\'");
+  /* Même photo que la tuile Découvrir, mais floutée : garde le lien visuel
+     avec la destination sans juste répéter la même image nette juste après
+     avoir tapé dessus. */
+  const photo = (typeof destPhoto === 'function') ? destPhoto(key) : null;
+  const washStyle = photo ? 'background-image:url(\'' + photo + '\')' : 'background:' + d.bg;
   return '<div class="dest-hero">'
-    +   '<div class="wash" style="background:' + d.bg + '"></div>'
+    +   '<div class="wash' + (photo ? ' photo' : '') + '" style="' + washStyle + '"></div>'
     +   '<div class="wm">' + ico(d.i, 132, 1) + '</div>'
     +   '<div class="veil"></div>'
     +   '<div class="navbar on-dark" style="position:absolute;top:0;left:0;right:0;z-index:10">'
