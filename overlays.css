@@ -26,6 +26,10 @@
 /* ── destination detail ── */
 .dest-hero{height:220px;position:relative;overflow:hidden;flex:none}
 .dest-hero .wash{position:absolute;inset:0}
+/* Photo floutée : même image que la tuile Découvrir, mais en arrière-plan
+   discret plutôt qu'en répétition nette de la tuile qu'on vient de toucher.
+   scale(1.12) compense le flou pour éviter tout bord transparent visible. */
+.dest-hero .wash.photo{background-size:cover;background-position:center;filter:blur(16px) saturate(1.05) brightness(0.9);transform:scale(1.12)}
 .dest-hero .wm{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--ink);opacity:0.16}
 .dest-hero .veil{position:absolute;inset:0;background:linear-gradient(to top,rgba(20,15,8,0.55),rgba(20,15,8,0.06) 55%,rgba(20,15,8,0.12))}
 .dest-hero .navbar{position:absolute;top:8px;left:0;right:0}
