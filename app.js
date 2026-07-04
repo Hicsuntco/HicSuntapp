@@ -787,6 +787,7 @@ async function loadSavedItinerary(id){
       };
     }).filter(Boolean);
     if(typeof _repairPlanMoments==='function') _repairPlanMoments(ITINERARY.plan);
+    if(typeof _repairPlanTitles==='function') _repairPlanTitles(ITINERARY.plan);
 
     /* Normaliser les hébergements */
     ITINERARY.accommodations = ITINERARY.accommodations.map(function(a){
@@ -1070,6 +1071,7 @@ document.addEventListener('DOMContentLoaded', function(){
        chargé en mémoire avant le déploiement du correctif (session en cours,
        PWA non relancée) — pas seulement au chargement depuis Mes voyages. */
     if(typeof _repairPlanMoments==='function') _repairPlanMoments(ITINERARY.plan);
+    if(typeof _repairPlanTitles==='function') _repairPlanTitles(ITINERARY.plan);
     var i=state.mapDay||0,p=(ITINERARY.plan||[])[i];
     var g=_geoGet(ITINERARY.dest||ITINERARY.destination||'');
     var vb=g.vb.split(' ').map(Number),vbW=vb[2],vbH=vb[3];

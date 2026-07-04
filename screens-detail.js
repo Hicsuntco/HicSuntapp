@@ -426,6 +426,7 @@ function accCard(a){
 /* ── 6 · Itinéraire ─────────────────────────────────────────────────── */
 function itineraryView(){
   if(typeof _repairPlanMoments==='function') _repairPlanMoments(ITINERARY.plan);
+  if(typeof _repairPlanTitles==='function') _repairPlanTitles(ITINERARY.plan);
   /* Même filet de sécurité que budgetView() : les vues sont des chaînes HTML
      générées une fois, pas liées en direct aux données — corriger
      ITINERARY.budgetTotal ailleurs ne met pas à jour un écran déjà ouvert.
@@ -570,6 +571,7 @@ function itineraryView(){
 /* ── 7 · Détail d'un jour ───────────────────────────────────────────── */
 function dayDetailView(idx){
   if(typeof _repairPlanMoments==='function') _repairPlanMoments(ITINERARY.plan);
+  if(typeof _repairPlanTitles==='function') _repairPlanTitles(ITINERARY.plan);
   const it = ITINERARY;
   const p = it.plan[idx];
   if (!p) return statusBar() + navbar('Jour');

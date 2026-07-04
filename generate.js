@@ -537,6 +537,7 @@ function buildSkeletonPrompt(dc, batchSize, offset){
     '6. COHÉRENCE "night" : champ "night" = "name" EXACT d\'un hébergement de "stays".',
     '7. SKY : sun, cloud, ou rain uniquement.',
     '8. JSON valide compact. Zéro texte autour.',
+    '9. JAMAIS de référence de jour dans un champ texte ("J8", "Jour 10", "J10-12", "jours 8 à 10", etc.) — le numéro de jour est déjà déterminé par la position dans "plan", ne JAMAIS l\'écrire dans "title" ni "hook". Ces champs décrivent le LIEU/l\'activité, jamais le calendrier.',
   ];
 
   if(isFirst){
@@ -692,6 +693,7 @@ function buildDaysPrompt(skel, planSteps, offset){
     '* tip: conseil initié ultra-spécifique (heure, jour, lieu exact).',
     '* restaurant: {name,type,price:"€/€€/€€€",note,rating:"4,x⭐",review}',
     '* wellness: null ou {name,type,price,note} si spa/lune de miel.',
+    '* JAMAIS de numéro/plage de jour du voyage dans un champ texte ("J8", "Jour 10", "J10-12"...) — chaque entrée de "days" correspond déjà à UN jour précis par sa position, ne jamais l\'écrire dans "desc", "tip" ou "moments".',
     '',
     'JSON EXACT  -  '+planSteps.length+' entrées dans "days":',
     '{"days":[{"desc":"","tip":"","restaurant":{"name":"","type":"","price":"€€","note":"","rating":"","review":""},"wellness":null,"moments":[{"t":"","k":"","ti":"","d":"","free":false}]}]}',
@@ -821,6 +823,27 @@ function _repairPlanMoments(plan){
     }catch(e){ console.warn('[_repairPlanMoments]', e && e.message || e); try{ if(typeof window!=='undefined' && window.hsDebug) window.hsDebug('[repair] erreur jour '+(p&&p.n)+': '+(e&&e.message||e)); }catch(e2){} }
   });
 }
+/* Retire une référence de jour éventuellement injectée par l'IA en tête d'un
+   champ texte ("J10-12 · Bunaken..." → "Bunaken...", "Jour 8 - Macro..." →
+   "Macro...") : le numéro de jour est déjà déterminé par la position dans
+   "plan" et ne doit jamais apparaître dans le texte affiché — séquelle
+   possible de voyages générés avant l'ajout de la consigne anti-référence
+   de jour dans les prompts. Répare aussi les voyages déjà sauvegardés. */
+function _stripDayRef(s){
+  return String(s||'')
+    .replace(/^\s*jours?\s*\d+(?:\s*(?:[-–—à]|au)\s*\d+)?\s*[·:\-–—]\s*/i, '')
+    .replace(/^\s*j\d+(?:[-–—]\d+)?\s*[·:\-–—]\s*/i, '');
+}
+function _repairPlanTitles(plan){
+  if(!Array.isArray(plan)) return;
+  plan.forEach(function(p){
+    if(!p) return;
+    try{
+      if(p.title) p.title = _stripDayRef(p.title);
+      if(p.desc) p.desc = _stripDayRef(p.desc);
+    }catch(e){ console.warn('[_repairPlanTitles]', e && e.message || e); }
+  });
+}
 
 /* ── application du JSON → ITINERARY ────────────────────────────────── */
 /* Format compact et TOUJOURS cohérent d'une plage de dates (indépendant du
@@ -938,6 +961,7 @@ function applyGenerated(skel, daysDetail, hilites, flightInfo){
   });
   if(!plan.length) return false;
   _repairPlanMoments(plan);
+  _repairPlanTitles(plan);
 
   /* budget  -  calibré sur le niveau de confort, la durée et le nb de voyageurs */
   const PPD_RANGE={'Éco':[60,100],'Confort':[120,220],'Luxe':[250,500],'Ultra':[500,900]};
