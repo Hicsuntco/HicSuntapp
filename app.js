@@ -917,7 +917,7 @@ async function loadSavedItinerary(id){
     /* ── 5. Rebuild ACTIVITIES depuis le plan (avant le budget : deriveBudget
        affiche le nombre d'activités suggérées dans sa répartition) ── */
     if(typeof deriveActivities === 'function'){
-      try{ deriveActivities(ITINERARY.plan); }catch(e){ console.warn('deriveActivities',e); }
+      try{ deriveActivities(ITINERARY.plan, ITINERARY.dest, ITINERARY.region, ITINERARY.country); }catch(e){ console.warn('deriveActivities',e); }
     } else if(typeof ACTIVITIES !== 'undefined'){
       ACTIVITIES.length = 0;
       (ITINERARY.plan||[]).forEach(function(p){
