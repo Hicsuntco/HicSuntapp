@@ -142,6 +142,57 @@ function _dedupPlanLocs(plan){
   return out.slice(0, 30);
 }
 
+function _routeCacheGet(key){
+  try{ var c = JSON.parse(localStorage.getItem('hs_routecache') || '{}'); return Object.prototype.hasOwnProperty.call(c, key) ? c[key] : undefined; }
+  catch(e){ return undefined; }
+}
+function _routeCacheSet(key, val){
+  try{
+    var c = JSON.parse(localStorage.getItem('hs_routecache') || '{}');
+    c[key] = val;
+    var keys = Object.keys(c);
+    if(keys.length > 150) delete c[keys[0]];
+    localStorage.setItem('hs_routecache', JSON.stringify(c));
+  }catch(e){}
+}
+function _haversineKm(a, b){
+  const R = 6371, toRad = function(d){ return d * Math.PI / 180; };
+  const dLat = toRad(b.lat - a.lat), dLng = toRad(b.lng - a.lng);
+  const s = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.min(1, Math.sqrt(s)));
+}
+/* Trajet réel (routes/ferries mappés dans OpenStreetMap, via l'API publique
+   OSRM) entre deux étapes consécutives, au lieu d'une ligne droite qui
+   traverse la mer ou coupe à travers le relief sans suivre aucune route
+   réelle. Au-delà de ROUTE_MAX_KM (probablement un vol, pas un trajet
+   routier) ou si le détour routier est disproportionné par rapport à la
+   ligne droite (aucune route/ferry direct mappé), on renvoie null et
+   l'appelant retombe sur la ligne droite  -  jamais pire qu'avant. */
+const ROUTE_MAX_KM = 400;
+async function _fetchRoute(pa, pb){
+  const straight = _haversineKm(pa, pb);
+  if(straight > ROUTE_MAX_KM) return null;
+  const key = pa.lat.toFixed(3) + ',' + pa.lng.toFixed(3) + '|' + pb.lat.toFixed(3) + ',' + pb.lng.toFixed(3);
+  const cached = _routeCacheGet(key);
+  if(cached !== undefined) return cached;
+  try{
+    const url = 'https://router.project-osrm.org/route/v1/driving/'
+      + pa.lng + ',' + pa.lat + ';' + pb.lng + ',' + pb.lat + '?overview=simplified&geometries=geojson';
+    const ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    const t = ctrl ? setTimeout(function(){ ctrl.abort(); }, 6000) : null;
+    const res = await fetch(url, ctrl ? { signal: ctrl.signal } : {});
+    if(t) clearTimeout(t);
+    if(!res.ok){ _routeCacheSet(key, null); return null; }
+    const data = await res.json();
+    if(data.code !== 'Ok' || !data.routes || !data.routes.length){ _routeCacheSet(key, null); return null; }
+    const route = data.routes[0];
+    if(route.distance / 1000 > straight * 2.8){ _routeCacheSet(key, null); return null; }
+    const pts = route.geometry.coordinates.map(function(c){ return [c[1], c[0]]; });
+    _routeCacheSet(key, pts);
+    return pts;
+  }catch(e){ _routeCacheSet(key, null); return null; }
+}
+
 const HS_TILE_URL = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png';
 function _hsTileLayer(){
   return L.tileLayer(HS_TILE_URL, { subdomains:'abcd', maxZoom:18, attribution:'&copy; OpenStreetMap &amp; CARTO' });
@@ -257,19 +308,25 @@ function renderHicSuntMap(elId, opts){
 
               /* Relier les étapes adjacentes déjà résolues, dans l'ordre réel
                  du voyage (indépendant de l'ordre de géocodage) — garantit un
-                 tracé fidèle même quand l'étape active est géocodée en premier. */
-              [pos - 1, pos + 1].forEach(function(n){
-                if(n < 0 || n >= stops.length) return;
+                 tracé fidèle même quand l'étape active est géocodée en premier.
+                 Le tracé suit la route/le ferry réel (OSRM) quand plausible,
+                 sinon une ligne droite (cas des vols). */
+              for(let ni = 0; ni < 2; ni++){
+                const n = ni === 0 ? pos - 1 : pos + 1;
+                if(n < 0 || n >= stops.length) continue;
                 const a = Math.min(pos, n), b = Math.max(pos, n);
                 const key = a + '-' + b;
-                if(drawnSeg[key] || !resolved[a] || !resolved[b]) return;
+                if(drawnSeg[key] || !resolved[a] || !resolved[b]) continue;
                 drawnSeg[key] = true;
                 const pa = resolved[a], pb = resolved[b];
-                L.polyline([[pa.lat, pa.lng], [pb.lat, pb.lng]], { color:'#221E18', weight:2, opacity:.38, dashArray:'2 8', lineCap:'round' }).addTo(map);
+                const routePts = await _fetchRoute(pa, pb);
+                const latlngs = (routePts && routePts.length) ? routePts : [[pa.lat, pa.lng], [pb.lat, pb.lng]];
+                if(window._hsMaps[elId] !== map) return; /* détruite/remplacée pendant la requête de tracé */
+                L.polyline(latlngs, { color:'#221E18', weight:2, opacity:.38, dashArray:'2 8', lineCap:'round' }).addTo(map);
                 if(a === activePos || b === activePos){
-                  L.polyline([[pa.lat, pa.lng], [pb.lat, pb.lng]], { color:'#A6824A', weight:4, lineCap:'round' }).addTo(map);
+                  L.polyline(latlngs, { color:'#A6824A', weight:4, lineCap:'round' }).addTo(map);
                 }
-              });
+              }
 
               map.invalidateSize();
               if(activePos >= 0){
