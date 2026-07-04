@@ -749,7 +749,7 @@ async function loadVoyagesTab(){
         + '<div style="color:var(--gold);margin-bottom:16px;display:flex;justify-content:center">' + ico('sparkle',32,1.2) + '</div>'
         + '<p style="font-family:var(--serif);font-size:20px;font-weight:600;color:var(--ink);margin-bottom:8px">Vos voyages vous attendent</p>'
         + '<p style="color:var(--sub);font-size:14px;line-height:1.6;margin-bottom:24px">Composez votre premier itinéraire — il apparaîtra ici dès que vous l\'aurez enregistré.</p>'
-        + '<button onclick="setTab(\'discover\')" style="background:var(--ink);color:var(--onink);border:none;border-radius:14px;padding:14px 28px;font-family:var(--sans);font-size:15px;font-weight:500;cursor:pointer">Composer un itinéraire</button>'
+        + '<button onclick="setTab(\'create\')" style="background:var(--ink);color:var(--onink);border:none;border-radius:14px;padding:14px 28px;font-family:var(--sans);font-size:15px;font-weight:500;cursor:pointer">Composer un itinéraire</button>'
         + '</div>';
     } else {
       host.innerHTML = '<p style="text-align:center;padding:40px 0;color:var(--sub);font-size:14px;font-style:italic">Aucun voyage enregistré pour le moment.</p>';

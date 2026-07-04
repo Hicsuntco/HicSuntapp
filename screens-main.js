@@ -460,7 +460,7 @@ function profileView(){
     +     '</div>'
     +   '</div>'
     +   '<div class="prof-stats" data-prof-stats>' + statSkeleton + '</div>'
-    +   '<div class="prof-circle-card" data-prof-circle><div class="cc-row"><div class="circle-empty-ico">' + ico('users',18,1.5) + '</div>'
+    +   '<div class="prof-circle-card" data-prof-circle onclick="openMonCercle()" style="cursor:pointer"><div class="cc-row"><div class="circle-empty-ico">' + ico('users',18,1.5) + '</div>'
     +     '<div style="flex:1"><div class="cc-t">Mon Cercle</div><div class="cc-s">Chargement…</div></div></div></div>'
     +   '<div class="section-h" style="margin-top:20px"><h2>Carnet de voyage</h2><span class="meta" data-prof-badges-meta>…</span></div>'
     +   '<div class="prof-badges" data-prof-badges><div class="cv-empty">Chargement…</div></div>'
@@ -529,9 +529,48 @@ function _circleCardHTML(companions, connected){
     + '<div style="flex:1;min-width:0"><div class="cc-t">Mon Cercle</div><div class="cc-s">' + esc(label) + '</div></div>'
     + '</div>'
     + '<div class="cc-actions">'
-    +   '<button class="cc-btn" onclick="inviteCompanion()">Inviter</button>'
-    +   '<button class="cc-btn ghost" onclick="openAddCompanion()">+ Ajouter</button>'
+    +   '<button class="cc-btn" onclick="event.stopPropagation();inviteCompanion()">Inviter</button>'
+    +   '<button class="cc-btn ghost" onclick="event.stopPropagation();openAddCompanion()">+ Ajouter</button>'
     + '</div>';
+}
+/* La carte Mon Cercle du profil n'ouvrait jamais rien au clic (seuls ses
+   deux boutons internes "Inviter"/"+ Ajouter" faisaient quelque chose) —
+   ce détail liste les compagnons et permet d'en retirer. */
+function openMonCercle(){
+  openOverlay('mon-cercle', monCercleView());
+}
+function monCercleView(){
+  const connected = !!(localStorage.getItem('sb_token') || localStorage.getItem('hs_email'));
+  return statusBar() + navbar('Mon Cercle')
+    + '<div class="ov-scroll has-foot px">'
+    +   '<span class="eyebrow" style="display:block;margin-top:10px">Compagnons de route</span>'
+    +   '<h1 style="font-family:var(--serif);font-weight:600;font-size:28px;letter-spacing:-0.4px;margin-top:8px">Mon Cercle</h1>'
+    +   '<p class="lede" style="margin-top:10px">Les proches avec qui vous composez vos voyages.</p>'
+    +   '<div data-cercle-list style="margin-top:18px">' + _cercleListHTML(window._profCompanions||[], connected) + '</div>'
+    + '</div>'
+    + '<div class="ov-foot"><button class="btn" onclick="openAddCompanion()">+ Ajouter un compagnon</button></div>';
+}
+function _cercleListHTML(companions, connected){
+  if(!connected) return '<p style="color:var(--sub);font-size:14px;font-style:italic">Connectez-vous pour composer votre Cercle.</p>';
+  if(!companions.length) return '<p style="color:var(--sub);font-size:14px;font-style:italic">Aucun compagnon pour l\'instant.</p>';
+  const hues = ['#3EA07C','#2E9CC0','#E86B4A','#D4943A','#9B85CC'];
+  return companions.map(function(c,i){
+    const initials = (c.name||'?').trim().split(/\s+/).map(function(w){ return w[0]||''; }).join('').toUpperCase().slice(0,2) || '?';
+    return '<div class="row"><span class="circle-av" style="background:' + hues[i%hues.length] + '">' + esc(initials) + '</span>'
+      + '<div class="r-main"><div class="r-t">' + esc(c.name||'') + '</div></div>'
+      + '<span class="r-chev" style="cursor:pointer" onclick="_removeCompanionUI(\'' + c.id + '\')" aria-label="Retirer">' + ico('close',18,1.6) + '</span></div>';
+  }).join('');
+}
+async function _removeCompanionUI(id){
+  const ok = (typeof removeCompanion === 'function') && await removeCompanion(id);
+  if(!ok){ toast('Impossible de retirer ce compagnon'); return; }
+  window._profCompanions = (window._profCompanions||[]).filter(function(c){ return String(c.id) !== String(id); });
+  const connected = !!(localStorage.getItem('sb_token') || localStorage.getItem('hs_email'));
+  const listEl = document.querySelector('[data-cercle-list]');
+  if(listEl) listEl.innerHTML = _cercleListHTML(window._profCompanions, connected);
+  const circleEl = document.querySelector('[data-prof-circle]');
+  if(circleEl) circleEl.innerHTML = _circleCardHTML(window._profCompanions, connected);
+  toast('Compagnon retiré');
 }
 /* Ajout d'un compagnon — petite bottom-sheet plutôt qu'un prompt() natif,
    pour rester dans la direction visuelle de l'app. */
@@ -559,7 +598,12 @@ window._submitCompanion = async function(){
   closeOverlay();
   if(row){
     toast(name + ' a rejoint votre Cercle ✓');
-    if(typeof loadProfileTab === 'function') loadProfileTab();
+    if(typeof loadProfileTab === 'function') await loadProfileTab();
+    const listEl = document.querySelector('[data-cercle-list]');
+    if(listEl){
+      const connected = !!(localStorage.getItem('sb_token') || localStorage.getItem('hs_email'));
+      listEl.innerHTML = _cercleListHTML(window._profCompanions||[], connected);
+    }
   }
 };
 /* Liste agrégée des hébergements + pépites sauvegardés sur tous les voyages
