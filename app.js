@@ -120,6 +120,7 @@ function openOverlay(name, html, opts){
   screenEl().appendChild(el);
   ovStack.push(el);
   requestAnimationFrame(function(){ requestAnimationFrame(function(){ el.classList.add('in'); }); });
+  _enableSheetDragToDismiss(el);
   return el;
 }
 function closeOverlay(){
@@ -127,6 +128,47 @@ function closeOverlay(){
   if (!el) return;
   el.classList.remove('in');
   setTimeout(function(){ el.remove(); }, 440);
+}
+/* Glisser vers le bas pour fermer, sur toute feuille affichant une poignée
+   (.carte-handle-wrap)  -  ce petit trait gris suggère visuellement le geste
+   natif iOS, mais jusqu'ici ne faisait rien du tout au toucher. Ne s'attache
+   qu'à la poignée elle-même (jamais au contenu scrollable de la feuille). */
+function _enableSheetDragToDismiss(el){
+  const handle = el.querySelector('.carte-handle-wrap');
+  if(!handle) return;
+  const DISMISS_PX = 90;
+  let startY = 0, dy = 0, dragging = false;
+  handle.style.touchAction = 'none';
+  handle.addEventListener('touchstart', function(e){
+    if(!e.touches || e.touches.length !== 1) return;
+    startY = e.touches[0].clientY; dy = 0; dragging = true;
+    el.style.transition = 'none';
+  }, {passive:true});
+  handle.addEventListener('touchmove', function(e){
+    if(!dragging || !e.touches || !e.touches.length) return;
+    dy = Math.max(0, e.touches[0].clientY - startY);
+    el.style.transform = 'translateY(' + dy + 'px)';
+  }, {passive:true});
+  function endDrag(){
+    if(!dragging) return;
+    dragging = false;
+    if(dy > DISMISS_PX){
+      /* Poursuivre le geste jusqu'à la fermeture complète depuis la position
+         actuelle du doigt, plutôt que de sauter d'abord à "ouvert" puis de
+         rejouer l'animation de fermeture habituelle depuis le début. */
+      el.style.transition = 'transform 0.28s var(--ease-in-out)';
+      el.style.transform = 'translateY(100%)';
+      el.classList.remove('in');
+      const idx = ovStack.indexOf(el);
+      if(idx >= 0) ovStack.splice(idx, 1);
+      setTimeout(function(){ el.remove(); }, 300);
+    } else {
+      el.style.transition = '';
+      el.style.transform = '';
+    }
+  }
+  handle.addEventListener('touchend', endDrag);
+  handle.addEventListener('touchcancel', endDrag);
 }
 function closeAllOverlays(){
   while (ovStack.length){
