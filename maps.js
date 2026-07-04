@@ -88,13 +88,20 @@ function _destCenter(dest){
   const shape = (typeof _geoShapeSD === 'function') ? _geoShapeSD(dest) : null;
   return (shape && DEST_CENTER[shape.key]) || [20, 10];
 }
-/* Étapes dédupliquées par lieu, dans l'ordre du plan (comme geoMapSVG) */
+/* Étapes dédupliquées par lieu, dans l'ordre du plan. Ne fusionne que les
+   jours CONSÉCUTIFS au même endroit (une même "étape" de plusieurs nuits) —
+   un lieu déjà visité mais quitté puis retrouvé plus tard (ex. retour à la
+   ville d'arrivée pour le vol retour) doit rester une entrée à part entière,
+   sinon le tracé de la carte n'affiche jamais la dernière étape du voyage. */
 function _dedupPlanLocs(plan){
-  const seen = {}, out = [];
+  const out = [];
   (plan || []).forEach(function(p, i){
     const raw = (p && p.loc) || '';
     const k = raw.split(/[\/(,]/)[0].trim().toLowerCase();
-    if(k && !seen[k]){ seen[k] = true; out.push({ loc: raw.split(/[\/(,]/)[0].trim(), idx: i }); }
+    if(!k) return;
+    const last = out[out.length - 1];
+    if(last && last.key === k) return; /* même étape que le jour précédent */
+    out.push({ loc: raw.split(/[\/(,]/)[0].trim(), key: k, idx: i });
   });
   return out.slice(0, 10);
 }
