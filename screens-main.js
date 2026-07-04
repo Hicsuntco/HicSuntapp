@@ -431,6 +431,12 @@ function profileView(){
   const email = localStorage.getItem('hs_email') || '';
   /* Connecté si token présent OU email stocké (auth Google réussie) */
   const connected = !!token || !!email;
+  /* "connected" ci-dessus suffit pour l'affichage (nom, statut premium…),
+     mais PAS pour les fonctions qui écrivent dans Supabase (Mon Cercle…) :
+     l'accès propriétaire (?hs=...) stocke un email sans jamais créer de
+     vraie session  -  sans ce distinguo, le bouton "Se connecter" reste
+     caché alors qu'aucune action Supabase ne peut réellement fonctionner. */
+  const hasRealAuth = !!token;
   const premium = (typeof _hasActivePremiumStatus === 'function') && _hasActivePremiumStatus();
 
   const rows = [
@@ -470,7 +476,7 @@ function profileView(){
             + '<div class="r-main"><div class="r-t">' + r[1] + '</div>' + (r[2] ? '<div class="r-s">' + r[2] + '</div>' : '') + '</div>'
             + '<span class="r-chev">' + ico('chevron', 17, 1.6) + '</span></div>';
         }).join('') + '</div>'
-    +   (connected ? '' : '<button class="btn" style="width:100%;margin-top:20px" onclick="openOverlay(\'welcome\', welcomeView(), {modal:true})">Se connecter</button>')
+    +   (hasRealAuth ? '' : '<button class="btn" style="width:100%;margin-top:20px" onclick="openOverlay(\'welcome\', welcomeView(), {modal:true})">Se connecter</button>')
     +   '<p style="text-align:center;font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub);margin-top:32px">Hic Sunt · Beyond the Known</p>'
     + '</div>';
 }
@@ -481,9 +487,14 @@ async function loadProfileTab(){
   const scope = screenEl();
   if(!scope || !scope.querySelector('[data-prof-stats]')) return;
   const connected = !!(localStorage.getItem('sb_token') || localStorage.getItem('hs_email'));
+  /* Mon Cercle écrit dans Supabase : un email stocké sans vraie session
+     (accès propriétaire, ou callback OAuth interrompu) ne suffit pas  -
+     sans ce distinguo la carte affichait "Aucun compagnon" au lieu du
+     vrai message "Connectez-vous", et Ajouter échouait en silence. */
+  const hasRealAuth = !!localStorage.getItem('sb_token');
 
   const statsP = (typeof loadProfileStats === 'function') ? loadProfileStats() : Promise.resolve({voyages:0,countries:[],days:0,addresses:0});
-  const companionsP = connected && typeof loadCompanions === 'function' ? loadCompanions() : Promise.resolve([]);
+  const companionsP = hasRealAuth && typeof loadCompanions === 'function' ? loadCompanions() : Promise.resolve([]);
   const [stats, companions] = await Promise.all([statsP, companionsP]);
   window._profStats = stats;
   window._profCompanions = companions;
@@ -501,7 +512,7 @@ async function loadProfileTab(){
   if(addrCount) addrCount.textContent = stats.addresses ? (stats.addresses + ' adresse' + (stats.addresses>1?'s':'')) : 'Aucune pour l\'instant';
 
   const circleEl = scope.querySelector('[data-prof-circle]');
-  if(circleEl) circleEl.innerHTML = _circleCardHTML(companions, connected);
+  if(circleEl) circleEl.innerHTML = _circleCardHTML(companions, hasRealAuth);
 
   const badgesEl = scope.querySelector('[data-prof-badges]');
   const badgesMeta = scope.querySelector('[data-prof-badges-meta]');
@@ -540,7 +551,7 @@ function openMonCercle(){
   openOverlay('mon-cercle', monCercleView());
 }
 function monCercleView(){
-  const connected = !!(localStorage.getItem('sb_token') || localStorage.getItem('hs_email'));
+  const connected = !!localStorage.getItem('sb_token');
   return statusBar() + navbar('Mon Cercle')
     + '<div class="ov-scroll has-foot px">'
     +   '<span class="eyebrow" style="display:block;margin-top:10px">Compagnons de route</span>'
@@ -565,7 +576,7 @@ async function _removeCompanionUI(id){
   const ok = (typeof removeCompanion === 'function') && await removeCompanion(id);
   if(!ok){ toast('Impossible de retirer ce compagnon'); return; }
   window._profCompanions = (window._profCompanions||[]).filter(function(c){ return String(c.id) !== String(id); });
-  const connected = !!(localStorage.getItem('sb_token') || localStorage.getItem('hs_email'));
+  const connected = !!localStorage.getItem('sb_token');
   const listEl = document.querySelector('[data-cercle-list]');
   if(listEl) listEl.innerHTML = _cercleListHTML(window._profCompanions, connected);
   const circleEl = document.querySelector('[data-prof-circle]');
@@ -595,15 +606,18 @@ window._submitCompanion = async function(){
   const name = inp ? inp.value.trim() : '';
   if(!name) return;
   const row = (typeof addCompanion === 'function') ? await addCompanion(name) : null;
+  /* addCompanion() a déjà affiché le message d'erreur pertinent (pas connecté,
+     échec réseau…) — si l'on ferme la feuille tout de suite dans tous les
+     cas, ce toast est détruit avec elle avant d'avoir pu s'afficher : on ne
+     ferme donc QUE sur un vrai succès, pour que l'échec reste visible. */
+  if(!row) return;
   closeOverlay();
-  if(row){
-    toast(name + ' a rejoint votre Cercle ✓');
-    if(typeof loadProfileTab === 'function') await loadProfileTab();
-    const listEl = document.querySelector('[data-cercle-list]');
-    if(listEl){
-      const connected = !!(localStorage.getItem('sb_token') || localStorage.getItem('hs_email'));
-      listEl.innerHTML = _cercleListHTML(window._profCompanions||[], connected);
-    }
+  toast(name + ' a rejoint votre Cercle ✓');
+  if(typeof loadProfileTab === 'function') await loadProfileTab();
+  const listEl = document.querySelector('[data-cercle-list]');
+  if(listEl){
+    const connected = !!localStorage.getItem('sb_token');
+    listEl.innerHTML = _cercleListHTML(window._profCompanions||[], connected);
   }
 };
 /* Liste agrégée des hébergements + pépites sauvegardés sur tous les voyages
