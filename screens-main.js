@@ -203,17 +203,18 @@ function createView(){
 }
 
 /* ── Mes voyages ────────────────────────────────────────────────────── */
-/* Aplats vifs façon carte postale — direction Hic Sunt */
+/* Dégradés façon carte postale — deux teintes évocatrices du pays
+   (lagon, terre, temple…) plutôt qu'un aplat unique générique. */
 const DEST_BG_MAP = {
-  'sri lanka':'#2E9CC0','japon':'#129A8B',
-  'maroc':'#E86B4A','portugal':'#EE8B4C',
-  'islande':'#3E8FA6','pérou':'#A66B3E',
-  'thaïlande':'#D4943A','kenya':'#54AE6E',
-  'indonesie':'#3EA07C','bali':'#3EA07C',
-  'philippines':'#2E9CC0','vietnam':'#3EA07C',
-  'sardaigne':'#E8844A','italie':'#E8844A',
-  'sicile':'#E8844A','grèce':'#2878A8',
-  'espagne':'#D4943A','croatie':'#2878A8',
+  'sri lanka':['#0E7490','#1F8A6E'],  'japon':['#7A2E2E','#129A8B'],
+  'maroc':['#B5532E','#2E6F8E'],      'portugal':['#C4632E','#2E6F8E'],
+  'islande':['#1B4B5A','#173445'],    'pérou':['#8A4A28','#3F6B42'],
+  'thaïlande':['#B5791F','#146B54'],  'kenya':['#B5791F','#3E8A54'],
+  'indonesie':['#1F7A5C','#0E7490'],  'bali':['#1F7A5C','#0E7490'],
+  'philippines':['#0E7490','#B5942E'],'vietnam':['#1F7A5C','#932E2E'],
+  'sardaigne':['#0E7490','#C4632E'],  'italie':['#0E7490','#C4632E'],
+  'sicile':['#0E7490','#C4632E'],     'grèce':['#1D5D82','#B5942E'],
+  'espagne':['#B5791F','#932E2E'],    'croatie':['#1D5D82','#B5942E'],
 };
 /* Couleur d'accent thématique par destination — libellés & badges hors aplat */
 const DEST_ACCENT_MAP = {
@@ -223,8 +224,17 @@ const DEST_ACCENT_MAP = {
   tropical:     { primary:'#54AE6E', glow:'rgba(244,238,223,0.22)' },
   urban:        { primary:'#9B85CC', glow:'rgba(244,238,223,0.22)' },
 };
-function destBg(name){ const k=(name||'').toLowerCase(); for(const pat in DEST_BG_MAP){ if(k.includes(pat)) return DEST_BG_MAP[pat]; } return '#A6824A'; }
-function destIcon(name){ const k=(name||'').toLowerCase(); if(/japon|tokyo|kyoto/.test(k)) return 'arch'; if(/maroc|marrakech/.test(k)) return 'compass'; if(/islande/.test(k)) return 'peaks'; if(/safari|kenya|afrique/.test(k)) return 'leaf'; if(/bali|indonesie|philippines|thaïlande|vietnam/.test(k)) return 'leaf'; if(/pérou|andes/.test(k)) return 'peaks'; return 'compass'; }
+/* Sans accents, pour matcher indépendamment de l'orthographe saisie
+   (« Indonésie » vs clé « indonesie ») — sinon la recherche par
+   sous-chaîne échoue silencieusement et retombe sur la couleur par défaut. */
+function _stripAccents(s){ return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
+function destBg(name){
+  const k=_stripAccents(name);
+  let pair=['#A6824A','#7A5A2E'];
+  for(const pat in DEST_BG_MAP){ if(k.includes(_stripAccents(pat))){ pair=DEST_BG_MAP[pat]; break; } }
+  return 'linear-gradient(135deg,'+pair[0]+' 0%,'+pair[1]+' 100%)';
+}
+function destIcon(name){ const k=_stripAccents(name); if(/japon|tokyo|kyoto/.test(k)) return 'arch'; if(/maroc|marrakech/.test(k)) return 'compass'; if(/islande/.test(k)) return 'peaks'; if(/safari|kenya|afrique/.test(k)) return 'leaf'; if(/bali|indonesie|philippines|thailande|vietnam/.test(k)) return 'leaf'; if(/perou|andes/.test(k)) return 'peaks'; return 'compass'; }
 function _destAccent(dest){
   const theme = (typeof _themeForDestination === 'function') ? _themeForDestination(dest, '', '') : 'mediterranean';
   return DEST_ACCENT_MAP[theme] || DEST_ACCENT_MAP.mediterranean;
