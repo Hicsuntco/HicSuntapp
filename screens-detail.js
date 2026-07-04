@@ -459,14 +459,15 @@ function itineraryView(){
   const themeLabel = THEME_LABEL[theme] || 'Sur-mesure';
   const minimapBg = 'linear-gradient(135deg,' + hexA(ac,0.06) + ' 0%,var(--surface) 100%)';
 
-  /* ── Hero plein cadre — aplat destination, façon carte postale ── */
-  const heroBg = (typeof destBg === 'function') ? destBg(it.dest) : ac;
+  /* ── Hero plein cadre — photo destination (ou dégradé de secours), façon carte postale ── */
+  const heroBgStyle = (typeof destBgStyle === 'function') ? destBgStyle(it.dest) : 'background:' + ac;
   const heroIcon = (typeof destIcon === 'function') ? destIcon(it.dest) : 'compass';
   const occId = state.occasion || it.occasion || '';
   const occInfo = (typeof OCCASIONS !== 'undefined') ? OCCASIONS.find(function(o){ return o.id === occId; }) : null;
 
   return (
-    '<div class="itin-hero-panel" style="background:' + heroBg + '">'
+    '<div class="itin-hero-panel" style="' + heroBgStyle + '">'
+    +   '<div class="hero-veil"></div>'
     +   '<svg class="itin-hero-waves" viewBox="0 0 390 300" fill="none"><g stroke="rgba(244,238,223,.28)" stroke-width="1.2"><path d="M-40 190 Q 120 150 280 190 T 600 190"/><path d="M-40 225 Q 120 185 280 225 T 600 225"/><path d="M-40 260 Q 120 220 280 260 T 600 260"/></g></svg>'
     +   '<span class="itin-hero-wm">' + ico(heroIcon, 96, 1.1) + '</span>'
     +   '<div class="itin-hero-top">'

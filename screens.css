@@ -127,6 +127,9 @@
 .tile:hover{box-shadow:var(--shadow-raised)}
 .tile .wash{position:absolute;inset:0}
 .tile .wash::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(20,15,8,0.55),rgba(20,15,8,0.02) 55%)}
+/* Voile sombre réutilisable par-dessus une photo de destination, pour garder
+   le texte (nom, badges…) lisible quelle que soit la photo. */
+.hero-veil{position:absolute;inset:0;background:linear-gradient(to top,rgba(20,15,8,0.62),rgba(20,15,8,0.08) 55%,rgba(20,15,8,0.16));pointer-events:none}
 .tile .wm{position:absolute;top:12px;right:10px;color:var(--onink);opacity:0.35}
 .tile .code{position:absolute;top:13px;left:14px;font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:1.2px;color:var(--gold-bright)}
 .tile .t-cap{position:absolute;left:14px;right:12px;bottom:13px}
