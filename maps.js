@@ -91,8 +91,14 @@ function _destCenter(dest){
 /* Étapes dédupliquées par lieu, dans l'ordre du plan. Ne fusionne que les
    jours CONSÉCUTIFS au même endroit (une même "étape" de plusieurs nuits) —
    un lieu déjà visité mais quitté puis retrouvé plus tard (ex. retour à la
-   ville d'arrivée pour le vol retour) doit rester une entrée à part entière,
-   sinon le tracé de la carte n'affiche jamais la dernière étape du voyage. */
+   ville d'arrivée pour le vol retour, ou un hub revisité entre deux
+   excursions) doit rester une entrée à part entière, sinon le tracé de la
+   carte n'affiche jamais les étapes revisitées du voyage.
+   Le plafond est volontairement large (30, pas 10) : un itinéraire qui
+   revient plusieurs fois sur un même hub (ex. voyage plongée avec base
+   fixe entre les sorties) peut légitimement compter plus de 10 entrées
+   même sur un voyage de 2-3 semaines — un plafond trop bas tronquait la
+   carte bien avant la fin du voyage dès qu'un hub était revisité. */
 function _dedupPlanLocs(plan){
   const out = [];
   (plan || []).forEach(function(p, i){
@@ -103,7 +109,7 @@ function _dedupPlanLocs(plan){
     if(last && last.key === k) return; /* même étape que le jour précédent */
     out.push({ loc: raw.split(/[\/(,]/)[0].trim(), key: k, idx: i });
   });
-  return out.slice(0, 10);
+  return out.slice(0, 30);
 }
 
 const HS_TILE_URL = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png';
