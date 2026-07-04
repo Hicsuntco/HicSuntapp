@@ -62,9 +62,17 @@
 .ihx-btn{width:40px;height:40px;border-radius:12px;background:var(--surface);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px -5px rgba(60,40,20,.4);color:var(--ink);cursor:pointer;transition:transform 0.12s var(--spring)}
 .ihx-btn:active{transform:scale(0.88)}
 /* Le déclencheur du Cartographe se distingue des autres actions (retour,
-   partager) par un fond doré plutôt qu'une simple icône identique aux autres. */
-.ihx-btn.ai{background:linear-gradient(135deg,var(--gold-bright) 0%,var(--gold-deep) 100%);color:#2a1f0f;box-shadow:0 4px 12px -4px rgba(122,93,46,.55)}
-.itin-hero-coords{position:absolute;top:64px;left:20px;font-size:12px;color:var(--onink);opacity:0.8;letter-spacing:.1em;z-index:2}
+   partager) par un liseré doré plutôt qu'une icône identique aux autres.
+   Fond crème conservé (comme les autres .ihx-btn) plutôt qu'un remplissage
+   doré plein : certains thèmes de destination (ex. Indonésie) ont un fond
+   de hero lui-même doré/olive, où un bouton tout doré se fondrait. */
+.ihx-btn.ai{border:1.5px solid var(--gold);color:var(--gold-deep)}
+/* En flux normal (juste après le bandeau de boutons), pas en position
+   absolue à un décalage fixe : les coordonnées d'un voyage multi-régions
+   (ex. "Raja Ampat" + "Sulawesi") forment un texte bien plus long que les
+   coordonnées d'une seule destination, et un décalage fixe le faisait
+   passer sous les boutons retour/partager/Cartographe. */
+.itin-hero-coords{position:relative;padding:8px 20px 0;font-size:12px;color:var(--onink);opacity:0.8;letter-spacing:.1em;z-index:2;line-height:1.4}
 /* En flux normal (et non plus ancrée en absolute/bottom) : un titre sur deux
    lignes agrandit le panneau au lieu de remonter par-dessus les boutons du
    haut (bug de superposition flèche retour / badge occasion). */
