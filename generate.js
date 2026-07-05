@@ -990,7 +990,8 @@ function applyGenerated(skel, daysDetail, hilites, flightInfo, heroPhoto){
       tag:stayTags[i%stayTags.length]||'Sélection', rate:stayRates[i%stayRates.length]||'4,9',
       nights:_clampInt(s.nights,1,21,2), price:price,
       am:['bed','wifi',i%2?'fork':'pool'], blurb:s.blurb||'Une adresse d\'exception.',
-      photo: (typeof s.photo==='string' && /^https?:\/\//i.test(s.photo)) ? s.photo : '',
+      photo: _validStayPhoto(s.photo),
+      source: /^(booking|airbnb|hotels|officiel)$/i.test(String(s.source||'').trim()) ? String(s.source).trim().toLowerCase() : '',
     };
   });
   while(stays.length<1) stays.push({id:'a1',n:'Hébergement local',i:'bed',type:'Hôtel-boutique',loc:dest,tag:'Sélection',rate:'4,9',nights:2,price:accRange[0],am:['bed','wifi','pool'],blurb:''});
@@ -1409,6 +1410,21 @@ function _computeStayDateRanges(stays, dateFromISO){
     return { checkin: fmt(checkinD), checkout: fmt(checkoutD), nights: nights };
   });
 }
+/* Le web search de l'IA ne peut pas naviguer dans les pages dynamiques
+   Booking/Airbnb : il ne peut que citer une URL déjà vue dans un extrait de
+   recherche. Le risque n'est pas seulement une URL hors-sujet mais une URL
+   *inventée* qui ressemble à un vrai pattern (ex: "q-xx.bstatic.com/xdata/
+   [photo_id]") — d'où la double validation : domaine attendu ET absence de
+   marqueurs de placeholder qu'un vrai extrait de recherche ne contiendrait
+   jamais. */
+function _validStayPhoto(url){
+  if(typeof url!=='string') return '';
+  const u=url.trim();
+  if(!/^https:\/\/([a-z0-9-]+\.)?(bstatic\.com|muscache\.com)\/.+\.(jpe?g|png|webp)(\?.*)?$/i.test(u)
+     && !/^https:\/\/upload\.wikimedia\.org\/.+\.(jpe?g|png)$/i.test(u)) return '';
+  if(/\[|\]|xdata\/x|photo_?id|example\.com|placeholder/i.test(u)) return '';
+  return u;
+}
 function buildStaySearchPrompt(dest, zones, level, dateRanges){
   const lvl = (level||'Confort');
   const lvlGuide = lvl.indexOf('Éco')>=0?'auberges, guesthouses, agriturismi simples'
@@ -1431,10 +1447,11 @@ function buildStaySearchPrompt(dest, zones, level, dateRanges){
     hasDates
       ? '- Prix : cherche le tarif RÉEL actuellement affiché (Booking, site officiel) pour CES dates précises indiquées ci-dessus, pas une moyenne générique — c\'est ce prix qui sert de base au budget affiché au client. Si le tarif exact pour ces dates n\'est pas trouvable, donne la fourchette actuelle la plus réaliste pour ce type d\'établissement à cette période de l\'année.'
       : '- Prix indicatif par nuit réaliste en euros pour 2 personnes.',
-    '- Photo (IMPORTANT, cherche activement, ne laisse vide qu\'en dernier recours) : ouvre la fiche Booking.com de cet établissement et récupère l\'URL directe d\'UNE de ses photos (hébergées sur cf.bstatic.com ou q-xx.bstatic.com) — presque tous les hébergements commerciaux ont une fiche Booking, c\'est la source la plus fiable. Si c\'est un logement de type Airbnb/location, cherche plutôt sur sa fiche Airbnb (photos hébergées sur a0.muscache.com). Pour un bâtiment historique/notable, une photo Wikimedia Commons convient aussi. Dans TOUS les cas, l\'URL doit être une image RÉELLEMENT VUE dans tes résultats de recherche (jamais une URL construite/devinée à partir d\'un pattern, même plausible) — si tu n\'as vraiment trouvé aucune fiche en ligne pour cet établissement précis, laisse "photo" vide.',
+    '- "source" : indique sur quelle plateforme tu as vérifié l\'existence de cet établissement dans tes résultats de recherche : "booking", "airbnb", "hotels" ou "officiel" (site propre à l\'établissement). Laisse vide si tu n\'es pas sûr.',
+    '- "photo" (ne remplis QUE si tu es certain) : tu ne peux PAS naviguer dans les pages dynamiques de Booking/Airbnb, donc n\'invente JAMAIS une URL d\'image construite à partir d\'un pattern (ex: "q-xx.bstatic.com/...", des identifiants entre crochets, ou toute URL que tu n\'as pas VUE littéralement, telle quelle, dans un extrait de résultat de recherche). Ne renseigne "photo" que si une URL d\'image complète est apparue mot pour mot dans un extrait/snippet de recherche (Wikimedia Commons pour un bâtiment historique/notable, sinon très rare). Dans le doute, laisse "photo" VIDE — un champ vide est très préférable à une URL fictive qui cassera l\'affichage.',
     '',
     'Réponds UNIQUEMENT en JSON compact valide, sans texte autour :',
-    '{"stays":[{"zone":"nom de la zone","name":"nom exact reel","type":"type/standing","price":0,"photo":"","blurb":"description courte basee sur des infos reelles"}]}',
+    '{"stays":[{"zone":"nom de la zone","name":"nom exact reel","type":"type/standing","price":0,"photo":"","source":"","blurb":"description courte basee sur des infos reelles"}]}',
   ].join('\n');
 }
 async function _fetchRealStays(dest, zones, level, dateRanges){
@@ -1705,10 +1722,8 @@ async function callCartographe(){
             price: (typeof real.price==='number' && real.price>0) ? real.price : orig.price,
             nights: orig.nights,
             blurb: (real.blurb && real.blurb.length>5) ? real.blurb : orig.blurb,
-            /* Photo réelle trouvée par la recherche web — validée seulement à
-               l'affichage (onerror), pas ici : on ne peut pas vérifier depuis
-               le générateur qu'une URL renvoie vraiment une image. */
-            photo: (typeof real.photo==='string' && /^https?:\/\//i.test(real.photo.trim())) ? real.photo.trim() : '',
+            photo: _validStayPhoto(real.photo),
+            source: /^(booking|airbnb|hotels|officiel)$/i.test(String(real.source||'').trim()) ? String(real.source).trim().toLowerCase() : '',
           };
         }
         return orig; /* garder l'original si pas de vrai nom valide */
