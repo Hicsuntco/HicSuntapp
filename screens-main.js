@@ -345,7 +345,7 @@ const OCC_LABELS = {
   'anniversaire': {label:'Anniversaire',  ic:'heart'},
   'solo':         {label:'Solo',          ic:'compass'},
   'amis':         {label:'Entre amis',    ic:'users'},
-  'pro':          {label:'Voyage pro',    ic:'doc'},
+  'bien-etre':    {label:'Retraite bien-être', ic:'droplet'},
 };
 function savedTripCard(it){
   const bgStyle = destBgStyle(it.destination);

@@ -15,6 +15,7 @@ const state = {
   flightOut:'', flightIn:'',
   dream:'',
   /* ── Nouveaux champs sur-mesure ── */
+  childrenCount:1,
   childrenAges:'',      /* ex: "4 et 8 ans" si famille */
   transport:'Selon les étapes',
   dietary:'',

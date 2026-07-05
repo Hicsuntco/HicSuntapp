@@ -173,12 +173,14 @@ function _rythmeDirective(){
 
 function _childrenDirective(){
   if(state.occasion!=='famille'&&state.travelers<3) return '';
-  if(!state.childrenAges) return 'FAMILLE : hébergements avec piscine et espace, activités adaptées tous âges (marche < 3km, visite < 1h30), rythme doux, sieste possible, restaurants family-friendly.';
+  const count=state.childrenCount||1;
+  const countLbl=count+(count>1?' enfants':' enfant');
+  if(!state.childrenAges) return 'FAMILLE avec '+countLbl+' : hébergements avec piscine et espace, activités adaptées tous âges (marche < 3km, visite < 1h30), rythme doux, sieste possible, restaurants family-friendly.';
   const ages=state.childrenAges;
   const hasToddler=/\b[0-3]\b/.test(ages);
   const hasPrimaire=/\b[4-9]\b|\b1[0-2]\b/.test(ages);
   const hasAdo=/\b1[3-9]\b/.test(ages);
-  let d='FAMILLE avec enfants (âges : '+ages+')  -  contraintes absolues :';
+  let d='FAMILLE avec '+countLbl+' (âges : '+ages+')  -  contraintes absolues :';
   if(hasToddler) d+=' BÉBÉ/TOUT-PETIT : lit bébé obligatoire, transferts < 30min, sieste 13h-15h dans le planning, activités sensorielles (animaux, eau, couleurs), chaises hautes et menu enfant au restaurant.';
   if(hasPrimaire) d+=' ENFANTS PRIMAIRE : activités ludo-éducatives (animaux, ateliers, aventure accessible), piscine essentielle, horaires souples coucher.';
   if(hasAdo) d+=' ADOLESCENTS : activités à sensations (snorkeling, quad, accrobranche), lieux cool, wifi hébergement, pas "bébé".';
@@ -202,6 +204,7 @@ function _occasionDirective(){
   const map={
     'lune-de-miel':[
       '== LUNE DE MIEL  -  CE FILTRE S\'APPLIQUE À CHAQUE DÉCISION DE L\'ITINÉRAIRE ==',
+      '* GÉOGRAPHIE : privilégier UNE ou DEUX zones maximum sur tout le séjour (pas de circuit qui change d\'hébergement tous les jours) — s\'installer et profiter, pas cocher des étapes. Un aller-retour lointain ne se justifie que par un séjour sur place d\'au moins 3-4 nuits.',
       '* HÉBERGEMENTS : suites ou chambres avec terrasse/vue privative, lit king, bain ou jacuzzi si possible. Structures intimistes (< 12 chambres) pour le sentiment de cocon. Zéro chambre standard face à un parking.',
       '* REPAS : dîners en tête-à-tête uniquement  -  tables isolées, éclairage tamisé, vue imprenable. Au moins 1 dîner d\'exception (gastronomique, pieds dans le sable, terrasse privée ou expérience unique). Jamais de buffets ou restaurants bruyants le soir.',
       '* MOMENTS ROMANTIQUES OBLIGATOIRES : (1) coucher de soleil structuré  -  en bateau, sur un toit ou depuis un belvédère secret ; (2) massage en duo avec nom du spa, type de soin et prix précis ; (3) expérience exclusive à deux  -  bateau privé, pique-nique sur plage déserte, balade à cheval au coucher du soleil.',
@@ -220,21 +223,24 @@ function _occasionDirective(){
       '==════════════════════════════════════════════════════════',
     ].join('\n'),
     'evjf':[
-      '== EVJF  -  PROGRAMME ENTRE FILLES ==',
-      '* HÉBERGEMENT : villa avec piscine privée ou grand appartement  -  espace commun pour soirées de groupe.',
+      '== EVJF  -  PROGRAMME ENTRE FILLES, FESTIF DU DÉBUT À LA FIN ==',
+      '* GÉOGRAPHIE : UNE seule ville/zone pour tout le séjour, jamais de circuit qui déplace le groupe — s\'installer dans une base festive et rayonner en excursions courtes depuis là.',
+      '* HÉBERGEMENT : villa avec piscine privée ou grand appartement  -  espace commun pour soirées de groupe, si possible proche des quartiers de sortie.',
       '* ACTIVITÉS PRIORITAIRES : spa privatisé pour le groupe, cours de cuisine ou atelier local (céramique, cocktails, parfum), sunset rooftop ou bar avec vue, plage/piscine avec service.',
+      '* VIE NOCTURNE OBLIGATOIRE (au moins 1 soir sur 2) : restaurants festifs avec ambiance et cocktails, bars/rooftops qui ferment tard, au moins 1 vraie boîte de nuit ou club nommé et réputé sur place  -  jamais une soirée qui se termine avant minuit sauf demande contraire.',
       '* ESTHÉTIQUE : lieux instagrammables mais authentiques  -  pas de kitch. Couleurs, architecture, lumière favorable.',
-      '* 1 dîner festif avec ambiance musicale ou show live.',
-      '* Éviter : musées ennuyeux, randonnées épuisantes, hôtels formels. Favoriser mouvement, photos, rire.',
-      '* Budget repas : restaurants trendy avec cocktails  -  intégrer les boissons dans l\'estimation.',
+      '* Éviter : musées ennuyeux, randonnées épuisantes, hôtels formels. Favoriser mouvement, photos, rire, fête.',
+      '* Budget repas/soirées : restaurants trendy avec cocktails + entrée boîte de nuit  -  intégrer les boissons et les entrées de club dans l\'estimation.',
       '==═════════════════════════════════',
     ].join('\n'),
     'evg':[
-      '== EVG  -  ADRÉNALINE ET COHÉSION DE GROUPE ==',
-      '* ACTIVITÉS : quad, karting, surf, accrobranche, paintball, plongée, parapente, 4x4  -  au moins 2 activités physiques intenses.',
-      '* 1 soirée mémorable : bar à cocktails locaux, concert live ou sortie nocturne authentique (pas de club à touristes).',
-      '* HÉBERGEMENTS : grande villa ou lodge avec espace commun (terrasse, piscine) pour le groupe.',
+      '== EVG  -  ADRÉNALINE LE JOUR, FESTIF LE SOIR ==',
+      '* GÉOGRAPHIE : UNE seule ville/zone pour tout le séjour, jamais de circuit qui déplace le groupe — s\'installer dans une base et rayonner en excursions courtes depuis là.',
+      '* ACTIVITÉS JOUR : quad, karting, surf, accrobranche, paintball, plongée, parapente, 4x4  -  au moins 2 activités physiques intenses.',
+      '* VIE NOCTURNE OBLIGATOIRE (au moins 1 soir sur 2) : bars à cocktails qui ferment tard, au moins 1 vraie boîte de nuit ou club nommé et réputé sur place (pas un club à touristes), ou une soirée locale authentique  -  jamais une soirée qui se termine avant minuit sauf demande contraire.',
+      '* HÉBERGEMENTS : grande villa ou lodge avec espace commun (terrasse, piscine) pour le groupe, si possible proche des quartiers de sortie.',
       '* REPAS : grillades, BBQ, street food de qualité, portions généreuses, au moins 1 tablée conviviale.',
+      '* Budget soirées : intégrer les boissons et les entrées de club/bar dans l\'estimation.',
       '* Éviter : gastronomie trop formelle, rythme lent. Chaque jour doit avoir une histoire à raconter.',
       '==═════════════════════════════════════════',
     ].join('\n'),
@@ -254,13 +260,14 @@ function _occasionDirective(){
       '* 1 soirée mémorable par groupe (bar local avec musique live, restaurant festif).',
       '* Liberté individuelle possible dans la journée  -  se retrouver le soir.',
     ].join('\n'),
-    'pro': [
-      'VOYAGE PROFESSIONNEL (séminaire/teambuilding/incentive) :',
-      '* Hébergements avec salle de réunion ou espace de travail si séminaire.',
-      '* Pour incentive : expériences premium qui marquent les esprits.',
-      '* Activités teambuilding : atelier culinaire collectif, olympiades locales, défi nature.',
-      '* 1 grand dîner de gala ou soirée de groupe.',
-      '* Logistique irréprochable  -  transferts ponctuels, pas d\'improvisation.',
+    'bien-etre': [
+      '== RETRAITE BIEN-ÊTRE  -  RESSOURCEMENT ET DÉCONNEXION ==',
+      '* GÉOGRAPHIE : UNE seule zone/un seul hébergement pour tout le séjour si possible  -  le ressourcement se construit dans la durée, pas en enchaînant les lieux.',
+      '* HÉBERGEMENT : lieu calme et silencieux, isolé si possible, avec spa/piscine naturelle, jamais en zone bruyante ou nocturne.',
+      '* RYTHME : très lent, jamais plus de 2 activités/jour, larges plages libres, jamais de réveil avant 8h imposé.',
+      '* ACTIVITÉS PRIORITAIRES : soins spa/massage nommés avec prix, yoga ou méditation au lever du soleil, bains thermaux/naturels, alimentation saine et locale, marche douce en nature.',
+      '* Éviter absolument : vie nocturne, transferts fréquents, activités à sensations fortes, rythme dense, groupes bruyants.',
+      '* Ton : calme, présence, lenteur assumée  -  chaque jour doit laisser du temps ne rien faire.',
     ].join('\n'),
     'solo': [
       'VOYAGE EN SOLO : liberté, rencontres, immersion.',
@@ -482,7 +489,7 @@ function buildBrief(){
     'Départ : '+(state.origin||'Paris'),
     datesLine, durationLine,
     'Voyageurs : '+travelerLabel(),
-    state.childrenAges ? 'Enfants (âges) : '+state.childrenAges : '',
+    state.occasion==='famille' ? 'Enfants : '+state.childrenCount+(state.childrenCount>1?' enfants':' enfant')+(state.childrenAges?' (âges : '+state.childrenAges+')':'') : '',
     'Confort : '+(state.budget||'Confort'),
     'Rythme : '+(state.rythme||'Équilibré'),
     'Forme physique : '+(state.fitnessLevel||'Modéré'),
@@ -514,7 +521,17 @@ function buildSkeletonPrompt(dc, batchSize, offset){
   const maxKm = rythme.includes('lent')||rythme.includes('déten')?80
     : rythme.includes('intensif')?250 : 150;
 
+  /* EVJF/EVG/lune de miel/bien-être : l'esprit de ces occasions est de
+     s'installer quelque part et d'en profiter, pas d'enchaîner les
+     hébergements  -  ça doit contraindre le CIRCUIT dès le squelette, sinon
+     la consigne équivalente au niveau du détail des jours (_occasionDirective)
+     arrive trop tard : les zones du voyage sont déjà figées. */
+  const singleBaseDirective = ['evjf','evg','lune-de-miel','bien-etre'].indexOf(state.occasion)>=0
+    ? '=== OCCASION "'+state.occasion.toUpperCase()+'" : BASE UNIQUE ===\nPrivilégier UNE SEULE zone/ville pour tout le séjour (deux maximum si le voyage dépasse 7 jours) — jamais de circuit qui déplace le groupe chaque jour. S\'installer dans une base fixe et rayonner en excursions courtes depuis là plutôt que d\'enchaîner les hébergements.'
+    : '';
+
   const common=[
+    singleBaseDirective,
     geoConstraint,
     zoneConstraint ? zoneConstraint : '',
     '=== ITINÉRAIRE GÉOGRAPHIQUEMENT COHÉRENT - RÈGLE ABSOLUE ===',
@@ -544,7 +561,7 @@ function buildSkeletonPrompt(dc, batchSize, offset){
   if(isFirst){
     const compact2=[];
     if(state.occasion){
-      const occMap={'lune-de-miel':'Lune de miel: suites, dîners romantiques, activités à deux, intimité.','anniversaire':'Anniversaire: 1 moment exceptionnel, gem caché.','evjf':'EVJF: spa, rooftop, lieux instagrammables.','evg':'EVG: activités sportives, soirée locale.','famille':'Famille (enfants '+state.childrenAges+'): hébergement spacieux, activités tous âges.','solo':'Solo: guesthouses, activités modulables, sécurité.'};
+      const occMap={'lune-de-miel':'Lune de miel: suites, dîners romantiques, activités à deux, intimité, base unique.','anniversaire':'Anniversaire: 1 moment exceptionnel, gem caché.','evjf':'EVJF: base unique, spa, rooftop, lieux instagrammables, vie nocturne (bars tardifs, boîte de nuit).','evg':'EVG: base unique, activités sportives le jour, vie nocturne le soir (bars tardifs, boîte de nuit).','famille':'Famille (enfants '+state.childrenAges+'): hébergement spacieux, activités tous âges.','solo':'Solo: guesthouses, activités modulables, sécurité.','amis':'Entre amis: hébergement partagé, activités de groupe, 1 soirée mémorable.','bien-etre':'Retraite bien-être: base unique, rythme lent, spa/yoga/nature, jamais de vie nocturne.'};
       if(occMap[state.occasion]) compact2.push(occMap[state.occasion]);
     }
     if(state.dietary)   compact2.push('Régime: '+state.dietary);

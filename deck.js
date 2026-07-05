@@ -49,10 +49,15 @@ function deckQuestions(){
     }, footLabel:'Pas d\'occasion particulière' });
 
   /* Q5b — Sous-question enfants UNIQUEMENT si famille */
-  q.push({ id:'children', t:'Quel âge ont <em>vos enfants</em> ?', s:'Pour adapter chaque activité, restaurant et rythme de journée.',
+  q.push({ id:'children', t:'Combien <em>d\'enfants</em>, et quel âge ?', s:'Pour adapter chaque activité, restaurant et rythme de journée.',
     _show: function(){ return state.occasion === 'famille'; },
     body: function(){
-      return '<div class="field"><label>Âge des enfants</label>'
+      return '<div class="stepper">'
+        + '<button onclick="stepChildrenCount(-1)" aria-label="Moins">' + ico('minus',20,1.7) + '</button>'
+        + '<div class="st-v"><div class="st-n" data-child-n>' + state.childrenCount + '</div><div class="st-l" data-child-l>' + (state.childrenCount > 1 ? 'enfants' : 'enfant') + '</div></div>'
+        + '<button onclick="stepChildrenCount(1)" aria-label="Plus">' + ico('plus',20,1.7) + '</button>'
+        + '</div>'
+        + '<div class="field" style="margin-top:16px"><label>Âge des enfants</label>'
         + '<input class="input" placeholder="ex : 3, 7 et 11 ans" value="' + esc(state.childrenAges) + '" oninput="state.childrenAges=this.value"></div>'
         + '<div style="font-size:13px;color:var(--sub);margin-top:12px;line-height:1.5">Bébé (0-2 ans), maternelle (3-5 ans), primaire (6-11 ans), ados (12-17 ans) — chaque tranche a ses contraintes propres.</div>';
     }});
@@ -232,6 +237,20 @@ function deckQuestions(){
         'Un défi ou jeu collectif (escape game local, rallye)',
         'Un feu de camp ou barbecue dans la nature',
       ];
+      else if(occ === 'bien-etre') list = [
+        'Un spa avec soins signature (massage, rituel local)',
+        'Des cours de yoga ou méditation au lever du soleil',
+        'Une cure thermale ou source naturelle',
+        'Une alimentation saine, fraîche et locale',
+        'Une retraite silencieuse ou digital detox',
+        'Une randonnée douce en pleine nature',
+        'Un bain japonais, hammam ou rituel de bien-être traditionnel',
+        'Un coucher de soleil en pleine conscience',
+        'Un atelier respiration, sophrologie ou ayurvéda',
+        'Une baignade en eaux naturelles (lac, source, océan calme)',
+        'Un hébergement isolé, silencieux, sans écrans imposés',
+        'Un rituel de soin ancestral avec un praticien local',
+      ];
       return '<div class="chips">' + list.map(function(s){
         return '<button class="chip' + (state.interests.indexOf(s)>=0?' on':'') + '" onclick="deckToggle(\'interests\',\'' + s.replace(/'/g,"\\'") + '\',this)">' + s + '</button>';
       }).join('') + '</div>';
@@ -239,7 +258,7 @@ function deckQuestions(){
 
   /* Q12 — Comment vous voyagez (adapté à l'occasion) */
   q.push({ id:'styles', t:'Comment voyagez-<em>vous</em> ?', s:'Votre manière de vivre le voyage — cochez tout ce qui vous ressemble.',
-    _show: function(){ return !state.occasion || ['anniversaire','pro','famille'].indexOf(state.occasion) >= 0 || !state.occasion; },
+    _show: function(){ return !state.occasion || ['anniversaire','famille'].indexOf(state.occasion) >= 0; },
     body: function(){
       return '<div class="chips">' + TRAVEL_STYLES.map(function(s){
         return '<button class="chip' + (state.styles.indexOf(s)>=0?' on':'') + '" onclick="deckToggle(\'styles\',\'' + s.replace(/'/g,"\\'") + '\',this)">' + s + '</button>';
@@ -262,6 +281,7 @@ function deckQuestions(){
     : occFinal === 'evg'  ? 'Ce que vous voulez que cet EVG <em>reste dans les mémoires</em>.'
     : occFinal === 'famille' ? 'Ce que vous voulez que vos enfants <em>n\'oublient jamais</em>.'
     : occFinal === 'anniversaire' ? 'Quel doit être le <em>moment clé</em> de ce voyage ?'
+    : occFinal === 'bien-etre' ? 'De quoi avez-vous besoin de <em>vous déconnecter</em> ?'
     : surprise ? 'Y a-t-il quelque chose à <em>éviter absolument</em> ?'
     : 'Quelle est la chose que vous voulez qu\'on <em>ne puisse pas faire</em> sans cet itinéraire ?';
 
@@ -275,6 +295,8 @@ function deckQuestions(){
     ? 'ex : qu\'ils voient des animaux sauvages pour la première fois, qu\'on mange comme des locaux, qu\'ils rentrent en disant c\'était le meilleur voyage de leur vie…'
     : occFinal === 'anniversaire'
     ? 'ex : une surprise au dîner, un lieu accessible uniquement à pied, un moment où on réalise qu\'on ne pouvait pas faire ça sans vous…'
+    : occFinal === 'bien-etre'
+    ? 'ex : du bruit des notifications, du rythme effréné, on veut réapprendre à ne rien faire, à dormir sans alarme…'
     : surprise
     ? 'ex : pas d\'Asie du Sud-Est, éviter juillet-août, on déteste les hôtels de chaîne…'
     : 'ex : on veut se lever avant tout le monde pour avoir les sites pour nous, manger dans des endroits que les touristes ne trouvent pas, trouver au moins une heure seuls face à quelque chose de beau…';
@@ -380,6 +402,7 @@ function deckOccasion(id){
   /* Forcer le rythme selon l'occasion */
   if(state.occasion === 'lune-de-miel') state.rythme = 'Lent';
   else if(state.occasion === 'evg') state.rythme = 'Dense';
+  else if(state.occasion === 'bien-etre') state.rythme = 'Lent';
   const card = document.querySelector('#deck .dcard[data-card="' + state.deckIndex + '"]');
   if (card){
     const its = card.querySelectorAll('.occ');
@@ -393,6 +416,13 @@ function deckOccasion(id){
   if (state.occasion) setTimeout(function(){
     if (state.deckIndex === idxAtClick) deckNext();
   }, 620);
+}
+
+function stepChildrenCount(d){
+  state.childrenCount = Math.max(1, Math.min(10, state.childrenCount + d));
+  const n = document.querySelector('[data-child-n]'), l = document.querySelector('[data-child-l]');
+  if (n) n.textContent = state.childrenCount;
+  if (l) l.textContent = state.childrenCount > 1 ? 'enfants' : 'enfant';
 }
 
 function stepTravelers(d){
