@@ -1443,7 +1443,8 @@ function buildStaySearchPrompt(dest, zones, level, dateRanges){
     'EXIGENCES STRICTES :',
     '- Uniquement des établissements qui EXISTENT VRAIMENT (vérifiables sur Booking, Google Maps, ou leur site officiel).',
     '- Nom EXACT tel qu il apparait en ligne. Aucune invention, aucune approximation.',
-    '- Si tu n es pas certain qu un établissement existe dans une zone, mets "name":"" pour cette zone.',
+    '- EXCLUSION ABSOLUE ET PRIORITAIRE : si tes résultats de recherche indiquent, même une seule fois, que l\'établissement est "définitivement fermé"/"permanently closed"/"closed down"/"fermé"/"n\'existe plus"/"a fermé ses portes" (peu importe qu\'il ait été réel et réputé), tu DOIS l\'exclure et chercher un autre établissement réel et actuellement ouvert pour cette zone — ne le propose sous aucun prétexte, même si aucune alternative n\'est trouvée (mets alors "name":"").',
+    '- Si tu n es pas certain qu un établissement existe dans une zone, ou si son statut d\'ouverture actuel est incertain, mets "name":"" pour cette zone plutôt que de risquer un établissement fermé.',
     hasDates
       ? '- Prix : cherche le tarif RÉEL actuellement affiché (Booking, site officiel) pour CES dates précises indiquées ci-dessus, pas une moyenne générique — c\'est ce prix qui sert de base au budget affiché au client. Si le tarif exact pour ces dates n\'est pas trouvable, donne la fourchette actuelle la plus réaliste pour ce type d\'établissement à cette période de l\'année.'
       : '- Prix indicatif par nuit réaliste en euros pour 2 personnes.',
@@ -1494,7 +1495,8 @@ function buildRestoSearchPrompt(dest, places, level){
     'EXIGENCES STRICTES :',
     '- Uniquement des restaurants qui EXISTENT VRAIMENT (vérifiables sur Google Maps, TheFork, TripAdvisor).',
     '- Nom EXACT tel qu il apparait en ligne. Aucune invention.',
-    '- Si tu n es pas certain pour un lieu, mets "name":"" pour ce lieu.',
+    '- EXCLUSION ABSOLUE ET PRIORITAIRE : si tes résultats de recherche indiquent, même une seule fois, que l\'établissement est "définitivement fermé"/"permanently closed"/"closed down"/"fermé"/"n\'existe plus"/"a fermé ses portes" (peu importe qu\'il ait été réel et réputé), tu DOIS l\'exclure et chercher une autre adresse réelle et actuellement ouverte pour ce lieu — ne le propose sous aucun prétexte, même si aucune alternative n\'est trouvée (mets alors "name":"").',
+    '- Si tu n es pas certain pour un lieu, ou si le statut d\'ouverture actuel est incertain, mets "name":"" pour ce lieu plutôt que de risquer une adresse fermée.',
     '- Indique une spécialité réelle et une fourchette de prix (€, €€, €€€).',
     '',
     'Réponds UNIQUEMENT en JSON compact valide, sans texte autour :',
@@ -1546,6 +1548,7 @@ function buildGemsSearchPrompt(dest, country, region, interests){
     'Pour chaque pépite trouvée, rapporte fidèlement ce qu\'un vrai avis/commentaire de voyageur en dit (paraphrase honnête d\'un avis réellement trouvé en ligne, jamais un commentaire inventé de toutes pièces).',
     'EXIGENCES STRICTES :',
     '- Uniquement des lieux RÉELS, vérifiables, actuellement accessibles.',
+    '- EXCLUSION ABSOLUE ET PRIORITAIRE : si tes résultats de recherche indiquent, même une seule fois, que le lieu est "définitivement fermé"/"permanently closed"/"closed down"/"fermé"/"n\'existe plus", tu DOIS l\'exclure entièrement — ne le propose sous aucun prétexte, préfère en renvoyer moins.',
     '- Le commentaire cité doit correspondre au contenu d\'un vrai avis trouvé en ligne (paraphrase fidèle, pas une citation mot pour mot si tu n\'es pas sûr du texte exact).',
     '- Si tu ne trouves rien de fiable pour compléter 4 pépites, renvoie-en moins plutôt que d\'inventer.',
     'Réponds UNIQUEMENT en JSON compact, sans texte autour :',
