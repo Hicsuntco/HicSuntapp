@@ -14,6 +14,11 @@ function _ensureLeaflet(cb){
     s = document.createElement('script');
     s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
     s.setAttribute('data-hs-leaflet', '1');
+    /* Sans crossorigin, une erreur survenant DANS ce script externe (unpkg.com)
+       remonte comme "Script error." muet (ni message, ni fichier, ni ligne) —
+       le navigateur masque le détail par sécurité pour les scripts cross-origin
+       sans CORS explicite. Ça rend le diagnostic impossible en cas de souci. */
+    s.crossOrigin = 'anonymous';
     s.onload = cb;
     s.onerror = cb;
     document.head.appendChild(s);

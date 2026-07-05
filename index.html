@@ -41,10 +41,10 @@
 <link rel="shortcut icon" href="/favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="core.css?v=1783257593">
-<link rel="stylesheet" href="screens.css?v=1783257593">
-<link rel="stylesheet" href="overlays.css?v=1783257593">
-<link rel="stylesheet" href="features.css?v=1783257593">
+<link rel="stylesheet" href="core.css?v=1783257947">
+<link rel="stylesheet" href="screens.css?v=1783257947">
+<link rel="stylesheet" href="overlays.css?v=1783257947">
+<link rel="stylesheet" href="features.css?v=1783257947">
 </head>
 <body>
 <script>
@@ -54,16 +54,33 @@
 (function(){
   function showErr(msg){
     var d = document.getElementById('__hs_err');
+    var textEl;
     if(!d){
       d = document.createElement('div');
       d.id = '__hs_err';
       d.style.cssText = 'position:fixed;left:8px;right:8px;bottom:8px;z-index:999999;'
         + 'font:12px/1.4 ui-monospace,monospace;background:#2a1215;color:#ff8a80;'
-        + 'padding:10px 14px;border-radius:10px;border:1px solid #5c2b2e;'
+        + 'padding:10px 34px 10px 14px;border-radius:10px;border:1px solid #5c2b2e;'
         + 'white-space:pre-wrap;max-height:40vh;overflow:auto;box-shadow:0 8px 24px rgba(0,0,0,.4)';
+      /* Bouton de fermeture : sans lui, un message resté affiché des heures
+         (le voyageur navigue vers un autre écran sans jamais recharger la
+         page) peut être confondu avec une erreur qui se produit "en ce
+         moment", alors qu'il ne s'agit peut-être que d'un incident déjà
+         passé et sans conséquence. */
+      var closeBtn = document.createElement('button');
+      closeBtn.textContent = '×';
+      closeBtn.setAttribute('aria-label', 'Fermer');
+      closeBtn.style.cssText = 'position:absolute;top:2px;right:6px;background:none;border:none;'
+        + 'color:#ff8a80;font-size:20px;line-height:1;cursor:pointer;padding:8px';
+      closeBtn.onclick = function(){ d.remove(); };
+      d.appendChild(closeBtn);
+      textEl = document.createElement('div');
+      textEl.id = '__hs_err_text';
+      d.appendChild(textEl);
       document.body.appendChild(d);
     }
-    d.textContent = (d.textContent ? d.textContent + '\n\n' : '') + msg;
+    textEl = document.getElementById('__hs_err_text');
+    textEl.textContent = (textEl.textContent ? textEl.textContent + '\n\n' : '') + msg;
   }
   window.hsDebug = showErr; /* pour du diagnostic ponctuel visible à l'écran */
   window.addEventListener('error', function(e){
@@ -83,15 +100,15 @@
 <div class="stage">
   <div class="phone"><div class="screen"></div></div>
 </div>
-<script src="data.js?v=1783257593"></script>
-<script src="extra-data.js?v=1783257593"></script>
-<script src="screens-main.js?v=1783257593"></script>
-<script src="screens-detail.js?v=1783257593"></script>
-<script src="screens-extra.js?v=1783257593"></script>
-<script src="deck.js?v=1783257593"></script>
-<script src="features.js?v=1783257593"></script>
-<script src="generate.js?v=1783257593"></script>
-<script src="maps.js?v=1783257593"></script>
-<script src="app.js?v=1783257593"></script>
+<script src="data.js?v=1783257947"></script>
+<script src="extra-data.js?v=1783257947"></script>
+<script src="screens-main.js?v=1783257947"></script>
+<script src="screens-detail.js?v=1783257947"></script>
+<script src="screens-extra.js?v=1783257947"></script>
+<script src="deck.js?v=1783257947"></script>
+<script src="features.js?v=1783257947"></script>
+<script src="generate.js?v=1783257947"></script>
+<script src="maps.js?v=1783257947"></script>
+<script src="app.js?v=1783257947"></script>
 </body>
 </html>
