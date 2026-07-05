@@ -420,7 +420,9 @@ function accCard(a){
     + '<div style="background:'+bgColor+';padding:20px 20px 16px;display:flex;align-items:flex-start;justify-content:space-between;border-bottom:1px solid var(--line2)">'
     +   '<div style="flex:1;min-width:0">'
     +     '<div style="font-family:var(--mono);font-size:8.5px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:'+accent+';margin-bottom:6px">' + esc(a.type||'Hébergement') + '</div>'
-    +     '<div style="font-family:var(--serif);font-size:19px;font-weight:600;color:var(--ink);line-height:1.2;margin-bottom:4px">' + esc(dispName) + '</div>'
+    +     '<div style="font-family:var(--serif);font-size:19px;font-weight:600;color:var(--ink);line-height:1.2;margin-bottom:4px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">' + esc(dispName)
+    +       (a.verified===false ? '<span style="font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;color:#C9822B;border:1px solid '+hexA('#C9822B',0.4)+';border-radius:6px;padding:2px 6px">Non confirmé</span>' : '')
+    +     '</div>'
     +     '<div style="font-family:var(--mono);font-size:9.5px;letter-spacing:0.5px;text-transform:uppercase;color:var(--sub)">' + esc(a.loc||'') + '</div>'
     +   '</div>'
     +   '<div style="width:48px;height:48px;border-radius:14px;background:'+hexA(accent,0.14)+';display:flex;align-items:center;justify-content:center;flex:none;margin-left:12px;color:'+accent+'">' + ico(a.i||'bed', 22, 1.3) + '</div>'
