@@ -1385,12 +1385,29 @@ document.addEventListener('DOMContentLoaded', function(){
     var hotelsUrl='https://fr.hotels.com/search.do?q-destination='+fullQ+'&q-rooms=1&q-room-0-adults='+guests
       +(checkin?'&q-check-in='+checkin:'')+(checkout?'&q-check-out='+checkout:'');
 
-    function platformRow(url, logo, color, title, subtitle){
-      return '<a href="'+url+'" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:14px;padding:16px;background:var(--surface);border:1px solid var(--line);border-radius:14px;margin-bottom:10px;text-decoration:none;cursor:pointer">'
+    function platformRow(url, logo, color, title, subtitle, found){
+      return '<a href="'+url+'" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:14px;padding:16px;background:var(--surface);border:1px solid '+(found?accent:'var(--line)')+';border-radius:14px;margin-bottom:10px;text-decoration:none;cursor:pointer">'
         +'<div style="width:42px;height:42px;border-radius:12px;background:'+color+';display:flex;align-items:center;justify-content:center;flex:none">'+logo+'</div>'
-        +'<div style="flex:1"><div style="font-size:15px;font-weight:500;color:var(--ink)">'+title+'</div><div style="font-size:12px;color:var(--sub)">'+subtitle+'</div></div>'
+        +'<div style="flex:1"><div style="font-size:15px;font-weight:500;color:var(--ink)">'+title+(found?' <span style="font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:'+accent+';border:1px solid '+accent+';border-radius:6px;padding:2px 6px;margin-left:6px">Vérifié ici</span>':'')+'</div><div style="font-size:12px;color:var(--sub)">'+subtitle+'</div></div>'
         +'<span style="font-size:13px;font-weight:600;color:'+accent+'">Voir →</span></a>';
     }
+    /* "source" = plateforme où la recherche web a confirmé que cet hébergement
+       précis existe (voir _fetchRealStays) — on la met en avant plutôt que de
+       présenter 3 recherches génériques à égalité, dont 2 ne concernent pas
+       forcément ce logement. */
+    var src=(a.source||'').toLowerCase();
+    var platformDefs=[
+      {id:'booking', url:bookingUrl, logo:'<span style="color:white;font-weight:900;font-size:13px;font-family:sans-serif">B.</span>', color:'#003580', title:'Booking.com', sub:'Hôtels · remboursement gratuit'},
+      {id:'airbnb', url:airbnbUrl, logo:'<span style="color:white;font-size:18px">✦</span>', color:'#FF5A5F', title:'Airbnb', sub:'Maisons · appartements · villas'},
+      {id:'hotels', url:hotelsUrl, logo:'<span style="color:white;font-size:9px;font-weight:700;font-family:sans-serif;text-align:center;line-height:1.2">HOTELS<br>.COM</span>', color:'#CC0000', title:'Hotels.com', sub:'Prix exclusifs membres'},
+    ];
+    if(src==='booking'||src==='airbnb'||src==='hotels'){
+      platformDefs.sort(function(p,q){ return (p.id===src?-1:0)-(q.id===src?-1:0); });
+    }
+    var platformsHtml=platformDefs.map(function(p){
+      var isFound=(p.id===src);
+      return platformRow(p.url, p.logo, p.color, p.title, isFound?'Confirmé disponible sur cette plateforme':p.sub, isFound);
+    }).join('');
 
     /* Photo réelle trouvée par recherche web (_fetchRealStays) si disponible.
        Fallback natif si l'URL ne charge pas réellement (lien mort, hotlink
@@ -1413,10 +1430,12 @@ document.addEventListener('DOMContentLoaded', function(){
       +'<div class="price-l" style="margin-top:12px"><span>'+eur(price)+' / nuit × '+nights+'</span><span style="font-weight:600;color:var(--ink)">'+eur(total)+'</span></div>'
       /* Comparateur */
       +'<div class="section-h" style="margin-top:24px"><h2>Réserver en ligne</h2><span class="meta">Dates pré-remplies</span></div>'
-      +'<p style="font-size:13px;color:var(--sub);margin-bottom:16px;line-height:1.5">Cliquez pour voir les disponibilités et les vrais prix sur vos dates — choisissez la plateforme la moins chère.</p>'
-      +platformRow(bookingUrl,'<span style="color:white;font-weight:900;font-size:13px;font-family:sans-serif">B.</span>','#003580','Booking.com','Hôtels · remboursement gratuit')
-      +platformRow(airbnbUrl,'<span style="color:white;font-size:18px">✦</span>','#FF5A5F','Airbnb','Maisons · appartements · villas')
-      +platformRow(hotelsUrl,'<span style="color:white;font-size:9px;font-weight:700;font-family:sans-serif;text-align:center;line-height:1.2">HOTELS<br>.COM</span>','#CC0000','Hotels.com','Prix exclusifs membres')
+      +'<p style="font-size:13px;color:var(--sub);margin-bottom:16px;line-height:1.5">'
+        +(src==='officiel'
+          ? 'Cet hébergement a été vérifié sur son site officiel — comparez aussi ses tarifs sur ces plateformes.'
+          : (src ? 'Cet hébergement a été vérifié disponible sur la plateforme mise en avant ci-dessous — comparez aussi sur les autres.' : 'Cliquez pour voir les disponibilités et les vrais prix sur vos dates — choisissez la plateforme la moins chère.'))
+      +'</p>'
+      +platformsHtml
       +'</div>';
   };
 
@@ -1719,8 +1738,8 @@ document.addEventListener('DOMContentLoaded', function(){
     var guests=it.travelers||(state&&state.travelers)||2;
     var accent=(it.palette&&(it.palette.culture||it.palette.beach))||'#C9A96E';
 
-    function platformBtn(url, label, color){
-      return '<a href="'+url+'" target="_blank" rel="noopener" style="flex:1;display:flex;align-items:center;justify-content:center;padding:10px 8px;border-radius:10px;background:'+color+';color:white;font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:0.5px;text-decoration:none;text-align:center">'+label+'</a>';
+    function platformBtn(url, label, color, found){
+      return '<a href="'+url+'" target="_blank" rel="noopener" style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:10px 8px;border-radius:10px;background:'+color+';color:white;font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:0.5px;text-decoration:none;text-align:center'+(found?';box-shadow:0 0 0 2px '+accent+' inset':'')+'">'+(found?'✓ ':'')+label+'</a>';
     }
 
     var html = statusBar()+navbar('Hébergements du voyage')
@@ -1771,12 +1790,18 @@ document.addEventListener('DOMContentLoaded', function(){
         +'</div>'
         +'</div>'
         +(a.blurb?'<p style="font-size:13px;color:var(--ink-soft);margin-bottom:12px;line-height:1.5">'+esc(a.blurb)+'</p>':'')
-        /* 3 boutons plateformes */
-        +'<div style="display:flex;gap:8px">'
-        +platformBtn(bookingUrl,'Booking.com','#003580')
-        +platformBtn(airbnbUrl,'Airbnb','#FF5A5F')
-        +platformBtn(hotelsUrl,'Hotels.com','#CC0000')
-        +'</div>'
+        /* 3 boutons plateformes — celle où l'hébergement a été confirmé par la
+           recherche web (a.source) passe en tête avec une coche. */
+        +(function(){
+          var src=(a.source||'').toLowerCase();
+          var defs=[
+            {id:'booking', url:bookingUrl, label:'Booking.com', color:'#003580'},
+            {id:'airbnb', url:airbnbUrl, label:'Airbnb', color:'#FF5A5F'},
+            {id:'hotels', url:hotelsUrl, label:'Hotels.com', color:'#CC0000'},
+          ];
+          if(src==='booking'||src==='airbnb'||src==='hotels') defs.sort(function(p,q){ return (p.id===src?-1:0)-(q.id===src?-1:0); });
+          return '<div style="display:flex;gap:8px">'+defs.map(function(d){ return platformBtn(d.url,d.label,d.color,d.id===src); }).join('')+'</div>';
+        })()
         +'</div>';
     });
 
