@@ -41,10 +41,10 @@
 <link rel="shortcut icon" href="/favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="core.css?v=1783256862">
-<link rel="stylesheet" href="screens.css?v=1783256862">
-<link rel="stylesheet" href="overlays.css?v=1783256862">
-<link rel="stylesheet" href="features.css?v=1783256862">
+<link rel="stylesheet" href="core.css?v=1783257364">
+<link rel="stylesheet" href="screens.css?v=1783257364">
+<link rel="stylesheet" href="overlays.css?v=1783257364">
+<link rel="stylesheet" href="features.css?v=1783257364">
 </head>
 <body>
 <script>
@@ -83,15 +83,53 @@
 <div class="stage">
   <div class="phone"><div class="screen"></div></div>
 </div>
-<script src="data.js?v=1783256862"></script>
-<script src="extra-data.js?v=1783256862"></script>
-<script src="screens-main.js?v=1783256862"></script>
-<script src="screens-detail.js?v=1783256862"></script>
-<script src="screens-extra.js?v=1783256862"></script>
-<script src="deck.js?v=1783256862"></script>
-<script src="features.js?v=1783256862"></script>
-<script src="generate.js?v=1783256862"></script>
-<script src="maps.js?v=1783256862"></script>
-<script src="app.js?v=1783256862"></script>
+<script src="data.js?v=1783257364"></script>
+<script src="extra-data.js?v=1783257364"></script>
+<script src="screens-main.js?v=1783257364"></script>
+<script src="screens-detail.js?v=1783257364"></script>
+<script src="screens-extra.js?v=1783257364"></script>
+<script src="deck.js?v=1783257364"></script>
+<script src="features.js?v=1783257364"></script>
+<script src="generate.js?v=1783257364"></script>
+<script src="maps.js?v=1783257364"></script>
+<script src="app.js?v=1783257364"></script>
+<script>
+/* ── DIAGNOSTIC TEMPORAIRE (bande blanche persistante en bas d'écran) ──
+   À retirer une fois le bug identifié. Affiche les mesures réelles de
+   l'appareil via le même canal que l'attrape-erreurs, pour comparer ce que
+   le navigateur rapporte à ce qui est visible à l'écran. */
+(function(){
+  function reportViewport(){
+    try{
+      var vv = window.visualViewport;
+      var phone = document.querySelector('.phone');
+      var screenEl = document.querySelector('.screen');
+      var probe = document.createElement('div');
+      probe.style.cssText = 'position:fixed;bottom:0;left:0;height:0;padding-bottom:env(safe-area-inset-bottom,0px);visibility:hidden';
+      document.body.appendChild(probe);
+      var safeBottom = getComputedStyle(probe).paddingBottom;
+      probe.remove();
+      var pr = phone ? phone.getBoundingClientRect() : null;
+      var sr = screenEl ? screenEl.getBoundingClientRect() : null;
+      var lines = [
+        '[diag viewport ' + new Date().toLocaleTimeString() + ']',
+        'innerHeight=' + window.innerHeight + ' innerWidth=' + window.innerWidth,
+        'vv.height=' + (vv ? vv.height : 'n/a') + ' vv.offsetTop=' + (vv ? vv.offsetTop : 'n/a') + ' vv.scale=' + (vv ? vv.scale : 'n/a'),
+        'screen.height=' + screen.height + ' screen.availHeight=' + screen.availHeight,
+        'devicePixelRatio=' + window.devicePixelRatio,
+        'safe-area-inset-bottom=' + safeBottom,
+        'standalone(display-mode)=' + window.matchMedia('(display-mode: standalone)').matches,
+        'standalone(navigator)=' + (window.navigator.standalone === true),
+        'phone.rect=' + (pr ? ('top=' + pr.top + ' bottom=' + pr.bottom + ' height=' + pr.height) : 'n/a'),
+        'screen.rect=' + (sr ? ('top=' + sr.top + ' bottom=' + sr.bottom + ' height=' + sr.height) : 'n/a'),
+        'docEl.clientHeight=' + document.documentElement.clientHeight,
+        'body.scrollHeight=' + document.body.scrollHeight,
+      ];
+      if(typeof window.hsDebug === 'function') window.hsDebug(lines.join('\n'));
+    }catch(e){ if(typeof window.hsDebug === 'function') window.hsDebug('[diag erreur] ' + (e && e.message || e)); }
+  }
+  setTimeout(reportViewport, 5200);
+})();
+</script>
 </body>
 </html>
