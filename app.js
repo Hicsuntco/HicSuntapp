@@ -96,7 +96,14 @@ function _geoPts(plan,g){
   });
 }
 
-function travelerLabel(){ return state.travelers + ' voyageur' + (state.travelers > 1 ? 's' : ''); }
+/* it (optionnel) : passer ITINERARY pour afficher le nombre de voyageurs
+   RÉEL de ce voyage sauvegardé plutôt que la valeur "vivante" du
+   questionnaire (state.travelers), qui change dès qu'on compose un
+   nouveau voyage ou revient à sa valeur par défaut au rechargement. */
+function travelerLabel(it){
+  const n = (it && it.travelers) ? it.travelers : state.travelers;
+  return n + ' voyageur' + (n > 1 ? 's' : '');
+}
 function screenEl(){ return document.querySelector('.screen'); }
 function esc(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function eur(n){ return Math.round(n).toLocaleString('fr-FR') + ' €'; }
@@ -980,7 +987,7 @@ async function loadSavedItinerary(id){
         var _reloadedBudget = deriveBudget(
           ITINERARY.accommodations||[], ITINERARY.budgetTotal||0,
           ITINERARY.dest||'', ITINERARY.region||'', ITINERARY.country||'',
-          state.travelers||2, ITINERARY._flightInfo||null
+          ITINERARY.travelers||state.travelers||2, ITINERARY._flightInfo||null
         );
         if(_reloadedBudget) ITINERARY.budgetTotal = _reloadedBudget;
       }catch(e){ console.warn('deriveBudget on load:', e); }
@@ -1273,7 +1280,7 @@ document.addEventListener('DOMContentLoaded', function(){
         deriveBudget(
           it.accommodations||[], total,
           it.dest||'', it.region||'', it.country||'',
-          state.travelers||2, it.flightInfo||null
+          it.travelers||state.travelers||2, it._flightInfo||null
         );
       }catch(e){ console.warn('deriveBudget',e); }
     }
@@ -1287,7 +1294,7 @@ document.addEventListener('DOMContentLoaded', function(){
       +'<div class="bud-card">'
       +'<div class="bud-l">Total estimé · '+esc(it.dest||'')+'</div>'
       +'<div class="bud-v">'+eur(displayTotal)+'</div>'
-      +'<div class="bud-s">'+travelerLabel()+' · '+(_days(it)||'')+' jours · estimation</div>'
+      +'<div class="bud-s">'+travelerLabel(it)+' · '+(_days(it)||'')+' jours · estimation</div>'
       +'</div>'
       +'<div class="section-h"><h2>Répartition</h2><span class="meta">estimation</span></div>'
       +b.lines.map(function(l){return '<div class="bline">'+ico(l.i,20,1.5)
@@ -1356,7 +1363,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
     var price=Number(a.price)||0, nights=Number(a.nights)||1, total=price*nights;
     var accent=(it.palette&&(it.palette.culture||it.palette.beach))||'#C9A96E';
-    var guests=(state&&state.travelers)||2;
+    var guests=it.travelers||(state&&state.travelers)||2;
     var _r0=(typeof _stayDateRange==='function')?_stayDateRange(a):{checkin:it.dateFrom||'',checkout:it.dateTo||''};
     var checkin=_r0.checkin;
     var checkout=_r0.checkout;
@@ -1603,7 +1610,7 @@ document.addEventListener('DOMContentLoaded', function(){
           var recalcedBudget = deriveBudget(
             ITINERARY.accommodations||[], ITINERARY.budgetTotal||0,
             ITINERARY.dest||'', ITINERARY.region||'', ITINERARY.country||'',
-            state.travelers||2,
+            ITINERARY.travelers||state.travelers||2,
             ITINERARY._flightInfo||null /* préserver les vols */
           );
           if(recalcedBudget) ITINERARY.budgetTotal = recalcedBudget;
@@ -1708,7 +1715,7 @@ document.addEventListener('DOMContentLoaded', function(){
     var it=ITINERARY;
     var accs=it.accommodations||[];
     if(!accs.length){ toast('Aucun hébergement dans cet itinéraire'); return; }
-    var guests=(state&&state.travelers)||2;
+    var guests=it.travelers||(state&&state.travelers)||2;
     var accent=(it.palette&&(it.palette.culture||it.palette.beach))||'#C9A96E';
 
     function platformBtn(url, label, color){

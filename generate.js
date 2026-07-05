@@ -1064,6 +1064,13 @@ function applyGenerated(skel, daysDetail, hilites, flightInfo, heroPhoto){
     dateFrom:state.dateFrom||'', dateTo:state.dateTo||'',
     _flightInfo:flightInfo||null, /* préservé pour recalcul budget après modif IA */
     heroPhoto:heroPhoto||'',
+    /* Nombre de voyageurs RÉELLEMENT utilisé pour générer ce voyage précis —
+       state.travelers est une valeur de questionnaire "vivante" qui change
+       dès qu'on compose un nouveau voyage (ou revient à sa valeur par défaut
+       au rechargement de l'app) : sans ce champ propre à l'itinéraire, rouvrir
+       un voyage sauvegardé (ou juste rafraîchir son budget) affichait le
+       nombre de voyageurs du QUESTIONNAIRE ACTUEL plutôt que celui du voyage. */
+    travelers:travelers,
   });
 
   /* highlights */
@@ -1176,7 +1183,8 @@ function deriveBudget(stays, total, dest, region, country, travelers, flightInfo
   const transfers=transferFloor;
   /* le reste au-delà des coûts réels et planchers va aux activités */
   const activities=Math.max(0, total-accom-flights-food-transfers);
-  const flightSub=(state.origin||'Paris')+' · aller-retour · '+travelerLabel()+(hasRealFlight&&flightInfo.source?' · estimation '+flightInfo.source:' · estimation')
+  const travelersLbl=travelers+' voyageur'+(travelers>1?'s':'');
+  const flightSub=(state.origin||'Paris')+' · aller-retour · '+travelersLbl+(hasRealFlight&&flightInfo.source?' · estimation '+flightInfo.source:' · estimation')
 
   BUDGET.total=total; BUDGET.spent=0;
   BUDGET.lines=[
