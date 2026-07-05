@@ -935,7 +935,7 @@ function _normalizeStayNights(stays, dc){
     else{ a.nights=Math.max(1,Math.round((Number(a.nights)||1)*(dc/Math.max(1,sum)))); running+=a.nights; }
   });
 }
-function applyGenerated(skel, daysDetail, hilites, flightInfo){
+function applyGenerated(skel, daysDetail, hilites, flightInfo, heroPhoto){
   const dest=skel.dest||state.destination||'Votre voyage';
   const level=['Éco','Confort','Luxe','Ultra'].includes(skel.level)?skel.level:(state.budget||'Confort');
   const dc=_clampInt(skel.days_count, 1, 60, buildBrief().daysCount);
@@ -1063,6 +1063,7 @@ function applyGenerated(skel, daysDetail, hilites, flightInfo){
     theme:themeName, palette:THEME_PALETTES[themeName],
     dateFrom:state.dateFrom||'', dateTo:state.dateTo||'',
     _flightInfo:flightInfo||null, /* préservé pour recalcul budget après modif IA */
+    heroPhoto:heroPhoto||'',
   });
 
   /* highlights */
@@ -1539,6 +1540,45 @@ async function _fetchRealGems(dest, country, region, interests){
   return null;
 }
 
+/* ── recherche web d'une VRAIE photo de destination (anti-hallucination) ──
+   Seules 17 destinations ont une photo pré-illustrée localement (destPhoto,
+   screens-main.js) — la plupart des destinations générées (villes/régions
+   précises comme "Palma de Majorque") n'en ont aucune et retombent sur un
+   simple dégradé de couleur. On cherche une vraie photo sur Wikimedia
+   Commons (licence libre, lien direct fiable — contrairement à Booking/
+   Airbnb qui bloquent le hotlink) plutôt que d'inventer une URL. */
+function buildDestPhotoSearchPrompt(dest, country, region){
+  return [
+    'Cherche sur Wikimedia Commons une VRAIE photo (paysage, ville ou monument emblématique, pas un plan rapproché de personnes) de la destination : '+(dest||'')+' ('+(country||region||'')+').',
+    'EXIGENCES STRICTES :',
+    '- UNIQUEMENT une URL d\'image DIRECTE depuis upload.wikimedia.org (se terminant par .jpg/.jpeg/.png), jamais une page Wikipedia ou un lien vers une galerie.',
+    '- Si tu ne trouves aucune photo Wikimedia Commons fiable pour ce lieu précis, réponds avec "photo":"" plutôt que d\'inventer ou d\'approximer une URL.',
+    'Réponds UNIQUEMENT en JSON compact, sans texte autour :',
+    '{"photo":""}',
+  ].join('\n');
+}
+async function _fetchRealDestPhoto(dest, country, region){
+  try{
+    const res = await fetch(SUPABASE_ENDPOINT,{
+      method:'POST',
+      headers:SUPABASE_HEADERS,
+      body:JSON.stringify({prompt:buildDestPhotoSearchPrompt(dest, country, region), webSearch:true})
+    });
+    if(!res.ok) return '';
+    const data = await res.json();
+    if(data.error) return '';
+    const raw = data.result || '';
+    if(!raw) return '';
+    let j = parseItineraryJSON(raw);
+    if(!j){
+      const m = raw.match(/\{[^]*"photo"[^]*\}/);
+      if(m){ try{ j = JSON.parse(m[0]); }catch(e){} }
+    }
+    const photo = j && typeof j.photo==='string' ? j.photo.trim() : '';
+    return (/^https?:\/\/upload\.wikimedia\.org\/.+\.(jpe?g|png)$/i.test(photo)) ? photo : '';
+  }catch(e){ return ''; }
+}
+
 /* ── validation : la destination renvoyee correspond-elle a celle demandee ? ──
    Comparaison volontairement souple (accents/casse ignorés, sous-chaîne dans
    un sens ou l'autre) car le client peut taper "Sardaigne" et l'IA répondre
@@ -1602,6 +1642,8 @@ async function callCartographe(){
 
   /* recherche web du prix de vol  -  lancée en parallèle, dès que la destination est connue */
   const flightPromise=_fetchFlightPriceFromWeb(skel.dest, skel.country, state.dateFrom, state.dateTo, state.travelers);
+  /* recherche web d'une vraie photo de destination  -  lancée en parallèle aussi */
+  const heroPhotoPromise=_fetchRealDestPhoto(skel.dest, skel.country, skel.region);
 
   /* recherche web de VRAIS hébergements  -  remplace les noms potentiellement inventés */
   if(Array.isArray(skel.stays) && skel.stays.length){
@@ -1732,8 +1774,10 @@ async function callCartographe(){
   /* le prix du vol a eu tout ce temps pour revenir ; sinon on retombe sur l'estimation statique */
   let flightInfo=null;
   try{ flightInfo=await flightPromise; }catch(e){ flightInfo=null; }
+  let heroPhoto='';
+  try{ heroPhoto=await heroPhotoPromise; }catch(e){ heroPhoto=''; }
 
-  return {skel:skel, days:daysDetail, hilites:hilites, flightInfo:flightInfo};
+  return {skel:skel, days:daysDetail, hilites:hilites, flightInfo:flightInfo, heroPhoto:heroPhoto};
 }
 
 /* ── flux de génération ─────────────────────────────────────────────── */
@@ -1934,7 +1978,7 @@ async function runFullGeneration(overlayAlreadyOpen){
   if(statusEl){statusEl.style.opacity=0;setTimeout(function(){statusEl.textContent='Votre voyage est prêt ✦';statusEl.style.opacity=1;},250);}
 
   let ok=false;
-  if(result){try{ok=applyGenerated(result.skel,result.days,result.hilites,result.flightInfo);}catch(e){
+  if(result){try{ok=applyGenerated(result.skel,result.days,result.hilites,result.flightInfo,result.heroPhoto);}catch(e){
     console.error('[applyGenerated]', e);
     ok=false;
   }}

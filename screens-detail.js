@@ -493,6 +493,13 @@ function itineraryView(){
 
   return (
     '<div class="itin-hero-panel" style="' + heroBgStyle + '">'
+    /* Photo réelle trouvée par recherche web (_fetchRealDestPhoto), en plus
+       des 17 destinations pré-illustrées localement (destPhoto) — la
+       plupart des destinations générées (villes/régions précises) n'ont
+       pas de photo locale. Filet de sécurité au rendu : si l'URL ne charge
+       pas vraiment, elle se retire et laisse voir la photo locale ou le
+       dégradé déjà en place derrière. */
+    +   (it.heroPhoto ? '<img src="' + esc(it.heroPhoto) + '" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" onerror="this.remove()">' : '')
     +   '<div class="hero-veil"></div>'
     +   '<svg class="itin-hero-waves" viewBox="0 0 390 300" fill="none"><g stroke="rgba(244,238,223,.28)" stroke-width="1.2"><path d="M-40 190 Q 120 150 280 190 T 600 190"/><path d="M-40 225 Q 120 185 280 225 T 600 225"/><path d="M-40 260 Q 120 220 280 260 T 600 260"/></g></svg>'
     +   '<span class="itin-hero-wm">' + ico(heroIcon, 96, 1.1) + '</span>'
