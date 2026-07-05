@@ -1384,10 +1384,16 @@ document.addEventListener('DOMContentLoaded', function(){
         +'<span style="font-size:13px;font-weight:600;color:'+accent+'">Voir →</span></a>';
     }
 
+    /* Photo réelle trouvée par recherche web (_fetchRealStays) si disponible.
+       Fallback natif si l'URL ne charge pas réellement (lien mort, hotlink
+       bloqué…) : on ne peut pas vérifier depuis le générateur qu'une image
+       s'affiche vraiment, seulement au rendu — onerror retire l'image et
+       réaffiche l'icône générique plutôt que de laisser un visuel cassé. */
     return '<div class="book-hero" style="position:relative;overflow:hidden;height:200px;background:linear-gradient(155deg,#1c1812,#0d0b08)">'
-      +'<div style="position:absolute;inset:0;background:radial-gradient(120% 100% at 15% 0%,'+hexA(accent,0.25)+',transparent 60%)"></div>'
+      +(a.photo?'<img src="'+esc(a.photo)+'" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" onerror="this.remove();var f=document.getElementById(\'acc-hero-fallback\');if(f)f.style.display=\'flex\'">':'')
+      +'<div style="position:absolute;inset:0;background:radial-gradient(120% 100% at 15% 0%,'+hexA(accent,0.25)+',transparent 60%)'+(a.photo?',linear-gradient(180deg,rgba(13,11,8,.1),rgba(13,11,8,.5))':'')+'"></div>'
       +'<div class="navbar" style="position:absolute;top:54px;left:0;right:0;z-index:1"><button class="nav-btn" onclick="closeOverlay()" aria-label="Retour">'+ico('back',20,1.7)+'</button></div>'
-      +'<span style="position:absolute;bottom:20px;right:24px;color:'+hexA(accent,0.9)+'">'+ico(a.i||'bed',32,1.3)+'</span>'
+      +'<span id="acc-hero-fallback" style="position:absolute;bottom:20px;right:24px;color:'+hexA(accent,0.9)+(a.photo?';display:none':'')+'">'+ico(a.i||'bed',32,1.3)+'</span>'
       +'</div>'
       +'<div class="ov-scroll px">'
       +'<div class="book-h" style="margin-top:16px;font-family:var(--serif);font-size:22px;font-weight:600">'+esc(a.n||'Hébergement')+'</div>'
