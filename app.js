@@ -1357,8 +1357,9 @@ document.addEventListener('DOMContentLoaded', function(){
     var price=Number(a.price)||0, nights=Number(a.nights)||1, total=price*nights;
     var accent=(it.palette&&(it.palette.culture||it.palette.beach))||'#C9A96E';
     var guests=(state&&state.travelers)||2;
-    var checkin=it.dateFrom||'';
-    var checkout=it.dateTo||'';
+    var _r0=(typeof _stayDateRange==='function')?_stayDateRange(a):{checkin:it.dateFrom||'',checkout:it.dateTo||''};
+    var checkin=_r0.checkin;
+    var checkout=_r0.checkout;
     var name=String(a.n||'').trim();
     var loc=(a.loc||it.dest||'').trim();
     var nameQ=encodeURIComponent(name);
@@ -1393,7 +1394,7 @@ document.addEventListener('DOMContentLoaded', function(){
       +'<div class="book-meta">'+esc(a.type||'')+' · '+esc(a.loc||'')+'</div>'
       +(a.blurb?'<p class="book-desc" style="margin-top:8px">'+esc(a.blurb)+'</p>':'')
       +'<div class="section-h" style="margin-top:20px"><h2>Votre séjour</h2></div>'
-      +'<div class="stay-row">'+ico('cal',18,1.5)+'<span class="sr-l">'+esc(it.dates||'')+' · '+nights+' nuit'+(nights>1?'s':'')+'</span></div>'
+      +'<div class="stay-row">'+ico('cal',18,1.5)+'<span class="sr-l">'+esc((checkin&&checkout&&typeof _fmtDateRangeCompact==='function')?_fmtDateRangeCompact(checkin,checkout):(it.dates||''))+' · '+nights+' nuit'+(nights>1?'s':'')+'</span></div>'
       +'<div class="stay-row">'+ico('users',18,1.5)+'<span class="sr-l">'+guests+' voyageur'+(guests>1?'s':'')+'</span></div>'
       +'<div class="price-l" style="margin-top:12px"><span>'+eur(price)+' / nuit × '+nights+'</span><span style="font-weight:600;color:var(--ink)">'+eur(total)+'</span></div>'
       /* Comparateur */
@@ -1719,8 +1720,9 @@ document.addEventListener('DOMContentLoaded', function(){
       var fullQ=encodeURIComponent(name+(loc?', '+loc:''));
       var nameLoc=encodeURIComponent(name+(loc?' '+loc:''));
       var cityQ=encodeURIComponent(loc);
-      var checkin=it.dateFrom||'';
-      var checkout=it.dateTo||'';
+      var _r1=(typeof _stayDateRange==='function')?_stayDateRange(a):{checkin:it.dateFrom||'',checkout:it.dateTo||''};
+      var checkin=_r1.checkin;
+      var checkout=_r1.checkout;
 
       /* Booking : ss = nom + ville, dest_type=hotel pour cibler l'établissement,
          ac_click_type pousse la résolution directe vers la fiche si elle existe */
