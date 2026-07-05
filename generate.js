@@ -973,6 +973,7 @@ function applyGenerated(skel, daysDetail, hilites, flightInfo){
       tag:stayTags[i%stayTags.length]||'Sélection', rate:stayRates[i%stayRates.length]||'4,9',
       nights:_clampInt(s.nights,1,21,2), price:price,
       am:['bed','wifi',i%2?'fork':'pool'], blurb:s.blurb||'Une adresse d\'exception.',
+      photo: (typeof s.photo==='string' && /^https?:\/\//i.test(s.photo)) ? s.photo : '',
     };
   });
   while(stays.length<1) stays.push({id:'a1',n:'Hébergement local',i:'bed',type:'Hôtel-boutique',loc:dest,tag:'Sélection',rate:'4,9',nights:2,price:accRange[0],am:['bed','wifi','pool'],blurb:''});
@@ -1404,9 +1405,10 @@ function buildStaySearchPrompt(dest, zones, level, dateRanges){
     hasDates
       ? '- Prix : cherche le tarif RÉEL actuellement affiché (Booking, site officiel) pour CES dates précises indiquées ci-dessus, pas une moyenne générique — c\'est ce prix qui sert de base au budget affiché au client. Si le tarif exact pour ces dates n\'est pas trouvable, donne la fourchette actuelle la plus réaliste pour ce type d\'établissement à cette période de l\'année.'
       : '- Prix indicatif par nuit réaliste en euros pour 2 personnes.',
+    '- Photo : si tu trouves une VRAIE photo de cet hébergement précis avec une URL d\'image directe (se terminant par .jpg/.jpeg/.png/.webp, idéalement Wikimedia Commons ou le site officiel de l\'établissement), inclus-la. Sinon laisse "photo" vide — jamais d\'URL inventée ou approximative.',
     '',
     'Réponds UNIQUEMENT en JSON compact valide, sans texte autour :',
-    '{"stays":[{"zone":"nom de la zone","name":"nom exact reel","type":"type/standing","price":0,"blurb":"description courte basee sur des infos reelles"}]}',
+    '{"stays":[{"zone":"nom de la zone","name":"nom exact reel","type":"type/standing","price":0,"photo":"","blurb":"description courte basee sur des infos reelles"}]}',
   ].join('\n');
 }
 async function _fetchRealStays(dest, zones, level, dateRanges){
@@ -1636,6 +1638,10 @@ async function callCartographe(){
             price: (typeof real.price==='number' && real.price>0) ? real.price : orig.price,
             nights: orig.nights,
             blurb: (real.blurb && real.blurb.length>5) ? real.blurb : orig.blurb,
+            /* Photo réelle trouvée par la recherche web — validée seulement à
+               l'affichage (onerror), pas ici : on ne peut pas vérifier depuis
+               le générateur qu'une URL renvoie vraiment une image. */
+            photo: (typeof real.photo==='string' && /^https?:\/\//i.test(real.photo.trim())) ? real.photo.trim() : '',
           };
         }
         return orig; /* garder l'original si pas de vrai nom valide */
