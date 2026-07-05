@@ -9,6 +9,24 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#F1E9D9">
 <title>Hic Sunt — Beyond the Known</title>
+<script>
+/* Filet de sécurité pour la hauteur plein écran mobile : 100vh/100dvh peuvent
+   être calculés un peu plus courts que la fenêtre visuelle réelle sur
+   certaines versions iOS en PWA "Sur l'écran d'accueil", laissant une bande
+   vide (fond natif de la WebView) sous la barre d'onglets. On mesure la
+   vraie hauteur visible via JS et on la réapplique au resize/à la rotation
+   plutôt que de se fier à une seule unité CSS. */
+(function(){
+  function setAppVH(){
+    var h = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
+    document.documentElement.style.setProperty('--app-vh', (h * 0.01) + 'px');
+  }
+  setAppVH();
+  window.addEventListener('resize', setAppVH);
+  window.addEventListener('orientationchange', setAppVH);
+  if(window.visualViewport) window.visualViewport.addEventListener('resize', setAppVH);
+})();
+</script>
 <!-- PWA Manifest -->
 <link rel="manifest" href="/manifest.json">
 <!-- iOS icons -->
@@ -23,10 +41,10 @@
 <link rel="shortcut icon" href="/favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="core.css?v=1783243365">
-<link rel="stylesheet" href="screens.css?v=1783243365">
-<link rel="stylesheet" href="overlays.css?v=1783243365">
-<link rel="stylesheet" href="features.css?v=1783243365">
+<link rel="stylesheet" href="core.css?v=1783256862">
+<link rel="stylesheet" href="screens.css?v=1783256862">
+<link rel="stylesheet" href="overlays.css?v=1783256862">
+<link rel="stylesheet" href="features.css?v=1783256862">
 </head>
 <body>
 <script>
@@ -65,15 +83,15 @@
 <div class="stage">
   <div class="phone"><div class="screen"></div></div>
 </div>
-<script src="data.js?v=1783243365"></script>
-<script src="extra-data.js?v=1783243365"></script>
-<script src="screens-main.js?v=1783243365"></script>
-<script src="screens-detail.js?v=1783243365"></script>
-<script src="screens-extra.js?v=1783243365"></script>
-<script src="deck.js?v=1783243365"></script>
-<script src="features.js?v=1783243365"></script>
-<script src="generate.js?v=1783243365"></script>
-<script src="maps.js?v=1783243365"></script>
-<script src="app.js?v=1783243365"></script>
+<script src="data.js?v=1783256862"></script>
+<script src="extra-data.js?v=1783256862"></script>
+<script src="screens-main.js?v=1783256862"></script>
+<script src="screens-detail.js?v=1783256862"></script>
+<script src="screens-extra.js?v=1783256862"></script>
+<script src="deck.js?v=1783256862"></script>
+<script src="features.js?v=1783256862"></script>
+<script src="generate.js?v=1783256862"></script>
+<script src="maps.js?v=1783256862"></script>
+<script src="app.js?v=1783256862"></script>
 </body>
 </html>

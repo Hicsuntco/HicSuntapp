@@ -72,17 +72,17 @@ body{
     pointer-events:none;
   }
   /* Phone : prend tout l'écran.
-     inset:0 (plutôt que top/left + width/height:100vh/100dvh) : sur certains
-     iPhone/versions iOS en PWA plein écran, 100vh/100dvh est calculé un peu
-     plus court que la fenêtre visuelle réelle, laissant une fine bande
-     blanche (fond de page natif, hors de tout élément stylé) sous la barre
-     d'onglets. inset:0 étire l'élément aux bords réels du viewport, sans
-     dépendre du calcul de hauteur. */
+     inset:0 seul n'a pas suffi sur certains iPhone en PWA "Sur l'écran
+     d'accueil" (bande vide persistante sous la barre d'onglets, invariante
+     au scroll). On mesure donc la hauteur réelle en JS (--app-vh, posé dans
+     index.html) et on l'utilise en priorité, avec 100dvh/inset en repli si
+     le script n'a pas encore tourné. */
+  html{ --app-vh: 1vh; }
   .phone{
     position:fixed !important;
     inset:0 !important;
-    width:auto !important;
-    height:auto !important;
+    width:100vw !important;
+    height:calc(var(--app-vh) * 100) !important;
     border-radius:0 !important;
     padding:0 !important;
     box-shadow:none !important;
