@@ -303,6 +303,25 @@ function accGradient(a, it){
    Remplacer AFFILIATE_TAGS par les vrais identifiants d'affiliation
    une fois les programmes Booking.com / Airbnb actifs. ── */
 const AFFILIATE_TAGS = { booking:'', airbnb:'' };
+/* Date d'arrivée/de départ RÉELLES pour CET hébergement précis, pas les
+   dates globales du séjour  -  sans ça, la recherche Booking/Airbnb pour
+   le 2e ou 3e hébergement du voyage proposait toujours les dates de tout
+   début de voyage. Calcul à partir du jour où le plan commence à utiliser
+   cet hébergement (via plan[i].night.acc) et de son nombre de nuits. */
+function _stayDateRange(a){
+  const it = ITINERARY;
+  const fallback = { checkin: it.dateFrom||'', checkout: it.dateTo||'' };
+  if(!it.dateFrom || !Array.isArray(it.plan) || !it.plan.length) return fallback;
+  const dayIdx = it.plan.findIndex(function(p){ return p && p.night && p.night.acc === a.id; });
+  if(dayIdx < 0) return fallback;
+  const from = new Date(it.dateFrom);
+  if(isNaN(from)) return fallback;
+  const nights = Number(a.nights) || 1;
+  const checkinD  = new Date(from.getTime() + dayIdx*86400000);
+  const checkoutD = new Date(checkinD.getTime() + nights*86400000);
+  const fmt = function(d){ return d.toISOString().slice(0,10); };
+  return { checkin: fmt(checkinD), checkout: fmt(checkoutD) };
+}
 function affiliateLink(a, platform){
   const it = ITINERARY;
   /* Nom de l'hébergement — encodé pour une recherche précise */
@@ -312,8 +331,9 @@ function affiliateLink(a, platform){
   const cityQ    = encodeURIComponent(cityRaw);
   /* Pour Booking : chercher "Nom de l'hébergement, Ville" */
   const fullQ    = encodeURIComponent(nameRaw + ', ' + cityRaw);
-  const checkin  = it.dateFrom  || '';
-  const checkout = it.dateTo    || '';
+  const _range   = _stayDateRange(a);
+  const checkin  = _range.checkin;
+  const checkout = _range.checkout;
   const guests   = (typeof state !== 'undefined' && state.travelers) || 2;
   const affB     = typeof AFFILIATE_TAGS !== 'undefined' && AFFILIATE_TAGS.booking ? '&aid=' + AFFILIATE_TAGS.booking : '';
   const affA     = typeof AFFILIATE_TAGS !== 'undefined' && AFFILIATE_TAGS.airbnb  ? '?af=' + AFFILIATE_TAGS.airbnb  : '';
