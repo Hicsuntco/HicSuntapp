@@ -657,22 +657,37 @@ function buildDaysPrompt(skel, planSteps, offset){
   const nMoments=_momentsPerDay();
   const occ=state.occasion;
 
-  /* Directives compactes  -  une ligne par contrainte max */
+  /* Directives compactes  -  une ligne par contrainte max.
+     _occasionDirective/_dietaryDirective/_alreadyDoneDirective/_accomStyleDirective/
+     _fitnessDirective/_rythmeDirective/_styleDirective/_interestsDirective traduisent
+     chaque réponse du questionnaire en consigne concrète (elles étaient écrites mais
+     jamais appelées nulle part  -  les réponses du client n'avaient donc aucun effet
+     réel au-delà d'une simple liste de mots-clés recopiée telle quelle). */
   const compact=[];
-  if(occ==='lune-de-miel') compact.push('LUNE DE MIEL: suites/terrasse privée, dîners isolés éclairage tamisé, 1 massage duo nommé, 1 coucher soleil planifié, jamais buffet ni groupe.');
-  else if(occ==='famille')  compact.push('FAMILLE (enfants: '+(state.childrenAges||'?')+'): marche<3km, visites<1h30, menu enfant, piscine hébergement, pas de musées sans espace interactif.');
-  else if(occ==='evjf')     compact.push('EVJF: spa privatisé, rooftop/cocktails, lieux instagrammables, 1 dîner festif.');
-  else if(occ==='evg')      compact.push('EVG: 2 activités sportives intenses, 1 soirée locale authentique, BBQ/tablée conviviale.');
-  else if(occ==='anniversaire') compact.push('ANNIVERSAIRE: 1 moment exceptionnel jour J, gem caché, formule anniversaire si dispo.');
-  if(state.dietary)         compact.push('RÉGIME/ALLERGIE: '+state.dietary+'  -  vérifier chaque restaurant.');
-  if(state.alreadyDone)     compact.push('DÉJÀ FAIT/ÉVITER: '+state.alreadyDone);
+  const occDirective=_occasionDirective();
+  if(occDirective) compact.push(occDirective);
+  const dietDirective=_dietaryDirective();
+  if(dietDirective) compact.push(dietDirective);
+  const avoidDirective=_alreadyDoneDirective();
+  if(avoidDirective) compact.push(avoidDirective);
   if(state.transport&&state.transport!=='Mixte') compact.push('TRANSPORT: '+state.transport+'.');
-  if(state.accomStyle&&state.accomStyle!=='Peu importe') compact.push('HÉBERGEMENT: '+state.accomStyle+'.');
-  if(state.fitnessLevel&&state.fitnessLevel!=='Modéré') compact.push('FORME: '+state.fitnessLevel+'.');
-  const styles=(state.styles||[]);
-  if(styles.length) compact.push('STYLE: '+styles.join(', ')+'.');
+  const accomDirective=_accomStyleDirective();
+  if(accomDirective) compact.push(accomDirective);
+  compact.push(_fitnessDirective());
+  compact.push(_rythmeDirective());
+  const styleDirective=_styleDirective();
+  if(styleDirective) compact.push(styleDirective);
   const interests=(state.interests||[]);
-  if(interests.length) compact.push('INTÉRÊTS: '+interests.join(', ')+'  -  au moins 1 par jour.');
+  if(interests.length){
+    compact.push('INTÉRÊTS COCHÉS (au moins 1 par jour) : '+interests.join(', ')+'.');
+    const interestsDirective=_interestsDirective();
+    if(interestsDirective) compact.push(interestsDirective);
+  }
+  /* Demande explicite du client : ne pas ajouter d'activité type "randonnée" (ou tout
+     autre thème) si ce n'est pas dans les intérêts/style cochés ni justifié par la
+     forme physique  -  rester fidèle au questionnaire plutôt que de remplir les jours
+     avec des activités génériques non demandées. */
+  compact.push('NE PROPOSER un thème d\'activité (randonnée, plongée, spa, vignoble, etc.) QUE s\'il correspond à un intérêt/style coché ci-dessus, à la forme physique indiquée, ou à un incontournable évident et inévitable de la destination elle-même. Sinon, explorer davantage les intérêts réellement sélectionnés plutôt que d\'ajouter une activité générique de remplissage.');
   if(state.dream) compact.push('ADN DU VOYAGE: '+state.dream.slice(0,120));
 
   const steps=planSteps.map(function(p,i){return (offset+i+1)+'. '+p.title+'  -  '+p.loc+(p.hook?' ('+p.hook+')':'');}).join('\n');
@@ -1443,6 +1458,59 @@ async function _fetchRealRestos(dest, places, level){
   return null;
 }
 
+/* ── recherche web de VRAIES pépites + avis voyageurs (anti-hallucination) ──
+   Jusqu'ici les "pépites cachées" étaient entièrement inventées par l'IA sans
+   recherche web (contrairement aux hébergements/restaurants/vols) : ni le lieu
+   ni le "commentaire de voyageur" cité n'étaient garantis réels. On recherche
+   maintenant sur le web les avis/forums/blogs réels pour ancrer chaque pépite
+   dans un vrai retour d'expérience  -  ce qu'aucun générateur purement génératif
+   ne fait. */
+function buildGemsSearchPrompt(dest, country, region, interests){
+  const interestsLine = (interests && interests.length)
+    ? 'Centres d\'intérêt du voyageur, à privilégier dans le choix des pépites : '+interests.join(', ')+'.'
+    : '';
+  return [
+    'Cherche sur le web (avis Google Maps, TripAdvisor, forums de voyage type Routard/Reddit, blogs de voyageurs) les pépites les MOINS connues et les plus mémorables pour un séjour à '+(dest||'')+' ('+(country||region||'')+'), celles que les guides touristiques classiques ne mentionnent jamais.',
+    interestsLine,
+    'Pour chaque pépite trouvée, rapporte fidèlement ce qu\'un vrai avis/commentaire de voyageur en dit (paraphrase honnête d\'un avis réellement trouvé en ligne, jamais un commentaire inventé de toutes pièces).',
+    'EXIGENCES STRICTES :',
+    '- Uniquement des lieux RÉELS, vérifiables, actuellement accessibles.',
+    '- Le commentaire cité doit correspondre au contenu d\'un vrai avis trouvé en ligne (paraphrase fidèle, pas une citation mot pour mot si tu n\'es pas sûr du texte exact).',
+    '- Si tu ne trouves rien de fiable pour compléter 4 pépites, renvoie-en moins plutôt que d\'inventer.',
+    'Réponds UNIQUEMENT en JSON compact, sans texte autour :',
+    '{"gems":[{"name":"nom réel","loc":"lieu précis","desc":"description 2 phrases évocatrices","tip":"conseil pratique (horaire, accès, réservation)","review":"paraphrase fidèle d\'un vrai avis de voyageur","source":"type de source (ex: avis Google, forum Routard, blog voyage)"}]}',
+  ].filter(Boolean).join('\n');
+}
+async function _fetchRealGems(dest, country, region, interests){
+  for(var attempt=0; attempt<2; attempt++){
+    if(attempt>0){ await new Promise(function(r){ setTimeout(r, 1500); }); }
+    try{
+      const res = await fetch(SUPABASE_ENDPOINT,{
+        method:'POST',
+        headers:SUPABASE_HEADERS,
+        body:JSON.stringify({prompt:buildGemsSearchPrompt(dest, country, region, interests), webSearch:true})
+      });
+      if(!res.ok) continue;
+      const data = await res.json();
+      if(data.error) continue;
+      const raw = data.result || '';
+      if(!raw) continue;
+      let j = parseItineraryJSON(raw);
+      if(!j || !Array.isArray(j.gems)){
+        const m = raw.match(/\{[^]*"gems"[^]*\}/);
+        if(m){ try{ j = JSON.parse(m[0]); }catch(e){} }
+      }
+      if(!j || !Array.isArray(j.gems)) continue;
+      const valid = j.gems.filter(function(g){
+        return g && g.name && typeof g.name==='string'
+          && g.name.trim().length>=3 && !/^\d+$/.test(g.name.trim());
+      });
+      if(valid.length) return valid;
+    }catch(e){}
+  }
+  return null;
+}
+
 /* ── validation : la destination renvoyee correspond-elle a celle demandee ? ──
    Comparaison volontairement souple (accents/casse ignorés, sous-chaîne dans
    un sens ou l'autre) car le client peut taper "Sardaigne" et l'IA répondre
@@ -1617,6 +1685,16 @@ async function callCartographe(){
   } catch(e) {
     console.warn('[Passe3] Ignorée:', e && e.message);
   }
+
+  /* Passe 3.5  -  pépites + avis voyageurs RÉELS trouvés sur le web  -  remplace
+     les pépites purement inventées par l'IA quand la recherche aboutit. */
+  try{
+    const realGems = await _fetchRealGems(skel.dest, skel.country, skel.region, state.interests);
+    if(realGems && realGems.length){
+      if(!hilites) hilites = {};
+      hilites.gems = realGems;
+    }
+  }catch(e){ console.warn('[gems] exception', e); }
 
   /* le prix du vol a eu tout ce temps pour revenir ; sinon on retombe sur l'estimation statique */
   let flightInfo=null;

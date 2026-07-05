@@ -154,7 +154,8 @@ function gemsView(){
         : gems.map(function(g){
             return '<div class="review"><div class="rv-top"><div><div class="rv-n">' + esc(g.name) + '</div><div class="rv-d">' + esc(g.loc||'') + '</div></div></div>'
               + '<p>' + esc(g.desc||'') + '</p>'
-              + (g.tip ? '<p style="color:var(--gold);font-size:13px;margin-top:4px;font-style:italic">' + esc(g.tip) + '</p>' : '')
+              + (g.review ? '<p style="font-style:italic;color:var(--sub);font-size:13px;margin-top:8px;padding-left:10px;border-left:2px solid var(--line)">« ' + esc(g.review) + ' »' + (g.source ? '<span style="display:block;font-style:normal;font-size:11px;color:var(--sub);margin-top:2px;opacity:0.75">— ' + esc(g.source) + '</span>' : '') + '</p>' : '')
+              + (g.tip ? '<p style="color:var(--gold);font-size:13px;margin-top:8px;font-style:italic">' + esc(g.tip) + '</p>' : '')
               + '</div>';
           }).join(''))
     + '</div>';
