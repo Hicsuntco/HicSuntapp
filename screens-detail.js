@@ -334,7 +334,7 @@ function affiliateLink(a, platform){
   const _range   = _stayDateRange(a);
   const checkin  = _range.checkin;
   const checkout = _range.checkout;
-  const guests   = (typeof state !== 'undefined' && state.travelers) || 2;
+  const guests   = it.travelers || (typeof state !== 'undefined' && state.travelers) || 2;
   const affB     = typeof AFFILIATE_TAGS !== 'undefined' && AFFILIATE_TAGS.booking ? '&aid=' + AFFILIATE_TAGS.booking : '';
   const affA     = typeof AFFILIATE_TAGS !== 'undefined' && AFFILIATE_TAGS.airbnb  ? '?af=' + AFFILIATE_TAGS.airbnb  : '';
 
@@ -586,7 +586,7 @@ function itineraryView(){
 
     /* Footer */
     + '<div class="ov-foot"><div class="foot-price">'
-    +   '<div><div class="fp-v">' + eur(it.budgetTotal) + '</div><div class="fp-l">tout compris · ' + travelerLabel() + '</div></div>'
+    +   '<div><div class="fp-v">' + eur(it.budgetTotal) + '</div><div class="fp-l">tout compris · ' + travelerLabel(it) + '</div></div>'
     +   '<div class="foot-actions">'
     +     '<button class="fa-btn" onclick="saveItinerary()"><span>' + ico('bookmark',20,1.6) + '</span><i>Garder</i></button>'
     +     '<button class="fa-btn" onclick="window.triggerPDF&&window.triggerPDF()"><span>' + ico('doc',20,1.6) + '</span><i>PDF</i></button>'
@@ -735,7 +735,7 @@ function bookingView(accId){
       }).join('') + '</div>'
     +   '<div class="section-h"><h2>Votre séjour</h2></div>'
     +   '<div class="stay-row">' + ico('cal',18,1.5) + '<span class="sr-l">' + esc(ITINERARY.dates) + '</span><span class="sr-v">' + a.nights + ' nuit' + (a.nights>1?'s':'') + '</span></div>'
-    +   '<div class="stay-row">' + ico('users',18,1.5) + '<span class="sr-l">Voyageurs</span><span class="sr-v">' + travelerLabel() + '</span></div>'
+    +   '<div class="stay-row">' + ico('users',18,1.5) + '<span class="sr-l">Voyageurs</span><span class="sr-v">' + travelerLabel(ITINERARY) + '</span></div>'
     +   '<div class="section-h"><h2>Estimation</h2></div>'
     +   '<div class="price-l"><span>' + eur(a.price) + ' × ' + a.nights + ' nuit' + (a.nights>1?'s':'') + '</span><span>' + eur(total) + '</span></div>'
     +   '<p class="book-desc" style="margin-top:8px;color:var(--sub)">Prix indicatif. La disponibilité et le tarif définitif sont confirmés sur ' + (isAirbnb?'Airbnb':'Booking.com') + '.</p>'

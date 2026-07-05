@@ -19,7 +19,7 @@ function budgetView(){
     +   '<div class="bud-card">'
     +     '<div class="bud-l">Total estimé · ' + esc(ITINERARY.dest) + '</div>'
     +     '<div class="bud-v">' + eur(b.total) + '</div>'
-    +     '<div class="bud-s">' + travelerLabel() + ' · ' + _days() + ' jours · estimation</div>'
+    +     '<div class="bud-s">' + travelerLabel(ITINERARY) + ' · ' + _days() + ' jours · estimation</div>'
     +     (isGen ? '' : '<div class="bud-prog"><i style="width:' + pct + '%"></i></div>'
         + '<div class="bud-leg"><span>Réglé · <b>' + eur(b.spent) + '</b></span><span>Restant · ' + eur(rest) + '</span></div>')
     +   '</div>'
@@ -404,7 +404,7 @@ async function exportPDF(){
     + '<div class="leg-num" style="font-size:2.4rem">\u20AC</div><div><div class="leg-tag">Estimation</div><div class="leg-name">Budget du voyage</div></div></div>'
     + '<table><tr><th>\u00C9tape</th><th>Nuits</th><th>Type</th><th>Prix/nuit</th><th>Total</th></tr>'
     + stayRows
-    + '<tr class="total-row"><td colspan="4">H\u00E9bergement ('+travelerLabel()+')</td><td class="price" style="color:#8A6526">'+eur(stayTotal)+'</td></tr>'
+    + '<tr class="total-row"><td colspan="4">H\u00E9bergement ('+travelerLabel(it)+')</td><td class="price" style="color:#8A6526">'+eur(stayTotal)+'</td></tr>'
     + '<tr class="total-row" style="border-top-color:#8A6526"><td colspan="4"><strong>Total voyage estim\u00E9 (tout compris)</strong></td><td class="price" style="color:#8A6526;font-size:1.05rem;white-space:nowrap"><strong>'+eur(it.budgetTotal)+'</strong></td></tr>'
     + '</table></section>';
 
@@ -526,7 +526,7 @@ async function exportPDF(){
     + '<div class="hero-eyebrow">Itin\u00E9raire sur-mesure \u00B7 '+esc(it.country||it.dest)+'</div>'
     + '<h1>'+esc(it.dest)+'</h1>'
     + '<div class="hero-tag">'+esc(it.tag)+'</div>'
-    + '<div class="hero-meta">'+esc(it.dates||'')+' \u00B7 '+esc(travelerLabel())+(it.coords?' \u00B7 '+esc(it.coords):'')+(it.season?' \u00B7 '+esc(it.season):'')+'</div>'
+    + '<div class="hero-meta">'+esc(it.dates||'')+' \u00B7 '+esc(travelerLabel(it))+(it.coords?' \u00B7 '+esc(it.coords):'')+(it.season?' \u00B7 '+esc(it.season):'')+'</div>'
     + '<div class="hero-specs">'
     +   '<div class="hero-spec"><div class="hero-spec-l">Dur\u00E9e</div><div class="hero-spec-v">'+it.days+' jours</div></div>'
     +   '<div class="hero-spec"><div class="hero-spec-l">\u00C9tapes</div><div class="hero-spec-v">'+stops.length+'</div></div>'
