@@ -992,9 +992,13 @@ function applyGenerated(skel, daysDetail, hilites, flightInfo, heroPhoto){
       am:['bed','wifi',i%2?'fork':'pool'], blurb:s.blurb||'Une adresse d\'exception.',
       photo: _validStayPhoto(s.photo),
       source: /^(booking|airbnb|hotels|officiel)$/i.test(String(s.source||'').trim()) ? String(s.source).trim().toLowerCase() : '',
+      /* false = la recherche web anti-hallucination n'a pas pu confirmer cet
+         établissement précis (voir _mergeRealStays) — l'app doit le signaler
+         plutôt que de présenter un nom potentiellement inventé comme certain. */
+      verified: s.verified !== false,
     };
   });
-  while(stays.length<1) stays.push({id:'a1',n:'Hébergement local',i:'bed',type:'Hôtel-boutique',loc:dest,tag:'Sélection',rate:'4,9',nights:2,price:accRange[0],am:['bed','wifi','pool'],blurb:''});
+  while(stays.length<1) stays.push({id:'a1',n:'Hébergement local',i:'bed',type:'Hôtel-boutique',loc:dest,tag:'Sélection',rate:'4,9',nights:2,price:accRange[0],am:['bed','wifi','pool'],blurb:'',verified:false});
 
   _normalizeStayNights(stays, dc);
 
@@ -1417,6 +1421,47 @@ function _computeStayDateRanges(stays, dateFromISO){
    [photo_id]") — d'où la double validation : domaine attendu ET absence de
    marqueurs de placeholder qu'un vrai extrait de recherche ne contiendrait
    jamais. */
+/* Fusionne une liste d'hébergements "ossature" (potentiellement inventés par
+   l'IA pour donner du style au JSON) avec les résultats de la recherche web
+   anti-hallucination, matchés par zone plutôt que par index brut (l'IA peut
+   omettre/vider une entrée sans respecter l'ordre). Marque "verified:false"
+   quand aucun nom réel n'a pu être confirmé, plutôt que de garder le nom
+   inventé sans distinction — l'app doit pouvoir signaler ce cas à l'écran. */
+function _mergeRealStays(origList, zonesList, realStays){
+  const normS=function(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[^\x00-\x7F]/g,'').trim();};
+  const usedStay={};
+  return origList.map(function(orig, i){
+    const zone = zonesList[i];
+    let real = null;
+    if(Array.isArray(realStays)){
+      for(let m=0; m<realStays.length; m++){
+        if(usedStay[m]) continue;
+        const rz = normS(realStays[m] && realStays[m].zone);
+        if(rz && (rz===normS(zone) || rz.indexOf(normS(zone))>=0 || normS(zone).indexOf(rz)>=0)){
+          real = realStays[m]; usedStay[m]=true; break;
+        }
+      }
+      if(!real && realStays[i] && !usedStay[i]){ real = realStays[i]; usedStay[i]=true; }
+    }
+    const validName = real && real.name && typeof real.name === 'string'
+      && real.name.trim().length >= 3
+      && !/^\d+$/.test(real.name.trim());
+    if(validName){
+      return {
+        name: real.name.trim(),
+        type: real.type || orig.type,
+        loc: orig.loc || real.zone,
+        price: (typeof real.price==='number' && real.price>0) ? real.price : orig.price,
+        nights: orig.nights,
+        blurb: (real.blurb && real.blurb.length>5) ? real.blurb : orig.blurb,
+        photo: _validStayPhoto(real.photo),
+        source: /^(booking|airbnb|hotels|officiel)$/i.test(String(real.source||'').trim()) ? String(real.source).trim().toLowerCase() : '',
+        verified: true,
+      };
+    }
+    return Object.assign({}, orig, { verified: false });
+  });
+}
 function _validStayPhoto(url){
   if(typeof url!=='string') return '';
   const u=url.trim();
@@ -1690,57 +1735,35 @@ async function callCartographe(){
   /* recherche web d'une vraie photo de destination  -  lancée en parallèle aussi */
   const heroPhotoPromise=_fetchRealDestPhoto(skel.dest, skel.country, skel.region);
 
-  /* recherche web de VRAIS hébergements  -  remplace les noms potentiellement inventés */
+  /* recherche web de VRAIS hébergements  -  remplace les noms potentiellement inventés.
+     Si la vérification échoue pour une zone (île reculée, adresse peu indexée...),
+     une 2e passe ciblée est tentée uniquement sur les zones en échec avant
+     d'abandonner  -  et le nom fictif de l'ossature n'est alors jamais affiché
+     avec la même confiance qu'un nom vérifié (voir "verified" dans applyGenerated). */
   if(Array.isArray(skel.stays) && skel.stays.length){
     const zones = skel.stays.map(function(s){ return s.loc || s.zone || skel.dest; });
     const dateRanges = _computeStayDateRanges(skel.stays, state.dateFrom);
     const realStays = await _fetchRealStays(skel.dest, zones, skel.level, dateRanges);
-    if(realStays && realStays.length){
-      /* remplacer chaque hébergement par le vrai trouvé pour la même zone  -  matché
-         par nom de zone (comme pour les restaurants) plutôt que par simple index, car
-         l'IA peut omettre ou vider une entrée sans respecter l'ordre demandé. */
-      var normS=function(s){return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();};
-      var usedStay={};
-      skel.stays = skel.stays.map(function(orig, i){
-        var zone = zones[i];
-        var real = null;
-        for(var m=0;m<realStays.length;m++){
-          if(usedStay[m]) continue;
-          var rz = normS(realStays[m] && realStays[m].zone);
-          if(rz && (rz===normS(zone) || rz.indexOf(normS(zone))>=0 || normS(zone).indexOf(rz)>=0)){
-            real = realStays[m]; usedStay[m]=true; break;
-          }
-        }
-        if(!real && realStays[i] && !usedStay[i]){ real = realStays[i]; usedStay[i]=true; }
-        /* Valider que le nom réel est exploitable : non vide, pas un simple nombre,
-           au moins 3 caractères. Sinon on garde l'original. */
-        const validName = real && real.name && typeof real.name === 'string'
-          && real.name.trim().length >= 3
-          && !/^\d+$/.test(real.name.trim());
-        if(validName){
-          return {
-            name: real.name.trim(),
-            type: real.type || orig.type,
-            loc: orig.loc || real.zone,
-            price: (typeof real.price==='number' && real.price>0) ? real.price : orig.price,
-            nights: orig.nights,
-            blurb: (real.blurb && real.blurb.length>5) ? real.blurb : orig.blurb,
-            photo: _validStayPhoto(real.photo),
-            source: /^(booking|airbnb|hotels|officiel)$/i.test(String(real.source||'').trim()) ? String(real.source).trim().toLowerCase() : '',
-          };
-        }
-        return orig; /* garder l'original si pas de vrai nom valide */
-      });
-      /* mettre à jour les "night" du plan pour pointer vers les nouveaux noms */
-      const nameMap = {};
-      (state._genStays||[]).forEach(function(old, i){
-        if(skel.stays[i]) nameMap[old.name] = skel.stays[i].name;
-      });
-      skel.plan.forEach(function(p){
-        if(p && p.night && nameMap[p.night]) p.night = nameMap[p.night];
-      });
-      state._genStays = skel.stays;
+    skel.stays = _mergeRealStays(skel.stays, zones, realStays);
+
+    const failedIdx = skel.stays.map(function(s,i){ return s.verified?-1:i; }).filter(function(i){ return i>=0; });
+    if(failedIdx.length){
+      const failedZones = failedIdx.map(function(i){ return zones[i]; });
+      const failedRanges = failedIdx.map(function(i){ return dateRanges[i]; });
+      const retryStays = await _fetchRealStays(skel.dest, failedZones, skel.level, failedRanges);
+      const merged = _mergeRealStays(failedIdx.map(function(i){ return skel.stays[i]; }), failedZones, retryStays);
+      failedIdx.forEach(function(i, k){ skel.stays[i] = merged[k]; });
     }
+
+    /* mettre à jour les "night" du plan pour pointer vers les nouveaux noms */
+    const nameMap = {};
+    (state._genStays||[]).forEach(function(old, i){
+      if(skel.stays[i]) nameMap[old.name] = skel.stays[i].name;
+    });
+    skel.plan.forEach(function(p){
+      if(p && p.night && nameMap[p.night]) p.night = nameMap[p.night];
+    });
+    state._genStays = skel.stays;
   }
 
   /* Passe 2  -  détail éditorial des jours, par lots de 7 pour les longs voyages */
