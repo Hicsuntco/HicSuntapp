@@ -1363,34 +1363,60 @@ async function _fetchFlightPriceFromWeb(dest, country, dateFrom, dateTo, travele
 }
 
 /* ── recherche web de VRAIS hébergements par zone (anti-hallucination) ── */
-function buildStaySearchPrompt(dest, zones, level){
+/* Dates réelles d'arrivée/de départ de CHAQUE hébergement (positionnel,
+   cumul des nuits dans l'ordre des zones)  -  pour que la recherche web du
+   prix cible le tarif RÉEL sur les VRAIES dates du séjour plutôt qu'une
+   moyenne générique déconnectée du calendrier, incohérente avec le budget
+   affiché. */
+function _computeStayDateRanges(stays, dateFromISO){
+  if(!dateFromISO || !Array.isArray(stays)) return (stays||[]).map(function(){ return null; });
+  const from = new Date(dateFromISO);
+  if(isNaN(from)) return stays.map(function(){ return null; });
+  let offset = 0;
+  const fmt = function(d){ return d.toISOString().slice(0,10); };
+  return stays.map(function(s){
+    const nights = Math.max(1, Number(s.nights)||1);
+    const checkinD = new Date(from.getTime() + offset*86400000);
+    const checkoutD = new Date(checkinD.getTime() + nights*86400000);
+    offset += nights;
+    return { checkin: fmt(checkinD), checkout: fmt(checkoutD), nights: nights };
+  });
+}
+function buildStaySearchPrompt(dest, zones, level, dateRanges){
   const lvl = (level||'Confort');
   const lvlGuide = lvl.indexOf('Éco')>=0?'auberges, guesthouses, agriturismi simples'
     : (lvl.indexOf('Luxe')>=0||lvl.indexOf('Ultra')>=0)?'hôtels 4-5 étoiles, Relais & Châteaux, villas de luxe, boutique-hôtels haut de gamme'
     : 'boutique-hôtels, agriturismi de charme, maisons d\'hôtes 3-4 étoiles';
+  const hasDates = Array.isArray(dateRanges) && dateRanges.some(Boolean);
   return [
     'Cherche sur le web des hébergements RÉELS et ACTUELLEMENT EN ACTIVITÉ pour un séjour à '+(dest||'')+'.',
     'Pour chacune de ces zones, trouve 1 hébergement réel et vérifiable ('+lvlGuide+') :',
-    zones.map(function(z,i){return (i+1)+'. '+z;}).join('\n'),
+    zones.map(function(z,i){
+      const dr = dateRanges && dateRanges[i];
+      const dateInfo = dr ? (' — séjour du '+dr.checkin+' au '+dr.checkout+' ('+dr.nights+' nuit'+(dr.nights>1?'s':'')+')') : '';
+      return (i+1)+'. '+z+dateInfo;
+    }).join('\n'),
     '',
     'EXIGENCES STRICTES :',
     '- Uniquement des établissements qui EXISTENT VRAIMENT (vérifiables sur Booking, Google Maps, ou leur site officiel).',
     '- Nom EXACT tel qu il apparait en ligne. Aucune invention, aucune approximation.',
     '- Si tu n es pas certain qu un établissement existe dans une zone, mets "name":"" pour cette zone.',
-    '- Prix indicatif par nuit réaliste en euros pour 2 personnes.',
+    hasDates
+      ? '- Prix : cherche le tarif RÉEL actuellement affiché (Booking, site officiel) pour CES dates précises indiquées ci-dessus, pas une moyenne générique — c\'est ce prix qui sert de base au budget affiché au client. Si le tarif exact pour ces dates n\'est pas trouvable, donne la fourchette actuelle la plus réaliste pour ce type d\'établissement à cette période de l\'année.'
+      : '- Prix indicatif par nuit réaliste en euros pour 2 personnes.',
     '',
     'Réponds UNIQUEMENT en JSON compact valide, sans texte autour :',
     '{"stays":[{"zone":"nom de la zone","name":"nom exact reel","type":"type/standing","price":0,"blurb":"description courte basee sur des infos reelles"}]}',
   ].join('\n');
 }
-async function _fetchRealStays(dest, zones, level){
+async function _fetchRealStays(dest, zones, level, dateRanges){
   for(var attempt=0; attempt<2; attempt++){
     if(attempt>0){ await new Promise(function(r){ setTimeout(r, 1500); }); }
     try{
       const res = await fetch(SUPABASE_ENDPOINT,{
         method:'POST',
         headers:SUPABASE_HEADERS,
-        body:JSON.stringify({prompt:buildStaySearchPrompt(dest, zones, level), webSearch:true})
+        body:JSON.stringify({prompt:buildStaySearchPrompt(dest, zones, level, dateRanges), webSearch:true})
       });
       if(!res.ok) continue;
       const data = await res.json();
@@ -1578,7 +1604,8 @@ async function callCartographe(){
   /* recherche web de VRAIS hébergements  -  remplace les noms potentiellement inventés */
   if(Array.isArray(skel.stays) && skel.stays.length){
     const zones = skel.stays.map(function(s){ return s.loc || s.zone || skel.dest; });
-    const realStays = await _fetchRealStays(skel.dest, zones, skel.level);
+    const dateRanges = _computeStayDateRanges(skel.stays, state.dateFrom);
+    const realStays = await _fetchRealStays(skel.dest, zones, skel.level, dateRanges);
     if(realStays && realStays.length){
       /* remplacer chaque hébergement par le vrai trouvé pour la même zone  -  matché
          par nom de zone (comme pour les restaurants) plutôt que par simple index, car
