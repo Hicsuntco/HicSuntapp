@@ -17,14 +17,17 @@
    vraie hauteur visible via JS et on la réapplique au resize/à la rotation
    plutôt que de se fier à une seule unité CSS. */
 (function(){
+  /* IMPORTANT : window.innerHeight uniquement, jamais visualViewport.height.
+     visualViewport rétrécit quand le clavier apparaît (c'est son rôle), mais
+     réagir à ça ici faisait suivre toute l'app (barre d'onglets comprise) au
+     clavier au lieu de le laisser simplement se poser par-dessus — la barre
+     se retrouvait à flotter au milieu de l'écran pendant la saisie. */
   function setAppVH(){
-    var h = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
-    document.documentElement.style.setProperty('--app-vh', (h * 0.01) + 'px');
+    document.documentElement.style.setProperty('--app-vh', (window.innerHeight * 0.01) + 'px');
   }
   setAppVH();
   window.addEventListener('resize', setAppVH);
   window.addEventListener('orientationchange', setAppVH);
-  if(window.visualViewport) window.visualViewport.addEventListener('resize', setAppVH);
 })();
 </script>
 <!-- PWA Manifest -->
@@ -41,10 +44,10 @@
 <link rel="shortcut icon" href="/favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="core.css?v=1783257947">
-<link rel="stylesheet" href="screens.css?v=1783257947">
-<link rel="stylesheet" href="overlays.css?v=1783257947">
-<link rel="stylesheet" href="features.css?v=1783257947">
+<link rel="stylesheet" href="core.css?v=1783258770">
+<link rel="stylesheet" href="screens.css?v=1783258770">
+<link rel="stylesheet" href="overlays.css?v=1783258770">
+<link rel="stylesheet" href="features.css?v=1783258770">
 </head>
 <body>
 <script>
@@ -100,15 +103,15 @@
 <div class="stage">
   <div class="phone"><div class="screen"></div></div>
 </div>
-<script src="data.js?v=1783257947"></script>
-<script src="extra-data.js?v=1783257947"></script>
-<script src="screens-main.js?v=1783257947"></script>
-<script src="screens-detail.js?v=1783257947"></script>
-<script src="screens-extra.js?v=1783257947"></script>
-<script src="deck.js?v=1783257947"></script>
-<script src="features.js?v=1783257947"></script>
-<script src="generate.js?v=1783257947"></script>
-<script src="maps.js?v=1783257947"></script>
-<script src="app.js?v=1783257947"></script>
+<script src="data.js?v=1783258770"></script>
+<script src="extra-data.js?v=1783258770"></script>
+<script src="screens-main.js?v=1783258770"></script>
+<script src="screens-detail.js?v=1783258770"></script>
+<script src="screens-extra.js?v=1783258770"></script>
+<script src="deck.js?v=1783258770"></script>
+<script src="features.js?v=1783258770"></script>
+<script src="generate.js?v=1783258770"></script>
+<script src="maps.js?v=1783258770"></script>
+<script src="app.js?v=1783258770"></script>
 </body>
 </html>
