@@ -167,7 +167,7 @@ const OCCASIONS = [
   { id:'famille',      label:'En famille',      ic:'users',   desc:'Rythme doux, plaisir pour tous les âges' },
   { id:'solo',         label:'En solo',         ic:'compass', desc:'Liberté totale, rencontres, immersion' },
   { id:'amis',         label:'Entre amis',      ic:'users',   desc:'Partager, explorer, créer des souvenirs communs' },
-  { id:'pro',          label:'Voyage pro',      ic:'doc',     desc:'Séminaire, teambuilding, incentive' },
+  { id:'bien-etre',    label:'Retraite bien-être', ic:'droplet', desc:'Ressourcement, spa, yoga, déconnexion' },
 ];
 
 /* itinerary — vide par défaut, chargé depuis Supabase */
