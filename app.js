@@ -108,6 +108,16 @@ function travelerLabel(it){
 function screenEl(){ return document.querySelector('.screen'); }
 function esc(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function eur(n){ return Math.round(n).toLocaleString('fr-FR') + ' €'; }
+/* Le champ "loc" d'un hébergement suit la convention "Zone / Sous-zone"
+   (ex: "Panarea / Nord-Ouest", "Chia / Extrême Sud"). encodeURIComponent()
+   transforme le "/" en "%2F", ce qui est sans danger dans une query string
+   mais casse la résolution de lieu d'Airbnb quand c'est utilisé comme
+   SEGMENT DE CHEMIN ("/s/Panarea%2FNord-Ouest/homes") — Airbnb ne
+   redécode pas %2F en "/" à cet endroit et retombe sur un lieu par défaut
+   sans rapport. On ne garde que la partie avant le "/" pour le chemin. */
+function _airbnbPathSlug(loc){
+  return encodeURIComponent(String(loc||'').split('/')[0].trim());
+}
 function hexA(hex, alpha){
   hex = (hex || '#9c7c44');
   if (hex.indexOf('#') !== 0) return 'rgba(156,124,68,'+alpha+')';
@@ -1380,7 +1390,7 @@ document.addEventListener('DOMContentLoaded', function(){
       +'&dest_type=hotel&lang=fr&group_adults='+guests+'&no_rooms=1&sb_travel_purpose=leisure'
       +(checkin?'&checkin='+checkin:'')+(checkout?'&checkout='+checkout:'')
       +(typeof AFFILIATE_TAGS!=='undefined'&&AFFILIATE_TAGS.booking?'&aid='+AFFILIATE_TAGS.booking:'');
-    var airbnbUrl='https://www.airbnb.fr/s/'+cityQ+'/homes?query='+nameLoc+'&adults='+guests+'&search_type=autocomplete_click'
+    var airbnbUrl='https://www.airbnb.fr/s/'+_airbnbPathSlug(loc)+'/homes?query='+nameLoc+'&adults='+guests+'&search_type=autocomplete_click'
       +(checkin?'&checkin='+checkin:'')+(checkout?'&checkout='+checkout:'');
     var hotelsUrl='https://fr.hotels.com/search.do?q-destination='+fullQ+'&q-rooms=1&q-room-0-adults='+guests
       +(checkin?'&q-check-in='+checkin:'')+(checkout?'&q-check-out='+checkout:'');
@@ -1770,7 +1780,7 @@ document.addEventListener('DOMContentLoaded', function(){
         +(checkin?'&checkin='+checkin:'')+(checkout?'&checkout='+checkout:'')
         +(typeof AFFILIATE_TAGS!=='undefined'&&AFFILIATE_TAGS.booking?'&aid='+AFFILIATE_TAGS.booking:'');
       /* Airbnb : recherche nom + ville dans la query pour cibler le bon logement */
-      var airbnbUrl='https://www.airbnb.fr/s/'+cityQ+'/homes?query='+nameLoc+'&adults='+guests+'&search_type=autocomplete_click'
+      var airbnbUrl='https://www.airbnb.fr/s/'+_airbnbPathSlug(loc)+'/homes?query='+nameLoc+'&adults='+guests+'&search_type=autocomplete_click'
         +(checkin?'&checkin='+checkin:'')+(checkout?'&checkout='+checkout:'');
       /* Hotels.com : destination = nom + ville */
       var hotelsUrl='https://fr.hotels.com/search.do?q-destination='+fullQ+'&q-rooms=1&q-room-0-adults='+guests
