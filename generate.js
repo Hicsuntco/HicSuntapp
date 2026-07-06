@@ -967,8 +967,19 @@ function applyGenerated(skel, daysDetail, hilites, flightInfo, heroPhoto){
   const stays=(Array.isArray(skel.stays)?skel.stays:[]).slice(0,8).map(function(s,i){
     const rawPrice=Math.round(Number(s.price)||0);
     const midAcc=Math.round((accRange[0]+accRange[1])/2);
+    /* Un hébergement "verified" a un prix trouvé par recherche web réelle
+       (voir _mergeRealStays) — un vrai tarif de haute saison sur une île
+       touristique dépasse souvent la fourchette générique du niveau de
+       confort, et c'est LÉGITIME : le rejeter pour revenir à une estimation
+       synthétique moins précise défait tout l'intérêt de la recherche
+       réelle. On ne garde le garde-fou de fourchette que pour les prix non
+       vérifiés (estimation de l'IA sans recherche), avec juste un plafond
+       large pour écarter une valeur aberrante (ex: erreur de parsing). */
+    const isVerified = s.verified !== false;
     let price;
-    if(rawPrice>=accRange[0]&&rawPrice<=accRange[1]*1.3){
+    if(isVerified && rawPrice>0 && rawPrice<=accRange[1]*8){
+      price=rawPrice;
+    } else if(rawPrice>=accRange[0]&&rawPrice<=accRange[1]*1.3){
       price=rawPrice;
     } else {
       const tl=(s.type||'').toLowerCase();
@@ -991,6 +1002,7 @@ function applyGenerated(skel, daysDetail, hilites, flightInfo, heroPhoto){
       nights:_clampInt(s.nights,1,21,2), price:price,
       am:['bed','wifi',i%2?'fork':'pool'], blurb:s.blurb||'Une adresse d\'exception.',
       photo: _validStayPhoto(s.photo),
+      photoPage: _validPhotoPage(s.photoPage),
       source: /^(booking|airbnb|hotels|officiel)$/i.test(String(s.source||'').trim()) ? String(s.source).trim().toLowerCase() : '',
       /* false = la recherche web anti-hallucination n'a pas pu confirmer cet
          établissement précis (voir _mergeRealStays) — l'app doit le signaler
@@ -1455,6 +1467,7 @@ function _mergeRealStays(origList, zonesList, realStays){
         nights: orig.nights,
         blurb: (real.blurb && real.blurb.length>5) ? real.blurb : orig.blurb,
         photo: _validStayPhoto(real.photo),
+        photoPage: _validPhotoPage(real.photo_page),
         source: /^(booking|airbnb|hotels|officiel)$/i.test(String(real.source||'').trim()) ? String(real.source).trim().toLowerCase() : '',
         verified: true,
       };
@@ -1468,6 +1481,17 @@ function _validStayPhoto(url){
   if(!/^https:\/\/([a-z0-9-]+\.)?(bstatic\.com|muscache\.com)\/.+\.(jpe?g|png|webp)(\?.*)?$/i.test(u)
      && !/^https:\/\/upload\.wikimedia\.org\/.+\.(jpe?g|png)$/i.test(u)) return '';
   if(/\[|\]|xdata\/x|photo_?id|example\.com|placeholder/i.test(u)) return '';
+  return u;
+}
+/* Contrairement à _validStayPhoto (embarquée en <img>, doit être une image
+   directe et fiable), "photo_page" n'est qu'un lien externe cliquable — le
+   risque d'un mauvais lien est bien moindre qu'une image cassée, donc la
+   validation reste légère (domaine plausible + pas de marqueur fictif). */
+function _validPhotoPage(url){
+  if(typeof url!=='string') return '';
+  const u=url.trim();
+  if(!/^https:\/\/[a-z0-9.-]+\.[a-z]{2,}\//i.test(u)) return '';
+  if(/\[|\]|example\.com|placeholder/i.test(u)) return '';
   return u;
 }
 function buildStaySearchPrompt(dest, zones, level, dateRanges){
@@ -1496,9 +1520,10 @@ function buildStaySearchPrompt(dest, zones, level, dateRanges){
       : '- Prix indicatif par nuit réaliste en euros pour 2 personnes.',
     '- "source" : indique sur quelle plateforme tu as vérifié l\'existence de cet établissement dans tes résultats de recherche : "booking", "airbnb", "hotels" ou "officiel" (site propre à l\'établissement). Laisse vide si tu n\'es pas sûr.',
     '- "photo" (ne remplis QUE si tu es certain) : tu ne peux PAS naviguer dans les pages dynamiques de Booking/Airbnb, donc n\'invente JAMAIS une URL d\'image construite à partir d\'un pattern (ex: "q-xx.bstatic.com/...", des identifiants entre crochets, ou toute URL que tu n\'as pas VUE littéralement, telle quelle, dans un extrait de résultat de recherche). Ne renseigne "photo" que si une URL d\'image complète est apparue mot pour mot dans un extrait/snippet de recherche (Wikimedia Commons pour un bâtiment historique/notable, sinon très rare). Dans le doute, laisse "photo" VIDE — un champ vide est très préférable à une URL fictive qui cassera l\'affichage.',
+    '- "photo_page" (différent de "photo") : si tu as trouvé une PAGE web réelle qui contient des photos de cet établissement (fiche TripAdvisor, fiche Google Maps, page galerie du site officiel) sans pouvoir en extraire l\'URL d\'image directe, indique l\'URL de cette page ici — l\'utilisateur pourra cliquer pour voir les photos lui-même. Cette URL doit aussi avoir été VUE littéralement dans tes résultats, jamais construite.',
     '',
     'Réponds UNIQUEMENT en JSON compact valide, sans texte autour :',
-    '{"stays":[{"zone":"nom de la zone","name":"nom exact reel","type":"type/standing","price":0,"photo":"","source":"","blurb":"description courte basee sur des infos reelles"}]}',
+    '{"stays":[{"zone":"nom de la zone","name":"nom exact reel","type":"type/standing","price":0,"photo":"","photo_page":"","source":"","blurb":"description courte basee sur des infos reelles"}]}',
   ].join('\n');
 }
 async function _fetchRealStays(dest, zones, level, dateRanges){
