@@ -2074,7 +2074,17 @@ async function runFullGeneration(overlayAlreadyOpen){
     console.error('[applyGenerated]', e);
     ok=false;
   }}
-  if(!ok) toast('Connexion limitée  -  itinéraire de démonstration');
+  /* Aucun itinéraire de secours n'existe réellement : si la génération a
+     échoué, ITINERARY reste vide (dest/plan/accommodations à zéro). Montrer
+     quand même le paywall dans ce cas revenait à demander 4,99€ pour un
+     voyage à "0 jours" et une destination vide — pire que ne rien montrer.
+     On ferme l'écran de génération et on laisse l'utilisateur relancer. */
+  if(!ok || !ITINERARY.dest || !ITINERARY.plan || !ITINERARY.plan.length){
+    toast('Génération impossible  -  vérifiez votre connexion et réessayez');
+    const gi0=ovStack.findIndex(function(o){return o.dataset&&o.dataset.ov==='generating';});
+    if(gi0>=0){const g0=ovStack.splice(gi0,1)[0];g0.remove();}
+    return;
+  }
 
   /* ── PAYWALL ── */
   setTimeout(function(){
@@ -2230,7 +2240,7 @@ function _showPaywall(genEl, days){
     + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:0 20px 20px">'
     + _pwStat(days+' jours','planifiés')
     + _pwStat((it.accommodations||[]).length+' héberg.','sélectionnés')
-    + _pwStat(((it.gems||[]).length||'6')+' pépites','cachées')
+    + _pwStat((it.gems||[]).length+' pépites','cachées')
     + '</div>'
     + '</div>'
     /* Footer */
