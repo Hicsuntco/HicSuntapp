@@ -1716,6 +1716,34 @@ function _destinationMatches(requested, gotDest, gotCountry){
   return reqWords.some(function(w){return got.indexOf(w)!==-1;});
 }
 
+/* ── callCartographe() avec reprise complète ──────────────────────────
+   _completeJSON() ne retente qu'un seul appel API à la fois (3 tentatives) ;
+   si un souci réseau plus large survient au milieu de l'orchestration
+   (ossature OK mais jours en échec, par ex.), callCartographe() entier
+   peut échouer. Demande explicite du client : la génération doit réussir
+   quoi qu'il arrive plutôt que d'abandonner après un seul essai complet —
+   on retente donc TOUT le pipeline depuis le début, jusqu'à 3 fois, avant
+   de renoncer réellement. ── */
+async function _callCartographeWithRetry(maxAttempts, onRetry){
+  let lastErr=null;
+  for(let attempt=0; attempt<maxAttempts; attempt++){
+    if(attempt>0){
+      if(onRetry) onRetry(attempt);
+      await new Promise(function(r){ setTimeout(r, 1500); });
+    }
+    try{
+      const result=await callCartographe();
+      if(result && result.skel && Array.isArray(result.skel.plan) && result.skel.plan.length) return result;
+      lastErr=new Error('résultat vide ou incomplet');
+      console.warn('[_callCartographeWithRetry] tentative',attempt+1,'résultat invalide');
+    }catch(e){
+      lastErr=e;
+      console.warn('[_callCartographeWithRetry] tentative',attempt+1,'échouée:', e&&e.message||e);
+    }
+  }
+  throw lastErr||new Error('échec de génération après plusieurs tentatives');
+}
+
 /* ── orchestration des 3 passes (ossature, jours, highlights) ─────────── */
 async function callCartographe(){
   const b=buildBrief();
@@ -2039,7 +2067,9 @@ async function runFullGeneration(overlayAlreadyOpen){
   const minShow=new Promise(function(r){setTimeout(r,2200);});
   let result=null;
   try{
-    const res=await Promise.all([callCartographe(),minShow]);
+    const res=await Promise.all([_callCartographeWithRetry(3, function(){
+      if(statusEl){ statusEl.textContent='Nouvelle tentative…'; statusEl.style.opacity=1; }
+    }),minShow]);
     result=res[0];
     console.log('[runFullGen] result=',result?'OK plan='+((result.skel&&result.skel.plan)||[]).length+' days='+((result.days&&result.days.days)||[]).length:'NULL');
   }catch(e){
