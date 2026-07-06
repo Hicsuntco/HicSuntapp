@@ -350,8 +350,11 @@ function affiliateLink(a, platform){
     + '&sb_travel_purpose=leisure'
     + affB;
 
-  /* Airbnb — recherche dans la ville avec le nom en query */
-  const airbnbUrl = 'https://www.airbnb.fr/s/' + cityQ + '/homes'
+  /* Airbnb — recherche dans la ville avec le nom en query. "loc" suit la
+     convention "Zone / Sous-zone" — un "/" cru cassé en %2F dans le CHEMIN
+     de l'URL fait échouer la résolution de lieu d'Airbnb (voir app.js
+     _airbnbPathSlug) : on ne garde que la partie avant le "/". */
+  const airbnbUrl = 'https://www.airbnb.fr/s/' + encodeURIComponent(cityRaw.split('/')[0].trim()) + '/homes'
     + '?query=' + nameQ
     + '&adults=' + guests
     + (checkin  ? '&checkin='  + checkin  : '')
