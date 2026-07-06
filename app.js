@@ -1429,6 +1429,9 @@ document.addEventListener('DOMContentLoaded', function(){
       +'<div style="position:absolute;inset:0;background:radial-gradient(120% 100% at 15% 0%,'+hexA(accent,0.25)+',transparent 60%)'+(a.photo?',linear-gradient(180deg,rgba(13,11,8,.1),rgba(13,11,8,.5))':'')+'"></div>'
       +'<div class="navbar" style="position:absolute;top:54px;left:0;right:0;z-index:1"><button class="nav-btn" onclick="closeOverlay()" aria-label="Retour">'+ico('back',20,1.7)+'</button></div>'
       +'<span id="acc-hero-fallback" style="position:absolute;bottom:20px;right:24px;color:'+hexA(accent,0.9)+(a.photo?';display:none':'')+'">'+ico(a.i||'bed',32,1.3)+'</span>'
+      +(!a.photo&&a.photoPage
+        ? '<a href="'+esc(a.photoPage)+'" target="_blank" rel="noopener" style="position:absolute;bottom:18px;left:20px;display:flex;align-items:center;gap:6px;font-size:12px;color:'+hexA(accent,0.95)+';text-decoration:none;border:1px solid '+hexA(accent,0.4)+';border-radius:20px;padding:6px 12px;background:rgba(0,0,0,0.25)">'+ico('external',13,1.6)+'Voir des photos</a>'
+        : '')
       +'</div>'
       +'<div class="ov-scroll px">'
       +'<div class="book-h" style="margin-top:16px;font-family:var(--serif);font-size:22px;font-weight:600">'+esc(a.n||'Hébergement')+'</div>'
