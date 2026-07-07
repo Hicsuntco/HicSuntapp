@@ -1475,11 +1475,20 @@ function _mergeRealStays(origList, zonesList, realStays){
     return Object.assign({}, orig, { verified: false });
   });
 }
+/* Domaines acceptés : CDN connus et légitimes de photos d'hébergement que
+   la recherche web peut réellement citer (vus tels quels dans un extrait
+   de résultat) — élargi au-delà de Booking/Airbnb/Wikimedia pour couvrir
+   TripAdvisor et les photos Google Maps/Business (lh3/lh5.googleusercontent),
+   deux sources très fréquentes pour un hôtel quelconque. Ces URLs
+   contiennent des identifiants longs et non-devinables : un modèle ne peut
+   pas les "construire" par hasard, seulement les avoir vues. */
 function _validStayPhoto(url){
   if(typeof url!=='string') return '';
   const u=url.trim();
   if(!/^https:\/\/([a-z0-9-]+\.)?(bstatic\.com|muscache\.com)\/.+\.(jpe?g|png|webp)(\?.*)?$/i.test(u)
-     && !/^https:\/\/upload\.wikimedia\.org\/.+\.(jpe?g|png)$/i.test(u)) return '';
+     && !/^https:\/\/upload\.wikimedia\.org\/.+\.(jpe?g|png)$/i.test(u)
+     && !/^https:\/\/(dynamic-media-cdn|media-cdn)\.tripadvisor\.com\/.+\.(jpe?g|png|webp)(\?.*)?$/i.test(u)
+     && !/^https:\/\/lh[3-6]\.googleusercontent\.com\/.+$/i.test(u)) return '';
   if(/\[|\]|xdata\/x|photo_?id|example\.com|placeholder/i.test(u)) return '';
   return u;
 }
@@ -1519,7 +1528,7 @@ function buildStaySearchPrompt(dest, zones, level, dateRanges){
       ? '- Prix : cherche le tarif RÉEL actuellement affiché (Booking, site officiel) pour CES dates précises indiquées ci-dessus, pas une moyenne générique — c\'est ce prix qui sert de base au budget affiché au client. Si le tarif exact pour ces dates n\'est pas trouvable (dates lointaines, pas encore ouvertes à la réservation...), donne la fourchette actuelle la plus réaliste pour ce type d\'établissement à cette période de l\'année — un prix estimé reste bien plus utile qu\'un champ vide.'
       : '- Prix indicatif par nuit réaliste en euros pour 2 personnes.',
     '- "source" : indique sur quelle plateforme tu as vérifié l\'existence de cet établissement dans tes résultats de recherche : "booking", "airbnb", "hotels" ou "officiel" (site propre à l\'établissement). Laisse vide si tu n\'es pas sûr.',
-    '- "photo" (ne remplis QUE si tu es certain) : tu ne peux PAS naviguer dans les pages dynamiques de Booking/Airbnb, donc n\'invente JAMAIS une URL d\'image construite à partir d\'un pattern (ex: "q-xx.bstatic.com/...", des identifiants entre crochets, ou toute URL que tu n\'as pas VUE littéralement, telle quelle, dans un extrait de résultat de recherche). Ne renseigne "photo" que si une URL d\'image complète est apparue mot pour mot dans un extrait/snippet de recherche (Wikimedia Commons pour un bâtiment historique/notable, sinon très rare). Dans le doute, laisse "photo" VIDE — un champ vide est très préférable à une URL fictive qui cassera l\'affichage.',
+    '- "photo" : cherche activement une vraie photo de cet établissement précis (page Booking/Airbnb, fiche TripAdvisor, fiche Google Maps/Business) et regarde si l\'URL complète de l\'image apparaît littéralement dans tes résultats de recherche — c\'est fréquent, ne t\'en prive pas si elle y est. La seule règle est de ne JAMAIS inventer ou reconstruire une URL à partir d\'un pattern connu (ex: "q-xx.bstatic.com/...", des identifiants entre crochets) : uniquement une URL que tu as VUE mot pour mot, telle quelle, dans un extrait/snippet de recherche. Si tu ne l\'as pas vue ainsi, laisse "photo" VIDE plutôt que de risquer une URL fictive qui cassera l\'affichage.',
     '- "photo_page" (différent de "photo") : si tu as trouvé une PAGE web réelle qui contient des photos de cet établissement (fiche TripAdvisor, fiche Google Maps, page galerie du site officiel) sans pouvoir en extraire l\'URL d\'image directe, indique l\'URL de cette page ici — l\'utilisateur pourra cliquer pour voir les photos lui-même. Cette URL doit aussi avoir été VUE littéralement dans tes résultats, jamais construite.',
     '',
     'Réponds UNIQUEMENT en JSON compact valide, sans texte autour :',
