@@ -221,7 +221,7 @@ async function _atlasMarkVisitedClick(){
 /* ── écran Atlas ───────────────────────────────────────────────────────── */
 function openAtlas(){
   openOverlay('atlas', atlasView());
-  loadAtlasTab();
+  return loadAtlasTab(); /* usage normale : appel "fire and forget", la promesse retournée n'est utile qu'aux tests */
 }
 function atlasView(){
   const hasRealAuth = !!localStorage.getItem('sb_token');
@@ -235,7 +235,12 @@ function atlasView(){
     +   '<div class="atlas-map-wrap" data-atlas-map>'
     +     (typeof ATLAS_MAP_SVG==='string' ? ATLAS_MAP_SVG : '')
     +   '</div>'
-    +   (hasRealAuth ? '' : '<p class="atlas-login-hint">Connectez-vous pour que chaque voyage sauvegardé illumine son pays sur votre atlas.</p><button class="btn" style="width:100%;margin-top:4px" onclick="closeOverlay();openOverlay(\'login\', loginView(), {modal:true})">Se connecter</button>')
+    +   '<div class="atlas-legend">'
+    +     '<span class="atlas-legend-it"><span class="atlas-legend-sw" style="background:'+hexA('#221D16',0.16)+'"></span>Brume</span>'
+    +     '<span class="atlas-legend-it"><span class="atlas-legend-sw" style="background:'+hexA('#E8C98C',0.5)+';box-shadow:inset 0 0 0 1px var(--gold)"></span>Exploré</span>'
+    +     '<span class="atlas-legend-it"><span class="atlas-legend-sw" style="background:var(--gold-bright)"></span>Visité</span>'
+    +   '</div>'
+    +   (hasRealAuth ? '' : '<div style="padding:0 20px"><p class="atlas-login-hint" style="padding:0">Connectez-vous pour que chaque voyage sauvegardé illumine son pays sur votre atlas.</p><button class="btn" style="width:100%;margin-top:4px" onclick="closeOverlay();openOverlay(\'login\', loginView(), {modal:true})">Se connecter</button></div>')
     + '</div>'
     + '<div class="atlas-seal-layer" data-atlas-seal></div>';
 }

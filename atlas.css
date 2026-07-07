@@ -2,9 +2,9 @@
    Réutilise exclusivement les tokens définis dans core.css (--bg, --gold,
    --ink, --serif, --mono…) — aucune nouvelle palette introduite ici. */
 
-.atlas-scroll{ padding:0 20px 40px }
+.atlas-scroll{ padding:0 0 40px }
 
-.atlas-head{ text-align:center; padding:8px 0 20px }
+.atlas-head{ text-align:center; padding:8px 20px 18px }
 .atlas-title{
   font-family:var(--serif); font-weight:600; font-size:26px;
   letter-spacing:-0.4px; margin-top:6px;
@@ -17,14 +17,21 @@
 
 /* Carte : carte de cartographe ancienne — papier sable, grain très subtil,
    rose des vents en filigrane. Le grain est un bruit SVG généré en ligne
-   (feTurbulence) : pas d'asset image à charger. */
+   (feTurbulence) : pas d'asset image à charger.
+   Plein bord (pas de marge latérale) et généreusement encadrée en hauteur :
+   une carte du monde reste intrinsèquement "à l'italienne" (~2:1) sur un
+   écran "à la française" — plutôt que de la laisser flotter, petite, au
+   milieu d'une page vide, le cadre lui-même (grain, vignette, rose des
+   vents) occupe l'espace, comme le passe-partout d'une carte encadrée. */
 .atlas-map-wrap{
-  position:relative; border-radius:var(--card-radius); overflow:hidden;
+  position:relative; overflow:hidden;
+  display:flex; align-items:center; justify-content:center;
+  min-height:36vh;
+  padding:26px 16px;
   background:
-    radial-gradient(120% 90% at 50% 8%, var(--surface2) 0%, var(--bg) 62%);
-  border:1px solid var(--line);
-  box-shadow:var(--shadow-card);
-  padding:6px;
+    radial-gradient(140% 100% at 50% 0%, var(--surface2) 0%, var(--bg) 68%);
+  border-top:1px solid var(--line); border-bottom:1px solid var(--line);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.4);
 }
 .atlas-map-wrap::before{
   content:''; position:absolute; inset:0; pointer-events:none; z-index:2;
@@ -34,12 +41,25 @@
 .atlas-map-wrap::after{
   /* Rose des vents en filigrane, coin bas-droit — décor discret, pas un
      élément interactif. */
-  content:''; position:absolute; right:-6%; bottom:-8%; width:34%;
-  padding-top:34%; pointer-events:none; z-index:1; opacity:0.05;
+  content:''; position:absolute; right:-4%; bottom:-6%; width:40%;
+  padding-top:40%; pointer-events:none; z-index:1; opacity:0.06;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='none' stroke='%23221D16' stroke-width='1'%3E%3Ccircle cx='50' cy='50' r='46'/%3E%3Ccircle cx='50' cy='50' r='2'/%3E%3Cpath d='M50 4V96M4 50H96M17 17L83 83M83 17L17 83'/%3E%3C/g%3E%3C/svg%3E");
   background-size:contain; background-repeat:no-repeat;
 }
-.atlas-map-wrap svg{ position:relative; z-index:1; display:block; width:100%; height:auto }
+.atlas-map-wrap svg{ position:relative; z-index:1; display:block; width:100%; height:auto; max-height:100%; filter:drop-shadow(0 10px 26px rgba(70,50,25,0.14)) }
+
+/* Légende — utilise l'espace du cadre agrandi pour rappeler ce que
+   signifient les trois états, plutôt que de laisser un cadre vide. */
+.atlas-legend{
+  display:flex; justify-content:center; gap:22px;
+  padding:16px 20px 4px; flex-wrap:wrap;
+}
+.atlas-legend-it{
+  display:flex; align-items:center; gap:7px;
+  font-family:var(--mono); font-size:9px; font-weight:700;
+  letter-spacing:0.8px; text-transform:uppercase; color:var(--sub);
+}
+.atlas-legend-sw{ width:12px; height:12px; border-radius:4px; flex:none }
 
 /* Pays — brume par défaut : sombre/estompé, contour d'encre à peine visible. */
 .atlas-map-wrap svg path{
