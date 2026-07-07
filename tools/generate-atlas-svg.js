@@ -140,6 +140,19 @@ async function main(){
   var projection = d3geoProjection.geoRobinson().fitSize([WIDTH, HEIGHT], geojson);
   var pathGen = d3geo.geoPath(projection);
 
+  /* fitSize() cale le contenu SANS le recentrer sur un viewBox 0..WIDTH/
+     0..HEIGHT : sans Antarctique, le contenu réel ne touche pas les 4 bords
+     (marge morte en haut/bas ou gauche/droite selon l'axe contraignant) —
+     c'est exactement l'espace "carte petite dans une grande zone vide"
+     reproché côté app. On recalcule le viewBox sur la vraie boîte
+     englobante du contenu projeté, pas sur le canevas arbitraire de départ. */
+  var bounds = pathGen.bounds(geojson);
+  var pad = 4;
+  var vbX = Math.floor(bounds[0][0] - pad);
+  var vbY = Math.floor(bounds[0][1] - pad);
+  var vbW = Math.ceil(bounds[1][0] - bounds[0][0] + pad*2);
+  var vbH = Math.ceil(bounds[1][1] - bounds[0][1] + pad*2);
+
   var labels = {}; /* ISO3 -> nom français (source Natural Earth NAME_FR) */
   var paths = geojson.features.map(function(f){
     var d = pathGen(f);
@@ -149,7 +162,7 @@ async function main(){
     return '<path data-iso="' + iso + '" d="' + roundPathPrecision(d) + '"/>';
   }).filter(Boolean).join('');
 
-  var svg = '<svg viewBox="0 0 ' + WIDTH + ' ' + HEIGHT + '" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Carte du monde">'
+  var svg = '<svg viewBox="' + vbX + ' ' + vbY + ' ' + vbW + ' ' + vbH + '" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Carte du monde">'
     + '<g class="atlas-countries">' + paths + '</g>'
     + '</svg>';
 
