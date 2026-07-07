@@ -148,6 +148,76 @@ async function _atlasLoadCountries(){
   }catch(e){ return []; }
 }
 
+/* ── statut "visité" (confirmation manuelle) ──────────────────────────────
+   "Visité" ne peut être posé que sur un pays déjà "exploré" (une ligne doit
+   déjà exister — voir atlasUnlockFromItinerary) : on ne crée jamais de ligne
+   ici, on ne fait qu'UPDATE son statut. Si le voyage n'a jamais été
+   sauvegardé (donc jamais exploré), il n'y a rien à marquer visité. */
+async function _atlasGetCountryStatus(iso){
+  const token = localStorage.getItem('sb_token');
+  if(!token || !iso) return null;
+  try{
+    const res = await fetch(SUPABASE_URL+'/rest/v1/atlas_countries?user_id=eq.'+encodeURIComponent(_getUserId())+'&country_iso=eq.'+encodeURIComponent(iso)+'&select=status',{
+      headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+token}
+    });
+    if(!res.ok) return null;
+    const rows = await res.json();
+    return (Array.isArray(rows) && rows[0]) ? rows[0].status : null;
+  }catch(e){ return null; }
+}
+async function _atlasMarkVisited(iso){
+  const token = localStorage.getItem('sb_token');
+  const userId = _getUserId();
+  if(!token || !userId || !iso) return false;
+  try{
+    const res = await fetch(SUPABASE_URL+'/rest/v1/atlas_countries?user_id=eq.'+encodeURIComponent(userId)+'&country_iso=eq.'+encodeURIComponent(iso),{
+      method:'PATCH',
+      headers:{'content-type':'application/json','apikey':SUPABASE_ANON,'Authorization':'Bearer '+token,'Prefer':'return=minimal'},
+      body:JSON.stringify({status:'visited', visited_at:new Date().toISOString()})
+    });
+    return res.ok;
+  }catch(e){ return false; }
+}
+function _atlasVisitedCtaHTML(kind){
+  if(kind==='visited'){
+    return '<div style="display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;border-radius:14px;background:'+hexA('#A6824A',0.12)+';font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--gold-deep)">'
+      + ico('checkbig',14,1.8) + '<span>Pays visité</span></div>';
+  }
+  return '<button onclick="_atlasMarkVisitedClick()" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:12px;border-radius:14px;border:1px dashed var(--line2);background:none;cursor:pointer;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--gold)">'
+    + ico('checkbig',14,1.8) + '<span>J\'y suis allé(e)</span></button>';
+}
+/* État courant retenu pour le clic (évite de re-résoudre l'ISO à chaque
+   interaction) — une seule fiche voyage affichée à la fois dans l'app. */
+var _atlasVisitedCtaIso = null;
+async function _atlasSyncVisitedCTA(){
+  const scope = screenEl();
+  const el = scope && scope.querySelector('[data-atlas-visited-cta]');
+  if(!el) return;
+  el.innerHTML = '';
+  _atlasVisitedCtaIso = null;
+  if(!localStorage.getItem('sb_token')) return;
+  const iso = _atlasResolveCountryISO(ITINERARY);
+  if(!iso) return;
+  const status = await _atlasGetCountryStatus(iso);
+  if(!status) return; /* jamais exploré : rien à confirmer */
+  _atlasVisitedCtaIso = iso;
+  el.innerHTML = _atlasVisitedCtaHTML(status);
+}
+async function _atlasMarkVisitedClick(){
+  const iso = _atlasVisitedCtaIso;
+  if(!iso) return;
+  const scope = screenEl();
+  const el = scope && scope.querySelector('[data-atlas-visited-cta]');
+  const ok = await _atlasMarkVisited(iso);
+  if(ok){
+    if(el) el.innerHTML = _atlasVisitedCtaHTML('visited');
+    try{ if(navigator.vibrate) navigator.vibrate([14,50,14]); }catch(e){}
+    if(typeof toast==='function') toast('Pays marqué comme visité ✓');
+  } else if(typeof toast==='function'){
+    toast('Impossible de confirmer pour le moment');
+  }
+}
+
 /* ── écran Atlas ───────────────────────────────────────────────────────── */
 function openAtlas(){
   openOverlay('atlas', atlasView());
@@ -194,6 +264,8 @@ async function _atlasLoadTabInner(){
 
   const countries = await _atlasLoadCountries();
   const isoList = countries.map(function(c){ return c.country_iso; });
+  const statusByIso = {};
+  countries.forEach(function(c){ statusByIso[c.country_iso] = c.status; });
 
   /* Pays en attente de dévoilement (débloqués depuis la dernière visite de
      l'écran) : on les affiche d'abord en brume, puis on joue l'animation
@@ -204,7 +276,7 @@ async function _atlasLoadTabInner(){
   pending = pending.filter(function(iso){ return isoList.indexOf(iso)>=0; });
 
   const immediate = isoList.filter(function(iso){ return pending.indexOf(iso)<0; });
-  _atlasApplyClasses(svgEl, immediate);
+  _atlasApplyClasses(svgEl, immediate, statusByIso);
 
   const counterEl = scope.querySelector('[data-atlas-counter]');
   const setCounter = function(n){ if(counterEl) counterEl.textContent = n+' / '+WORLD_COUNTRIES_COUNT+' territoires révélés'; };
@@ -216,10 +288,14 @@ async function _atlasLoadTabInner(){
   }
 }
 
-function _atlasApplyClasses(svgEl, isoList){
+/* "explored" (contour lumineux) et "visited" (remplissage plein) sont
+   mutuellement exclusifs sur la carte — un pays visité n'a plus besoin
+   d'afficher aussi son contour "juste exploré". */
+function _atlasApplyClasses(svgEl, isoList, statusByIso){
   isoList.forEach(function(iso){
+    var cls = (statusByIso && statusByIso[iso]==='visited') ? 'visited' : 'explored';
     var paths = svgEl.querySelectorAll('path[data-iso="'+iso+'"]');
-    paths.forEach(function(p){ p.classList.add('explored'); });
+    paths.forEach(function(p){ p.classList.add(cls); });
   });
 }
 

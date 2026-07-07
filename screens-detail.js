@@ -535,6 +535,12 @@ function itineraryView(){
     /* Dates */
     +   (it.dates ? '<div class="mono" style="font-size:10px;color:var(--gold);letter-spacing:.14em;margin-top:20px">' + esc(it.dates).toUpperCase() + '</div>' : '')
 
+    /* Confirmation "visité" pour l'Atlas Vivant — rempli de façon
+       asynchrone par _atlasSyncVisitedCTA() (voir atlas.js), vide tant que
+       le pays n'a pas pu être résolu ou que l'utilisateur n'est pas
+       connecté (donnée de compte, comme le reste de l'Atlas). */
+    +   '<div data-atlas-visited-cta style="margin-top:14px"></div>'
+
     /* Carte */
     + '<div class="minimap" style="margin-top:18px;background:' + minimapBg + '" onclick="openMapOv()">'
     +   '<div id="hs-map-mini" class="minimap-real"></div>' + wxChip(wx1[0], wx1[1])
