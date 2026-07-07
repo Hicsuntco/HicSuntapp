@@ -46,7 +46,46 @@
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='none' stroke='%23221D16' stroke-width='1'%3E%3Ccircle cx='50' cy='50' r='46'/%3E%3Ccircle cx='50' cy='50' r='2'/%3E%3Cpath d='M50 4V96M4 50H96M17 17L83 83M83 17L17 83'/%3E%3C/g%3E%3C/svg%3E");
   background-size:contain; background-repeat:no-repeat;
 }
-.atlas-map-wrap svg{ position:relative; z-index:1; display:block; width:100%; height:auto; max-height:100%; filter:drop-shadow(0 10px 26px rgba(70,50,25,0.14)) }
+/* touch-action:none : laisse le pincement/déplacement entièrement à notre
+   gestionnaire Pointer Events (atlas.js) à l'intérieur du cadre — le reste
+   de l'écran (.ov-scroll) continue de défiler normalement au doigt. */
+.atlas-map-wrap{ touch-action:none; cursor:grab }
+.atlas-map-wrap svg{
+  position:relative; z-index:1; display:block; width:100%; height:auto; max-height:100%;
+  filter:drop-shadow(0 10px 26px rgba(70,50,25,0.14));
+  transform-origin:center center;
+  transition:transform 0.18s var(--ease-out);
+  touch-action:none;
+}
+
+/* Contrôles de zoom — pilule flottante, coin haut-droit du cadre. Geste au
+   pincement pour l'usage tactile ; ces boutons couvrent le clavier/souris
+   (aperçu desktop) et rendent le zoom visible/découvrable au premier coup
+   d'œil, plutôt que de compter uniquement sur un geste caché. */
+.atlas-map-outer{ position:relative }
+.atlas-zoom-ctrl{
+  position:absolute; top:14px; right:14px; z-index:3;
+  display:flex; flex-direction:column;
+  background:rgba(252,250,243,0.92);
+  border:1px solid var(--line); border-radius:14px;
+  box-shadow:var(--shadow-card);
+  overflow:hidden;
+}
+.atlas-zoom-ctrl button{
+  width:34px; height:34px; display:flex; align-items:center; justify-content:center;
+  background:none; border:none; color:var(--ink); cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.atlas-zoom-ctrl button:first-child{ border-bottom:1px solid var(--line) }
+.atlas-zoom-ctrl button:active{ background:var(--surface2) }
+.atlas-zoom-reset{
+  position:absolute; top:14px; left:14px; z-index:3;
+  width:34px; height:34px; align-items:center; justify-content:center;
+  background:rgba(252,250,243,0.92); color:var(--gold-deep);
+  border:1px solid var(--line); border-radius:50%;
+  box-shadow:var(--shadow-card); cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
 
 /* Légende — utilise l'espace du cadre agrandi pour rappeler ce que
    signifient les trois états, plutôt que de laisser un cadre vide. */
@@ -60,6 +99,11 @@
   letter-spacing:0.8px; text-transform:uppercase; color:var(--sub);
 }
 .atlas-legend-sw{ width:12px; height:12px; border-radius:4px; flex:none }
+
+.atlas-hint{
+  text-align:center; font-family:var(--sans); font-size:12px;
+  font-style:italic; color:var(--sub); margin-top:10px; padding:0 24px;
+}
 
 /* Pays — brume par défaut : sombre/estompé, contour d'encre à peine visible. */
 .atlas-map-wrap svg path{
@@ -104,6 +148,41 @@
 .atlas-login-hint{
   text-align:center; font-size:13px; color:var(--sub); line-height:1.5;
   margin-top:20px; padding:0 12px;
+}
+
+/* ── Infobulle pays (tap sur la carte) — "place card" ancrée en bas ───────
+   position:absolute (pas fixed, même raison que le sceau ci-dessous) : le
+   panneau glisse depuis le bas du cadre .ov, jamais depuis le bas de la
+   fenêtre du navigateur sur l'aperçu desktop. */
+.atlas-info-panel{
+  position:absolute; left:0; right:0; bottom:0; z-index:25;
+  padding:0 16px calc(16px + env(safe-area-inset-bottom,0px));
+  pointer-events:none;
+}
+.atlas-info-card{
+  pointer-events:auto;
+  display:flex; align-items:center; gap:12px;
+  background:var(--surface); border:1px solid var(--line);
+  border-radius:18px; padding:14px 14px 14px 18px;
+  box-shadow:var(--shadow-float);
+  opacity:0; transform:translateY(16px);
+  transition:opacity 0.3s var(--spring), transform 0.3s var(--spring);
+}
+.atlas-info-panel.in .atlas-info-card{ opacity:1; transform:translateY(0) }
+.atlas-info-name{
+  font-family:var(--serif); font-weight:600; font-size:17px;
+  letter-spacing:-0.2px; color:var(--ink);
+}
+.atlas-info-sub{ font-size:12px; color:var(--sub); margin-top:2px }
+.atlas-info-status{
+  flex:none; font-family:var(--mono); font-size:9px; font-weight:700;
+  letter-spacing:0.8px; text-transform:uppercase;
+  border:1px solid; border-radius:20px; padding:5px 10px;
+}
+.atlas-info-close{
+  flex:none; width:28px; height:28px; display:flex; align-items:center; justify-content:center;
+  background:none; border:none; color:var(--sub); cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
 }
 
 /* ── Sceau de dévoilement / jalon — superposition centrée sur l'écran ─────
