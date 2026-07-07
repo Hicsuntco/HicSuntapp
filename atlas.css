@@ -48,14 +48,24 @@
   transition:fill 0.5s var(--ease-out), fill-opacity 0.5s var(--ease-out),
     stroke 0.5s var(--ease-out), stroke-opacity 0.5s var(--ease-out);
 }
-/* Exploré — dégradé or/sable chaud, contour or net, léger halo intérieur. */
 .atlas-map-wrap svg defs{ display:none }
+/* Exploré (voyage sauvegardé) — contour or lumineux, remplissage léger :
+   le pays se détache de la brume sans être encore "acquis". */
 .atlas-map-wrap svg path.explored{
   fill:var(--gold-bright);
-  fill-opacity:0.9;
+  fill-opacity:0.28;
+  stroke:var(--gold);
+  stroke-opacity:0.95; stroke-width:0.8;
+  filter:drop-shadow(0 0 1.2px var(--gold));
+}
+/* Visité (confirmé après le séjour) — remplissage or plein, le niveau
+   "acquis" du pays. */
+.atlas-map-wrap svg path.visited{
+  fill:var(--gold-bright);
+  fill-opacity:0.92;
   stroke:var(--gold-deep);
-  stroke-opacity:0.9; stroke-width:0.6;
-  filter:drop-shadow(0 0 1.4px var(--gold));
+  stroke-opacity:0.95; stroke-width:0.7;
+  filter:drop-shadow(0 0 1.6px var(--gold));
 }
 /* Dévoilement : balayage doré pendant la transition brume → exploré. */
 .atlas-map-wrap svg path.revealing{

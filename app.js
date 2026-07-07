@@ -277,6 +277,7 @@ function openItinerary(){
   const el = openOverlay('itinerary', itineraryView());
   requestAnimationFrame(function(){ requestAnimationFrame(function(){ revealOnScroll(el); }); });
   if(typeof renderHicSuntMap === 'function') renderHicSuntMap('hs-map-mini', { dest: ITINERARY.dest, plan: ITINERARY.plan });
+  if(typeof _atlasSyncVisitedCTA === 'function') _atlasSyncVisitedCTA();
 }
 /* Ferme le chat et rafraîchit la vue itinéraire sous-jacente (ou l'ouvre) */
 function _returnToUpdatedItinerary(){
@@ -292,6 +293,7 @@ function _returnToUpdatedItinerary(){
       existing.innerHTML = itineraryView();
       requestAnimationFrame(function(){ requestAnimationFrame(function(){ revealOnScroll(existing); }); });
       if(typeof renderHicSuntMap === 'function') renderHicSuntMap('hs-map-mini', { dest: ITINERARY.dest, plan: ITINERARY.plan });
+      if(typeof _atlasSyncVisitedCTA === 'function') _atlasSyncVisitedCTA();
     } else {
       openItinerary();
     }
