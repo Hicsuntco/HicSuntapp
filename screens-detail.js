@@ -417,17 +417,29 @@ function accCard(a){
     : /resort|boutique/.test(typeLower) ? hexA(accent,0.07)
     : 'var(--surface)';
 
+  /* Photo réelle trouvée par recherche web (générée dans generate.js,
+     _validStayPhoto) — en fond du header, avec un voile sombre pour garder
+     le texte lisible par-dessus. onerror retire l'image ET le voile pour
+     retomber proprement sur le header coloré uni si l'URL ne charge pas
+     vraiment (même filet de sécurité que la photo hero de destination). */
+  const hasPhoto = !!a.photo;
+  const typeCol = hasPhoto ? '#F4EEDF' : accent;
+  const nameCol = hasPhoto ? '#fff' : 'var(--ink)';
+  const locCol  = hasPhoto ? 'rgba(244,238,223,0.85)' : 'var(--sub)';
+
   return '<div class="acc" onclick="openBooking(\'' + a.id + '\')" style="background:var(--surface-raised,#fff);border:1px solid var(--line);border-radius:18px;overflow:hidden;cursor:pointer;-webkit-tap-highlight-color:transparent">'
-    /* Header coloré avec icône */
-    + '<div style="background:'+bgColor+';padding:20px 20px 16px;display:flex;align-items:flex-start;justify-content:space-between;border-bottom:1px solid var(--line2)">'
-    +   '<div style="flex:1;min-width:0">'
-    +     '<div style="font-family:var(--mono);font-size:8.5px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:'+accent+';margin-bottom:6px">' + esc(a.type||'Hébergement') + '</div>'
-    +     '<div style="font-family:var(--serif);font-size:19px;font-weight:600;color:var(--ink);line-height:1.2;margin-bottom:4px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">' + esc(dispName)
-    +       (a.verified===false ? '<span style="font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;color:#C9822B;border:1px solid '+hexA('#C9822B',0.4)+';border-radius:6px;padding:2px 6px">Non confirmé</span>' : '')
+    /* Header coloré avec icône (ou photo réelle si disponible) */
+    + '<div style="position:relative;background:'+bgColor+';padding:20px 20px 16px;display:flex;align-items:flex-start;justify-content:space-between;border-bottom:1px solid var(--line2);overflow:hidden">'
+    +   (hasPhoto ? '<img src="'+esc(a.photo)+'" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" onerror="this.remove();var v=this.parentNode.querySelector(\'[data-photo-veil]\');if(v)v.remove();">' : '')
+    +   (hasPhoto ? '<div data-photo-veil style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(20,15,8,0.12),rgba(20,15,8,0.58))"></div>' : '')
+    +   '<div style="position:relative;flex:1;min-width:0">'
+    +     '<div style="font-family:var(--mono);font-size:8.5px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:'+typeCol+';margin-bottom:6px">' + esc(a.type||'Hébergement') + '</div>'
+    +     '<div style="font-family:var(--serif);font-size:19px;font-weight:600;color:'+nameCol+';line-height:1.2;margin-bottom:4px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">' + esc(dispName)
+    +       (a.verified===false ? '<span style="font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;color:#C9822B;border:1px solid '+hexA('#C9822B',0.4)+';border-radius:6px;padding:2px 6px;background:'+(hasPhoto?'rgba(20,15,8,0.5)':'transparent')+'">Non confirmé</span>' : '')
     +     '</div>'
-    +     '<div style="font-family:var(--mono);font-size:9.5px;letter-spacing:0.5px;text-transform:uppercase;color:var(--sub)">' + esc(a.loc||'') + '</div>'
+    +     '<div style="font-family:var(--mono);font-size:9.5px;letter-spacing:0.5px;text-transform:uppercase;color:'+locCol+'">' + esc(a.loc||'') + '</div>'
     +   '</div>'
-    +   '<div style="width:48px;height:48px;border-radius:14px;background:'+hexA(accent,0.14)+';display:flex;align-items:center;justify-content:center;flex:none;margin-left:12px;color:'+accent+'">' + ico(a.i||'bed', 22, 1.3) + '</div>'
+    +   '<div style="position:relative;width:48px;height:48px;border-radius:14px;background:'+(hasPhoto?'rgba(20,15,8,0.45)':hexA(accent,0.14))+';display:flex;align-items:center;justify-content:center;flex:none;margin-left:12px;color:'+(hasPhoto?'#fff':accent)+'">' + ico(a.i||'bed', 22, 1.3) + '</div>'
     + '</div>'
     /* Body — prix + étoiles + nuits */
     + '<div style="padding:14px 20px;display:flex;align-items:center;justify-content:space-between">'
