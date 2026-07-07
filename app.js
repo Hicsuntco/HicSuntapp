@@ -441,12 +441,11 @@ function refreshAuthTabs(){
   }
 }
 
-/* ── profil voyageur (nom, naissance, adresse) ──────────────────────── */
+/* ── profil voyageur (nom, naissance) ──────────────────────────────── */
 async function saveWelcomeProfile(){
   const first = document.getElementById('wFirst').value.trim();
   const last = document.getElementById('wLast').value.trim();
   const birth = document.getElementById('wBirth').value;
-  const address = document.getElementById('wAddress').value.trim();
   if(!first || !last){ toast('Prénom et nom requis'); return; }
 
   /* Mise à jour locale immédiate (fonctionne avec ou sans compte) */
@@ -454,7 +453,7 @@ async function saveWelcomeProfile(){
   USER.full = first+' '+last;
   USER.initials = (first[0]+last[0]).toUpperCase();
   try{
-    localStorage.setItem('hs_profile', JSON.stringify({first_name:first,last_name:last,birth_date:birth||null,address:address||null}));
+    localStorage.setItem('hs_profile', JSON.stringify({first_name:first,last_name:last,birth_date:birth||null}));
     localStorage.setItem('hs_profile_done','1');
   }catch(e){}
 
@@ -466,7 +465,7 @@ async function saveWelcomeProfile(){
       await fetch(SUPABASE_URL+'/rest/v1/profiles',{
         method:'POST',
         headers:{'content-type':'application/json','apikey':SUPABASE_ANON,'Authorization':'Bearer '+token,'Prefer':'resolution=merge-duplicates'},
-        body:JSON.stringify({id:userId,first_name:first,last_name:last,birth_date:birth||null,address:address||null})
+        body:JSON.stringify({id:userId,first_name:first,last_name:last,birth_date:birth||null})
       });
     }catch(e){}
   }
