@@ -26,11 +26,10 @@
 .atlas-map-wrap{
   position:relative; overflow:hidden;
   display:flex; align-items:center; justify-content:center;
-  min-height:36vh;
-  padding:26px 16px;
+  min-height:42vh;
+  padding:30px 16px;
   background:
     radial-gradient(140% 100% at 50% 0%, var(--surface2) 0%, var(--bg) 68%);
-  border-top:1px solid var(--line); border-bottom:1px solid var(--line);
   box-shadow:inset 0 1px 0 rgba(255,255,255,0.4);
 }
 .atlas-map-wrap::before{
@@ -62,7 +61,15 @@
    pincement pour l'usage tactile ; ces boutons couvrent le clavier/souris
    (aperçu desktop) et rendent le zoom visible/découvrable au premier coup
    d'œil, plutôt que de compter uniquement sur un geste caché. */
-.atlas-map-outer{ position:relative }
+/* Cadre "carte encadrée" : coins arrondis + ombre portée, comme les autres
+   cartes de l'app (.prof-card…) — avant, la carte était en plein-bord avec
+   des bords francs, ce qui la faisait ressembler à un bandeau brut plutôt
+   qu'à un objet soigné. */
+.atlas-map-outer{
+  position:relative; margin:0 20px;
+  border-radius:26px; overflow:hidden;
+  border:1px solid var(--line); box-shadow:var(--shadow-card);
+}
 .atlas-zoom-ctrl{
   position:absolute; top:14px; right:14px; z-index:3;
   display:flex; flex-direction:column;
@@ -103,6 +110,51 @@
 .atlas-hint{
   text-align:center; font-family:var(--sans); font-size:12px;
   font-style:italic; color:var(--sub); margin-top:10px; padding:0 24px;
+}
+
+/* Progression vers le prochain jalon — remplit l'espace laissé vide sous la
+   carte avec un contenu utile plutôt qu'un grand vide. Le conteneur reste
+   sans padding tant qu'il est vide (non connecté) : c'est ".atlas-progress-inner"
+   qui porte le padding, pour ne laisser aucun blanc résiduel. */
+.atlas-progress-inner{ padding:22px 20px 4px }
+.atlas-progress-label{
+  display:flex; justify-content:space-between; align-items:baseline;
+  font-family:var(--mono); font-size:9.5px; font-weight:700;
+  letter-spacing:1px; text-transform:uppercase; color:var(--sub);
+  margin-bottom:9px;
+}
+.atlas-progress-label span:first-child{ color:var(--gold-deep) }
+.atlas-progress-track{
+  height:6px; border-radius:6px; background:var(--surface2);
+  overflow:hidden; box-shadow:inset 0 1px 2px rgba(0,0,0,0.06);
+}
+.atlas-progress-fill{
+  height:100%; border-radius:6px;
+  background:linear-gradient(90deg, var(--gold) 0%, var(--gold-bright) 100%);
+  transition:width 0.5s var(--ease-out);
+}
+
+/* Derniers pays débloqués — puces défilables horizontalement, donnent une
+   raison de revenir sur l'écran sans dupliquer le "Carnet de voyage" du
+   profil (ici : ordre chronologique de découverte, pas alphabétique). */
+.atlas-recent-inner{ padding:22px 20px 4px }
+.atlas-recent-label{
+  font-family:var(--mono); font-size:9.5px; font-weight:700;
+  letter-spacing:1px; text-transform:uppercase; color:var(--sub);
+  margin-bottom:10px;
+}
+.atlas-recent-row{
+  display:flex; gap:8px; overflow-x:auto; padding-bottom:4px;
+  -webkit-overflow-scrolling:touch;
+}
+.atlas-recent-chip{
+  flex:none; font-family:var(--sans); font-size:12.5px; font-weight:600;
+  color:var(--ink); background:var(--surface2);
+  border:1px solid var(--line); border-radius:20px;
+  padding:7px 14px; white-space:nowrap;
+}
+.atlas-recent-chip.is-visited{
+  background:var(--gold-bright); color:var(--onink); border-color:var(--gold-deep);
 }
 
 /* Pays — brume par défaut : sombre/estompé, contour d'encre à peine visible. */

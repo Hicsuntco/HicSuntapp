@@ -303,6 +303,8 @@ function atlasView(){
     +     '<span class="atlas-legend-it"><span class="atlas-legend-sw" style="background:var(--gold-bright)"></span>Visité</span>'
     +   '</div>'
     +   '<p class="atlas-hint">Pincez pour zoomer, glissez pour explorer, touchez un pays pour le nommer.</p>'
+    +   '<div class="atlas-progress" data-atlas-progress></div>'
+    +   '<div class="atlas-recent" data-atlas-recent></div>'
     +   (hasRealAuth ? '' : '<div style="padding:0 20px"><p class="atlas-login-hint" style="padding:0">Connectez-vous pour que chaque voyage sauvegardé illumine son pays sur votre atlas.</p><button class="btn" style="width:100%;margin-top:4px" onclick="closeOverlay();openOverlay(\'login\', loginView(), {modal:true})">Se connecter</button></div>')
     + '</div>'
     + '<div class="atlas-seal-layer" data-atlas-seal></div>'
@@ -349,8 +351,12 @@ async function _atlasLoadTabInner(){
   _atlasApplyClasses(svgEl, immediate, statusByIso);
 
   const counterEl = scope.querySelector('[data-atlas-counter]');
-  const setCounter = function(n){ if(counterEl) counterEl.textContent = n+' / '+WORLD_COUNTRIES_COUNT+' territoires révélés'; };
+  const setCounter = function(n){
+    if(counterEl) counterEl.textContent = n+' / '+WORLD_COUNTRIES_COUNT+' territoires révélés';
+    _atlasRenderProgress(scope, n);
+  };
   setCounter(immediate.length);
+  _atlasRenderRecent(scope, countries);
 
   /* Zoom/pan + tap-infobulle : initialisé une seule fois par ouverture
      d'écran (idempotent grâce au data-atlas-interactive posé sur le
@@ -376,6 +382,48 @@ function _atlasApplyClasses(svgEl, isoList, statusByIso){
     var paths = svgEl.querySelectorAll('path[data-iso="'+iso+'"]');
     paths.forEach(function(p){ p.classList.add(cls); });
   });
+}
+
+/* Barre de progression vers le prochain jalon (5/10/15/20) — occupe
+   l'espace laissé vide sous la carte par un objectif concret plutôt que
+   de s'arrêter net après la légende. */
+function _atlasRenderProgress(scope, count){
+  var el = scope && scope.querySelector('[data-atlas-progress]');
+  if(!el) return;
+  var top = ATLAS_MILESTONES[ATLAS_MILESTONES.length-1];
+  if(count >= top){
+    el.innerHTML = '<div class="atlas-progress-inner"><div class="atlas-progress-label"><span>Tous les jalons débloqués</span></div>'
+      + '<div class="atlas-progress-track"><div class="atlas-progress-fill" style="width:100%"></div></div></div>';
+    return;
+  }
+  var prev = 0, next = top;
+  for(var i=0;i<ATLAS_MILESTONES.length;i++){
+    if(ATLAS_MILESTONES[i] > count){ next = ATLAS_MILESTONES[i]; prev = i>0 ? ATLAS_MILESTONES[i-1] : 0; break; }
+  }
+  var pct = Math.max(0, Math.min(100, ((count-prev)/(next-prev))*100));
+  var remain = next - count;
+  el.innerHTML = '<div class="atlas-progress-inner"><div class="atlas-progress-label"><span>Prochain sceau</span><span>'
+    + remain + ' pays restant' + (remain>1?'s':'') + '</span></div>'
+    + '<div class="atlas-progress-track"><div class="atlas-progress-fill" style="width:' + pct.toFixed(0) + '%"></div></div></div>';
+}
+
+/* Liste des derniers pays débloqués, ordre chronologique (le plus récent
+   d'abord) — donne une raison de revenir sur l'écran, complémentaire à la
+   carte elle-même (spatiale) et au Carnet de voyage du profil (alphabétique). */
+function _atlasRenderRecent(scope, countries){
+  var el = scope && scope.querySelector('[data-atlas-recent]');
+  if(!el) return;
+  if(!countries || !countries.length){ el.innerHTML = ''; return; }
+  var sorted = countries.slice().sort(function(a,b){
+    return new Date(b.first_unlocked_at) - new Date(a.first_unlocked_at);
+  }).slice(0,8);
+  var chips = sorted.map(function(c){
+    var name = (typeof ATLAS_COUNTRY_LABELS==='object' && ATLAS_COUNTRY_LABELS[c.country_iso]) || c.country_iso;
+    var visited = c.status === 'visited';
+    return '<span class="atlas-recent-chip' + (visited?' is-visited':'') + '">' + esc(name) + '</span>';
+  }).join('');
+  el.innerHTML = '<div class="atlas-recent-inner"><div class="atlas-recent-label">Derniers pays débloqués</div>'
+    + '<div class="atlas-recent-row">' + chips + '</div></div>';
 }
 
 /* ── zoom / déplacement tactile + tap-infobulle ───────────────────────────
