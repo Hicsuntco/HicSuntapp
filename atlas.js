@@ -139,13 +139,68 @@ async function _atlasLoadCountries(){
   const token = localStorage.getItem('sb_token');
   if(!token) return [];
   try{
-    const res = await fetch(SUPABASE_URL+'/rest/v1/atlas_countries?select=country_iso,status&order=first_unlocked_at.asc',{
+    const res = await fetch(SUPABASE_URL+'/rest/v1/atlas_countries?select=country_iso,status,first_unlocked_at,visited_at&order=first_unlocked_at.asc',{
       headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+token}
     });
     if(!res.ok) return [];
     const data = await res.json();
     return Array.isArray(data) ? data : [];
   }catch(e){ return []; }
+}
+/* Cache en mémoire du dernier chargement — évite un aller-retour réseau à
+   chaque tap sur un pays pour l'infobulle (voir _atlasShowCountryInfo). */
+var _atlasCountriesCache = {};
+function _atlasCountryInfo(iso){
+  var row = _atlasCountriesCache[iso];
+  var name = (typeof ATLAS_COUNTRY_LABELS!=='undefined' && ATLAS_COUNTRY_LABELS[iso]) || iso;
+  if(!row) return { iso:iso, name:name, status:'brume' };
+  return {
+    iso:iso, name:name, status:row.status||'explored',
+    since: row.status==='visited' ? row.visited_at : row.first_unlocked_at,
+  };
+}
+
+/* ── infobulle au tap sur un pays ─────────────────────────────────────────
+   Panneau ancré en bas (comme une "place card" de carte moderne — Plans,
+   Google Maps) plutôt que positionné aux coordonnées exactes du tap :
+   évite tout calcul de positionnement fragile (bords d'écran, .phone
+   maquette desktop non plein écran) pour un résultat plus robuste. */
+function _atlasCountryInfoHTML(info){
+  var statusLabel = info.status==='visited' ? 'Visité'
+    : info.status==='explored' ? 'Exploré'
+    : 'Dans la brume';
+  var statusColor = info.status==='visited' ? 'var(--gold-deep)'
+    : info.status==='explored' ? 'var(--gold)'
+    : 'var(--sub)';
+  var dateLine = '';
+  if(info.since){
+    try{
+      var d = new Date(info.since);
+      if(!isNaN(d)) dateLine = (info.status==='visited'?'Confirmé le ':'Débloqué le ') + d.toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});
+    }catch(e){}
+  }
+  var sub = dateLine || (info.status==='brume' ? 'Composez un voyage pour l\'illuminer' : '');
+  return '<div class="atlas-info-card">'
+    + '<div style="flex:1;min-width:0">'
+    + '<div class="atlas-info-name">' + esc(info.name) + '</div>'
+    + (sub ? '<div class="atlas-info-sub">' + esc(sub) + '</div>' : '')
+    + '</div>'
+    + '<span class="atlas-info-status" style="color:'+statusColor+';border-color:'+statusColor+'">' + esc(statusLabel) + '</span>'
+    + '<button class="atlas-info-close" onclick="_atlasHideCountryInfo(screenEl())" aria-label="Fermer">' + ico('close',14,1.8) + '</button>'
+    + '</div>';
+}
+function _atlasShowCountryInfo(scope, iso){
+  var layer = scope && scope.querySelector('[data-atlas-info]');
+  if(!layer) return;
+  var info = _atlasCountryInfo(iso);
+  layer.innerHTML = _atlasCountryInfoHTML(info);
+  requestAnimationFrame(function(){ requestAnimationFrame(function(){ layer.classList.add('in'); }); });
+}
+function _atlasHideCountryInfo(scope){
+  var layer = scope && scope.querySelector('[data-atlas-info]');
+  if(!layer) return;
+  layer.classList.remove('in');
+  setTimeout(function(){ if(!layer.classList.contains('in')) layer.innerHTML=''; }, 260);
 }
 
 /* ── statut "visité" (confirmation manuelle) ──────────────────────────────
@@ -232,17 +287,26 @@ function atlasView(){
     +     '<h1 class="atlas-title">Votre monde exploré</h1>'
     +     '<div class="atlas-counter" data-atlas-counter>'+(hasRealAuth?'…':'0')+' / '+WORLD_COUNTRIES_COUNT+' territoires révélés</div>'
     +   '</div>'
-    +   '<div class="atlas-map-wrap" data-atlas-map>'
-    +     (typeof ATLAS_MAP_SVG==='string' ? ATLAS_MAP_SVG : '')
+    +   '<div class="atlas-map-outer">'
+    +     '<div class="atlas-map-wrap" data-atlas-map>'
+    +       (typeof ATLAS_MAP_SVG==='string' ? ATLAS_MAP_SVG : '')
+    +     '</div>'
+    +     '<div class="atlas-zoom-ctrl">'
+    +       '<button data-atlas-zoom-in aria-label="Zoomer">' + ico('plus',16,1.8) + '</button>'
+    +       '<button data-atlas-zoom-out aria-label="Dézoomer">' + ico('minus',16,1.8) + '</button>'
+    +     '</div>'
+    +     '<button class="atlas-zoom-reset" data-atlas-zoom-reset aria-label="Réinitialiser le zoom" style="display:none">' + ico('compass',14,1.7) + '</button>'
     +   '</div>'
     +   '<div class="atlas-legend">'
     +     '<span class="atlas-legend-it"><span class="atlas-legend-sw" style="background:'+hexA('#221D16',0.16)+'"></span>Brume</span>'
     +     '<span class="atlas-legend-it"><span class="atlas-legend-sw" style="background:'+hexA('#E8C98C',0.5)+';box-shadow:inset 0 0 0 1px var(--gold)"></span>Exploré</span>'
     +     '<span class="atlas-legend-it"><span class="atlas-legend-sw" style="background:var(--gold-bright)"></span>Visité</span>'
     +   '</div>'
+    +   '<p class="atlas-hint">Pincez pour zoomer, glissez pour explorer, touchez un pays pour le nommer.</p>'
     +   (hasRealAuth ? '' : '<div style="padding:0 20px"><p class="atlas-login-hint" style="padding:0">Connectez-vous pour que chaque voyage sauvegardé illumine son pays sur votre atlas.</p><button class="btn" style="width:100%;margin-top:4px" onclick="closeOverlay();openOverlay(\'login\', loginView(), {modal:true})">Se connecter</button></div>')
     + '</div>'
-    + '<div class="atlas-seal-layer" data-atlas-seal></div>';
+    + '<div class="atlas-seal-layer" data-atlas-seal></div>'
+    + '<div class="atlas-info-panel" data-atlas-info></div>';
 }
 
 const ATLAS_MILESTONES = [5,10,15,20];
@@ -270,7 +334,8 @@ async function _atlasLoadTabInner(){
   const countries = await _atlasLoadCountries();
   const isoList = countries.map(function(c){ return c.country_iso; });
   const statusByIso = {};
-  countries.forEach(function(c){ statusByIso[c.country_iso] = c.status; });
+  _atlasCountriesCache = {};
+  countries.forEach(function(c){ statusByIso[c.country_iso] = c.status; _atlasCountriesCache[c.country_iso] = c; });
 
   /* Pays en attente de dévoilement (débloqués depuis la dernière visite de
      l'écran) : on les affiche d'abord en brume, puis on joue l'animation
@@ -287,6 +352,15 @@ async function _atlasLoadTabInner(){
   const setCounter = function(n){ if(counterEl) counterEl.textContent = n+' / '+WORLD_COUNTRIES_COUNT+' territoires révélés'; };
   setCounter(immediate.length);
 
+  /* Zoom/pan + tap-infobulle : initialisé une seule fois par ouverture
+     d'écran (idempotent grâce au data-atlas-interactive posé sur le
+     conteneur), indépendamment du chargement des pays qui peut se
+     re-déclencher (ex. après un unlock). */
+  if(!mapWrap.dataset.atlasInteractive){
+    mapWrap.dataset.atlasInteractive = '1';
+    _atlasSetupInteraction(mapWrap, svgEl, scope);
+  }
+
   if(pending.length){
     await _atlasRevealSequence(scope, svgEl, pending, immediate.length, setCounter);
     localStorage.setItem('hs_atlas_pending', JSON.stringify([]));
@@ -302,6 +376,110 @@ function _atlasApplyClasses(svgEl, isoList, statusByIso){
     var paths = svgEl.querySelectorAll('path[data-iso="'+iso+'"]');
     paths.forEach(function(p){ p.classList.add(cls); });
   });
+}
+
+/* ── zoom / déplacement tactile + tap-infobulle ───────────────────────────
+   Pointer Events (pas de lib) : un doigt = déplacement, deux doigts =
+   pincement pour zoomer. Un tap (relâché sans déplacement notable) sur un
+   pays affiche son infobulle plutôt que de zoomer — les deux gestes
+   partagent le même suivi de pointeurs pour rester mutuellement exclusifs
+   sans ambiguïté. touch-action:none sur le cadre (voir CSS) laisse le
+   geste entièrement à notre charge à l'intérieur de la carte, tout en
+   laissant le reste de l'écran défiler normalement au doigt. */
+var ATLAS_MIN_SCALE = 1, ATLAS_MAX_SCALE = 5;
+var ATLAS_TAP_SLOP = 8; /* px de tolérance avant de considérer que c'est un geste, pas un tap */
+function _atlasSetupInteraction(wrapEl, svgEl, scope){
+  var pointers = {};
+  var scale = 1, tx = 0, ty = 0;
+  var startScale = 1, startDist = 0, startMidX = 0, startMidY = 0, startTx = 0, startTy = 0;
+  var moved = false;
+  var lastTapTime = 0;
+
+  function apply(){
+    svgEl.style.transform = 'translate('+tx.toFixed(1)+'px,'+ty.toFixed(1)+'px) scale('+scale.toFixed(3)+')';
+    var resetBtn = wrapEl.parentNode && wrapEl.parentNode.querySelector('[data-atlas-zoom-reset]');
+    if(resetBtn) resetBtn.style.display = (scale>1.02 ? 'flex' : 'none');
+  }
+  function clampScale(s){ return Math.max(ATLAS_MIN_SCALE, Math.min(ATLAS_MAX_SCALE, s)); }
+  /* Empêche de faire glisser la carte entièrement hors champ : la marge
+     autorisée grandit avec le zoom (plus on zoome, plus on peut se
+     déplacer), nulle à scale=1 (rien à déplacer, la carte tient déjà). */
+  function clampPan(){
+    var rect = wrapEl.getBoundingClientRect();
+    var maxX = (rect.width * (scale-1)) / 2 + rect.width*0.15;
+    var maxY = (rect.height * (scale-1)) / 2 + rect.height*0.15;
+    tx = Math.max(-maxX, Math.min(maxX, tx));
+    ty = Math.max(-maxY, Math.min(maxY, ty));
+  }
+  function pointerList(){ return Object.keys(pointers).map(function(k){ return pointers[k]; }); }
+  function midpoint(pts){ return { x:(pts[0].x+pts[1].x)/2, y:(pts[0].y+pts[1].y)/2 }; }
+
+  function reset(){ scale=1; tx=0; ty=0; apply(); }
+  wrapEl.__atlasResetZoom = reset;
+
+  wrapEl.addEventListener('pointerdown', function(e){
+    if(e.button!==undefined && e.button!==0 && e.pointerType==='mouse') return;
+    try{ wrapEl.setPointerCapture(e.pointerId); }catch(err){}
+    pointers[e.pointerId] = { x:e.clientX, y:e.clientY };
+    var pts = pointerList();
+    moved = false;
+    if(pts.length===1){
+      startTx = tx; startTy = ty;
+      pointers[e.pointerId].startX = e.clientX; pointers[e.pointerId].startY = e.clientY;
+    } else if(pts.length===2){
+      startDist = Math.hypot(pts[0].x-pts[1].x, pts[0].y-pts[1].y) || 1;
+      startScale = scale;
+      var mid = midpoint(pts);
+      startMidX = mid.x; startMidY = mid.y; startTx = tx; startTy = ty;
+    }
+  });
+
+  wrapEl.addEventListener('pointermove', function(e){
+    if(!pointers[e.pointerId]) return;
+    pointers[e.pointerId].x = e.clientX; pointers[e.pointerId].y = e.clientY;
+    var pts = pointerList();
+    if(pts.length===1){
+      var p0 = pointers[e.pointerId];
+      var dx = e.clientX - p0.startX, dy = e.clientY - p0.startY;
+      if(Math.abs(dx) > ATLAS_TAP_SLOP || Math.abs(dy) > ATLAS_TAP_SLOP) moved = true;
+      if(scale>1){ tx = startTx + dx; ty = startTy + dy; clampPan(); apply(); }
+    } else if(pts.length===2){
+      moved = true;
+      var dist = Math.hypot(pts[0].x-pts[1].x, pts[0].y-pts[1].y) || 1;
+      scale = clampScale(startScale * (dist/startDist));
+      var mid = midpoint(pts);
+      tx = startTx + (mid.x - startMidX);
+      ty = startTy + (mid.y - startMidY);
+      clampPan();
+      apply();
+    }
+  });
+
+  function onUp(e){
+    var wasSingle = Object.keys(pointers).length===1;
+    var target = e.target;
+    delete pointers[e.pointerId];
+    if(wasSingle && !moved){
+      var now = Date.now();
+      if(now - lastTapTime < 320){
+        reset(); lastTapTime = 0; _atlasHideCountryInfo(scope);
+      } else {
+        lastTapTime = now;
+        var pathEl = target && target.closest ? target.closest('path[data-iso]') : null;
+        if(pathEl) _atlasShowCountryInfo(scope, pathEl.getAttribute('data-iso'));
+        else _atlasHideCountryInfo(scope);
+      }
+    }
+  }
+  wrapEl.addEventListener('pointerup', onUp);
+  wrapEl.addEventListener('pointercancel', function(e){ delete pointers[e.pointerId]; });
+
+  var zoomIn = wrapEl.parentNode && wrapEl.parentNode.querySelector('[data-atlas-zoom-in]');
+  var zoomOut = wrapEl.parentNode && wrapEl.parentNode.querySelector('[data-atlas-zoom-out]');
+  var zoomReset = wrapEl.parentNode && wrapEl.parentNode.querySelector('[data-atlas-zoom-reset]');
+  if(zoomIn) zoomIn.addEventListener('click', function(){ scale = clampScale(scale*1.5); clampPan(); apply(); });
+  if(zoomOut) zoomOut.addEventListener('click', function(){ scale = clampScale(scale/1.5); if(scale<=1){ tx=0; ty=0; } clampPan(); apply(); });
+  if(zoomReset) zoomReset.addEventListener('click', reset);
 }
 
 /* Joue le dévoilement pour chaque pays en attente, l'un après l'autre :
