@@ -468,8 +468,8 @@ function profileView(){
     +   '<div class="prof-stats" data-prof-stats>' + statSkeleton + '</div>'
     +   '<div class="prof-circle-card" data-prof-circle onclick="openMonCercle()" style="cursor:pointer"><div class="cc-row"><div class="circle-empty-ico">' + ico('users',18,1.5) + '</div>'
     +     '<div style="flex:1"><div class="cc-t">Mon Cercle</div><div class="cc-s">Chargement…</div></div></div></div>'
-    +   '<div class="section-h" style="margin-top:20px"><h2>Carnet de voyage</h2><span class="meta" data-prof-badges-meta>…</span></div>'
-    +   '<div class="prof-badges" data-prof-badges><div class="cv-empty">Chargement…</div></div>'
+    +   '<div class="section-h" style="margin-top:20px;cursor:pointer" onclick="openAtlas()"><h2>Carnet de voyage</h2><span class="meta" data-prof-badges-meta>…</span></div>'
+    +   '<div class="prof-badges" data-prof-badges onclick="openAtlas()" style="cursor:pointer"><div class="cv-empty">Chargement…</div></div>'
     +   '<div class="prof-list" style="margin-top:20px">' + rows.map(function(r){
           return '<div class="row" onclick="' + r[3] + '">'
             + '<span class="r-ico">' + ico(r[0], 20, 1.5) + '</span>'

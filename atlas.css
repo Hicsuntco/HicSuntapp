@@ -1,0 +1,117 @@
+/* ── HIC SUNT · Atlas Vivant — carte du monde en fog-of-war ──────────────
+   Réutilise exclusivement les tokens définis dans core.css (--bg, --gold,
+   --ink, --serif, --mono…) — aucune nouvelle palette introduite ici. */
+
+.atlas-scroll{ padding:0 20px 40px }
+
+.atlas-head{ text-align:center; padding:8px 0 20px }
+.atlas-title{
+  font-family:var(--serif); font-weight:600; font-size:26px;
+  letter-spacing:-0.4px; margin-top:6px;
+}
+.atlas-counter{
+  font-family:var(--mono); font-size:10.5px; font-weight:700;
+  letter-spacing:1.2px; text-transform:uppercase; color:var(--sub);
+  margin-top:8px;
+}
+
+/* Carte : carte de cartographe ancienne — papier sable, grain très subtil,
+   rose des vents en filigrane. Le grain est un bruit SVG généré en ligne
+   (feTurbulence) : pas d'asset image à charger. */
+.atlas-map-wrap{
+  position:relative; border-radius:var(--card-radius); overflow:hidden;
+  background:
+    radial-gradient(120% 90% at 50% 8%, var(--surface2) 0%, var(--bg) 62%);
+  border:1px solid var(--line);
+  box-shadow:var(--shadow-card);
+  padding:6px;
+}
+.atlas-map-wrap::before{
+  content:''; position:absolute; inset:0; pointer-events:none; z-index:2;
+  opacity:0.05; mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.atlas-map-wrap::after{
+  /* Rose des vents en filigrane, coin bas-droit — décor discret, pas un
+     élément interactif. */
+  content:''; position:absolute; right:-6%; bottom:-8%; width:34%;
+  padding-top:34%; pointer-events:none; z-index:1; opacity:0.05;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='none' stroke='%23221D16' stroke-width='1'%3E%3Ccircle cx='50' cy='50' r='46'/%3E%3Ccircle cx='50' cy='50' r='2'/%3E%3Cpath d='M50 4V96M4 50H96M17 17L83 83M83 17L17 83'/%3E%3C/g%3E%3C/svg%3E");
+  background-size:contain; background-repeat:no-repeat;
+}
+.atlas-map-wrap svg{ position:relative; z-index:1; display:block; width:100%; height:auto }
+
+/* Pays — brume par défaut : sombre/estompé, contour d'encre à peine visible. */
+.atlas-map-wrap svg path{
+  fill:var(--ink); fill-opacity:0.16;
+  stroke:var(--ink); stroke-opacity:0.22; stroke-width:0.5;
+  transition:fill 0.5s var(--ease-out), fill-opacity 0.5s var(--ease-out),
+    stroke 0.5s var(--ease-out), stroke-opacity 0.5s var(--ease-out);
+}
+/* Exploré — dégradé or/sable chaud, contour or net, léger halo intérieur. */
+.atlas-map-wrap svg defs{ display:none }
+.atlas-map-wrap svg path.explored{
+  fill:var(--gold-bright);
+  fill-opacity:0.9;
+  stroke:var(--gold-deep);
+  stroke-opacity:0.9; stroke-width:0.6;
+  filter:drop-shadow(0 0 1.4px var(--gold));
+}
+/* Dévoilement : balayage doré pendant la transition brume → exploré. */
+.atlas-map-wrap svg path.revealing{
+  fill:var(--gold-bright);
+  fill-opacity:0.55;
+  stroke:var(--gold);
+  stroke-opacity:0.8; stroke-width:0.7;
+  animation:atlasRevealPulse 0.65s var(--ease-out);
+}
+@keyframes atlasRevealPulse{
+  0%{ filter:drop-shadow(0 0 0 var(--gold-bright)) brightness(1) }
+  45%{ filter:drop-shadow(0 0 5px var(--gold-bright)) brightness(1.35) }
+  100%{ filter:drop-shadow(0 0 1.4px var(--gold)) brightness(1) }
+}
+
+.atlas-login-hint{
+  text-align:center; font-size:13px; color:var(--sub); line-height:1.5;
+  margin-top:20px; padding:0 12px;
+}
+
+/* ── Sceau de dévoilement / jalon — superposition centrée sur l'écran ─────
+   position:absolute (pas fixed) scopé à .ov (inset:0 sur .screen) : sur
+   desktop .phone est une maquette 393x852 non plein écran (position:
+   relative, voir core.css) — un position:fixed déborderait de la maquette
+   et se centrerait sur toute la fenêtre du navigateur au lieu du téléphone. */
+.atlas-seal-layer{
+  position:absolute; inset:0; z-index:30; pointer-events:none;
+  display:flex; align-items:center; justify-content:center;
+}
+.atlas-seal{
+  pointer-events:auto; cursor:pointer;
+  display:flex; flex-direction:column; align-items:center; gap:10px;
+  padding:32px 40px;
+  background:rgba(252,250,243,0.97);
+  border:1px solid var(--line); border-radius:24px;
+  box-shadow:var(--shadow-float);
+  opacity:0; transform:scale(0.82) translateY(6px);
+  transition:opacity 0.38s var(--spring), transform 0.38s var(--spring);
+  max-width:78vw;
+}
+.atlas-seal.in{ opacity:1; transform:scale(1) translateY(0) }
+.atlas-seal-badge{
+  width:64px; height:64px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  color:var(--onink);
+  background:radial-gradient(120% 120% at 30% 25%, var(--gold-bright) 0%, var(--gold) 55%, var(--gold-deep) 100%);
+  box-shadow:0 6px 18px -6px rgba(138,101,38,0.6), inset 0 0 0 2px rgba(255,255,255,0.25);
+}
+.atlas-milestone-badge{
+  background:radial-gradient(120% 120% at 30% 25%, var(--gold-bright) 0%, var(--gold-deep) 100%);
+}
+.atlas-seal-name{
+  font-family:var(--serif); font-weight:600; font-size:22px;
+  letter-spacing:-0.3px; color:var(--ink); text-align:center;
+}
+.atlas-seal-sub{
+  font-family:var(--mono); font-size:9.5px; font-weight:700;
+  letter-spacing:1.4px; text-transform:uppercase; color:var(--sub);
+}

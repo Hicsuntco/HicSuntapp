@@ -1,0 +1,15 @@
+{
+  "name": "hic-sunt-atlas-tools",
+  "private": true,
+  "description": "Outils de build hors-ligne pour l'Atlas Vivant. Jamais exécuté au runtime de l'app (voir generate-atlas-svg.js).",
+  "scripts": {
+    "generate-atlas": "node generate-atlas-svg.js"
+  },
+  "devDependencies": {
+    "d3-geo": "^3.1.1",
+    "d3-geo-projection": "^4.0.0",
+    "topojson-server": "^3.0.1",
+    "topojson-simplify": "^3.0.3",
+    "topojson-client": "^3.1.0"
+  }
+}
