@@ -118,6 +118,17 @@ function eur(n){ return Math.round(n).toLocaleString('fr-FR') + ' €'; }
 function _airbnbPathSlug(loc){
   return encodeURIComponent(String(loc||'').split('/')[0].trim());
 }
+/* Même convention "Zone / Sous-zone", mais pour le TEXTE de recherche
+   envoyé à Booking/Airbnb/Hotels.com (ss=, query=, q-destination=) plutôt
+   que pour un segment de chemin d'URL. Le texte complet ("Hakone / Monts
+   Fuji - 2h30 ouest de Tokyo") est une description utile à l'écran mais
+   trop verbeux pour qu'une recherche de lieu le résolve correctement — les
+   plateformes échouent alors silencieusement et affichent une suggestion
+   sans rapport plutôt qu'une erreur visible. On ne garde que la zone
+   principale, comme pour le chemin Airbnb. */
+function _searchLoc(loc){
+  return String(loc||'').split('/')[0].trim();
+}
 function hexA(hex, alpha){
   hex = (hex || '#9c7c44');
   if (hex.indexOf('#') !== 0) return 'rgba(156,124,68,'+alpha+')';
@@ -1386,10 +1397,11 @@ document.addEventListener('DOMContentLoaded', function(){
     var checkout=_r0.checkout;
     var name=String(a.n||'').trim();
     var loc=(a.loc||it.dest||'').trim();
+    var searchLoc=_searchLoc(loc);
     var nameQ=encodeURIComponent(name);
-    var cityQ=encodeURIComponent(loc);
-    var fullQ=encodeURIComponent(name+(loc?', '+loc:''));
-    var nameLoc=encodeURIComponent(name+(loc?' '+loc:''));
+    var cityQ=encodeURIComponent(searchLoc);
+    var fullQ=encodeURIComponent(name+(searchLoc?', '+searchLoc:''));
+    var nameLoc=encodeURIComponent(name+(searchLoc?' '+searchLoc:''));
 
     /* Liens recherche pré-remplie nom + ville + dates */
     var bookingUrl='https://www.booking.com/searchresults.html?ss='+fullQ+'&ssne='+cityQ+'&ssne_untouched='+cityQ
@@ -1775,9 +1787,10 @@ document.addEventListener('DOMContentLoaded', function(){
       var price=Number(a.price)||0, nights=Number(a.nights)||1;
       var name=String(a.n||'').trim();
       var loc=(a.loc||it.dest||'').trim();
-      var fullQ=encodeURIComponent(name+(loc?', '+loc:''));
-      var nameLoc=encodeURIComponent(name+(loc?' '+loc:''));
-      var cityQ=encodeURIComponent(loc);
+      var searchLoc=_searchLoc(loc);
+      var fullQ=encodeURIComponent(name+(searchLoc?', '+searchLoc:''));
+      var nameLoc=encodeURIComponent(name+(searchLoc?' '+searchLoc:''));
+      var cityQ=encodeURIComponent(searchLoc);
       var _r1=(typeof _stayDateRange==='function')?_stayDateRange(a):{checkin:it.dateFrom||'',checkout:it.dateTo||''};
       var checkin=_r1.checkin;
       var checkout=_r1.checkout;
