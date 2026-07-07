@@ -656,6 +656,11 @@ async function saveItinerary(){
       });
     }catch(e){}
   }
+  /* Débloque le pays de ce voyage sur l'Atlas Vivant (best-effort, ne bloque
+     jamais la sauvegarde elle-même — voir atlas.js). */
+  if(typeof atlasUnlockFromItinerary==='function'){
+    try{ await atlasUnlockFromItinerary(ITINERARY); }catch(e){}
+  }
   toast('Voyage enregistré ✓');
 }
 async function loadItineraries(){
