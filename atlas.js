@@ -394,6 +394,19 @@ function _atlasSetupInteraction(wrapEl, svgEl, scope){
   var startScale = 1, startDist = 0, startMidX = 0, startMidY = 0, startTx = 0, startTy = 0;
   var moved = false;
   var lastTapTime = 0;
+  /* Sur iOS Safari, le viewport de l'app désactive le zoom de page
+     (user-scalable=no, nécessaire ailleurs pour éviter un zoom accidentel
+     au double-tap sur les boutons) — mais WebKit supprime alors aussi le
+     suivi fiable de pointermove pour un DEUXIÈME doigt, empêchant tout
+     pincement personnalisé basé sur les Pointer Events standard. Les
+     évènements gesturestart/gesturechange/gestureend (propriétaires
+     Safari, desktop ET iOS) sont l'échappatoire officielle d'Apple pour ce
+     cas précis et ne sont PAS soumis à cette suppression. On les utilise
+     en priorité quand disponibles ; le suivi à deux pointeurs ci-dessous
+     reste actif en repli (Chrome/Firefox, tests). gestureActive évite
+     d'appliquer le zoom deux fois si jamais les deux se déclenchent. */
+  var gestureActive = false, gestureStartScale = 1;
+  var hasGestureEvents = 'ongesturestart' in window;
 
   function apply(){
     svgEl.style.transform = 'translate('+tx.toFixed(1)+'px,'+ty.toFixed(1)+'px) scale('+scale.toFixed(3)+')';
@@ -443,7 +456,7 @@ function _atlasSetupInteraction(wrapEl, svgEl, scope){
       var dx = e.clientX - p0.startX, dy = e.clientY - p0.startY;
       if(Math.abs(dx) > ATLAS_TAP_SLOP || Math.abs(dy) > ATLAS_TAP_SLOP) moved = true;
       if(scale>1){ tx = startTx + dx; ty = startTy + dy; clampPan(); apply(); }
-    } else if(pts.length===2){
+    } else if(pts.length===2 && !gestureActive){
       moved = true;
       var dist = Math.hypot(pts[0].x-pts[1].x, pts[0].y-pts[1].y) || 1;
       scale = clampScale(startScale * (dist/startDist));
@@ -454,6 +467,28 @@ function _atlasSetupInteraction(wrapEl, svgEl, scope){
       apply();
     }
   });
+
+  if(hasGestureEvents){
+    wrapEl.addEventListener('gesturestart', function(e){
+      e.preventDefault();
+      gestureActive = true;
+      gestureStartScale = scale;
+      moved = true;
+    });
+    wrapEl.addEventListener('gesturechange', function(e){
+      e.preventDefault();
+      scale = clampScale(gestureStartScale * e.scale);
+      clampPan();
+      apply();
+    });
+    wrapEl.addEventListener('gestureend', function(e){
+      e.preventDefault();
+      /* Petit délai avant de relâcher le garde-fou : sur iOS, un pointerup
+         résiduel peut arriver juste après gestureend, il ne doit pas être
+         interprété comme un tap sur le pays sous les doigts. */
+      setTimeout(function(){ gestureActive = false; }, 60);
+    });
+  }
 
   function onUp(e){
     var wasSingle = Object.keys(pointers).length===1;
