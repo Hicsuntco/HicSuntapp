@@ -2133,6 +2133,17 @@ async function runFullGeneration(overlayAlreadyOpen){
     return;
   }
 
+  /* Notification "voyage prêt" — indépendante du paywall : l'itinéraire
+     est réellement généré à ce stade, que l'utilisateur le débloque tout
+     de suite ou plus tard. Best-effort (silencieuse si pas connecté). */
+  if(typeof _createNotification==='function'){
+    _createNotification(
+      'Votre voyage est prêt',
+      ITINERARY.dest ? ('Votre itinéraire pour '+ITINERARY.dest+' vient d\'être généré.') : 'Votre itinéraire vient d\'être généré.',
+      'itinerary_ready'
+    );
+  }
+
   /* ── PAYWALL ── */
   setTimeout(function(){
     try{

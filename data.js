@@ -183,9 +183,6 @@ const TRIPS = { upcoming:[], past:[], draft:[] };
 
 const AM_LABEL = { bed:'Chambres', wifi:'Wi-Fi', pool:'Piscine', fork:'Table' };
 
-/* notifications — vide par défaut, alimenté plus tard par de vrais événements */
-const NOTIFS = [];
-
 /* travel preferences */
 const PREFS = {
   styles:['Aventure','Gastronomie','Nature'],
