@@ -281,6 +281,7 @@ function setTab(name){
   for (let i = 0; i < btns.length; i++) btns[i].classList.toggle('on', btns[i].dataset.tabbtn === name);
   if (name === 'create' && typeof initDeck === 'function') initDeck();
   if (typeof museControl === 'function') museControl(name === 'discover');
+  if ((name === 'discover' || name === 'profile') && typeof _refreshNotifBadge === 'function') _refreshNotifBadge();
 }
 
 /* ── openers ── */
@@ -370,6 +371,52 @@ function _getUserId(){
     const payload = JSON.parse(atob(token.split('.')[1]));
     return payload.sub || null;
   } catch(e) { return null; }
+}
+
+/* ── Notifications ──────────────────────────────────────────────────────
+   Best-effort, jamais bloquant : un souci réseau ici ne doit jamais casser
+   le flux qui vient de réussir (ex. fin de génération d'un itinéraire).
+   Silencieuse si pas de vraie session (accès propriétaire par email seul,
+   sans jamais avoir créé de session réelle, ne suffit pas pour écrire dans
+   Supabase — même distinguo que pour Mon Cercle/Atlas). */
+async function _createNotification(title, body, kind, link){
+  const token = localStorage.getItem('sb_token');
+  const userId = _getUserId();
+  if(!token || !userId) return;
+  try{
+    await fetch(SUPABASE_URL+'/rest/v1/notifications',{
+      method:'POST',
+      headers:{'content-type':'application/json','apikey':SUPABASE_ANON,'Authorization':'Bearer '+token,'Prefer':'return=minimal'},
+      body:JSON.stringify({user_id:userId, title:title||'', body:body||'', kind:kind||'info', link:link||null})
+    });
+  }catch(e){ /* best-effort */ }
+}
+/* Badge (pastille cloche + sous-titre profil) : compte les non-lues et met
+   à jour les deux endroits en place, en repli "squelette d'abord" — ni la
+   cloche (onglet Découvrir) ni la ligne Notifications (Profil) n'existent
+   forcément toutes les deux dans le DOM au même moment, d'où les
+   querySelector tolérants (null si l'élément n'est pas sur l'écran actif). */
+async function _refreshNotifBadge(){
+  const scope = screenEl();
+  if(!scope) return;
+  const token = localStorage.getItem('sb_token');
+  const dot = scope.querySelector('[data-bell-dot]');
+  const sub = scope.querySelector('[data-notif-sub]');
+  if(!token){
+    if(dot) dot.style.display = 'none';
+    if(sub) sub.textContent = 'Aucune non lue';
+    return;
+  }
+  try{
+    const res = await fetch(SUPABASE_URL+'/rest/v1/notifications?select=id&read=eq.false',{
+      headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+token}
+    });
+    if(!res.ok) return;
+    const rows = await res.json();
+    const n = Array.isArray(rows) ? rows.length : 0;
+    if(dot) dot.style.display = n>0 ? '' : 'none';
+    if(sub) sub.textContent = (n || 'Aucune') + ' non lue' + (n>1?'s':'');
+  }catch(e){ /* best-effort : garder le squelette par défaut */ }
 }
 
 function loginGoogle(){

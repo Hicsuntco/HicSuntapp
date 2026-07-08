@@ -36,7 +36,7 @@ function discoverView(){
   return statusBar()
     + '<div class="px disc-head">'
     +   '<div class="disc-top"><span class="eyebrow">Atlas personnel</span>'
-    +     '<button class="bell-btn" onclick="openOverlay(\'notifications\', notificationsView())" aria-label="Notifications">' + ico('bell', 19, 1.5) + (NOTIFS.some(function(n){return n.unread;}) ? '<span class="dot"></span>' : '') + '</button></div>'
+    +     '<button class="bell-btn" onclick="openOverlay(\'notifications\', notificationsView())" aria-label="Notifications">' + ico('bell', 19, 1.5) + '<span class="dot" data-bell-dot style="display:none"></span></button></div>'
     +   '<hr class="hairline gold" style="margin-top:14px">'
     +   _inTripDashboard()
     +   '<div class="disc-hello">Bonjour, ' + esc(USER.name) + '</div>'
@@ -444,7 +444,7 @@ function profileView(){
     ['compass','Préférences de voyage','Styles, budget et rythme par défaut', "openOverlay('prefs', prefsView())"],
     ['star','Abonnement Premium', premium ? 'Actif' : 'Débloqué à l\'achat d\'un itinéraire', premium ? "openCercle()" : "setTab('create')"],
     ['bookmark','Adresses sauvegardées','<span data-prof-addr-count>…</span>', "openSavedAddresses()"],
-    ['bell','Notifications', (NOTIFS.filter(function(n){return n.unread;}).length || 'Aucune') + ' non lue' + (NOTIFS.filter(function(n){return n.unread;}).length>1?'s':''), "openOverlay('notifications', notificationsView())"],
+    ['bell','Notifications', '<span data-notif-sub>Aucune non lue</span>', "openOverlay('notifications', notificationsView())"],
   ];
   if(connected) rows.push(['logout','Déconnexion','', 'logout()']);
 

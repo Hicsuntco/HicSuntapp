@@ -99,27 +99,75 @@ function addDoc(idx){
 }
 
 /* ── 23 · Notifications ─────────────────────────────────────────────── */
+const NOTIF_KIND_ICON = { itinerary_ready:'compass' };
+/* Horodatage relatif, ton simple cohérent avec le reste de l'app — pas de
+   librairie de dates pour un besoin aussi ponctuel. */
+function _notifRelTime(iso){
+  const d = new Date(iso);
+  if(isNaN(d)) return '';
+  const min = Math.floor((Date.now() - d.getTime()) / 60000);
+  if(min < 1) return 'à l\'instant';
+  if(min < 60) return 'il y a ' + min + ' min';
+  const h = Math.floor(min / 60);
+  if(h < 24) return 'il y a ' + h + 'h';
+  const j = Math.floor(h / 24);
+  if(j < 7) return 'il y a ' + j + 'j';
+  return d.toLocaleDateString('fr-FR', {day:'numeric', month:'short'});
+}
 function notificationsView(){
-  setTimeout(fillNotifs, 750);
+  /* Différé au tick suivant : notificationsView() n'a pas encore été inséré
+     dans le DOM par openOverlay() au moment où cette fonction s'exécute
+     (elle ne fait que RETOURNER le HTML, inséré après) — appeler fillNotifs
+     tout de suite ferait chercher [data-notifs] avant qu'il n'existe. */
+  setTimeout(fillNotifs, 0);
   return statusBar() + navbar('Notifications')
     + '<div class="ov-scroll px"><div data-notifs><div class="notif-load"><i></i></div></div></div>';
 }
-function fillNotifs(){
+async function fillNotifs(){
   const host = document.querySelector('[data-notifs]');
-  if (!host) return;
-  if(!NOTIFS.length){
-    host.innerHTML = '<p style="text-align:center;padding:40px 0;color:var(--sub);font-size:14px;font-style:italic">Aucune notification pour le moment.</p>';
+  if(!host) return;
+  const token = localStorage.getItem('sb_token');
+  if(!token){
+    host.innerHTML = '<p style="text-align:center;padding:40px 0;color:var(--sub);font-size:14px;font-style:italic">Connectez-vous pour recevoir vos notifications.</p>';
     return;
   }
-  host.innerHTML = NOTIFS.map(function(n){
-    const action = n.action === 'open-itin' ? 'openItinerary()'
-      : n.action === 'open-concierge' ? "openOverlay('concierge', conciergeView())" : 'void(0)';
+  let rows = [];
+  try{
+    const res = await fetch(SUPABASE_URL+'/rest/v1/notifications?select=id,title,body,kind,link,read,created_at&order=created_at.desc&limit=50',{
+      headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+token}
+    });
+    if(res.ok) rows = await res.json();
+  }catch(e){ rows = []; }
+  /* host peut avoir disparu si l'écran a été fermé pendant le fetch */
+  const hostNow = document.querySelector('[data-notifs]');
+  if(!hostNow) return;
+  if(!Array.isArray(rows) || !rows.length){
+    hostNow.innerHTML = '<p style="text-align:center;padding:40px 0;color:var(--sub);font-size:14px;font-style:italic">Aucune notification pour le moment.</p>';
+    return;
+  }
+  hostNow.innerHTML = rows.map(function(n){
+    const action = n.link === 'open-itin' ? 'openItinerary()' : 'void(0)';
     return '<div class="notif" onclick="' + action + '">'
-      + '<span class="n-i">' + ico(n.i, 18, 1.5) + '</span>'
-      + '<div><div class="n-t">' + esc(n.t) + '</div><div class="n-d">' + esc(n.d) + '</div><div class="n-w">' + esc(n.time) + '</div></div>'
-      + (n.unread ? '<span class="n-dot"></span>' : '')
+      + '<span class="n-i">' + ico(NOTIF_KIND_ICON[n.kind] || 'bell', 18, 1.5) + '</span>'
+      + '<div><div class="n-t">' + esc(n.title) + '</div><div class="n-d">' + esc(n.body) + '</div><div class="n-w">' + esc(_notifRelTime(n.created_at)) + '</div></div>'
+      + (!n.read ? '<span class="n-dot"></span>' : '')
       + '</div>';
   }).join('');
+  _markNotifsRead(rows);
+}
+/* Marquage silencieux : une notification vue à l'écran est considérée lue,
+   pas besoin d'une action explicite de l'utilisateur pour "l'acquitter". */
+async function _markNotifsRead(rows){
+  const token = localStorage.getItem('sb_token');
+  const unreadIds = (rows||[]).filter(function(n){return !n.read;}).map(function(n){return n.id;});
+  if(!token || !unreadIds.length) return;
+  try{
+    await fetch(SUPABASE_URL+'/rest/v1/notifications?id=in.(' + unreadIds.join(',') + ')',{
+      method:'PATCH',
+      headers:{'content-type':'application/json','apikey':SUPABASE_ANON,'Authorization':'Bearer '+token,'Prefer':'return=minimal'},
+      body: JSON.stringify({read:true})
+    });
+  }catch(e){}
 }
 
 /* ── 17 · Conciergerie Hansa — IA contextualisée ───────────────────── */
