@@ -1682,13 +1682,27 @@ async function _fetchRealGems(dest, country, region, interests){
    Airbnb qui bloquent le hotlink) plutôt que d'inventer une URL. */
 function buildDestPhotoSearchPrompt(dest, country, region){
   return [
-    'Cherche sur Wikimedia Commons une VRAIE photo (paysage, ville ou monument emblématique, pas un plan rapproché de personnes) de la destination : '+(dest||'')+' ('+(country||region||'')+').',
+    'Cherche activement une VRAIE photo (paysage, ville ou monument emblématique, pas un plan rapproché de personnes) de la destination : '+(dest||'')+' ('+(country||region||'')+').',
+    'Regarde en priorité Wikimedia Commons, mais aussi TripAdvisor ou une fiche Google Maps/Business si l\'URL d\'image directe y apparaît — c\'est fréquent, ne t\'en prive pas si elle y est.',
     'EXIGENCES STRICTES :',
-    '- UNIQUEMENT une URL d\'image DIRECTE depuis upload.wikimedia.org (se terminant par .jpg/.jpeg/.png), jamais une page Wikipedia ou un lien vers une galerie.',
-    '- Si tu ne trouves aucune photo Wikimedia Commons fiable pour ce lieu précis, réponds avec "photo":"" plutôt que d\'inventer ou d\'approximer une URL.',
+    '- UNIQUEMENT une URL d\'image DIRECTE (se terminant par .jpg/.jpeg/.png/.webp, ou une URL Google Maps/Business photo), jamais une page Wikipedia/TripAdvisor ou un lien vers une galerie.',
+    '- La seule règle qui compte : ne JAMAIS inventer ou reconstruire une URL à partir d\'un pattern connu — uniquement une URL que tu as VUE mot pour mot, telle quelle, dans un extrait/snippet de recherche. Si tu ne l\'as pas vue ainsi, réponds "photo":"" plutôt que de risquer une URL fictive.',
     'Réponds UNIQUEMENT en JSON compact, sans texte autour :',
     '{"photo":""}',
   ].join('\n');
+}
+/* Domaines acceptés : mêmes principes que _validStayPhoto (generate.js,
+   validation des photos d'hébergement) — élargi au-delà de Wikimedia pour
+   couvrir TripAdvisor et les photos Google Maps/Business, deux sources
+   réelles très fréquentes avec des identifiants longs non-devinables. */
+function _validDestPhoto(url){
+  if(typeof url!=='string') return '';
+  const u=url.trim();
+  if(!/^https:\/\/upload\.wikimedia\.org\/.+\.(jpe?g|png)$/i.test(u)
+     && !/^https:\/\/(dynamic-media-cdn|media-cdn)\.tripadvisor\.com\/.+\.(jpe?g|png|webp)(\?.*)?$/i.test(u)
+     && !/^https:\/\/lh[3-6]\.googleusercontent\.com\/.+$/i.test(u)) return '';
+  if(/\[|\]|example\.com|placeholder/i.test(u)) return '';
+  return u;
 }
 async function _fetchRealDestPhoto(dest, country, region){
   try{
@@ -1708,7 +1722,7 @@ async function _fetchRealDestPhoto(dest, country, region){
       if(m){ try{ j = JSON.parse(m[0]); }catch(e){} }
     }
     const photo = j && typeof j.photo==='string' ? j.photo.trim() : '';
-    return (/^https?:\/\/upload\.wikimedia\.org\/.+\.(jpe?g|png)$/i.test(photo)) ? photo : '';
+    return _validDestPhoto(photo);
   }catch(e){ return ''; }
 }
 
