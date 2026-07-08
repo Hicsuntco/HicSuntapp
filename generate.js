@@ -1752,6 +1752,77 @@ async function _fetchRealDestPhoto(dest, country, region){
   }catch(e){ return ''; }
 }
 
+/* ── photo de destination via les API publiques Wikimedia (déterministe) ──
+   Contrairement à la recherche IA ci-dessus (qui dépend d'une URL "vue" par
+   hasard dans un extrait de résultat, souvent vide), ces API REST officielles
+   renvoient directement l'image d'en-tête d'un article existant — aucune IA
+   impliquée, donc aucun risque d'invention, gratuites, sans clé, et sans
+   consommer de crédit d'API.
+   Wikivoyage (guide de voyage collaboratif, même famille Wikimedia) est
+   interrogé EN PREMIER : ses images sont choisies pour donner envie de
+   visiter (paysages, monuments), alors que l'image d'en-tête d'un article
+   Wikipedia de pays/région est presque toujours un drapeau, un blason ou
+   une carte de localisation — inutilisable comme photo de voyage. Wikipedia
+   ne sert qu'en repli (utile pour une ville/un lieu précis, où son image
+   d'en-tête est généralement une vraie photo). _fetchRealDestPhoto
+   (recherche IA) reste le tout dernier recours. */
+function _wikiExtractImage(data){
+  if(!data || data.type === 'disambiguation') return '';
+  const raw = (data.originalimage && data.originalimage.source) || (data.thumbnail && data.thumbnail.source) || '';
+  const img = raw.split('?')[0]; /* retire les paramètres de tracking (utm_*) */
+  return /^https:\/\/upload\.wikimedia\.org\/.+\.(jpe?g|png)$/i.test(img) ? img : '';
+}
+/* Écarte les images d'en-tête non "scéniques" — drapeaux, blasons, cartes
+   de localisation, projections, images satellite — reconnaissables à leur
+   nom de fichier ou à leur origine SVG (les drapeaux/cartes vectorielles
+   sont systématiquement dérivés d'un .svg, jamais une vraie photo). */
+const _WIKI_NON_SCENIC_RX = /\.svg[/.]|flag[_-]of|coat[_-]of[_-]arms|blason|locator|orthographic|projection|landsat|satellite|photosat|cloud-free|\blocation[_-]|\bmap\b|_map\.|administrative|topographic|logo/i;
+function _isLikelyScenicWikiImage(url){
+  return !!url && !_WIKI_NON_SCENIC_RX.test(url);
+}
+async function _wikiResolveTitle(host, name){
+  try{
+    const res = await fetch('https://'+host+'/w/api.php?action=query&list=search&format=json&origin=*&srlimit=1&srsearch='+encodeURIComponent(name));
+    if(!res.ok) return '';
+    const data = await res.json();
+    const hit = data && data.query && data.query.search && data.query.search[0];
+    return hit ? hit.title : '';
+  }catch(e){ return ''; }
+}
+async function _wikiPageImage(host, title){
+  try{
+    const res = await fetch('https://'+host+'/api/rest_v1/page/summary/'+encodeURIComponent(title), {
+      headers:{'Accept':'application/json'}
+    });
+    if(!res.ok) return '';
+    const img = _wikiExtractImage(await res.json());
+    return _isLikelyScenicWikiImage(img) ? img : '';
+  }catch(e){ return ''; }
+}
+async function _wikiSitePhoto(host, name){
+  if(!name) return '';
+  /* Essai direct (le nom de destination correspond souvent déjà au titre
+     exact de l'article), sinon recherche du titre le plus proche. */
+  let photo = await _wikiPageImage(host, name);
+  if(photo) return photo;
+  const resolved = await _wikiResolveTitle(host, name);
+  if(!resolved || resolved.toLowerCase() === String(name).toLowerCase()) return '';
+  return await _wikiPageImage(host, resolved);
+}
+/* Point d'entrée unique pour la photo de destination : Wikivoyage d'abord
+   (dest précise, puis pays/région en repli), Wikipedia ensuite (même
+   ordre), recherche IA en tout dernier recours. */
+async function _fetchDestPhoto(dest, country, region){
+  const hosts = ['fr.wikivoyage.org', 'fr.wikipedia.org'];
+  for(let i=0; i<hosts.length; i++){
+    const fromDest = await _wikiSitePhoto(hosts[i], dest);
+    if(fromDest) return fromDest;
+    const fromCountry = await _wikiSitePhoto(hosts[i], country || region);
+    if(fromCountry) return fromCountry;
+  }
+  return await _fetchRealDestPhoto(dest, country, region);
+}
+
 /* ── validation : la destination renvoyee correspond-elle a celle demandee ? ──
    Comparaison volontairement souple (accents/casse ignorés, sous-chaîne dans
    un sens ou l'autre) car le client peut taper "Sardaigne" et l'IA répondre
@@ -1843,8 +1914,9 @@ async function callCartographe(){
 
   /* recherche web du prix de vol  -  lancée en parallèle, dès que la destination est connue */
   const flightPromise=_fetchFlightPriceFromWeb(skel.dest, skel.country, state.dateFrom, state.dateTo, state.travelers);
-  /* recherche web d'une vraie photo de destination  -  lancée en parallèle aussi */
-  const heroPhotoPromise=_fetchRealDestPhoto(skel.dest, skel.country, skel.region);
+  /* photo de destination — Wikipedia d'abord (déterministe), recherche IA
+     en repli — lancée en parallèle aussi */
+  const heroPhotoPromise=_fetchDestPhoto(skel.dest, skel.country, skel.region);
 
   /* recherche web de VRAIS hébergements  -  remplace les noms potentiellement inventés.
      Si la vérification échoue pour une zone (île reculée, adresse peu indexée...),
