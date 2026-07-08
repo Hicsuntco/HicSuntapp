@@ -74,17 +74,6 @@ const RATING = { score:'4,93', count:128 };
 
 const BUDGET = { total:0, spent:0, lines:[] };
 
-const CERCLE = {
-  tier:'Découvreur', next:'Cartographe', progress:0, points:0, toNext:1000,
-  perks:[
-    { i:'sparkle', n:'Itinéraires illimités', d:'Composez autant de voyages sur-mesure que vous le souhaitez.' },
-    { i:'bell', n:'Cartographe IA', d:'Un assistant qui ajuste votre itinéraire en temps réel.' },
-    { i:'doc', n:'Export PDF illimité', d:'Vos itinéraires complets, prêts à emporter.' },
-    { i:'clock', n:'Accès anticipé', d:'Les nouvelles destinations et fonctionnalités avant tout le monde.' },
-  ],
-  history:[],
-};
-
 const AI_PROMPTS = [
   'Ajoute un jour de plus',
   'Rends le rythme plus lent',

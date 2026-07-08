@@ -311,12 +311,12 @@ function _countryBadgeBg(key, label){
 }
 /* Agrège les statistiques réelles depuis les voyages sauvegardés de la
    personne (cloud + local) : pays distincts visités, nombre de voyages
-   composés, jours cumulés, et adresses (hébergements + pépites) sauvegardées.
-   Ne fabrique jamais de chiffre — une valeur manquante reste à 0. */
+   composés, jours cumulés. Ne fabrique jamais de chiffre — une valeur
+   manquante reste à 0. */
 async function loadProfileStats(){
   const items = (typeof loadItineraries === 'function') ? (await loadItineraries() || []) : [];
   const countries = {}; /* key -> {code,label} */
-  let totalDays = 0, addresses = 0;
+  let totalDays = 0;
   items.forEach(function(it){
     const dest = it.destination || (it.data && it.data.dest) || '';
     const key = _countryKeyFromDest(dest);
@@ -324,13 +324,11 @@ async function loadProfileStats(){
     const data = it.data || {};
     const days = Number(it.days || data.days) || (Array.isArray(data.plan) ? data.plan.length : 0);
     totalDays += days;
-    addresses += (data.accommodations||[]).length + (data.gems||[]).length;
   });
   return {
     voyages: items.length,
     countries: Object.keys(countries).map(function(k){ return Object.assign({key:k}, countries[k]); }),
     days: totalDays,
-    addresses: addresses,
   };
 }
 function _destAccent(dest){
@@ -440,10 +438,8 @@ function profileView(){
   const premium = (typeof _hasActivePremiumStatus === 'function') && _hasActivePremiumStatus();
 
   const rows = [
-    ['sparkle','Cercle Hic Sunt', esc(CERCLE.tier) + ' · ' + CERCLE.points + ' points', 'openCercle()'],
     ['compass','Préférences de voyage','Styles, budget et rythme par défaut', "openOverlay('prefs', prefsView())"],
-    ['star','Abonnement Premium', premium ? 'Actif' : 'Débloqué à l\'achat d\'un itinéraire', premium ? "openCercle()" : "setTab('create')"],
-    ['bookmark','Adresses sauvegardées','<span data-prof-addr-count>…</span>', "openSavedAddresses()"],
+    ['star','Abonnement Premium', premium ? 'Actif' : 'Débloqué à l\'achat d\'un itinéraire', "openPremium()"],
     ['bell','Notifications', '<span data-notif-sub>Aucune non lue</span>', "openOverlay('notifications', notificationsView())"],
   ];
   if(connected) rows.push(['logout','Déconnexion','', 'logout()']);
@@ -513,9 +509,6 @@ async function loadProfileTab(){
       return '<div class="prof-stat"><div class="ps-v">' + s[0] + '</div><div class="ps-l">' + s[1] + '</div></div>';
     }).join('');
   }
-
-  const addrCount = scope.querySelector('[data-prof-addr-count]');
-  if(addrCount) addrCount.textContent = stats.addresses ? (stats.addresses + ' adresse' + (stats.addresses>1?'s':'')) : 'Aucune pour l\'instant';
 
   const circleEl = scope.querySelector('[data-prof-circle]');
   if(circleEl) circleEl.innerHTML = _circleCardHTML(companions, hasRealAuth);
@@ -634,37 +627,3 @@ window._submitCompanion = async function(){
     listEl.innerHTML = _cercleListHTML(window._profCompanions||[], connected);
   }
 };
-/* Liste agrégée des hébergements + pépites sauvegardés sur tous les voyages
-   (pas seulement le voyage en cours) — vue simple en lecture seule. */
-function openSavedAddresses(){
-  openOverlay('addresses', savedAddressesView());
-  _loadSavedAddressesBody();
-}
-function savedAddressesView(){
-  return statusBar() + navbar('Adresses sauvegardées')
-    + '<div class="ov-scroll px" data-addr-body>'
-    +   '<p style="text-align:center;padding:40px 0;color:var(--sub)">Chargement…</p>'
-    + '</div>';
-}
-async function _loadSavedAddressesBody(){
-  const body = document.querySelector('[data-addr-body]');
-  if(!body) return;
-  const items = (typeof loadItineraries === 'function') ? (await loadItineraries() || []) : [];
-  const rows = [];
-  items.forEach(function(it){
-    const dest = it.destination || (it.data && it.data.dest) || '';
-    const data = it.data || {};
-    (data.accommodations||[]).forEach(function(a){
-      rows.push({ n:a.n, sub:(a.type||'Hébergement') + ' · ' + esc(dest), i:'bed' });
-    });
-    (data.gems||[]).forEach(function(g){
-      rows.push({ n:g.name, sub:'Pépite · ' + esc(dest), i:'star' });
-    });
-  });
-  if(!rows.length){ body.innerHTML = '<p style="text-align:center;padding:40px 0;color:var(--sub);font-style:italic">Aucune adresse sauvegardée pour l\'instant.</p>'; return; }
-  body.innerHTML = '<span class="eyebrow" style="display:block;margin:10px 0 4px">' + rows.length + ' adresse' + (rows.length>1?'s':'') + '</span>'
-    + rows.map(function(r){
-      return '<div class="row"><span class="r-ico">' + ico(r.i,20,1.5) + '</span>'
-        + '<div class="r-main"><div class="r-t">' + esc(String(r.n||'Adresse')) + '</div><div class="r-s">' + r.sub + '</div></div></div>';
-    }).join('');
-}

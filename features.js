@@ -108,36 +108,50 @@ function reviewsView(){
     + '</div>';
 }
 
-/* ── 22 · Cercle Hic Sunt ───────────────────────────────────────────── */
-function openCercle(){
-  const el = openOverlay('cercle', cercleView());
-  requestAnimationFrame(function(){
-    requestAnimationFrame(function(){
-      const bar = el.querySelector('[data-cc-prog]');
-      if(bar) bar.style.width = bar.dataset.target + '%';
-    });
-  });
+/* ── 22 · Abonnement Premium ───────────────────────────────────────────
+   Reflète le vrai mécanisme de paiement (déblocage à l'itinéraire, valable
+   48h — voir _hasActivePremiumStatus/_checkPaymentToken dans generate.js),
+   pas un abonnement récurrent ni des paliers/points fabriqués : ce modèle
+   n'existe pas côté paiement, et la stratégie de monétisation est en cours
+   de refonte. Remplace l'ancien "Cercle Hic Sunt" (points/paliers fictifs,
+   jamais connectés à un vrai système). */
+function openPremium(){
+  openOverlay('premium', premiumView());
 }
-function cercleView(){
-  const pct = Math.round(CERCLE.progress * 100);
-  return statusBar() + navbar('Cercle Hic Sunt')
+function premiumView(){
+  const premium = (typeof _hasActivePremiumStatus === 'function') && _hasActivePremiumStatus();
+  const email = (localStorage.getItem('hs_email')||'').toLowerCase().trim();
+  const isOwner = email === 'charlottegperret@gmail.com';
+  let paid = [];
+  try{ paid = JSON.parse(localStorage.getItem('hs_paid_tokens')||'[]'); }catch(e){}
+  const now = Date.now();
+  const recentPaid = paid.filter(function(t){ return (now - t.ts) < 48*3600*1000; })
+    .sort(function(a,b){ return b.ts - a.ts; });
+  const labels = (typeof STRIPE_LABELS !== 'undefined') ? STRIPE_LABELS : {};
+
+  return statusBar() + navbar('Abonnement Premium')
     + '<div class="ov-scroll px">'
     +   '<div class="cercle-card">'
-    +     '<div class="cc-tier">' + esc(CERCLE.tier) + '</div>'
-    +     '<div class="cc-pts">' + CERCLE.points + ' points</div>'
-    +     '<div class="cc-prog"><i data-cc-prog style="width:0%" data-target="' + pct + '"></i></div>'
-    +     '<div class="cc-next">' + CERCLE.toNext + ' pts avant ' + esc(CERCLE.next) + '</div>'
+    +     '<div class="cc-tier">' + (isOwner ? 'Accès propriétaire' : (premium ? 'Premium actif' : 'Aucun déblocage actif')) + '</div>'
+    +     '<div class="cc-pts">' + (isOwner ? 'Tous les itinéraires débloqués'
+          : recentPaid.length ? recentPaid.length + ' voyage' + (recentPaid.length>1?'s':'') + ' débloqué' + (recentPaid.length>1?'s':'') + ' (48h)'
+          : 'Débloqué à la composition d\'un voyage') + '</div>'
     +   '</div>'
-    +   '<div class="section-h"><h2>Vos avantages</h2></div>'
-    +   '<div class="perks" style="margin-top:0">' + CERCLE.perks.map(function(p){
-        return '<div class="perk">' + ico(p.i, 19, 1.5) + '<div class="p-t">' + esc(p.n) + '</div><div class="p-d">' + esc(p.d) + '</div></div>';
-      }).join('') + '</div>'
-    +   '<div class="section-h"><h2>Historique</h2><span class="meta">Points</span></div>'
-    +   (CERCLE.history.length === 0
-        ? '<p style="color:var(--sub);font-size:14px;margin-top:4px;font-style:italic">Réservez votre premier voyage pour commencer à cumuler des points.</p>'
-        : CERCLE.history.map(function(h){
-            return '<div class="hist"><div><div class="hi-n">' + esc(h.n) + '</div><div class="hi-w">' + esc(h.when) + '</div></div><span class="hi-p">' + esc(h.pts) + '</span></div>';
+    +   '<div class="section-h"><h2>Comment ça marche</h2></div>'
+    +   '<div class="perks" style="margin-top:0">'
+    +     '<div class="perk">' + ico('sparkle',19,1.5) + '<div class="p-t">Paiement à l\'itinéraire</div><div class="p-d">Chaque voyage composé se débloque séparément — pas d\'abonnement récurrent pour l\'instant.</div></div>'
+    +     '<div class="perk">' + ico('star',19,1.5) + '<div class="p-t">Tarif selon la durée</div><div class="p-d">4,99€ (1-7j) · 9,99€ (8-14j) · 17,99€ (15j et plus).</div></div>'
+    +     '<div class="perk">' + ico('bell',19,1.5) + '<div class="p-t">Valable 48h</div><div class="p-d">Le temps d\'explorer et d\'ajuster votre itinéraire avec le Cartographe.</div></div>'
+    +   '</div>'
+    +   '<div class="section-h"><h2>Historique</h2><span class="meta">Achats récents</span></div>'
+    +   (recentPaid.length === 0
+        ? '<p style="color:var(--sub);font-size:14px;margin-top:4px;font-style:italic">Composez votre premier voyage pour débloquer l\'itinéraire complet.</p>'
+        : recentPaid.map(function(t){
+            const label = labels[t.palier] || t.palier || '';
+            const when = new Date(t.ts).toLocaleDateString('fr-FR', {day:'numeric', month:'long'});
+            return '<div class="hist"><div><div class="hi-n">' + esc(t.dest || label) + '</div><div class="hi-w">' + esc(when) + '</div></div><span class="hi-p">' + esc(label) + '</span></div>';
           }).join(''))
+    +   (premium ? '' : '<button class="btn" style="width:100%;margin-top:20px" onclick="closeOverlay();setTab(\'create\')">Composer un voyage</button>')
     + '</div>';
 }
 
