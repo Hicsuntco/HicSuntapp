@@ -1060,6 +1060,32 @@ function applyGenerated(skel, daysDetail, hilites, flightInfo, heroPhoto){
     };
   });
   if(!plan.length) return false;
+  /* dc (nombre de jours générés) correspond aux nuits d'hébergement, pas
+     forcément à la vraie plage de dates choisie : un séjour du 15 au 22
+     août compte 7 nuits d'hôtel MAIS couvre 8 jours calendaires en
+     incluant le jour du retour (on ne dort plus sur place, mais on y
+     passe la matinée avant le vol). Sans ce filet, ce dernier jour
+     calendaire — et le vol retour qui va avec — disparaissait purement
+     et simplement de l'itinéraire. On n'ajoute ce jour QUE quand l'écart
+     réel le justifie exactement (jamais inventé sans dates précises). */
+  if(state.dateFrom && state.dateTo){
+    const fromD = new Date(state.dateFrom), toD = new Date(state.dateTo);
+    if(!isNaN(fromD) && !isNaN(toD)){
+      const calendarDays = Math.round((toD - fromD) / 86400000) + 1;
+      if(calendarDays === plan.length + 1){
+        const lastDay = plan[plan.length - 1];
+        plan.push({
+          n: plan.length + 1, title: 'Retour', loc: lastDay ? lastDay.loc : dest,
+          desc: 'Dernières heures avant le départ.', tip: '',
+          tags: [TAG_MAP.plane, TAG_MAP.pin], category: 'transit',
+          wx: (lastDay && Array.isArray(lastDay.wx)) ? lastDay.wx : ['sun', '—'],
+          night: null,
+          moments: [],
+          restaurant: null, wellness: null,
+        });
+      }
+    }
+  }
   _injectFlightMoments(plan, flightInfo, dest);
   _repairPlanMoments(plan);
   _repairPlanTitles(plan);
