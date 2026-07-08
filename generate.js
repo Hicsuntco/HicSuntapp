@@ -541,6 +541,7 @@ function buildSkeletonPrompt(dc, batchSize, offset){
     'BON EXEMPLE (Sri Lanka) : Colombo (arrivée) -> Sigiriya/triangle culturel (nord) -> Kandy -> Ella/montagnes -> Yala (safari sud-est) -> côte sud (Mirissa, Tangalle) -> Negombo/Colombo (départ). Boucle fluide sans retour.',
     'BON EXEMPLE (Maroc) : Marrakech -> Aït Ben Haddou -> Ouarzazate -> Gorges du Dadès -> Merzouga (désert) -> Fès -> Chefchaouen -> retour. Jamais de zigzag.',
     'BON EXEMPLE (Vietnam) : Hanoï (nord) -> Ha Long -> Hué -> Hoi An (centre) -> Da Lat -> Hô Chi Minh (sud). Ligne nord->sud continue.',
+    'BON EXEMPLE (Japon) : Tokyo (arrivée) -> Hakone (montagnes/onsen, 1h30 de Tokyo) -> Kanazawa (détour, jardins/vieille ville) -> Kyoto (temples) -> Hiroshima/Miyajima (mémorial) -> retour Tokyo pour le vol international si besoin. Kanazawa se place ENTRE Tokyo et Kyoto (pas après Kyoto) : Kyoto -> Kanazawa -> Hiroshima serait un zigzag INVALIDE (retour vers le nord puis re-descente au sud-ouest).',
     'Adapte ce principe à TOUTE destination : identifie le point d\'arrivée, les zones d\'intérêt, et trace le chemin le plus court qui les relie sans repasser deux fois.',
     'Si le vol retour est dans la même ville que l\'arrivée, organise une BOUCLE qui y revient naturellement à la fin - PAS d\'aller-retours multiples.',
     'Planifie mentalement le trajet AVANT : liste les zones dans l\'ordre géographique optimal, puis répartis les jours.',
