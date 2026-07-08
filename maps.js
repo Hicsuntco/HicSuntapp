@@ -309,7 +309,6 @@ function renderHicSuntMap(elId, opts){
       }
 
       const resolved = new Array(stops.length).fill(null);
-      const drawnSeg = {};
       let focusBounds = null; /* limité au jour actif ± voisins immédiats */
       let allBounds = null; /* aperçu global (pas de jour actif) */
 
@@ -326,28 +325,6 @@ function renderHicSuntMap(elId, opts){
               const isActive = pos === activePos;
               const kind = isActive ? 'active' : (pos === 0 || pos === stops.length - 1 ? 'end' : 'mid');
               L.marker([g.lat, g.lng], { icon: _hsMarkerIcon(kind, stops[pos].loc) }).addTo(map);
-
-              /* Relier les étapes adjacentes déjà résolues, dans l'ordre réel
-                 du voyage (indépendant de l'ordre de géocodage) — garantit un
-                 tracé fidèle même quand l'étape active est géocodée en premier.
-                 Le tracé suit la route/le ferry réel (OSRM) quand plausible,
-                 sinon une ligne droite (cas des vols). */
-              for(let ni = 0; ni < 2; ni++){
-                const n = ni === 0 ? pos - 1 : pos + 1;
-                if(n < 0 || n >= stops.length) continue;
-                const a = Math.min(pos, n), b = Math.max(pos, n);
-                const key = a + '-' + b;
-                if(drawnSeg[key] || !resolved[a] || !resolved[b]) continue;
-                drawnSeg[key] = true;
-                const pa = resolved[a], pb = resolved[b];
-                const routePts = await _fetchRoute(pa, pb);
-                const latlngs = (routePts && routePts.length) ? routePts : [[pa.lat, pa.lng], [pb.lat, pb.lng]];
-                if(window._hsMaps[elId] !== map) return; /* détruite/remplacée pendant la requête de tracé */
-                L.polyline(latlngs, { color:'#221E18', weight:2, opacity:.38, dashArray:'2 8', lineCap:'round' }).addTo(map);
-                if(a === activePos || b === activePos){
-                  L.polyline(latlngs, { color:'#A6824A', weight:4, lineCap:'round' }).addTo(map);
-                }
-              }
 
               map.invalidateSize();
               hideLoading();
@@ -372,6 +349,31 @@ function renderHicSuntMap(elId, opts){
             }
             /* Respecter la limite Nominatim (≈1 req/s) seulement pour les vrais appels réseau */
             if(oi < order.length - 1 && (!result || !result.cached)) await new Promise(function(r){ setTimeout(r, 1100); });
+          }
+
+          /* Tracés reliant les étapes RÉSOLUES consécutives, dans l'ordre réel
+             du voyage — en sautant une étape dont le géocodage a échoué
+             plutôt que de laisser un vide définitif dans le tracé. Avant, un
+             seul hameau non reconnu par Nominatim coupait la carte en deux :
+             tout ce qui suivait restait visuellement déconnecté du reste, même
+             quand ces étapes suivantes se géocodaient très bien elles-mêmes.
+             Volontairement fait en repasse APRÈS le géocodage complet (pas au
+             fil de l'eau) : impossible de savoir si une étape encore en
+             attente va finir par réussir avant que tout le monde ait essayé. */
+          let prevPos = -1;
+          for(let pos=0; pos<resolved.length; pos++){
+            if(!resolved[pos]) continue;
+            if(prevPos >= 0){
+              const pa = resolved[prevPos], pb = resolved[pos];
+              const routePts = await _fetchRoute(pa, pb);
+              if(window._hsMaps[elId] !== map) return; /* détruite/remplacée pendant la requête de tracé */
+              const latlngs = (routePts && routePts.length) ? routePts : [[pa.lat, pa.lng], [pb.lat, pb.lng]];
+              L.polyline(latlngs, { color:'#221E18', weight:2, opacity:.38, dashArray:'2 8', lineCap:'round' }).addTo(map);
+              if(prevPos === activePos || pos === activePos){
+                L.polyline(latlngs, { color:'#A6824A', weight:4, lineCap:'round' }).addTo(map);
+              }
+            }
+            prevPos = pos;
           }
         }catch(err){
           console.error('[renderHicSuntMap] géocodage:', err);
