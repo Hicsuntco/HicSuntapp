@@ -1040,12 +1040,19 @@ function applyGenerated(skel, daysDetail, hilites, flightInfo, heroPhoto){
     });
     let category='culture', best=0;
     Object.keys(catCounts).forEach(function(c){ if(catCounts[c]>best){ best=catCounts[c]; category=c; } });
+    /* p.loc peut contenir l'intitulé complet d'un jour de transfert plutôt
+       qu'un lieu simple (ex: "Hiroshima → Narita") — voir _actLocLabel,
+       déjà utilisé pour les activités pour la même raison. Sans ce
+       nettoyage ICI aussi, la mini-carte (maps.js, _dedupPlanLocs) affiche
+       ce trajet complet comme étiquette de ville, illisible et superposé
+       à ses voisines. */
+    const cleanLoc=_actLocLabel(p.loc, dest);
     return {
-      n:i+1, title:p.title||('Étape '+(i+1)), loc:p.loc||dest,
+      n:i+1, title:p.title||('Étape '+(i+1)), loc:cleanLoc,
       desc:dd.desc||p.hook||'', tip:dd.tip||'',
       tags:tags, category:category,
       wx:[GEN_SKY.includes(p.sky)?p.sky:'sun', p.temp||'28°'],
-      night:stay?{acc:stay.id}:{n:p.night||'Nuit sur place',loc:p.loc||dest},
+      night:stay?{acc:stay.id}:{n:p.night||'Nuit sur place',loc:cleanLoc},
       moments:moments,
       restaurant:dd.restaurant||null,
       wellness:dd.wellness||null,
