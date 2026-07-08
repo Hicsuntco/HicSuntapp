@@ -5,6 +5,13 @@ const USER = { name:'Voyageur', full:'', initials:'', since:'' };
 /* Source de vérité unique pour le nombre de jours */
 function _days(it){ it = it||ITINERARY; return (it.plan&&it.plan.length) ? it.plan.length : (Number(it.days)||0); }
 
+/* p.loc suit la convention "Zone / Sous-zone" (ex: "Bonifacio / Extrême
+   Sud-Ouest") — pertinent pour du texte descriptif, mais affiché tel quel
+   comme intitulé "Jour N · ..." ça ressemble à deux lieux mélangés plutôt
+   qu'à un simple repère de lieu. Ne garde que la zone principale, comme
+   _dedupPlanLocs (maps.js) le fait déjà pour les étiquettes de la carte. */
+function _locPrimary(loc){ return String(loc||'').split(/[/(,]/)[0].trim(); }
+
 const state = {
   createTab:'known',
   destination:'', origin:'',
@@ -1268,7 +1275,7 @@ document.addEventListener('DOMContentLoaded', function(){
     var popL=Math.max(4,Math.min(pCx/W*100-20,50)),popT=pCy/H>0.58?(pCy/H*100-22):(pCy/H*100+6);
     var wx=p&&Array.isArray(p.wx)?p.wx:['sun','—'];
     var pop=p?'<div class="map-pop" style="left:'+popL.toFixed(1)+'%;top:'+popT.toFixed(1)+'%">'
-      +'<div class="mp-k">Jour '+String(p.n).padStart(2,'0')+' · '+esc(p.loc||'')+'</div>'
+      +'<div class="mp-k">Jour '+String(p.n).padStart(2,'0')+' · '+esc(_locPrimary(p.loc))+'</div>'
       +'<div class="mp-t">'+esc(p.title||'')+'</div>'
       +'<div class="mp-m"><span class="mp-wx">'+ico(wx[0],13,1.7)+wx[1]+'</span>'
       +'<span class="mp-l" onclick="openDay('+i+')">Détails ›</span></div></div>':'';
@@ -1298,7 +1305,7 @@ document.addEventListener('DOMContentLoaded', function(){
       +  '<div class="hs-scroll carte-daychips">'+(ITINERARY.plan||[]).map(function(d,j){
           return '<button class="map-chip'+(j===i?' on':'')+'" onclick="mapSelect('+j+')"><span class="mono">J'+d.n+'</span><span class="serif">'+d.n+'</span></button>';
         }).join('')+'</div>'
-      +  (p?'<div class="carte-daytitle"><span class="serif">Jour '+p.n+' · <em>'+esc(p.loc||'')+'</em></span><span class="mono">'+moments.length+' escale'+(moments.length>1?'s':'')+'</span></div>':'')
+      +  (p?'<div class="carte-daytitle"><span class="serif">Jour '+p.n+' · <em>'+esc(_locPrimary(p.loc))+'</em></span><span class="mono">'+moments.length+' escale'+(moments.length>1?'s':'')+'</span></div>':'')
       +  '<div class="carte-agenda">'+agenda+'</div>'
       +'</div>'
       +'</div>';
