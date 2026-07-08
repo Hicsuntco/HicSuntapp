@@ -717,7 +717,10 @@ function dayDetailView(idx){
       }).join('')
     +   restaurantHTML
     +   wellnessHTML
-    +   '<div class="section-h"><h2>La nuit</h2></div>' + nightHTML
+    /* Conditionnel : un jour de départ synthétique (dernier jour calendaire
+       du séjour, sans hébergement puisqu'on repart) a night=null — afficher
+       "La nuit" sans rien dessous serait une section vide. */
+    +   (nightHTML ? '<div class="section-h"><h2>La nuit</h2></div>' + nightHTML : '')
     + '</div>'
     + '<div class="ov-foot"><div class="day-nav">' + prev + next + '</div></div>';
 }
