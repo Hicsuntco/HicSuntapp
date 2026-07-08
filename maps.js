@@ -65,16 +65,23 @@ function _geoCacheSet(key, val){
   }catch(e){}
 }
 /* Géocodage via Nominatim (OpenStreetMap) — résultats mis en cache localement.
-   Retourne { pt, cached } pour permettre à l'appelant de ne pas throttle sur cache hit. */
+   Retourne { pt, cached } pour permettre à l'appelant de ne pas throttle sur cache hit.
+   Délai d'expiration explicite (AbortController) : sur un réseau lent/instable,
+   fetch() peut mettre plus de 10s à échouer de lui-même — sans ce filet, un
+   itinéraire à plusieurs étapes qui échouent toutes pourrait laisser la carte
+   (et son indicateur de chargement) bloquée près d'une minute avant d'abandonner. */
+const GEOCODE_TIMEOUT_MS = 6000;
 async function _geocode(query, iso2){
   const cacheKey = (query || '').toLowerCase() + '|' + (iso2 || '');
   const cached = _geoCacheGet(cacheKey);
   if(cached) return { pt: cached, cached: true };
+  const controller = new AbortController();
+  const timer = setTimeout(function(){ controller.abort(); }, GEOCODE_TIMEOUT_MS);
   try{
     const params = new URLSearchParams({ format:'json', q:query, limit:'1' });
     if(iso2) params.set('countrycodes', iso2);
     const res = await fetch('https://nominatim.openstreetmap.org/search?' + params.toString(), {
-      headers: { 'Accept-Language':'fr' }
+      headers: { 'Accept-Language':'fr' }, signal: controller.signal
     });
     if(!res.ok) return null;
     const rows = await res.json();
@@ -84,6 +91,7 @@ async function _geocode(query, iso2){
     _geoCacheSet(cacheKey, pt);
     return { pt: pt, cached: false };
   }catch(e){ return null; }
+  finally{ clearTimeout(timer); }
 }
 /* Certains lieux générés par l'IA sont préfixés d'un mot générique
    ("Aéroport Manado Sam Ratulangi", "Gare de X"...) que Nominatim ne
@@ -236,11 +244,19 @@ window._hsMaps = window._hsMaps || {};
  */
 function renderHicSuntMap(elId, opts){
   opts = opts || {};
+  /* Le géocodage (Nominatim, 1 req/s) prend un instant avant que la carte ne
+     quitte sa vue de secours (tout le pays, zoom 6) pour se recentrer sur les
+     vraies étapes — sans cet indicateur, cette attente ressemblait à une
+     carte figée/cassée plutôt qu'à un chargement en cours. Masqué dès le
+     premier point résolu, ou immédiatement en cas d'échec/absence d'étapes. */
+  const loadingEl = document.querySelector('[data-map-loading-for="'+elId+'"]');
+  const hideLoading = function(){ if(loadingEl) loadingEl.classList.add('out'); };
+  if(loadingEl) loadingEl.classList.remove('out');
   _ensureLeaflet(function(){
     try{
       const el = document.getElementById(elId);
-      if(!el){ console.warn('[renderHicSuntMap] élément introuvable:', elId); return; }
-      if(!window.L){ console.warn('[renderHicSuntMap] Leaflet non chargé (CDN bloqué ?)'); return; }
+      if(!el){ console.warn('[renderHicSuntMap] élément introuvable:', elId); hideLoading(); return; }
+      if(!window.L){ console.warn('[renderHicSuntMap] Leaflet non chargé (CDN bloqué ?)'); hideLoading(); return; }
 
       if(window._hsMaps[elId]){
         try{ window._hsMaps[elId].remove(); }catch(e){}
@@ -263,7 +279,7 @@ function renderHicSuntMap(elId, opts){
       }
 
       const stops = _dedupPlanLocs(opts.plan);
-      if(!stops.length) return;
+      if(!stops.length){ hideLoading(); return; }
       const iso2 = _destIso2(opts.dest);
       const destSuffix = opts.dest ? (', ' + opts.dest) : '';
 
@@ -334,6 +350,7 @@ function renderHicSuntMap(elId, opts){
               }
 
               map.invalidateSize();
+              hideLoading();
               if(activePos >= 0){
                 /* Vue centrée sur le jour actif : n'inclure que son étape et
                    ses voisins immédiats déjà résolus, jamais tout le voyage —
@@ -360,10 +377,16 @@ function renderHicSuntMap(elId, opts){
           console.error('[renderHicSuntMap] géocodage:', err);
           if(typeof toast === 'function') toast('Carte : ' + (err && err.message || 'erreur de géocodage'));
         }
+        /* Filet de sécurité : si AUCUNE étape n'a pu être géocodée (toutes
+           échouées — lieu introuvable, réseau, rate-limit...), la carte
+           reste sur sa vue de secours tout-pays — mieux vaut la montrer
+           franchement que masquer indéfiniment derrière l'indicateur. */
+        hideLoading();
       })();
     }catch(err){
       console.error('[renderHicSuntMap] init:', err);
       if(typeof toast === 'function') toast('Carte : ' + (err && err.message || 'erreur d\'initialisation'));
+      hideLoading();
     }
   });
 }

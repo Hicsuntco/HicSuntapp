@@ -4,6 +4,25 @@
 .carte-full{flex:1;position:relative;overflow:hidden;background:var(--surface2)}
 .carte-map-bg{position:absolute;top:0;left:0;width:100%;height:100%;background:var(--surface2);z-index:1}
 .carte-map-real{position:absolute;inset:0;width:100%;height:100%}
+/* Le géocodage (Nominatim) prend un instant avant que la carte ne se
+   recentre sur les vraies étapes du voyage — sans indicateur, cette
+   attente affiche une vue "tout le pays" dézoomée qui a l'air d'un bug
+   figé plutôt que d'un chargement en cours. */
+.hs-map-loading{
+  position:absolute; inset:0; z-index:5;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px;
+  background:var(--surface2);
+  font-family:var(--mono); font-size:10.5px; font-weight:700; letter-spacing:0.8px;
+  text-transform:uppercase; color:var(--sub);
+  transition:opacity 0.3s var(--ease-out);
+}
+.hs-map-loading.out{ opacity:0; pointer-events:none }
+.hs-map-spin{
+  width:22px; height:22px; border-radius:50%;
+  border:2.5px solid var(--line2); border-top-color:var(--gold);
+  animation:hsMapSpin 0.8s linear infinite;
+}
+@keyframes hsMapSpin{ to{ transform:rotate(360deg) } }
 .carte-top{position:absolute;top:14px;left:20px;right:20px;display:flex;justify-content:space-between;align-items:center;z-index:20}
 .carte-pill{display:flex;align-items:center;gap:10px;padding:9px 16px 9px 11px;border-radius:100px;background:var(--surface);box-shadow:0 6px 16px -8px rgba(70,50,25,.4);cursor:pointer;color:var(--ink)}
 .carte-pill .serif{font-size:16px}
