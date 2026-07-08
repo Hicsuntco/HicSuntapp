@@ -1239,7 +1239,9 @@ document.addEventListener('DOMContentLoaded', function(){
     }).join('') : '<p style="font-size:13px;color:var(--sub);padding:8px 0">Aucun programme détaillé pour ce jour.</p>';
 
     return '<div class="carte-full">'
-      +'<div class="carte-map-bg"><div id="hs-map-full" class="carte-map-real"></div></div>'
+      +'<div class="carte-map-bg"><div id="hs-map-full" class="carte-map-real"></div>'
+      +  '<div class="hs-map-loading" data-map-loading-for="hs-map-full"><span class="hs-map-spin"></span><span>Localisation du voyage…</span></div>'
+      +'</div>'
       +'<div class="carte-top">'
       +  '<button class="carte-pill" onclick="closeOverlay()">'+ico('back',16,2)+'<span class="serif">'+esc(ITINERARY.dest||'')+'</span>'+(nDays?'<span class="mono">· '+nDays+'J</span>':'')+'</button>'
       +  '<button class="carte-round" onclick="if(typeof openOffline===\'function\')openOffline()" aria-label="Hors-ligne">'+ico('download',18,1.7)+'</button>'
