@@ -1025,6 +1025,7 @@ function applyGenerated(skel, daysDetail, hilites, flightInfo, heroPhoto){
 
   /* jours enrichis avec le détail éditorial + catégorie thématique */
   const detailDays=(daysDetail&&Array.isArray(daysDetail.days))?daysDetail.days:[];
+  let _lastRealLoc=dest;
   const plan=(Array.isArray(skel.plan)?skel.plan:[]).map(function(p,i){
     const dd=detailDays[i]||{};
     const rawMoments=Array.isArray(dd.moments)&&dd.moments.length?dd.moments:[{t:' - ',k:_momentIcon(p.title),ti:p.title||'Étape',d:''}];
@@ -1048,7 +1049,16 @@ function applyGenerated(skel, daysDetail, hilites, flightInfo, heroPhoto){
        nettoyage ICI aussi, la mini-carte (maps.js, _dedupPlanLocs) affiche
        ce trajet complet comme étiquette de ville, illisible et superposé
        à ses voisines. */
-    const cleanLoc=_actLocLabel(p.loc, dest);
+    let cleanLoc=_actLocLabel(p.loc, dest);
+    /* "loc" invalide (thème de journée type "Trajets sud-est" plutôt qu'un
+       vrai lieu) malgré la consigne de prompt : on retombe sur l'hébergement
+       du jour, DÉJÀ un vrai lieu établi ailleurs dans la même réponse IA
+       (stays[].loc), plutôt que de laisser passer une valeur non géocodable. */
+    if(!_isPlaceLikeLoc(cleanLoc)){
+      const stayLoc=stay&&stay.loc?_actLocLabel(stay.loc, ''):'';
+      cleanLoc=stayLoc||_lastRealLoc||dest;
+    }
+    _lastRealLoc=cleanLoc;
     return {
       n:i+1, title:p.title||('Étape '+(i+1)), loc:cleanLoc,
       desc:dd.desc||p.hook||'', tip:dd.tip||'',
@@ -1184,6 +1194,19 @@ function _actLocLabel(loc, fallback){
   const parts=s.split(/→|->/);
   const picked=(parts.length>1?parts[parts.length-1]:s).trim();
   return picked || fallback || '';
+}
+/* Malgré la consigne de prompt ("loc":"ville précise"), l'IA renvoie parfois
+   un thème de journée à la place d'un lieu réel (ex: "Trajets sud-est" pour
+   une journée d'excursions) — un rappel de plus dans le prompt ne suffit pas
+   à garantir 100% de conformité. Cette valeur n'est pas géocodable : la
+   carte perd son marqueur pour ce jour et le tracé se coupe. Plutôt que de
+   faire confiance à l'IA, on vérifie et on retombe sur un lieu DÉJÀ réel et
+   établi ailleurs dans la même réponse (l'hébergement du jour, cf. "stays")
+   au lieu d'un thème inventé. */
+const _NON_PLACE_LOC_RX=/^(trajets?|journ[ée]e?s?|excursions?|balades?|circuits?|d[ée]tente|d[ée]couverte(s)?|visite libre|route(s)?\s+(vers|pour)|direction|environs|alentours|repos|libre)\b/i;
+function _isPlaceLikeLoc(loc){
+  const s=String(loc||'').trim();
+  return !!s && !_NON_PLACE_LOC_RX.test(s);
 }
 function deriveActivities(plan, dest, region, country){
   if(typeof ACTIVITIES==='undefined') return;
