@@ -126,7 +126,7 @@ function notificationsView(){
 async function fillNotifs(){
   const host = document.querySelector('[data-notifs]');
   if(!host) return;
-  const token = localStorage.getItem('sb_token');
+  const token = typeof _sbEnsureFreshToken==='function' ? await _sbEnsureFreshToken() : localStorage.getItem('sb_token');
   if(!token){
     host.innerHTML = '<p style="text-align:center;padding:40px 0;color:var(--sub);font-size:14px;font-style:italic">Connectez-vous pour recevoir vos notifications.</p>';
     return;
@@ -158,7 +158,7 @@ async function fillNotifs(){
 /* Marquage silencieux : une notification vue à l'écran est considérée lue,
    pas besoin d'une action explicite de l'utilisateur pour "l'acquitter". */
 async function _markNotifsRead(rows){
-  const token = localStorage.getItem('sb_token');
+  const token = typeof _sbEnsureFreshToken==='function' ? await _sbEnsureFreshToken() : localStorage.getItem('sb_token');
   const unreadIds = (rows||[]).filter(function(n){return !n.read;}).map(function(n){return n.id;});
   if(!token || !unreadIds.length) return;
   try{

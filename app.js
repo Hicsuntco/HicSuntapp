@@ -371,6 +371,46 @@ function logout(){
 const SUPABASE_URL  = 'https://lucbxwxcismnvcdnctau.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1Y2J4d3hjaXNtbnZjZG5jdGF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc3NzAsImV4cCI6MjA5NDU5Mzc3MH0.G17LlW8K-5UDg_QbkJprkZX-oqlTL_RWUTrwIh408yQ';
 
+/* Persiste une réponse d'auth Supabase (login/signup/refresh) — stocke aussi
+   le refresh_token et l'échéance, jusque-là jetés : le token d'accès expire
+   au bout d'1h par défaut et rien ne le renouvelait, donc toute session
+   ouverte plus d'1h faisait échouer silencieusement (ou avec un message
+   générique) les écritures Supabase (Mon Cercle, notifications, Atlas…). */
+function _sbStoreSession(data){
+  if(!data) return;
+  if(data.access_token) localStorage.setItem('sb_token', data.access_token);
+  if(data.refresh_token) localStorage.setItem('sb_refresh_token', data.refresh_token);
+  const expiresIn = Number(data.expires_in);
+  if(expiresIn>0) localStorage.setItem('sb_token_exp', String(Date.now()+expiresIn*1000));
+}
+async function _sbRefreshToken(){
+  const refreshToken = localStorage.getItem('sb_refresh_token');
+  if(!refreshToken) return false;
+  try{
+    const res = await fetch(SUPABASE_URL+'/auth/v1/token?grant_type=refresh_token',{
+      method:'POST', headers:{'content-type':'application/json','apikey':SUPABASE_ANON},
+      body:JSON.stringify({refresh_token:refreshToken})
+    });
+    if(!res.ok) return false;
+    const data = await res.json();
+    if(!data.access_token) return false;
+    _sbStoreSession(data);
+    return true;
+  }catch(e){ return false; }
+}
+/* À appeler avant toute écriture Supabase authentifiée : rafraîchit le
+   token en arrière-plan s'il est expiré ou sur le point de l'être (marge
+   de 60s), sinon le laisse tel quel. Retourne le token (éventuellement
+   renouvelé) ou null si aucune session. */
+async function _sbEnsureFreshToken(){
+  const token = localStorage.getItem('sb_token');
+  if(!token) return null;
+  const exp = Number(localStorage.getItem('sb_token_exp'))||0;
+  if(exp && Date.now() < exp-60000) return token;
+  const ok = await _sbRefreshToken();
+  return ok ? localStorage.getItem('sb_token') : token;
+}
+
 function _getUserId(){
   const token = localStorage.getItem('sb_token');
   if (!token) return null;
@@ -387,7 +427,7 @@ function _getUserId(){
    sans jamais avoir créé de session réelle, ne suffit pas pour écrire dans
    Supabase — même distinguo que pour Mon Cercle/Atlas). */
 async function _createNotification(title, body, kind, link){
-  const token = localStorage.getItem('sb_token');
+  const token = await _sbEnsureFreshToken();
   const userId = _getUserId();
   if(!token || !userId) return;
   try{
@@ -446,7 +486,7 @@ async function loginEmail(){
     if(data.msg) throw new Error(data.msg);
     if(!data.access_token) throw new Error('Identifiants incorrects');
 
-    localStorage.setItem('sb_token', data.access_token);
+    _sbStoreSession(data);
     if(email) localStorage.setItem('hs_email', email.toLowerCase());
     _applyUser(data.user);
     closeAllOverlays(); setTab('discover');
@@ -470,7 +510,7 @@ async function signupEmail(){
     const data = await res.json();
     if(data.error) throw new Error(data.error.message||data.error);
     if(data.access_token){
-      localStorage.setItem('sb_token', data.access_token);
+      _sbStoreSession(data);
       if(email) localStorage.setItem('hs_email', email.toLowerCase());
       _applyUser(data.user);
       closeAllOverlays(); setTab('discover');
@@ -525,7 +565,7 @@ async function saveWelcomeProfile(){
   }catch(e){}
 
   /* Sauvegarde cloud si connecté */
-  const token = localStorage.getItem('sb_token');
+  const token = await _sbEnsureFreshToken();
   const userId = _getUserId();
   if(token && userId){
     try{
@@ -647,7 +687,7 @@ async function saveChatHistory(){
     }
   }catch(e){ console.warn('saveChatHistory local:', e); }
   /* Cloud : upsert si connecté ET déjà sauvegardé */
-  var token = localStorage.getItem('sb_token');
+  var token = await _sbEnsureFreshToken();
   var userId = _getUserId();
   if(token && userId){
     try{
@@ -672,7 +712,7 @@ async function updateSavedItinerary(){
     localStorage.setItem('hs_saved_trips', JSON.stringify(local.slice(0,50)));
   }catch(e){}
   /* Cloud : upsert si connecté */
-  var token = localStorage.getItem('sb_token');
+  var token = await _sbEnsureFreshToken();
   var userId = _getUserId();
   if(token && userId){
     try{
@@ -693,7 +733,7 @@ async function saveItinerary(){
     toast('Itinéraire en cours de chargement, réessayez dans un instant');
     return;
   }
-  const token = localStorage.getItem('sb_token');
+  const token = await _sbEnsureFreshToken();
   const userId = _getUserId();
   /* Sauvegarde locale systématique (fonctionne sans compte) */
   try{
@@ -746,7 +786,7 @@ async function loadItineraries(){
   }catch(e){}
 
   /* Voyages cloud si connecté */
-  const token = localStorage.getItem('sb_token');
+  const token = await _sbEnsureFreshToken();
   if(token){
     try{
       const res = await fetch(SUPABASE_URL+'/rest/v1/itineraries?select=*&order=created_at.desc',{
@@ -779,7 +819,7 @@ async function loadItineraries(){
    simplement indisponible (pas de repli localStorage : un cercle est une
    donnée de compte, pas un brouillon local). */
 async function loadCompanions(){
-  const token = localStorage.getItem('sb_token');
+  const token = await _sbEnsureFreshToken();
   if(!token) return [];
   try{
     const res = await fetch(SUPABASE_URL+'/rest/v1/travel_companions?select=*&order=created_at.asc',{
@@ -791,7 +831,7 @@ async function loadCompanions(){
   }catch(e){ return []; }
 }
 async function addCompanion(name){
-  const token = localStorage.getItem('sb_token');
+  const token = await _sbEnsureFreshToken();
   const userId = _getUserId();
   if(!token || !userId) { toast('Connectez-vous pour composer votre Cercle'); return null; }
   name = (name||'').trim();
@@ -808,7 +848,7 @@ async function addCompanion(name){
   }catch(e){ toast('Impossible d\'ajouter ce compagnon'); return null; }
 }
 async function removeCompanion(id){
-  const token = localStorage.getItem('sb_token');
+  const token = await _sbEnsureFreshToken();
   if(!token) return false;
   try{
     const res = await fetch(SUPABASE_URL+'/rest/v1/travel_companions?id=eq.'+encodeURIComponent(id),{
@@ -925,7 +965,7 @@ async function loadSavedItinerary(id){
     if(!saved){ toast('Itinéraire introuvable'); return; }
   } else {
     /* Voyage cloud */
-    const token = localStorage.getItem('sb_token');
+    const token = await _sbEnsureFreshToken();
     if(!token){ toast('Connexion requise'); return; }
     try{
       const res = await fetch(SUPABASE_URL+'/rest/v1/itineraries?id=eq.'+id,{
@@ -1110,7 +1150,7 @@ async function deleteSavedItinerary(id){
   }
 
   /* Voyage cloud */
-  const token = localStorage.getItem('sb_token');
+  const token = await _sbEnsureFreshToken();
   if(!token){ toast('Voyage supprimé'); return; }
   try{
     await fetch(SUPABASE_URL+'/rest/v1/itineraries?id=eq.'+encodeURIComponent(id),{
@@ -1131,7 +1171,11 @@ function handleAuthCallback(){
     const params = new URLSearchParams(hash.substring(1));
     const token = params.get('access_token');
     if (!token) return false;
-    localStorage.setItem('sb_token', token);
+    _sbStoreSession({
+      access_token: token,
+      refresh_token: params.get('refresh_token'),
+      expires_in: params.get('expires_in'),
+    });
     try{
       const payload = JSON.parse(atob(token.split('.')[1]));
       if (payload && payload.user_metadata){

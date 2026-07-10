@@ -110,7 +110,7 @@ function _atlasResolveCountryISO(it){
    Ne fait rien sans compte connecté (donnée de compte, pas un brouillon
    local — même principe que Mon Cercle, voir NOTES_MON_CERCLE.sql). */
 async function atlasUnlockFromItinerary(it){
-  const token = localStorage.getItem('sb_token');
+  const token = typeof _sbEnsureFreshToken==='function' ? await _sbEnsureFreshToken() : localStorage.getItem('sb_token');
   const userId = typeof _getUserId==='function' ? _getUserId() : null;
   if(!token || !userId) return;
   const iso = _atlasResolveCountryISO(it);
@@ -136,7 +136,7 @@ async function atlasUnlockFromItinerary(it){
 
 /* ── chargement des pays débloqués ────────────────────────────────────── */
 async function _atlasLoadCountries(){
-  const token = localStorage.getItem('sb_token');
+  const token = typeof _sbEnsureFreshToken==='function' ? await _sbEnsureFreshToken() : localStorage.getItem('sb_token');
   if(!token) return [];
   try{
     const res = await fetch(SUPABASE_URL+'/rest/v1/atlas_countries?select=country_iso,status,first_unlocked_at,visited_at&order=first_unlocked_at.asc',{
@@ -209,7 +209,7 @@ function _atlasHideCountryInfo(scope){
    ici, on ne fait qu'UPDATE son statut. Si le voyage n'a jamais été
    sauvegardé (donc jamais exploré), il n'y a rien à marquer visité. */
 async function _atlasGetCountryStatus(iso){
-  const token = localStorage.getItem('sb_token');
+  const token = typeof _sbEnsureFreshToken==='function' ? await _sbEnsureFreshToken() : localStorage.getItem('sb_token');
   if(!token || !iso) return null;
   try{
     const res = await fetch(SUPABASE_URL+'/rest/v1/atlas_countries?user_id=eq.'+encodeURIComponent(_getUserId())+'&country_iso=eq.'+encodeURIComponent(iso)+'&select=status',{
@@ -221,7 +221,7 @@ async function _atlasGetCountryStatus(iso){
   }catch(e){ return null; }
 }
 async function _atlasMarkVisited(iso){
-  const token = localStorage.getItem('sb_token');
+  const token = typeof _sbEnsureFreshToken==='function' ? await _sbEnsureFreshToken() : localStorage.getItem('sb_token');
   const userId = _getUserId();
   if(!token || !userId || !iso) return false;
   try{
