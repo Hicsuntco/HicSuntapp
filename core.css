@@ -1,5 +1,5 @@
 /* ── HIC SUNT — core: tokens, chrome, overlays, primitives ── */
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..600&family=Epilogue:wght@300;400;500;600;700;800&family=Spline+Sans+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bitter:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500;1,600&family=Epilogue:wght@300;400;500;600;700;800&family=Spline+Sans+Mono:wght@400;500&display=swap');
 
 /* ── cartes réelles façon parchemin (Leaflet) ── */
 .leaflet-container{background:#ECE3D0;font-family:'Spline Sans Mono',monospace}
@@ -18,9 +18,9 @@
   --gold:#A6824A; --gold-soft:#C9A96E; --gold-deep:#8A6526; --gold-bright:#E8C98C;
   /* Divers */
   --onink:#F4EEDF; --ph:#928768; --ok:#5d7a4e;
-  /* Typographie — Fraunces / Epilogue / Spline Sans Mono — même identité que le PDF de voyage exporté (features.js) */
-  --serif:'Fraunces',Georgia,'Times New Roman',serif;
-  --serif-text:'Fraunces',Georgia,serif;
+  /* Typographie — Bitter (slab serif épais) / Epilogue / Spline Sans Mono */
+  --serif:'Bitter',Georgia,'Times New Roman',serif;
+  --serif-text:'Bitter',Georgia,serif;
   --sf:'Epilogue',-apple-system,'Helvetica Neue',sans-serif;
   --sans:'Epilogue',-apple-system,sans-serif;
   --mono:'Spline Sans Mono','SF Mono',monospace;
