@@ -146,7 +146,14 @@ async function fillNotifs(){
     return;
   }
   hostNow.innerHTML = rows.map(function(n){
-    const action = n.link === 'open-itin' ? 'openItinerary()' : 'void(0)';
+    /* "trip:<id>" : notification d'un voyage généré en arrière-plan
+       (Partie C) — pas forcément déjà en mémoire (ITINERARY), donc on le
+       charge depuis le cloud plutôt que d'ouvrir l'écran itinéraire à vide.
+       "open-itin" reste pour compat avec les notifications déjà existantes
+       (génération synchrone classique, ITINERARY déjà rempli). */
+    const isTripLink = typeof n.link==='string' && n.link.indexOf('trip:')===0;
+    const action = isTripLink ? ('loadSavedItinerary(\'' + n.link.slice(5).replace(/'/g,"\\'") + '\')')
+      : n.link === 'open-itin' ? 'openItinerary()' : 'void(0)';
     return '<div class="notif" onclick="' + action + '">'
       + '<span class="n-i">' + ico(NOTIF_KIND_ICON[n.kind] || 'bell', 18, 1.5) + '</span>'
       + '<div><div class="n-t">' + esc(n.title) + '</div><div class="n-d">' + esc(n.body) + '</div><div class="n-w">' + esc(_notifRelTime(n.created_at)) + '</div></div>'

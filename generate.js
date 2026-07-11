@@ -2059,7 +2059,17 @@ async function runGeneration(){
     await runDestinationSuggestion([]);
     return;
   }
-  await runFullGeneration();
+  /* Génération asynchrone côté serveur (Partie C) réservée aux comptes
+     réels : un job "generation_jobs" a besoin d'un user_id pour exister et
+     pour recevoir la notification de fin — impossible pour un accès
+     anonyme/propriétaire par email seul (voir _sbEnsureFreshToken). Ces
+     utilisateurs gardent le chemin synchrone existant, inchangé. */
+  const token = (typeof _sbEnsureFreshToken==='function') ? await _sbEnsureFreshToken() : null;
+  if(token && typeof _startAsyncGeneration==='function'){
+    await _startAsyncGeneration();
+  } else {
+    await runFullGeneration();
+  }
 }
 
 /* ── Étape 1 (mode Surprenez-moi) : suggestion de destination ────────── */
@@ -2095,9 +2105,19 @@ async function confirmSuggestedDestination(){
   state.destination=s.dest;
   state.createTab='known';
   state._suggestedTagline=s.tagline||'';
-  /* Fermer l'overlay suggest, puis lancer la génération depuis un contexte propre */
+  /* Fermer l'overlay suggest, puis lancer la génération depuis un contexte propre.
+     Même bascule synchrone/asynchrone que runGeneration() — un utilisateur
+     connecté qui choisit une destination "surprise" doit aussi profiter de
+     la génération en arrière-plan. */
   closeAllOverlays();
-  setTimeout(function(){ runFullGeneration(false); }, 320);
+  setTimeout(async function(){
+    const token = (typeof _sbEnsureFreshToken==='function') ? await _sbEnsureFreshToken() : null;
+    if(token && typeof _startAsyncGeneration==='function'){
+      await _startAsyncGeneration();
+    } else {
+      runFullGeneration(false);
+    }
+  }, 320);
 }
 
 /* Met à jour l'état (fait / en cours / à venir) des 4 items de la checklist de génération */
@@ -2298,6 +2318,163 @@ async function runFullGeneration(overlayAlreadyOpen){
       toast('Erreur : '+String(e.message||e).slice(0,60));
     }
   },620);
+}
+
+/* ── Génération asynchrone côté serveur (Partie C) ──────────────────────
+   iOS Safari ne peut pas exécuter de JS en arrière-plan : fermer l'app
+   pendant runFullGeneration() interromprait la génération en cours. Pour
+   un compte connecté, on confie donc tout le pipeline à l'Edge Function
+   "generate-itinerary" (voir supabase-functions/generate-itinerary.ts),
+   qui continue même app fermée et écrit directement le voyage terminé
+   dans "itineraries" + une notification "voyage prêt" (déjà gérée par
+   l'écran Notifications, Partie A). Si l'app reste ouverte, on affiche une
+   progression RÉELLE (pas simulée) en interrogeant "generation_jobs". */
+const GENERATION_JOB_ENDPOINT = 'https://lucbxwxcismnvcdnctau.supabase.co/functions/v1/generate-itinerary';
+/* Même liste de champs que STATE_FIELDS côté serveur (supabase-functions/
+   generate-itinerary.ts) — ne pas en ajouter un ici sans l'ajouter aussi
+   là-bas, sinon le serveur ignorera silencieusement le nouveau champ. */
+function _asyncGenStateSnapshot(){
+  return {
+    createTab: state.createTab, destination: state.destination, origin: state.origin,
+    dateFrom: state.dateFrom, dateTo: state.dateTo, travelers: state.travelers,
+    budget: state.budget, rythme: state.rythme, styles: state.styles, interests: state.interests,
+    occasion: state.occasion, flightOut: state.flightOut, flightIn: state.flightIn, dream: state.dream,
+    childrenCount: state.childrenCount, childrenAges: state.childrenAges, transport: state.transport,
+    dietary: state.dietary, alreadyDone: state.alreadyDone, fitnessLevel: state.fitnessLevel,
+    accomStyle: state.accomStyle,
+  };
+}
+async function _startAsyncGeneration(){
+  const el = openOverlay('generating', generationView(), {modal:true, carto:true});
+  const gen = el.querySelector('.gen');
+  requestAnimationFrame(function(){ gen.classList.add('run'); });
+  const statusEl = el.querySelector('[data-gen-status]');
+
+  const token = await _sbEnsureFreshToken();
+  if(!token){
+    toast('Connexion requise');
+    const gi=ovStack.findIndex(function(o){return o.dataset&&o.dataset.ov==='generating';});
+    if(gi>=0){const g=ovStack.splice(gi,1)[0];g.remove();}
+    return;
+  }
+
+  let jobId=null;
+  try{
+    const res = await fetch(GENERATION_JOB_ENDPOINT, {
+      method:'POST',
+      headers:{'content-type':'application/json','apikey':SUPABASE_ANON,'Authorization':'Bearer '+token},
+      body: JSON.stringify({state:_asyncGenStateSnapshot()}),
+    });
+    const data = await res.json().catch(function(){ return {}; });
+    if(!res.ok || !data.jobId) throw new Error(data.error||('HTTP '+res.status));
+    jobId = data.jobId;
+  }catch(e){
+    console.error('[_startAsyncGeneration]', e);
+    toast('Impossible de lancer la génération  -  réessayez');
+    const gi=ovStack.findIndex(function(o){return o.dataset&&o.dataset.ov==='generating';});
+    if(gi>=0){const g=ovStack.splice(gi,1)[0];g.remove();}
+    return;
+  }
+
+  try{ localStorage.setItem('hs_active_job', JSON.stringify({jobId:jobId, startedAt:Date.now()})); }catch(e){}
+  if(statusEl){ statusEl.textContent='Composition du circuit…'; statusEl.style.opacity=1; }
+  _pollGenerationJob(jobId, el);
+}
+function _stopGenerationPoll(){
+  if(window._genPollId){ clearInterval(window._genPollId); window._genPollId=null; }
+}
+function _pollGenerationJob(jobId, el){
+  _stopGenerationPoll();
+  const statusEl = el.querySelector('[data-gen-status]');
+  window._genPollId = setInterval(async function(){
+    /* L'écran de génération a pu être fermé (navigation ailleurs pendant
+       que ça tourne) — la génération continue côté serveur quoi qu'il
+       arrive, seul le polling client doit s'arrêter : inutile d'interroger
+       un écran qui n'existe plus. */
+    if(!document.body.contains(el)){ _stopGenerationPoll(); return; }
+    const token = await _sbEnsureFreshToken();
+    if(!token){ _stopGenerationPoll(); return; }
+    try{
+      const res = await fetch(SUPABASE_URL+'/rest/v1/generation_jobs?id=eq.'+jobId+'&select=status,progress,phase,result_itinerary_id,error', {
+        headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+token},
+      });
+      if(!res.ok) return;
+      const rows = await res.json();
+      const row = Array.isArray(rows) && rows[0];
+      if(!row) return;
+
+      const pct = Math.max(2, Math.min(99, Number(row.progress)||0));
+      const barI = el.querySelector('[data-gen-bar]');
+      const barPct = el.querySelector('[data-gen-pct]');
+      if(barI){ barI.style.transition='width 0.5s ease'; barI.style.width=pct+'%'; }
+      if(barPct) barPct.textContent = Math.round(pct)+'%';
+      if(typeof _updateGenChecklist==='function') _updateGenChecklist(el, pct);
+      if(statusEl && row.phase && statusEl.textContent!==row.phase){ statusEl.textContent=row.phase; statusEl.style.opacity=1; }
+
+      if(row.status==='done' && row.result_itinerary_id){
+        _stopGenerationPoll();
+        try{ localStorage.removeItem('hs_active_job'); }catch(e){}
+        if(barI) barI.style.width='100%';
+        if(barPct) barPct.textContent='100%';
+        if(typeof _updateGenChecklist==='function') _updateGenChecklist(el, 100);
+        if(statusEl) statusEl.textContent='Votre voyage est prêt ✦';
+        await _completeAsyncGeneration(row.result_itinerary_id, el);
+      } else if(row.status==='error'){
+        _stopGenerationPoll();
+        try{ localStorage.removeItem('hs_active_job'); }catch(e){}
+        toast('Génération échouée  -  '+(row.error?String(row.error).slice(0,60):'réessayez'));
+        const gi=ovStack.findIndex(function(o){return o.dataset&&o.dataset.ov==='generating';});
+        if(gi>=0){const g=ovStack.splice(gi,1)[0];g.remove();}
+      }
+    }catch(e){}
+  }, 2500);
+}
+/* Le voyage a déjà été inséré dans "itineraries" par l'Edge Function : on
+   ne rappelle jamais saveItinerary() ici tel quel (créerait un doublon
+   cloud), on charge juste ce qui vient d'être généré pour décider paywall
+   ou ouverture directe — exactement le même embranchement que la fin de
+   runFullGeneration(), moins la ré-écriture déjà faite côté serveur. */
+async function _completeAsyncGeneration(itinId, el){
+  const token = await _sbEnsureFreshToken();
+  if(!token){ toast('Connexion requise'); return; }
+  let saved=null;
+  try{
+    const res = await fetch(SUPABASE_URL+'/rest/v1/itineraries?id=eq.'+itinId, {
+      headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+token},
+    });
+    const rows = await res.json();
+    saved = Array.isArray(rows) && rows[0];
+  }catch(e){}
+  if(!saved){
+    toast('Voyage introuvable  -  retrouvez-le dans "Mes voyages"');
+    const gi=ovStack.findIndex(function(o){return o.dataset&&o.dataset.ov==='generating';});
+    if(gi>=0){const g=ovStack.splice(gi,1)[0];g.remove();}
+    return;
+  }
+  /* Empêche un futur appel à saveItinerary() (ex: depuis _openItineraryAndSave
+     via le flux paywall) de réinsérer ce même voyage côté cloud. */
+  window._asyncItinAlreadySaved = true;
+  Object.assign(ITINERARY, saved.data||{});
+  if(!ITINERARY.dest) ITINERARY.dest = saved.destination||'';
+
+  setTimeout(function(){
+    try{
+      const days = (ITINERARY.plan&&ITINERARY.plan.length) ? ITINERARY.plan.length : (saved.days||0);
+      const alreadyPaid = _checkPaymentToken(ITINERARY.dest, days);
+      if(alreadyPaid){
+        loadSavedItinerary(itinId);
+        const gi=ovStack.findIndex(function(o){return o.dataset&&o.dataset.ov==='generating';});
+        if(gi>=0){const g=ovStack.splice(gi,1)[0];g.remove();}
+      } else {
+        _showPaywall(el, days);
+      }
+    }catch(e){
+      console.error('[paywall/open async]', e);
+      const gi=ovStack.findIndex(function(o){return o.dataset&&o.dataset.ov==='generating';});
+      if(gi>=0){const g=ovStack.splice(gi,1)[0];g.remove();}
+      toast('Erreur : '+String(e.message||e).slice(0,60));
+    }
+  }, 500);
 }
 
 /* ── Paliers tarifaires ── */
