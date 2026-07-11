@@ -60,5 +60,9 @@ Product → Archive, puis Distribute App → App Store Connect → Upload.
 
 ## Encore à faire avant soumission
 
-Voir `APP_STORE_LISTING.md` — notamment la suppression de compte **dans
-l'app** (actuellement seulement par e-mail), exigée par Apple.
+- **Déployer la fonction serveur de suppression de compte** : copier
+  `supabase-functions/delete-account.ts` dans Supabase Dashboard → Edge
+  Functions → New function (nom : `delete-account`) → Deploy — même geste
+  que pour `generate-itinerary`. Sans ça, le bouton "Supprimer mon compte"
+  du Profil échoue.
+- Le reste : voir `APP_STORE_LISTING.md`.

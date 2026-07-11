@@ -74,13 +74,10 @@ Notes    : "Un itinéraire est déjà disponible dans Mes voyages — composez-e
 | Données de paiement | Non *(traitées par Stripe, jamais stockées par Hic Sunt)* | — | — |
 | Données d'usage/diagnostic | Non *(sauf ce qu'Apple collecte lui-même automatiquement)* | — | — |
 
-## ⚠️ À traiter avant soumission : suppression de compte
-Apple exige (règle 5.1.1(v)) qu'une app permettant de créer un compte
-permette aussi de le supprimer **depuis l'app elle-même**, pas seulement
-par e-mail. `privacy.html` mentionne pour l'instant une suppression sur
-demande par e-mail — insuffisant tel quel pour la review. Il faut soit
-ajouter un vrai bouton "Supprimer mon compte" dans l'écran Profil (nouvelle
-fonction serveur avec clé service_role pour supprimer l'utilisateur
-Supabase Auth et ses données en cascade), soit être prêt à ce que la review
-le signale. Dites-moi si vous voulez que je le construise avant la première
-soumission.
+## ✅ Suppression de compte (règle 5.1.1(v))
+Fait : **Profil → Supprimer mon compte** (bottom-sheet de confirmation, puis
+suppression immédiate et définitive de toutes les données via la fonction
+serveur `delete-account`). Reste une action manuelle avant que ça
+fonctionne réellement : déployer `supabase-functions/delete-account.ts`
+dans Supabase Dashboard → Edge Functions, exactement comme
+`generate-itinerary` (voir IOS_SETUP.md / la feuille de route App Store).

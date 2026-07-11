@@ -479,6 +479,7 @@ function profileView(){
             + '<span class="r-chev">' + ico('chevron', 17, 1.6) + '</span></div>';
         }).join('') + '</div>'
     +   (hasRealAuth ? '' : '<button class="btn" style="width:100%;margin-top:20px" onclick="openOverlay(\'login\', loginView(), {modal:true})">Se connecter</button>')
+    +   (hasRealAuth ? '<button onclick="_promptDeleteAccount()" style="display:block;width:100%;background:none;border:none;padding:16px 0 0;font-family:var(--sans);font-size:13px;color:var(--sub);text-align:center;cursor:pointer">Supprimer mon compte</button>' : '')
     +   '<p style="text-align:center;font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub);margin-top:32px">Hic Sunt · Beyond the Known</p>'
     + '</div>';
 }
