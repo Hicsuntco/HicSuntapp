@@ -2059,17 +2059,13 @@ async function runGeneration(){
     await runDestinationSuggestion([]);
     return;
   }
-  /* Génération asynchrone côté serveur (Partie C) réservée aux comptes
-     réels : un job "generation_jobs" a besoin d'un user_id pour exister et
-     pour recevoir la notification de fin — impossible pour un accès
-     anonyme/propriétaire par email seul (voir _sbEnsureFreshToken). Ces
-     utilisateurs gardent le chemin synchrone existant, inchangé. */
-  const token = (typeof _sbEnsureFreshToken==='function') ? await _sbEnsureFreshToken() : null;
-  if(token && typeof _startAsyncGeneration==='function'){
-    await _startAsyncGeneration();
-  } else {
-    await runFullGeneration();
-  }
+  /* L'écran de génération doit apparaître IMMÉDIATEMENT au tap. Vérifier
+     la session AVANT d'afficher quoi que ce soit (version précédente)
+     laissait le bouton visuellement mort pendant tout le temps d'un
+     éventuel refresh de token sur réseau mobile lent — jusqu'à 30-60s.
+     _startAsyncGeneration ouvre l'écran d'abord, PUIS décide (session
+     réelle → job serveur, sinon/échec/timeout → chemin synchrone). */
+  await _startAsyncGeneration();
 }
 
 /* ── Étape 1 (mode Surprenez-moi) : suggestion de destination ────────── */
@@ -2105,19 +2101,11 @@ async function confirmSuggestedDestination(){
   state.destination=s.dest;
   state.createTab='known';
   state._suggestedTagline=s.tagline||'';
-  /* Fermer l'overlay suggest, puis lancer la génération depuis un contexte propre.
-     Même bascule synchrone/asynchrone que runGeneration() — un utilisateur
-     connecté qui choisit une destination "surprise" doit aussi profiter de
-     la génération en arrière-plan. */
+  /* Fermer l'overlay suggest, puis lancer la génération depuis un contexte
+     propre — _startAsyncGeneration ouvre l'écran immédiatement et gère
+     elle-même le repli synchrone (voir runGeneration). */
   closeAllOverlays();
-  setTimeout(async function(){
-    const token = (typeof _sbEnsureFreshToken==='function') ? await _sbEnsureFreshToken() : null;
-    if(token && typeof _startAsyncGeneration==='function'){
-      await _startAsyncGeneration();
-    } else {
-      runFullGeneration(false);
-    }
-  }, 320);
+  setTimeout(function(){ _startAsyncGeneration(); }, 320);
 }
 
 /* Met à jour l'état (fait / en cours / à venir) des 4 items de la checklist de génération */
@@ -2350,33 +2338,41 @@ async function _startAsyncGeneration(){
   requestAnimationFrame(function(){ gen.classList.add('run'); });
   const statusEl = el.querySelector('[data-gen-status]');
 
-  const token = await _sbEnsureFreshToken();
-  if(!token){
-    toast('Connexion requise');
-    const gi=ovStack.findIndex(function(o){return o.dataset&&o.dataset.ov==='generating';});
-    if(gi>=0){const g=ovStack.splice(gi,1)[0];g.remove();}
-    return;
-  }
-
+  /* Tentative de démarrage du job serveur, STRICTEMENT bornée dans le
+     temps : le tap doit toujours aboutir à une génération, jamais rester
+     suspendu à un appel réseau qui traîne (refresh de token, fonction
+     serveur non déployée, réseau mobile capricieux). Pas de session,
+     échec, ou dépassement de délai → chemin synchrone existant, qui n'a
+     besoin d'aucune session et reste le comportement garanti. */
   let jobId=null;
   try{
-    const res = await fetch(GENERATION_JOB_ENDPOINT, {
-      method:'POST',
-      headers:{'content-type':'application/json','apikey':SUPABASE_ANON,'Authorization':'Bearer '+token},
-      body: JSON.stringify({state:_asyncGenStateSnapshot()}),
-    });
-    const data = await res.json().catch(function(){ return {}; });
-    if(!res.ok || !data.jobId) throw new Error(data.error||('HTTP '+res.status));
-    jobId = data.jobId;
+    jobId = await Promise.race([
+      (async function(){
+        const token = await _sbEnsureFreshToken();
+        if(!token) return null; /* pas de session réelle → synchrone */
+        const ctrl = new AbortController();
+        const timer = setTimeout(function(){ ctrl.abort(); }, 8000);
+        try{
+          const res = await fetch(GENERATION_JOB_ENDPOINT, {
+            method:'POST',
+            headers:{'content-type':'application/json','apikey':SUPABASE_ANON,'Authorization':'Bearer '+token},
+            body: JSON.stringify({state:_asyncGenStateSnapshot()}),
+            signal: ctrl.signal,
+          });
+          const data = await res.json().catch(function(){ return {}; });
+          if(!res.ok || !data.jobId) throw new Error(data.error||('HTTP '+res.status));
+          return data.jobId;
+        } finally { clearTimeout(timer); }
+      })(),
+      /* filet global : couvre aussi un refresh de token qui n'aboutit pas */
+      new Promise(function(resolve, reject){ setTimeout(function(){ reject(new Error('délai de démarrage dépassé')); }, 10000); }),
+    ]);
   }catch(e){
-    /* La fonction serveur "generate-itinerary" doit être déployée
-       manuellement côté Supabase (voir NOTES_GENERATION_JOBS.sql et
-       supabase-functions/generate-itinerary.ts) — tant que ce n'est pas
-       fait, ou en cas de souci réseau ponctuel, on ne doit JAMAIS bloquer
-       la génération : on retombe sur le chemin synchrone existant, qui
-       reste le comportement garanti pour tout le monde. L'écran de
-       génération déjà ouvert est réutilisé tel quel (overlayAlreadyOpen). */
     console.warn('[_startAsyncGeneration] repli sur le chemin synchrone:', e&&e.message||e);
+    jobId = null;
+  }
+
+  if(!jobId){
     await runFullGeneration(true);
     return;
   }
