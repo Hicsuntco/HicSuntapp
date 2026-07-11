@@ -2494,7 +2494,20 @@ function _getPalier(days){
 }
 
 /* ── Vérification du token de paiement (localStorage) ── */
+/* App Store (iOS) : lancée gratuite le temps que la vraie intégration
+   d'achat intégré (StoreKit) existe — Apple rejette un paiement fait via un
+   lien Stripe externe pour débloquer un contenu numérique dans l'app
+   (règle 3.1.1). Le web garde Stripe inchangé ; seule la coquille native
+   iOS (via Capacitor, voir capacitor.config.json) passe ce paywall.
+   window.Capacitor est injecté par le runtime natif au démarrage — absent
+   sur le web, donc sans effet en dehors de l'app iOS. */
+function _isNativeIOSApp(){
+  try{
+    return !!(window.Capacitor && typeof window.Capacitor.getPlatform==='function' && window.Capacitor.getPlatform()==='ios');
+  }catch(e){ return false; }
+}
 function _checkPaymentToken(dest, days){
+  if(_isNativeIOSApp()) return true;
   /* Seule exemption : email propriétaire (insensible à la casse) */
   const email = (localStorage.getItem('hs_email')||'').toLowerCase().trim();
   if(email==='charlottegperret@gmail.com') return true;
@@ -2513,6 +2526,7 @@ function _checkPaymentToken(dest, days){
    au moins un déblocage payant encore valide (48h) — jamais un abonnement
    récurrent fabriqué, puisque ce modèle n'existe pas côté paiement. */
 function _hasActivePremiumStatus(){
+  if(_isNativeIOSApp()) return true;
   const email = (localStorage.getItem('hs_email')||'').toLowerCase().trim();
   if(email==='charlottegperret@gmail.com') return true;
   try{

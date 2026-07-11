@@ -2,3 +2,7 @@ node_modules/
 tools/node_modules/
 tools/.cache/
 .DS_Store
+
+# App iOS (Capacitor) — www/ est régénéré par scripts/build-www.sh à partir
+# des fichiers du dépôt, jamais une source à committer.
+www/
