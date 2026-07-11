@@ -2369,10 +2369,15 @@ async function _startAsyncGeneration(){
     if(!res.ok || !data.jobId) throw new Error(data.error||('HTTP '+res.status));
     jobId = data.jobId;
   }catch(e){
-    console.error('[_startAsyncGeneration]', e);
-    toast('Impossible de lancer la génération  -  réessayez');
-    const gi=ovStack.findIndex(function(o){return o.dataset&&o.dataset.ov==='generating';});
-    if(gi>=0){const g=ovStack.splice(gi,1)[0];g.remove();}
+    /* La fonction serveur "generate-itinerary" doit être déployée
+       manuellement côté Supabase (voir NOTES_GENERATION_JOBS.sql et
+       supabase-functions/generate-itinerary.ts) — tant que ce n'est pas
+       fait, ou en cas de souci réseau ponctuel, on ne doit JAMAIS bloquer
+       la génération : on retombe sur le chemin synchrone existant, qui
+       reste le comportement garanti pour tout le monde. L'écran de
+       génération déjà ouvert est réutilisé tel quel (overlayAlreadyOpen). */
+    console.warn('[_startAsyncGeneration] repli sur le chemin synchrone:', e&&e.message||e);
+    await runFullGeneration(true);
     return;
   }
 
