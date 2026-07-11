@@ -60,9 +60,9 @@ Product → Archive, puis Distribute App → App Store Connect → Upload.
 
 ## Encore à faire avant soumission
 
-- **Déployer la fonction serveur de suppression de compte** : copier
-  `supabase-functions/delete-account.ts` dans Supabase Dashboard → Edge
-  Functions → New function (nom : `delete-account`) → Deploy — même geste
-  que pour `generate-itinerary`. Sans ça, le bouton "Supprimer mon compte"
-  du Profil échoue.
+- Les deux fonctions serveur (génération d'itinéraire + suppression de
+  compte) sont déployées et opérationnelles. Note technique : Supabase leur
+  a attribué des noms auto-générés (`smooth-service` et `smooth-handler`)
+  au lieu de `generate-itinerary`/`delete-account` — le code de l'app a été
+  ajusté pour appeler les bonnes URLs, aucune action supplémentaire requise.
 - Le reste : voir `APP_STORE_LISTING.md`.

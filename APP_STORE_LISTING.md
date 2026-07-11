@@ -77,7 +77,4 @@ Notes    : "Un itinéraire est déjà disponible dans Mes voyages — composez-e
 ## ✅ Suppression de compte (règle 5.1.1(v))
 Fait : **Profil → Supprimer mon compte** (bottom-sheet de confirmation, puis
 suppression immédiate et définitive de toutes les données via la fonction
-serveur `delete-account`). Reste une action manuelle avant que ça
-fonctionne réellement : déployer `supabase-functions/delete-account.ts`
-dans Supabase Dashboard → Edge Functions, exactement comme
-`generate-itinerary` (voir IOS_SETUP.md / la feuille de route App Store).
+serveur `delete-account`). Déployée et opérationnelle côté Supabase.

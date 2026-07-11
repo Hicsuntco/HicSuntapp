@@ -2317,7 +2317,11 @@ async function runFullGeneration(overlayAlreadyOpen){
    dans "itineraries" + une notification "voyage prêt" (déjà gérée par
    l'écran Notifications, Partie A). Si l'app reste ouverte, on affiche une
    progression RÉELLE (pas simulée) en interrogeant "generation_jobs". */
-const GENERATION_JOB_ENDPOINT = 'https://lucbxwxcismnvcdnctau.supabase.co/functions/v1/generate-itinerary';
+/* Nom réel du slug Supabase = "smooth-service" (Supabase l'a auto-généré
+   au déploiement au lieu de "generate-itinerary" — le code de la fonction
+   est bien celui de supabase-functions/generate-itinerary.ts, seule l'URL
+   diffère). */
+const GENERATION_JOB_ENDPOINT = 'https://lucbxwxcismnvcdnctau.supabase.co/functions/v1/smooth-service';
 /* Même liste de champs que STATE_FIELDS côté serveur (supabase-functions/
    generate-itinerary.ts) — ne pas en ajouter un ici sans l'ajouter aussi
    là-bas, sinon le serveur ignorera silencieusement le nouveau champ. */
