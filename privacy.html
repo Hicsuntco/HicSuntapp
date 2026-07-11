@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Confidentialité — Hic Sunt</title>
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="core.css">
+<style>
+  body{background:var(--bg);color:var(--ink);font-family:var(--sf);min-height:100vh}
+  .pp-wrap{max-width:640px;margin:0 auto;padding:56px 22px 90px}
+  .pp-eyebrow{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-deep)}
+  .pp-title{font-family:var(--serif);font-weight:700;font-size:clamp(28px,6vw,36px);margin:12px 0 6px;letter-spacing:-.01em}
+  .pp-updated{font-family:var(--mono);font-size:11.5px;color:var(--sub);margin-bottom:36px}
+  .pp-wrap h2{font-family:var(--serif);font-weight:700;font-size:19px;margin:38px 0 10px;letter-spacing:-.01em}
+  .pp-wrap p, .pp-wrap li{font-size:15px;line-height:1.7;color:var(--ink-soft)}
+  .pp-wrap ul{padding-left:20px;margin:8px 0}
+  .pp-wrap li{margin-bottom:6px}
+  .pp-wrap a{color:var(--gold-deep)}
+  .pp-wrap b{color:var(--ink);font-weight:600}
+  .pp-table{width:100%;border-collapse:collapse;margin-top:12px;font-size:13.5px}
+  .pp-table th{text-align:left;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--sub);padding:0 10px 8px 0;border-bottom:1px solid var(--line2)}
+  .pp-table td{padding:10px 10px 10px 0;border-bottom:1px solid var(--line);vertical-align:top;color:var(--ink-soft)}
+  .pp-table td:first-child{color:var(--ink);font-weight:600;white-space:nowrap}
+</style>
+</head>
+<body>
+<div class="pp-wrap">
+  <div class="pp-eyebrow">Hic Sunt · Beyond the Known</div>
+  <h1 class="pp-title">Politique de confidentialité</h1>
+  <div class="pp-updated">Dernière mise à jour : 11 juillet 2026</div>
+
+  <p>Hic Sunt compose des itinéraires de voyage sur-mesure. Cette page explique simplement quelles données sont collectées, pourquoi, et comment les faire supprimer.</p>
+
+  <h2>Ce que nous collectons</h2>
+  <div style="overflow-x:auto">
+  <table class="pp-table">
+    <tr><th>Donnée</th><th>Pourquoi</th></tr>
+    <tr><td>Adresse e-mail</td><td>Créer votre compte et vous reconnecter (via Supabase Auth, e-mail/mot de passe ou connexion Google).</td></tr>
+    <tr><td>Réponses au questionnaire de voyage</td><td>Destination, dates, budget, style de voyage, centres d'intérêt — utilisées pour composer votre itinéraire. Envoyées au moteur de génération le temps de la composition, non revendues.</td></tr>
+    <tr><td>Itinéraires générés et sauvegardés</td><td>Retrouver vos voyages dans l'app, sur tous vos appareils si vous êtes connecté.</td></tr>
+    <tr><td>Prénoms des compagnons de voyage</td><td>Fonctionnalité "Mon Cercle" — uniquement si vous en ajoutez vous-même.</td></tr>
+    <tr><td>Pays débloqués (Atlas Vivant)</td><td>Afficher votre carte du monde personnelle des destinations visitées/explorées.</td></tr>
+  </table>
+  </div>
+  <p style="margin-top:14px">Nous ne collectons <b>aucune donnée de localisation</b> : l'app ne demande jamais l'accès à votre position.</p>
+
+  <h2>Paiement</h2>
+  <p>Le déblocage d'un itinéraire est traité directement par <b>Stripe</b>. Hic Sunt ne voit ni ne stocke jamais votre numéro de carte bancaire.</p>
+
+  <h2>Services tiers utilisés</h2>
+  <ul>
+    <li><b>Supabase</b> — hébergement du compte, des itinéraires et de l'authentification.</li>
+    <li><b>Anthropic</b> — génère le contenu de l'itinéraire à partir de vos réponses au questionnaire.</li>
+    <li><b>Stripe</b> — traitement du paiement.</li>
+    <li><b>Wikipédia / Wikivoyage</b> — recherche d'une photo de destination (appels publics, sans donnée personnelle transmise).</li>
+  </ul>
+
+  <h2>Combien de temps vos données sont conservées</h2>
+  <p>Aussi longtemps que votre compte existe. Un itinéraire supprimé depuis l'app est retiré immédiatement de nos serveurs.</p>
+
+  <h2>Supprimer votre compte et vos données</h2>
+  <p>Écrivez-nous à <a href="mailto:hicsunttravel@gmail.com">hicsunttravel@gmail.com</a> depuis l'adresse associée à votre compte : nous supprimons votre compte et l'ensemble de vos données sous 30 jours.</p>
+
+  <h2>Nous contacter</h2>
+  <p>Une question sur cette politique ou sur vos données : <a href="mailto:hicsunttravel@gmail.com">hicsunttravel@gmail.com</a>.</p>
+</div>
+</body>
+</html>
