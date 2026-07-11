@@ -398,7 +398,9 @@ async function _deleteAccount(){
   const token = await _sbEnsureFreshToken();
   if(!token){ toast('Connexion requise'); _closeDeleteAccountPrompt(); return; }
   try{
-    const res = await fetch(SUPABASE_URL+'/functions/v1/delete-account', {
+    /* Slug réel côté Supabase = "smooth-handler" (auto-généré au déploiement
+       au lieu de "delete-account" — même code, URL différente). */
+    const res = await fetch(SUPABASE_URL+'/functions/v1/smooth-handler', {
       method:'POST',
       headers:{'content-type':'application/json','apikey':SUPABASE_ANON,'Authorization':'Bearer '+token},
     });
