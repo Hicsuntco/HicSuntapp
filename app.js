@@ -367,6 +367,58 @@ function logout(){
   setTimeout(function(){ openOverlay('onboarding', onboardingView(), { modal:true }); }, 80);
 }
 
+/* ── Suppression de compte ────────────────────────────────────────────
+   Exigée par Apple (règle 5.1.1(v)) : une app qui permet de créer un
+   compte doit permettre de le supprimer depuis l'app elle-même, pas
+   seulement sur demande par e-mail. Confirmation obligatoire avant toute
+   action irréversible — même bottom-sheet que _promptSaveModified. */
+function _promptDeleteAccount(){
+  const ov = document.createElement('div');
+  ov.className = 'ov modal in';
+  ov.dataset.ov = 'deleteaccount';
+  ov.style.cssText = 'background:rgba(20,16,12,0.4);display:flex;align-items:flex-end;justify-content:center;z-index:300';
+  ov.innerHTML = '<div style="background:var(--surface-raised);border-radius:24px 24px 0 0;padding:28px 22px calc(28px + env(safe-area-inset-bottom,0px));width:100%;max-width:520px">'
+    + '<div style="font-family:var(--serif);font-size:22px;font-weight:600;color:var(--ink);margin-bottom:6px">Supprimer votre compte ?</div>'
+    + '<div style="font-family:var(--sans);font-size:14px;color:var(--sub);line-height:1.5;margin-bottom:22px">Cette action est définitive. Vos itinéraires, votre Cercle, vos notifications et votre Atlas seront supprimés — impossible de revenir en arrière.</div>'
+    + '<button id="del-acc-confirm" style="width:100%;background:#A8432B;color:var(--bg);border:none;border-radius:14px;padding:15px;font-family:var(--sans);font-size:15px;font-weight:600;cursor:pointer;margin-bottom:10px">Supprimer définitivement</button>'
+    + '<button onclick="_closeDeleteAccountPrompt()" style="width:100%;background:transparent;color:var(--sub);border:none;padding:12px;font-family:var(--sans);font-size:14px;cursor:pointer">Annuler</button>'
+    + '</div>';
+  screenEl().appendChild(ov);
+  ovStack.push(ov);
+  const confirmBtn = ov.querySelector('#del-acc-confirm');
+  if(confirmBtn) confirmBtn.addEventListener('click', _deleteAccount);
+}
+function _closeDeleteAccountPrompt(){
+  const ov = ovStack[ovStack.length-1];
+  if(ov && ov.dataset.ov==='deleteaccount'){ ovStack.pop(); ov.remove(); }
+}
+async function _deleteAccount(){
+  const confirmBtn = document.getElementById('del-acc-confirm');
+  if(confirmBtn){ confirmBtn.disabled = true; confirmBtn.textContent = 'Suppression…'; }
+  const token = await _sbEnsureFreshToken();
+  if(!token){ toast('Connexion requise'); _closeDeleteAccountPrompt(); return; }
+  try{
+    const res = await fetch(SUPABASE_URL+'/functions/v1/delete-account', {
+      method:'POST',
+      headers:{'content-type':'application/json','apikey':SUPABASE_ANON,'Authorization':'Bearer '+token},
+    });
+    const data = await res.json().catch(function(){ return {}; });
+    if(!res.ok || !data.ok) throw new Error(data.error||('HTTP '+res.status));
+  }catch(e){
+    console.error('[_deleteAccount]', e);
+    toast('Suppression impossible  -  réessayez');
+    if(confirmBtn){ confirmBtn.disabled = false; confirmBtn.textContent = 'Supprimer définitivement'; }
+    return;
+  }
+  /* Compte supprimé côté serveur : plus aucune donnée locale ne doit
+     survivre (contrairement à logout(), qui garde volontairement les
+     brouillons locaux et l'e-mail mémorisé pour une reconnexion facile). */
+  try{ localStorage.clear(); }catch(e){}
+  closeAllOverlays();
+  toast('Compte supprimé');
+  setTimeout(function(){ window.location.reload(); }, 700);
+}
+
 /* ── Supabase ── */
 const SUPABASE_URL  = 'https://lucbxwxcismnvcdnctau.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx1Y2J4d3hjaXNtbnZjZG5jdGF1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMTc3NzAsImV4cCI6MjA5NDU5Mzc3MH0.G17LlW8K-5UDg_QbkJprkZX-oqlTL_RWUTrwIh408yQ';
