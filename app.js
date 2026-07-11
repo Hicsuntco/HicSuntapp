@@ -753,8 +753,13 @@ async function saveItinerary(){
       localStorage.setItem('hs_saved_trips', JSON.stringify(local.slice(0,50)));
     }
   }catch(e){ console.warn('saveItinerary local error:', e); }
-  /* Sauvegarde cloud si connecté */
-  if(token && userId){
+  /* Sauvegarde cloud si connecté — sautée si ce voyage vient de la
+     génération asynchrone (Partie C, generate.js) : l'Edge Function l'a
+     déjà inséré côté serveur, réinsérer ici créerait un doublon dans
+     "itineraries" plutôt qu'une mise à jour. */
+  const skipCloudSave = window._asyncItinAlreadySaved;
+  if(skipCloudSave) window._asyncItinAlreadySaved = false;
+  if(token && userId && !skipCloudSave){
     try{
       await fetch(SUPABASE_URL+'/rest/v1/itineraries',{
         method:'POST',
