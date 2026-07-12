@@ -597,7 +597,7 @@ function buildSkeletonPrompt(dc, batchSize, offset){
       '━━━ PHILOSOPHIE ÉDITORIALE ━━━',
       '* NOMS RÉELS : restaurants, guides, excursions  -  décris-les précisément. Pour les HÉBERGEMENTS, propose un nom plausible et le bon standing : ils seront ensuite remplacés par de vrais établissements vérifiés.',
       '* STANDING HÉBERGEMENTS : toujours indiquer la classification (Relais & Châteaux / 5⭐ / Boutique 4⭐ / Agriturismo bio / Maison d\'hôtes charme).',
-      '* RESTAURANTS : nom exact + quartier + spécialité signature + fourchette de prix + note Google si connue.',
+      '* RESTAURANTS : nom exact + quartier + spécialité signature + fourchette de prix + note Google si connue. N\'indiquer que des adresses réputées pour leur qualité (note Google/TripAdvisor 4,5+/5) — jamais une adresse moyenne ou quelconque, ces noms seront de toute façon vérifiés ensuite.',
       '* EXCURSIONS : nom du prestataire ou du guide local + contact si disponible.',
       '* ANCRAGE LOCAL : familles, producteurs, artisans. "Trattoria tenue par la même famille depuis 1974."',
       '* HORAIRES PRATIQUES : meilleur moment, réservation conseillée, à éviter si surpeuplé.',
@@ -1527,6 +1527,7 @@ function _mergeRealStays(origList, zonesList, realStays){
         photo: _validStayPhoto(real.photo),
         photoPage: _validPhotoPage(real.photo_page),
         source: /^(booking|airbnb|hotels|officiel)$/i.test(String(real.source||'').trim()) ? String(real.source).trim().toLowerCase() : '',
+        rating: real.rating || orig.rating,
         verified: true,
       };
     }
@@ -1566,6 +1567,14 @@ function buildStaySearchPrompt(dest, zones, level, dateRanges){
   const lvlGuide = lvl.indexOf('Éco')>=0?'auberges, guesthouses, agriturismi simples'
     : (lvl.indexOf('Luxe')>=0||lvl.indexOf('Ultra')>=0)?'hôtels 4-5 étoiles, Relais & Châteaux, villas de luxe, boutique-hôtels haut de gamme'
     : 'boutique-hôtels, agriturismi de charme, maisons d\'hôtes 3-4 étoiles';
+  /* Seuil de note minimum adapté au budget : les hébergements très
+     économiques dépassent rarement 4,3-4,4/5 même quand ils sont
+     excellents dans leur catégorie — exiger 4,5+ partout écarterait
+     systématiquement toute l'offre Éco. Luxe/Ultra doit rester au niveau
+     le plus élevé, c'est justement ce qui justifie le tarif. */
+  const ratingFloor = lvl.indexOf('Éco')>=0 ? '4,0'
+    : (lvl.indexOf('Luxe')>=0||lvl.indexOf('Ultra')>=0) ? '4,6'
+    : '4,3';
   const hasDates = Array.isArray(dateRanges) && dateRanges.some(Boolean);
   return [
     'Cherche sur le web des hébergements RÉELS et ACTUELLEMENT EN ACTIVITÉ pour un séjour à '+(dest||'')+'.',
@@ -1588,9 +1597,11 @@ function buildStaySearchPrompt(dest, zones, level, dateRanges){
     '- "source" : indique sur quelle plateforme tu as vérifié l\'existence de cet établissement dans tes résultats de recherche : "booking", "airbnb", "hotels" ou "officiel" (site propre à l\'établissement). Laisse vide si tu n\'es pas sûr.',
     '- "photo" : cherche activement une vraie photo de cet établissement précis (page Booking/Airbnb, fiche TripAdvisor, fiche Google Maps/Business) et regarde si l\'URL complète de l\'image apparaît littéralement dans tes résultats de recherche — c\'est fréquent, ne t\'en prive pas si elle y est. La seule règle est de ne JAMAIS inventer ou reconstruire une URL à partir d\'un pattern connu (ex: "q-xx.bstatic.com/...", des identifiants entre crochets) : uniquement une URL que tu as VUE mot pour mot, telle quelle, dans un extrait/snippet de recherche. Si tu ne l\'as pas vue ainsi, laisse "photo" VIDE plutôt que de risquer une URL fictive qui cassera l\'affichage.',
     '- "photo_page" (différent de "photo") : si tu as trouvé une PAGE web réelle qui contient des photos de cet établissement (fiche TripAdvisor, fiche Google Maps, page galerie du site officiel) sans pouvoir en extraire l\'URL d\'image directe, indique l\'URL de cette page ici — l\'utilisateur pourra cliquer pour voir les photos lui-même. Cette URL doit aussi avoir été VUE littéralement dans tes résultats, jamais construite.',
+    '- "rating" : la note ACTUELLE de cet établissement (Google Maps ou Booking, ex: "4.6"), telle que vue dans tes résultats de recherche — jamais estimée ni inventée.',
+    '- EXIGENCE DE QUALITÉ : n\'accepte que des établissements avec une note réelle d\'au moins '+ratingFloor+'/5. Si le meilleur hébergement que tu trouves pour cette zone est en dessous de ce seuil, cherche-en un autre pour cette même zone plutôt que de te contenter d\'une adresse moyenne — ne mets "name":"" pour ce motif que si vraiment aucun établissement à '+ratingFloor+'+ n\'existe dans cette zone précise.',
     '',
     'Réponds UNIQUEMENT en JSON compact valide, sans texte autour :',
-    '{"stays":[{"zone":"nom de la zone","name":"nom exact reel","type":"type/standing","price":0,"photo":"","photo_page":"","source":"","blurb":"description courte basee sur des infos reelles"}]}',
+    '{"stays":[{"zone":"nom de la zone","name":"nom exact reel","type":"type/standing","price":0,"photo":"","photo_page":"","source":"","rating":"","blurb":"description courte basee sur des infos reelles"}]}',
   ].join('\n');
 }
 async function _fetchRealStays(dest, zones, level, dateRanges){
@@ -1636,9 +1647,11 @@ function buildRestoSearchPrompt(dest, places, level){
     '- EXCLUSION ABSOLUE ET PRIORITAIRE : si tes résultats de recherche indiquent, même une seule fois, que l\'établissement est "définitivement fermé"/"permanently closed"/"closed down"/"fermé"/"n\'existe plus"/"a fermé ses portes" (peu importe qu\'il ait été réel et réputé), tu DOIS l\'exclure et chercher une autre adresse réelle et actuellement ouverte pour ce lieu — ne le propose sous aucun prétexte, même si aucune alternative n\'est trouvée (mets alors "name":"").',
     '- Si tu n es pas certain pour un lieu, ou si le statut d\'ouverture actuel est incertain, mets "name":"" pour ce lieu plutôt que de risquer une adresse fermée.',
     '- Indique une spécialité réelle et une fourchette de prix (€, €€, €€€).',
+    '- "rating" : la note ACTUELLE de ce restaurant (Google Maps ou TripAdvisor, ex: "4.7"), telle que vue dans tes résultats de recherche — jamais estimée ni inventée.',
+    '- EXIGENCE DE QUALITÉ : n\'accepte qu\'un restaurant avec une note réelle d\'au moins 4,5/5. Si la meilleure table que tu trouves pour ce lieu est en dessous de ce seuil, cherche-en une autre pour ce même lieu plutôt que de te contenter d\'une adresse moyenne — ne mets "name":"" pour ce motif que si vraiment aucune adresse à 4,5+ n\'existe pour ce lieu précis.',
     '',
     'Réponds UNIQUEMENT en JSON compact valide, sans texte autour :',
-    '{"restos":[{"place":"nom du lieu","name":"nom exact reel","type":"specialite/cuisine","price":"€€","note":"detail reel court","review":"ce qui rend ce lieu special"}]}',
+    '{"restos":[{"place":"nom du lieu","name":"nom exact reel","type":"specialite/cuisine","price":"€€","note":"detail reel court","rating":"","review":"ce qui rend ce lieu special"}]}',
   ].join('\n');
 }
 async function _fetchRealRestos(dest, places, level){
@@ -2020,6 +2033,7 @@ async function callCartographe(){
             if(real.price) r.price = real.price;
             if(real.note && real.note.length>4) r.note = real.note;
             if(real.review && real.review.length>4) r.review = real.review;
+            if(real.rating) r.rating = real.rating;
           }
         });
       }
