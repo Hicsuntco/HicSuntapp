@@ -101,6 +101,43 @@ body{
     overflow:hidden;
   }
 }
+/* App native Capacitor (iPhone ET iPad) : mêmes règles plein écran que
+   ci-dessus, mais sans dépendre de la largeur d'écran — un iPad est bien
+   plus large que 500px et ne déclencherait jamais le bloc mobile. */
+html.native-app,
+html.native-app body{overflow:hidden;height:100%}
+html.native-app body{position:fixed;inset:0}
+html.native-app .studio-head{display:none}
+html.native-app .stage{
+  position:fixed;inset:0;
+  padding:0;margin:0;
+  display:flex;
+  background:transparent;
+  pointer-events:none;
+}
+html.native-app{ --app-vh: 1vh; }
+html.native-app .phone{
+  position:fixed !important;
+  inset:0 !important;
+  width:100vw !important;
+  height:calc(var(--app-vh) * 100) !important;
+  border-radius:0 !important;
+  padding:0 !important;
+  box-shadow:none !important;
+  background:var(--bg) !important;
+  pointer-events:auto;
+  z-index:0;
+}
+html.native-app .phone::after{display:none !important}
+html.native-app .screen{
+  position:absolute !important;
+  top:0 !important;left:0 !important;
+  right:0 !important;bottom:0 !important;
+  width:100% !important;
+  height:100% !important;
+  border-radius:0 !important;
+  overflow:hidden;
+}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:0.01ms !important;animation-iteration-count:1 !important;transition-duration:0.01ms !important}
 }
