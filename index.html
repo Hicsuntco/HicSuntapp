@@ -14,7 +14,10 @@
    layout plein écran de l'app — la bascule "mobile" normale ne se
    déclenche que sous 500px de large (voir core.css), donc jamais sur
    iPad où la fenêtre est bien plus large qu'un téléphone. */
-if(window.Capacitor && typeof window.Capacitor.getPlatform === 'function' && window.Capacitor.getPlatform() !== 'web'){
+/* location.protocol est connu immédiatement (dérivé de l'URL de la page
+   elle-même), contrairement à window.Capacitor qui dépend du moment où
+   le bridge natif l'injecte — plus fiable ici que d'attendre le bridge. */
+if(location.protocol === 'capacitor:' || (window.Capacitor && typeof window.Capacitor.getPlatform === 'function' && window.Capacitor.getPlatform() !== 'web')){
   document.documentElement.classList.add('native-app');
 }
 </script>
@@ -53,11 +56,11 @@ if(window.Capacitor && typeof window.Capacitor.getPlatform === 'function' && win
 <link rel="shortcut icon" href="/favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="core.css?v=1783845563">
-<link rel="stylesheet" href="screens.css?v=1783845563">
-<link rel="stylesheet" href="overlays.css?v=1783845563">
-<link rel="stylesheet" href="features.css?v=1783845563">
-<link rel="stylesheet" href="atlas.css?v=1783845563">
+<link rel="stylesheet" href="core.css?v=1783845753">
+<link rel="stylesheet" href="screens.css?v=1783845753">
+<link rel="stylesheet" href="overlays.css?v=1783845753">
+<link rel="stylesheet" href="features.css?v=1783845753">
+<link rel="stylesheet" href="atlas.css?v=1783845753">
 </head>
 <body>
 <script>
@@ -113,17 +116,17 @@ if(window.Capacitor && typeof window.Capacitor.getPlatform === 'function' && win
 <div class="stage">
   <div class="phone"><div class="screen"></div></div>
 </div>
-<script src="data.js?v=1783845563"></script>
-<script src="extra-data.js?v=1783845563"></script>
-<script src="screens-main.js?v=1783845563"></script>
-<script src="screens-detail.js?v=1783845563"></script>
-<script src="screens-extra.js?v=1783845563"></script>
-<script src="deck.js?v=1783845563"></script>
-<script src="features.js?v=1783845563"></script>
-<script src="generate.js?v=1783845563"></script>
-<script src="maps.js?v=1783845563"></script>
-<script src="atlas-map-data.js?v=1783845563"></script>
-<script src="atlas.js?v=1783845563"></script>
-<script src="app.js?v=1783845563"></script>
+<script src="data.js?v=1783845753"></script>
+<script src="extra-data.js?v=1783845753"></script>
+<script src="screens-main.js?v=1783845753"></script>
+<script src="screens-detail.js?v=1783845753"></script>
+<script src="screens-extra.js?v=1783845753"></script>
+<script src="deck.js?v=1783845753"></script>
+<script src="features.js?v=1783845753"></script>
+<script src="generate.js?v=1783845753"></script>
+<script src="maps.js?v=1783845753"></script>
+<script src="atlas-map-data.js?v=1783845753"></script>
+<script src="atlas.js?v=1783845753"></script>
+<script src="app.js?v=1783845753"></script>
 </body>
 </html>
