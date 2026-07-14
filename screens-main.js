@@ -355,6 +355,7 @@ function savedTripCard(it){
   const budget = (typeof eur === 'function' && it.budget) ? eur(it.budget) : '';
   const data = it.data || {};
   const coords = data.coords || it.coords || '';
+  const companions = Array.isArray(data.companions) ? data.companions : [];
 
   if(isDraft){
     return '<div class="trip-card draft" onclick="loadSavedItinerary(\''+it.id+'\')">'
@@ -396,12 +397,15 @@ function savedTripCard(it){
     +  '</div>'
     +'</div>'
     +'<div class="trip-card-foot">'
+    +  '<div class="tcf-row">'
     /* it.dates inclut déjà "· N jours" (généré ainsi par le Cartographe) —
        y ajouter le nombre d'étapes rendait la ligne trop longue pour tenir
        sur une seule ligne (le nombre d'étapes reste visible sur l'écran
        détail de l'itinéraire). */
-    +  '<span class="tcf-dates">'+esc(it.dates||'')+'</span>'
-    +  '<span class="accent">'+[budget, countdown].filter(Boolean).join(' · ')+'</span>'
+    +    '<span class="tcf-dates">'+esc(it.dates||'')+'</span>'
+    +    '<span class="accent">'+[budget, countdown].filter(Boolean).join(' · ')+'</span>'
+    +  '</div>'
+    +  (companions.length ? '<div class="tcf-companions mono">Avec '+esc(companions.join(', '))+'</div>' : '')
     +'</div>'
     +'</div>';
 }
@@ -544,6 +548,24 @@ function _circleCardHTML(companions, connected){
     +   '<button class="cc-btn ghost" onclick="event.stopPropagation();openAddCompanion()">+ Ajouter</button>'
     + '</div>';
 }
+/* Compagnons rattachés à UN voyage précis (liste de prénoms dans
+   ITINERARY.companions) — distinct de _circleCardHTML qui montre le Cercle
+   entier sur le Profil. Donne enfin un usage concret à Mon Cercle : on
+   pioche dedans pour dire avec qui on part sur ce voyage-là. */
+function _tripCompanionsHTML(names){
+  const hues = ['#3EA07C','#2E9CC0','#E86B4A','#D4943A','#9B85CC'];
+  const shown = names.slice(0,4);
+  const avatars = shown.map(function(n,i){
+    const initials = (n||'?').trim().split(/\s+/).map(function(w){ return w[0]||''; }).join('').toUpperCase().slice(0,2) || '?';
+    return '<span class="circle-av" style="background:' + hues[i%hues.length] + '">' + esc(initials) + '</span>';
+  }).join('');
+  const more = names.length>4 ? '<span class="circle-av more">+' + (names.length-4) + '</span>' : '';
+  const label = names.length === 0 ? 'Ajouter des compagnons de route'
+    : 'Avec ' + names.join(', ');
+  return (names.length ? '<div class="circle-avatars">' + avatars + more + '</div>' : '<div class="circle-empty-ico light">' + ico('users',18,1.5) + '</div>')
+    + '<div style="flex:1;min-width:0"><div style="font-family:var(--serif);font-size:16px;color:var(--ink)">Compagnons</div><div style="font-family:var(--mono);font-size:10px;color:var(--sub);letter-spacing:.04em;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(label) + '</div></div>'
+    + '<span style="color:var(--sub);display:inline-flex">' + ico('chevron',16,1.6) + '</span>';
+}
 /* La carte Mon Cercle du profil n'ouvrait jamais rien au clic (seuls ses
    deux boutons internes "Inviter"/"+ Ajouter" faisaient quelque chose) —
    ce détail liste les compagnons et permet d'en retirer. */
@@ -626,5 +648,14 @@ window._submitCompanion = async function(){
   if(listEl){
     const connected = !!localStorage.getItem('sb_token');
     listEl.innerHTML = _cercleListHTML(window._profCompanions||[], connected);
+  }
+  /* Ajout depuis le sélecteur de compagnons d'un voyage (voir
+     openTripCompanionsPicker) : le nouveau venu rejoint aussi la sélection
+     en cours, pas seulement le Cercle. */
+  const tripListEl = document.querySelector('[data-trip-comp-list]');
+  if(tripListEl){
+    window._tripCompList = (window._tripCompList||[]).concat([row]);
+    window._tripCompSelection = (window._tripCompSelection||[]).concat([row.name]);
+    tripListEl.innerHTML = _tripCompChecklistHTML(window._tripCompList, window._tripCompSelection);
   }
 };
