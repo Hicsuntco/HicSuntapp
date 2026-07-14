@@ -27,14 +27,12 @@
 .tabbar-pill{
   display:flex;align-items:center;
   width:100%;
-  /* Fond quasi-opaque, sans boost de saturation : même à 140%/0.88, les
-     couleurs vives des photos de destination juste en dessous (orange,
-     bleu...) restaient visibles en dégradé à travers le flou — un flou
-     large (40px) capte toujours une teinte reconnaissable dès qu'il y a
-     la moindre transparence face à un contenu très saturé. */
-  background:rgba(236,231,218,0.96);
-  backdrop-filter:blur(40px) saturate(100%);
-  -webkit-backdrop-filter:blur(40px) saturate(100%);
+  /* Fond totalement opaque, sans backdrop-filter : sur ce WebKit, le flou
+     laissait passer un dégradé net des photos de destination juste en
+     dessous quel que soit le réglage d'opacité/saturation essayé — un vrai
+     bug de rendu sur ce contenu photo, pas un simple réglage à affiner.
+     On sacrifie l'effet "verre dépoli" pour un rendu fiable partout. */
+  background:#ECE7DA;
   border-radius:30px;
   padding:7px;
   gap:2px;
