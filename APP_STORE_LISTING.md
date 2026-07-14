@@ -51,16 +51,16 @@ Première version de Hic Sunt sur l'App Store.
 ```
 
 ## Compte de démonstration (pour le reviewer Apple)
-À créer avant soumission — un compte email/mot de passe fixe, avec au moins
-un itinéraire déjà généré dedans, pour que le reviewer puisse tout tester
-sans attendre une génération complète.
+Compte fixe, créé directement via l'API Supabase Auth (email déjà confirmé,
+profil déjà rempli — pas d'écran d'onboarding bloquant à la connexion) :
 
 ```
-Email    : ___________________
-Password : ___________________
-Notes    : "Un itinéraire est déjà disponible dans Mes voyages — composez-en
-            un nouveau depuis l'onglet Créer pour tester la génération."
+Email    : appreview.demo@hicsunt.app
+Password : AppReview2026!
+Notes    : "Connectez-vous avec ce compte, puis composez un itinéraire
+            depuis l'onglet Créer pour tester la génération."
 ```
+À coller dans App Store Connect → App Review Information → Sign-in required.
 
 ## Réponses au questionnaire de confidentialité (App Privacy)
 

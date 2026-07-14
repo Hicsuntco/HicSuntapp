@@ -524,6 +524,10 @@ function loginGoogle(){
   const redirectTo = 'https://hic-suntapp.vercel.app/';
   window.location.href = SUPABASE_URL + '/auth/v1/authorize?provider=google&redirect_to=' + encodeURIComponent(redirectTo);
 }
+function loginApple(){
+  const redirectTo = 'https://hic-suntapp.vercel.app/';
+  window.location.href = SUPABASE_URL + '/auth/v1/authorize?provider=apple&redirect_to=' + encodeURIComponent(redirectTo);
+}
 async function loginEmail(){
   const scope = (typeof ovStack!=='undefined' && ovStack.length) ? ovStack[ovStack.length-1] : document;
   const emailEl = scope.querySelector('#authEmail') || document.getElementById('authEmail');
@@ -1222,7 +1226,7 @@ async function deleteSavedItinerary(id){
   }catch(e){ toast('Erreur de suppression'); }
 }
 
-/* ── callback Google OAuth ── */
+/* ── callback OAuth (Google, Apple — même format de redirection Supabase) ── */
 function handleAuthCallback(){
   try{
     const hash = window.location.hash;
