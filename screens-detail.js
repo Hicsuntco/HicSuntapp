@@ -114,13 +114,18 @@ function onboardingView(){
 /* ── icône Google (réutilisée par signup/login) ─────────────────────── */
 const GOOGLE_SVG = '<svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z"/></svg>';
 
+/* ── icône Apple (réutilisée par signup/login) ─────────────────────── */
+const APPLE_SVG = '<svg width="18" height="18" viewBox="0 0 24 24"><path fill="#fff" d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.087 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zm3.514-3.325c.838-1.011 1.402-2.42 1.245-3.819-1.207.052-2.662.805-3.528 1.816-.78.896-1.464 2.334-1.28 3.71 1.345.104 2.722-.688 3.563-1.707z"/></svg>';
+
 /* ── 2 · Inscription ───────────────────────────────────────────────── */
 function signupView(){
   return statusBar() + navbar('')
     + '<div class="ov-scroll px">'
     +   '<h1 class="login-h">Créer un compte.</h1>'
     +   '<p class="login-s">Rejoignez Hic Sunt pour composer vos voyages.</p>'
-    +   '<button class="apple-btn" onclick="loginGoogle()" style="background:#fff;color:#1b1610;border:1px solid var(--line);gap:12px">'
+    +   '<button class="apple-btn" onclick="loginApple()" style="background:#000;color:#fff;border:1px solid #000;gap:12px">'
+    +     APPLE_SVG + 'Continuer avec Apple</button>'
+    +   '<button class="apple-btn" onclick="loginGoogle()" style="background:#fff;color:#1b1610;border:1px solid var(--line);gap:12px;margin-top:10px">'
     +     GOOGLE_SVG + 'Continuer avec Google</button>'
     +   '<div class="sep">ou</div>'
     +   '<div class="field"><label>Email</label><input class="input" type="email" id="authEmail" placeholder="charlotte@exemple.fr"></div>'
@@ -136,7 +141,9 @@ function loginView(){
     + '<div class="ov-scroll px">'
     +   '<h1 class="login-h">Bon retour.</h1>'
     +   '<p class="login-s">Connectez-vous pour accéder à vos itinéraires.</p>'
-    +   '<button class="apple-btn" onclick="loginGoogle()" style="background:#fff;color:#1b1610;border:1px solid var(--line);gap:12px">'
+    +   '<button class="apple-btn" onclick="loginApple()" style="background:#000;color:#fff;border:1px solid #000;gap:12px">'
+    +     APPLE_SVG + 'Continuer avec Apple</button>'
+    +   '<button class="apple-btn" onclick="loginGoogle()" style="background:#fff;color:#1b1610;border:1px solid var(--line);gap:12px;margin-top:10px">'
     +     GOOGLE_SVG + 'Continuer avec Google</button>'
     +   '<div class="sep">ou</div>'
     +   '<div class="field"><label>Email</label><input class="input" type="email" id="authEmail" placeholder="charlotte@exemple.fr"></div>'
