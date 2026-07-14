@@ -972,6 +972,55 @@ async function inviteCompanion(){
   catch(e){ toast('Partage indisponible sur ce navigateur'); }
 }
 
+/* ── Compagnons rattachés à un voyage précis ──────────────────────────
+   Donne enfin un usage concret à Mon Cercle : on y pioche pour dire avec
+   qui on part sur CE voyage (ITINERARY.companions, liste de prénoms),
+   affiché ensuite sur la carte du voyage et son écran détail. */
+async function openTripCompanionsPicker(){
+  const list = await loadCompanions();
+  window._tripCompList = list;
+  window._tripCompSelection = (ITINERARY.companions||[]).slice();
+  openOverlay('trip-companions', tripCompanionsPickerView(list), {modal:true});
+}
+function tripCompanionsPickerView(list){
+  return '<div class="ov-scroll px" style="padding-top:28px">'
+    +   '<div class="carte-handle-wrap"><div class="carte-handle"></div></div>'
+    +   '<h1 style="font-family:var(--serif);font-weight:600;font-size:22px;margin-bottom:6px">Compagnons de route</h1>'
+    +   '<p style="color:var(--sub);font-size:13px;margin-bottom:18px">Qui vous accompagne sur ce voyage ?</p>'
+    +   '<div data-trip-comp-list>' + _tripCompChecklistHTML(list, window._tripCompSelection||[]) + '</div>'
+    +   '<button class="cc-btn ghost" style="width:100%;margin-top:14px" onclick="openAddCompanion()">+ Nouveau compagnon</button>'
+    +   '<button class="btn" style="width:100%;margin-top:16px" onclick="_saveTripCompanions()">Enregistrer</button>'
+    + '</div>';
+}
+function _tripCompChecklistHTML(list, sel){
+  if(!list.length) return '<p style="color:var(--sub);font-size:14px;font-style:italic">Votre Cercle est vide — ajoutez un premier compagnon ci-dessous.</p>';
+  return list.map(function(c){
+    const on = sel.indexOf(c.name) >= 0;
+    const mark = on
+      ? '<span class="r-ico" style="color:var(--gold-deep)">' + ico('checkbig',20,1.7) + '</span>'
+      : '<span class="r-ico" style="width:20px;height:20px;border-radius:50%;border:1.5px solid var(--line2)"></span>';
+    return '<div class="row" style="cursor:pointer" onclick="_toggleTripCompanion(\'' + (c.name||'').replace(/'/g,"\\'") + '\')">'
+      + mark
+      + '<div class="r-main"><div class="r-t">' + esc(c.name) + '</div></div>'
+      + '</div>';
+  }).join('');
+}
+function _toggleTripCompanion(name){
+  const sel = window._tripCompSelection||[];
+  const i = sel.indexOf(name);
+  if(i>=0) sel.splice(i,1); else sel.push(name);
+  const listEl = document.querySelector('[data-trip-comp-list]');
+  if(listEl) listEl.innerHTML = _tripCompChecklistHTML(window._tripCompList||[], sel);
+}
+async function _saveTripCompanions(){
+  ITINERARY.companions = (window._tripCompSelection||[]).slice();
+  closeOverlay();
+  const rowEl = document.querySelector('[data-trip-companions]');
+  if(rowEl) rowEl.innerHTML = _tripCompanionsHTML(ITINERARY.companions);
+  if(typeof updateSavedItinerary === 'function') await updateSavedItinerary();
+  toast('Compagnons mis à jour ✓');
+}
+
 /* ── Filtrage des itinéraires par onglet ─────────────────────────────── */
 function _classifyItinerary(it){
   const data = it.data || {};

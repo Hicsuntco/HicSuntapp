@@ -554,6 +554,13 @@ function itineraryView(){
     /* Dates */
     +   (it.dates ? '<div class="mono" style="font-size:10px;color:var(--gold);letter-spacing:.14em;margin-top:20px">' + esc(it.dates).toUpperCase() + '</div>' : '')
 
+    /* Compagnons de route rattachés à ce voyage — piochés dans Mon Cercle,
+       pour donner enfin un usage concret à cette liste (voir
+       tripCompanionsPickerView). */
+    +   '<div class="cc-row" data-trip-companions style="margin-top:16px;padding:14px;border:1px solid var(--line);border-radius:16px;cursor:pointer" onclick="openTripCompanionsPicker()">'
+    +     _tripCompanionsHTML(it.companions||[])
+    +   '</div>'
+
     /* Confirmation "visité" pour l'Atlas Vivant — rempli de façon
        asynchrone par _atlasSyncVisitedCTA() (voir atlas.js), vide tant que
        le pays n'a pas pu être résolu ou que l'utilisateur n'est pas
