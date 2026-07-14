@@ -362,6 +362,7 @@ function composeFree(){
 function logout(){
   localStorage.removeItem('sb_token');
   localStorage.removeItem('hs_profile_done');
+  localStorage.removeItem('hs_email');
   USER.name = 'Voyageur'; USER.full = ''; USER.initials = '??';
   closeAllOverlays();
   setTimeout(function(){ openOverlay('onboarding', onboardingView(), { modal:true }); }, 80);
