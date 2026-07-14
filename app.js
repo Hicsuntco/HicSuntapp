@@ -531,6 +531,10 @@ async function loginApple(){
      que le flux web. Sur le site web (hors app), on garde la redirection OAuth classique. */
   const isNative = document.documentElement.classList.contains('native-app')
     && window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.SignInWithApple;
+  if(window.hsDebug) window.hsDebug('[diag Apple] native-app=' + document.documentElement.classList.contains('native-app')
+    + ' | Capacitor=' + !!window.Capacitor
+    + ' | Plugins=' + (window.Capacitor ? Object.keys(window.Capacitor.Plugins||{}).join(',') : 'n/a')
+    + ' | isNative=' + !!isNative);
   if(!isNative){
     const redirectTo = 'https://hic-suntapp.vercel.app/';
     window.location.href = SUPABASE_URL + '/auth/v1/authorize?provider=apple&redirect_to=' + encodeURIComponent(redirectTo);
