@@ -524,9 +524,45 @@ function loginGoogle(){
   const redirectTo = 'https://hic-suntapp.vercel.app/';
   window.location.href = SUPABASE_URL + '/auth/v1/authorize?provider=google&redirect_to=' + encodeURIComponent(redirectTo);
 }
-function loginApple(){
-  const redirectTo = 'https://hic-suntapp.vercel.app/';
-  window.location.href = SUPABASE_URL + '/auth/v1/authorize?provider=apple&redirect_to=' + encodeURIComponent(redirectTo);
+async function loginApple(){
+  /* Dans l'app native, on passe par le SDK Apple natif (ASAuthorizationAppleIDProvider
+     via le plugin Capacitor) plutôt que par la redirection web — ça évite entièrement
+     la configuration "Services ID / Website URLs" côté Apple Developer, qui ne concerne
+     que le flux web. Sur le site web (hors app), on garde la redirection OAuth classique. */
+  const isNative = document.documentElement.classList.contains('native-app')
+    && window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.SignInWithApple;
+  if(!isNative){
+    const redirectTo = 'https://hic-suntapp.vercel.app/';
+    window.location.href = SUPABASE_URL + '/auth/v1/authorize?provider=apple&redirect_to=' + encodeURIComponent(redirectTo);
+    return;
+  }
+  try{
+    const result = await window.Capacitor.Plugins.SignInWithApple.authorize({ scopes:'email name' });
+    const idToken = result && result.response && result.response.identityToken;
+    if(!idToken){ toast('Connexion Apple annulée'); return; }
+    const res = await fetch(SUPABASE_URL+'/auth/v1/token?grant_type=id_token',{
+      method:'POST',
+      headers:{'content-type':'application/json','apikey':SUPABASE_ANON},
+      body:JSON.stringify({provider:'apple', id_token:idToken})
+    });
+    const data = await res.json();
+    if(data.error_description) throw new Error(data.error_description);
+    if(data.error) throw new Error((data.error.message)||data.error||'Erreur');
+    if(!data.access_token) throw new Error('Connexion Apple impossible');
+    _sbStoreSession(data);
+    if(data.user && data.user.email) localStorage.setItem('hs_email', data.user.email.toLowerCase());
+    _applyUser(data.user);
+    closeAllOverlays(); setTab('discover');
+    if(typeof refreshAuthTabs === 'function') refreshAuthTabs();
+    toast('Connecté ✓');
+    checkProfile().then(function(done){
+      if(typeof refreshAuthTabs === 'function') refreshAuthTabs();
+      if(!done) openOverlay('welcome', welcomeView(), { modal:true });
+    });
+  }catch(e){
+    const msg = (e && e.message) || '';
+    if(msg.indexOf('1001') === -1) toast('Connexion Apple annulée'); /* code 1001 = annulation volontaire par l'utilisateur */
+  }
 }
 async function loginEmail(){
   const scope = (typeof ovStack!=='undefined' && ovStack.length) ? ovStack[ovStack.length-1] : document;
