@@ -119,7 +119,14 @@ function openPremium(){
   openOverlay('premium', premiumView());
 }
 function premiumView(){
-  const premium = (typeof _hasActivePremiumStatus === 'function') && _hasActivePremiumStatus();
+  /* Sur iOS, le paywall Stripe est entièrement contourné (voir
+     _isNativeIOSApp/_checkPaymentToken dans generate.js — Guideline 3.1.1,
+     pas de lien de paiement externe pour du contenu numérique in-app).
+     Afficher quand même les tarifs Stripe ici donnerait l'impression d'une
+     fonctionnalité de paiement active alors qu'elle ne l'est jamais dans
+     l'app — on adapte le contenu en conséquence plutôt que de laisser un
+     écran qui ne correspond pas à ce que fait réellement l'app. */
+  const isNativeIOS = (typeof _isNativeIOSApp === 'function') && _isNativeIOSApp();
   const email = (localStorage.getItem('hs_email')||'').toLowerCase().trim();
   const isOwner = email === 'charlottegperret@gmail.com';
   let paid = [];
@@ -128,6 +135,22 @@ function premiumView(){
   const recentPaid = paid.filter(function(t){ return (now - t.ts) < 48*3600*1000; })
     .sort(function(a,b){ return b.ts - a.ts; });
   const labels = (typeof STRIPE_LABELS !== 'undefined') ? STRIPE_LABELS : {};
+  const premium = isNativeIOS || ((typeof _hasActivePremiumStatus === 'function') && _hasActivePremiumStatus());
+
+  if(isNativeIOS){
+    return statusBar() + navbar('Abonnement Premium')
+      + '<div class="ov-scroll px">'
+      +   '<div class="cercle-card">'
+      +     '<div class="cc-tier">Tout inclus</div>'
+      +     '<div class="cc-pts">Aucun paiement requis dans l\'application</div>'
+      +   '</div>'
+      +   '<div class="section-h"><h2>Comment ça marche</h2></div>'
+      +   '<div class="perks" style="margin-top:0">'
+      +     '<div class="perk">' + ico('sparkle',19,1.5) + '<div class="p-t">Itinéraires illimités</div><div class="p-d">Chaque voyage composé est intégralement accessible, sans restriction.</div></div>'
+      +     '<div class="perk">' + ico('star',19,1.5) + '<div class="p-t">Aucun frais</div><div class="p-d">L\'application ne propose aucun achat.</div></div>'
+      +   '</div>'
+      + '</div>';
+  }
 
   return statusBar() + navbar('Abonnement Premium')
     + '<div class="ov-scroll px">'
