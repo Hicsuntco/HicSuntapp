@@ -1351,11 +1351,29 @@ function _splashLetters(word){
 }
 function splashHTML(){
   return '<div class="splash" data-splash>'
+    + '<svg class="splash-grid" viewBox="0 0 393 852" preserveAspectRatio="none" fill="none" stroke="rgba(156,124,68,0.08)" stroke-width="0.5">'
+    +   [0,1,2,3,4,5,6].map(function(i){ return '<line class="sg-line" x1="'+(i*65.5)+'" y1="0" x2="'+(i*65.5)+'" y2="852"/>'; }).join('')
+    +   [0,1,2,3,4,5,6,7,8,9,10,11,12].map(function(i){ return '<line class="sg-line" x1="0" y1="'+(i*71)+'" x2="393" y2="'+(i*71)+'"/>'; }).join('')
+    + '</svg>'
+    + '<div class="splash-sweep"></div>'
     + '<div class="splash-core">'
+    +   '<svg class="splash-globe" viewBox="0 0 120 120" fill="none">'
+    +     '<circle class="sg-ring" cx="60" cy="60" r="54"/>'
+    +     '<ellipse class="sg-mer" cx="60" cy="60" rx="22" ry="54"/>'
+    +     '<ellipse class="sg-mer sg-mer2" cx="60" cy="60" rx="44" ry="54"/>'
+    +     '<line class="sg-eq" x1="6" y1="60" x2="114" y2="60"/>'
+    +     '<line class="sg-eq" x1="6" y1="38" x2="114" y2="38" style="stroke-width:0.3;stroke-dasharray:200;stroke-dashoffset:200"/>'
+    +     '<line class="sg-eq" x1="6" y1="82" x2="114" y2="82" style="stroke-width:0.3;stroke-dasharray:200;stroke-dashoffset:200"/>'
+    +     '<line class="sg-tick" x1="60" y1="2" x2="60" y2="12"/>'
+    +     '<line class="sg-tick" x1="60" y1="108" x2="60" y2="118"/>'
+    +     '<line class="sg-tick" x1="2" y1="60" x2="12" y2="60"/>'
+    +     '<line class="sg-tick" x1="108" y1="60" x2="118" y2="60"/>'
+    +   '</svg>'
     +   '<div class="splash-word">'+_splashLetters('Hic Sunt')+'</div>'
     +   '<div class="splash-rule"></div>'
     +   '<div class="splash-tag">Beyond the Known</div>'
     + '</div>'
+    + '<div class="splash-coords">48°51\'N · 2°21\'E — Cartographe personnel</div>'
     + '</div>';
 }
 function playSplash(next){
