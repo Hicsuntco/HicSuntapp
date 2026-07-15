@@ -1337,25 +1337,12 @@ function handleAuthCallback(){
 }
 
 /* ── splash de lancement ─────────────────────────────────────────────── */
-/* Chaque lettre du mot-symbole est révélée individuellement (flou + montée
-   + apparition en cascade) pendant que l'espacement du mot entier se
-   resserre — effet "tracking-in" classique des intros d'agence de design.
-   Les initiales (H, S) restent dorées pour rappeler le monogramme d'origine. */
-function _splashLetters(word){
-  return word.split('').map(function(ch, i){
-    if(ch===' ') return '<span class="splash-sp"></span>';
-    const isInitial = i===0 || word[i-1]===' ';
-    const delay=(0.42+i*0.038).toFixed(3);
-    return '<span class="splash-l'+(isInitial?' gold':'')+'" style="transition-delay:'+delay+'s">'+ch+'</span>';
-  }).join('');
-}
 function splashHTML(){
   return '<div class="splash" data-splash>'
     + '<svg class="splash-grid" viewBox="0 0 393 852" preserveAspectRatio="none" fill="none" stroke="rgba(156,124,68,0.08)" stroke-width="0.5">'
     +   [0,1,2,3,4,5,6].map(function(i){ return '<line class="sg-line" x1="'+(i*65.5)+'" y1="0" x2="'+(i*65.5)+'" y2="852"/>'; }).join('')
     +   [0,1,2,3,4,5,6,7,8,9,10,11,12].map(function(i){ return '<line class="sg-line" x1="0" y1="'+(i*71)+'" x2="393" y2="'+(i*71)+'"/>'; }).join('')
     + '</svg>'
-    + '<div class="splash-sweep"></div>'
     + '<div class="splash-core">'
     +   '<svg class="splash-globe" viewBox="0 0 120 120" fill="none">'
     +     '<circle class="sg-ring" cx="60" cy="60" r="54"/>'
@@ -1369,7 +1356,7 @@ function splashHTML(){
     +     '<line class="sg-tick" x1="2" y1="60" x2="12" y2="60"/>'
     +     '<line class="sg-tick" x1="108" y1="60" x2="118" y2="60"/>'
     +   '</svg>'
-    +   '<div class="splash-word">'+_splashLetters('Hic Sunt')+'</div>'
+    +   '<div class="splash-h"><span>H</span></div>'
     +   '<div class="splash-rule"></div>'
     +   '<div class="splash-tag">Beyond the Known</div>'
     + '</div>'
