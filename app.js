@@ -522,8 +522,21 @@ async function _refreshNotifBadge(){
 }
 
 function loginGoogle(){
-  const redirectTo = 'https://hic-suntapp.vercel.app/';
-  window.location.href = SUPABASE_URL + '/auth/v1/authorize?provider=google&redirect_to=' + encodeURIComponent(redirectTo);
+  const isNative = document.documentElement.classList.contains('native-app')
+    && window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Browser;
+  /* Dans l'app native, on ouvre l'autorisation dans le navigateur intégré
+     (SFSafariViewController) plutôt que de naviguer la page elle-même —
+     un window.location.href fait quitter l'app pour Safari (guideline 4).
+     Le retour se fait via le schéma d'URL personnalisé hicsunt:// plutôt
+     que le site web, pour qu'iOS relance l'app avec le jeton au lieu
+     d'afficher la page de retour dans le navigateur intégré. */
+  const redirectTo = isNative ? 'hicsunt://auth-callback' : 'https://hic-suntapp.vercel.app/';
+  const authorizeUrl = SUPABASE_URL + '/auth/v1/authorize?provider=google&redirect_to=' + encodeURIComponent(redirectTo);
+  if(isNative){
+    window.Capacitor.Plugins.Browser.open({ url: authorizeUrl, presentationStyle:'fullscreen' });
+    return;
+  }
+  window.location.href = authorizeUrl;
 }
 async function loginApple(){
   /* Dans l'app native, on passe par le SDK Apple natif (ASAuthorizationAppleIDProvider
@@ -1316,46 +1329,83 @@ async function deleteSavedItinerary(id){
 function handleAuthCallback(){
   try{
     const hash = window.location.hash;
-    if (!hash || !hash.includes('access_token')) return false;
-    const params = new URLSearchParams(hash.substring(1));
-    const token = params.get('access_token');
-    if (!token) return false;
-    _sbStoreSession({
-      access_token: token,
-      refresh_token: params.get('refresh_token'),
-      expires_in: params.get('expires_in'),
-    });
-    try{
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      if (payload && payload.user_metadata){
-        _applyUser({ user_metadata: payload.user_metadata, email: payload.email || '' });
-      }
-    }catch(e){}
+    if(!_applyAuthHash(hash)) return false;
     window.history.replaceState({}, '', window.location.pathname);
     return true;
   }catch(e){ return false; }
 }
+/* Partagé entre le retour web (hash sur location.href) et le retour natif
+   (hash sur l'URL à schéma personnalisé hicsunt://, voir _initNativeOAuth). */
+function _applyAuthHash(hash){
+  if(!hash || hash.indexOf('access_token')===-1) return false;
+  const params = new URLSearchParams(hash.replace(/^#/,''));
+  const token = params.get('access_token');
+  if(!token) return false;
+  _sbStoreSession({
+    access_token: token,
+    refresh_token: params.get('refresh_token'),
+    expires_in: params.get('expires_in'),
+  });
+  try{
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    if(payload && payload.user_metadata){
+      _applyUser({ user_metadata: payload.user_metadata, email: payload.email || '' });
+    }
+  }catch(e){}
+  return true;
+}
+/* ── Connexion OAuth (Google) dans l'app native ─────────────────────────
+   Un simple window.location.href vers l'autorisation Supabase fait quitter
+   l'app pour Safari — expérience jugée médiocre par Apple (guideline 4).
+   On ouvre le navigateur intégré (SFSafariViewController via le plugin
+   Browser) et on redirige vers un schéma d'URL personnalisé (hicsunt://)
+   plutôt que vers le site web, pour qu'iOS relance l'app avec le jeton au
+   lieu de laisser la page de retour s'afficher dans le navigateur intégré. */
+function _initNativeOAuth(){
+  if(!(document.documentElement.classList.contains('native-app') && window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App)) return;
+  window.Capacitor.Plugins.App.addListener('appUrlOpen', function(data){
+    const url = (data && data.url) || '';
+    if(url.indexOf('hicsunt://auth-callback') !== 0) return;
+    const hashIdx = url.indexOf('#');
+    const hash = hashIdx >= 0 ? url.slice(hashIdx) : '';
+    if(window.Capacitor.Plugins.Browser) window.Capacitor.Plugins.Browser.close().catch(function(){});
+    if(_applyAuthHash(hash)){
+      closeAllOverlays(); setTab('discover');
+      if(typeof refreshAuthTabs === 'function') refreshAuthTabs();
+      toast('Connecté ✓');
+      checkProfile().then(function(done){
+        if(typeof refreshAuthTabs === 'function') refreshAuthTabs();
+        if(!done) openOverlay('welcome', welcomeView(), { modal:true });
+      });
+    }
+  });
+}
 
 /* ── splash de lancement ─────────────────────────────────────────────── */
-/* Chaque lettre du mot-symbole est révélée individuellement (flou + montée
-   + apparition en cascade) pendant que l'espacement du mot entier se
-   resserre — effet "tracking-in" classique des intros d'agence de design.
-   Les initiales (H, S) restent dorées pour rappeler le monogramme d'origine. */
-function _splashLetters(word){
-  return word.split('').map(function(ch, i){
-    if(ch===' ') return '<span class="splash-sp"></span>';
-    const isInitial = i===0 || word[i-1]===' ';
-    const delay=(0.42+i*0.038).toFixed(3);
-    return '<span class="splash-l'+(isInitial?' gold':'')+'" style="transition-delay:'+delay+'s">'+ch+'</span>';
-  }).join('');
-}
 function splashHTML(){
   return '<div class="splash" data-splash>'
+    + '<svg class="splash-grid" viewBox="0 0 393 852" preserveAspectRatio="none" fill="none" stroke="rgba(156,124,68,0.08)" stroke-width="0.5">'
+    +   [0,1,2,3,4,5,6].map(function(i){ return '<line class="sg-line" x1="'+(i*65.5)+'" y1="0" x2="'+(i*65.5)+'" y2="852"/>'; }).join('')
+    +   [0,1,2,3,4,5,6,7,8,9,10,11,12].map(function(i){ return '<line class="sg-line" x1="0" y1="'+(i*71)+'" x2="393" y2="'+(i*71)+'"/>'; }).join('')
+    + '</svg>'
     + '<div class="splash-core">'
-    +   '<div class="splash-word">'+_splashLetters('Hic Sunt')+'</div>'
+    +   '<svg class="splash-globe" viewBox="0 0 120 120" fill="none">'
+    +     '<circle class="sg-ring" cx="60" cy="60" r="54"/>'
+    +     '<ellipse class="sg-mer" cx="60" cy="60" rx="22" ry="54"/>'
+    +     '<ellipse class="sg-mer sg-mer2" cx="60" cy="60" rx="44" ry="54"/>'
+    +     '<line class="sg-eq" x1="6" y1="60" x2="114" y2="60"/>'
+    +     '<line class="sg-eq" x1="6" y1="38" x2="114" y2="38" style="stroke-width:0.3;stroke-dasharray:200;stroke-dashoffset:200"/>'
+    +     '<line class="sg-eq" x1="6" y1="82" x2="114" y2="82" style="stroke-width:0.3;stroke-dasharray:200;stroke-dashoffset:200"/>'
+    +     '<line class="sg-tick" x1="60" y1="2" x2="60" y2="12"/>'
+    +     '<line class="sg-tick" x1="60" y1="108" x2="60" y2="118"/>'
+    +     '<line class="sg-tick" x1="2" y1="60" x2="12" y2="60"/>'
+    +     '<line class="sg-tick" x1="108" y1="60" x2="118" y2="60"/>'
+    +   '</svg>'
+    +   '<div class="splash-h"><span>H</span></div>'
     +   '<div class="splash-rule"></div>'
     +   '<div class="splash-tag">Beyond the Known</div>'
     + '</div>'
+    + '<div class="splash-coords">48°51\'N · 2°21\'E — Cartographe personnel</div>'
     + '</div>';
 }
 function playSplash(next){
@@ -1384,6 +1434,7 @@ function buildApp(){
     + '<div class="tabview" data-tab="profile"></div>'
     + '</div>' + tabbarHTML();
 
+  _initNativeOAuth();
   const loggedIn = handleAuthCallback();
   const token = localStorage.getItem('sb_token');
   const hasEmail = !!localStorage.getItem('hs_email');
