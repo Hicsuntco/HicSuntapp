@@ -1749,12 +1749,6 @@ document.addEventListener('DOMContentLoaded', function(){
       +'<div class="ov-scroll px">'
       +'<div class="book-h" style="margin-top:16px;font-family:var(--serif);font-size:22px;font-weight:600">'+esc(a.n||'Hébergement')+'</div>'
       +'<div class="book-meta">'+esc(a.type||'')+' · '+esc(a.loc||'')+'</div>'
-      +(a.verified===false
-        ? '<div style="display:flex;gap:10px;align-items:flex-start;margin-top:12px;padding:12px 14px;background:'+hexA('#C9822B',0.1)+';border:1px solid '+hexA('#C9822B',0.3)+';border-radius:12px">'
-          +'<span style="color:#C9822B;flex:none;margin-top:1px">'+ico('alert',16,1.6)+'</span>'
-          +'<span style="font-size:12.5px;color:var(--ink-soft);line-height:1.5">Adresse non confirmée par une recherche en ligne — vérifiez qu\'elle existe encore et sa disponibilité avant de réserver.</span>'
-          +'</div>'
-        : '')
       +(a.blurb?'<p class="book-desc" style="margin-top:8px">'+esc(a.blurb)+'</p>':'')
       +'<div class="section-h" style="margin-top:20px"><h2>Votre séjour</h2></div>'
       +'<div class="stay-row">'+ico('cal',18,1.5)+'<span class="sr-l">'+esc((checkin&&checkout&&typeof _fmtDateRangeCompact==='function')?_fmtDateRangeCompact(checkin,checkout):(it.dates||''))+' · '+nights+' nuit'+(nights>1?'s':'')+'</span></div>'
@@ -2122,12 +2116,6 @@ document.addEventListener('DOMContentLoaded', function(){
         +'<div style="font-family:var(--mono);font-size:9px;color:var(--sub)">'+nights+' nuit'+(nights>1?'s':'')+'</div>'
         +'</div>'
         +'</div>'
-        +(a.verified===false
-          ? '<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:10px;padding:9px 11px;background:'+hexA('#C9822B',0.1)+';border:1px solid '+hexA('#C9822B',0.3)+';border-radius:10px">'
-            +'<span style="color:#C9822B;flex:none;margin-top:1px">'+ico('alert',13,1.6)+'</span>'
-            +'<span style="font-size:11.5px;color:var(--ink-soft);line-height:1.4">Adresse non confirmée en ligne — vérifiez avant de réserver.</span>'
-            +'</div>'
-          : '')
         +(a.blurb?'<p style="font-size:13px;color:var(--ink-soft);margin-bottom:12px;line-height:1.5">'+esc(a.blurb)+'</p>':'')
         /* 3 boutons plateformes — celle où l'hébergement a été confirmé par la
            recherche web (a.source) passe en tête avec une coche. */
