@@ -346,14 +346,27 @@ const OCC_LABELS = {
   'bien-etre':    {label:'Retraite bien-être', ic:'droplet'},
 };
 function savedTripCard(it){
-  const bgStyle = destBgStyle(it.destination);
+  const data = it.data || {};
+  /* Priorité à la vraie photo trouvée par recherche web pendant la
+     génération (même source que le hero de l'écran détail, voir
+     _fetchRealDestPhoto) — ne retomber sur la banque de 17 photos locales
+     pré-choisies (destBgStyle) que si aucune photo réelle n'a été trouvée,
+     sinon la plupart des destinations hors de cette petite liste montrent
+     un dégradé générique au lieu d'une vraie photo pourtant disponible. */
+  const heroPhoto = data.heroPhoto || it.heroPhoto || '';
+  /* background-color de secours si l'URL externe ne charge pas (lien mort,
+     hotlink bloqué…) — un fond CSS n'a pas d'équivalent à onerror sur
+     <img>, donc pas de bascule automatique vers le dégradé complet, mais
+     au moins pas de zone transparente/blanche cassée derrière le texte. */
+  const bgStyle = heroPhoto
+    ? 'background-color:#1c1812;background-image:url(\''+esc(heroPhoto)+'\');background-size:cover;background-position:center'
+    : destBgStyle(it.destination);
   const icon = destIcon(it.destination);
   const occ = it.occasion || (it.data && it.data.occasion) || '';
   const occInfo = OCC_LABELS[occ];
   const isDraft = (typeof _classifyItinerary === 'function') ? _classifyItinerary(it) === 'draft' : false;
   const region = (typeof DESTS !== 'undefined' && DESTS[it.destination]) ? DESTS[it.destination].r : '';
   const budget = (typeof eur === 'function' && it.budget) ? eur(it.budget) : '';
-  const data = it.data || {};
   const coords = data.coords || it.coords || '';
   const companions = Array.isArray(data.companions) ? data.companions : [];
 
