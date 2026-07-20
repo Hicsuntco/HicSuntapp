@@ -138,7 +138,7 @@ function premiumView(){
   const premium = isNativeIOS || ((typeof _hasActivePremiumStatus === 'function') && _hasActivePremiumStatus());
 
   if(isNativeIOS){
-    return statusBar() + navbar('Abonnement Premium')
+    return statusBar() + navbar('Accès complet')
       + '<div class="ov-scroll px">'
       +   '<div class="cercle-card">'
       +     '<div class="cc-tier">Tout inclus</div>'

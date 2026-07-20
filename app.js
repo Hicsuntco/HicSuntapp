@@ -552,7 +552,8 @@ async function loginApple(){
   }
   try{
     const result = await window.Capacitor.Plugins.SignInWithApple.authorize({ scopes:'email name' });
-    const idToken = result && result.response && result.response.identityToken;
+    const resp = result && result.response;
+    const idToken = resp && resp.identityToken;
     if(!idToken){ toast('Connexion Apple annulée'); return; }
     const res = await fetch(SUPABASE_URL+'/auth/v1/token?grant_type=id_token',{
       method:'POST',
@@ -569,6 +570,31 @@ async function loginApple(){
     closeAllOverlays(); setTab('discover');
     if(typeof refreshAuthTabs === 'function') refreshAuthTabs();
     toast('Connecté ✓');
+    /* Apple fournit déjà le nom (uniquement à la toute première autorisation)
+       via l'AuthenticationServices framework — redemander ce que le système
+       vient de donner enfreint les règles d'expérience Sign in with Apple
+       (guideline 4). On enregistre directement ce nom sans repasser par
+       l'écran "Bienvenue" quand il est disponible. */
+    const given = resp && resp.givenName;
+    const family = resp && resp.familyName;
+    if(given){
+      USER.name = given;
+      USER.full = family ? (given+' '+family) : given;
+      USER.initials = (given[0]+(family?family[0]:'')).toUpperCase();
+      try{
+        localStorage.setItem('hs_profile', JSON.stringify({first_name:given,last_name:family||'',birth_date:null}));
+        localStorage.setItem('hs_profile_done','1');
+      }catch(e){}
+      try{
+        await fetch(SUPABASE_URL+'/rest/v1/profiles',{
+          method:'POST',
+          headers:{'content-type':'application/json','apikey':SUPABASE_ANON,'Authorization':'Bearer '+data.access_token,'Prefer':'resolution=merge-duplicates'},
+          body:JSON.stringify({id:data.user.id,first_name:given,last_name:family||'',birth_date:null})
+        });
+      }catch(e){}
+      if(typeof refreshAuthTabs === 'function') refreshAuthTabs();
+      return;
+    }
     checkProfile().then(function(done){
       if(typeof refreshAuthTabs === 'function') refreshAuthTabs();
       if(!done) openOverlay('welcome', welcomeView(), { modal:true });

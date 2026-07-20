@@ -453,10 +453,18 @@ function profileView(){
      caché alors qu'aucune action Supabase ne peut réellement fonctionner. */
   const hasRealAuth = !!token;
   const premium = (typeof _hasActivePremiumStatus === 'function') && _hasActivePremiumStatus();
+  /* Sur iOS, aucune fonctionnalité n'est jamais payante dans l'app (voir
+     _isNativeIOSApp/_checkPaymentToken, guideline 3.1.1) — un intitulé
+     évoquant un abonnement/achat ("Abonnement Premium", "débloqué à
+     l'achat") laisse penser le contraire et peut faire suspecter un achat
+     intégré manquant lors d'une revue Apple. */
+  const isNativeIOS = (typeof _isNativeIOSApp === 'function') && _isNativeIOSApp();
+  const premiumLabel = isNativeIOS ? 'Accès complet' : 'Abonnement Premium';
+  const premiumSub = isNativeIOS ? 'Toutes les fonctionnalités incluses' : (premium ? 'Actif' : 'Débloqué à l\'achat d\'un itinéraire');
 
   const rows = [
     ['compass','Préférences de voyage','Styles, budget et rythme par défaut', "openOverlay('prefs', prefsView())"],
-    ['star','Abonnement Premium', premium ? 'Actif' : 'Débloqué à l\'achat d\'un itinéraire', "openPremium()"],
+    ['star', premiumLabel, premiumSub, "openPremium()"],
     ['bell','Notifications', '<span data-notif-sub>Aucune non lue</span>', "openOverlay('notifications', notificationsView())"],
   ];
   if(connected) rows.push(['logout','Déconnexion','', 'logout()']);
