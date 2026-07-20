@@ -20,5 +20,6 @@ cp apple-touch-icon.png www/
 cp -r icons www/
 cp -r images www/
 cp privacy.html www/ 2>/dev/null || true
+cp support.html www/ 2>/dev/null || true
 
 echo "www/ prêt ($(du -sh www | cut -f1))"
