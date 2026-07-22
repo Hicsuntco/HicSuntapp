@@ -108,22 +108,22 @@
 .ai-banner .ab-t{font-family:var(--serif);font-weight:500;font-size:17px;margin-top:3px}
 .ai-banner .ico.chev{color:var(--gold);margin-left:auto}
 
-/* ── day rows — more breathing room ── */
-.dayrow{display:flex;gap:16px;cursor:pointer;position:relative;padding-bottom:24px;
+/* ── day rows — carnet de route, spine + nœuds (référence "Carnet de route") ── */
+.dayrow{display:flex;gap:16px;cursor:pointer;position:relative;padding-bottom:26px;
   transition:opacity 0.1s;
 }
 .dayrow:active{opacity:0.7}
-.dayrow .dr-rail{display:flex;flex-direction:column;align-items:center;flex:none;width:28px}
-.dayrow .dr-pin{width:32px;height:32px;border-radius:50%;background:var(--ink);color:var(--onink);font-family:var(--mono);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none}
-.dayrow .dr-line{flex:1;width:1.5px;background:var(--gold-soft);opacity:0.5;margin-top:6px}
+.dayrow .dr-rail{display:flex;flex-direction:column;align-items:center;flex:none;width:28px;padding-top:5px}
+.dayrow .dr-node{width:12px;height:12px;border-radius:50%;border:2.4px solid;flex:none}
+.dayrow .dr-line{flex:1;width:2px;opacity:0.3;margin-top:6px;border-radius:2px}
 .dayrow:last-child .dr-line{display:none}
-.dayrow .dr-main{flex:1;min-width:0;padding-top:4px}
+.dayrow .dr-main{flex:1;min-width:0}
 .dayrow .dr-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
-/* iOS Headline: 17px/600 */
-.dayrow .dr-t{font-family:var(--serif);font-weight:600;font-size:18px;letter-spacing:-0.2px}
-.dayrow .dr-l{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--sub);margin-top:5px}
-.dayrow .dr-d{font-size:14px;font-weight:300;color:var(--ink-soft);line-height:1.5;margin-top:8px}
-.dayrow .dr-tags{display:flex;gap:7px;margin-top:11px}
+.dayrow .dr-l{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--sub)}
+.dayrow .dr-l b{font-weight:600}
+.dayrow .dr-t{font-family:var(--serif);font-weight:600;font-size:20px;letter-spacing:-0.3px;margin-top:5px}
+.dayrow .dr-d{font-size:13.5px;color:var(--ink-soft);line-height:1.5;margin-top:6px;max-width:34ch}
+.dayrow .dr-tags{display:flex;gap:7px;margin-top:11px;flex-wrap:wrap}
 .mini-tag{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:8.5px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;color:var(--ink-soft);background:var(--surface2);border:1px solid var(--line2);padding:5px 9px;border-radius:20px}
 .dayrow .wx-chip{flex:none}
 

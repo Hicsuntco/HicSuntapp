@@ -590,12 +590,12 @@ function itineraryView(){
         const wx = Array.isArray(p.wx) ? p.wx : ['sun','—'];
         return '<div class="dayrow" onclick="openDay(' + i + ')">'
           + '<div class="dr-rail">'
-          +   '<span class="dr-pin" style="background:' + cc + ';border-color:' + cc + '">' + p.n + '</span>'
-          +   '<span class="dr-line" style="background:' + hexA(cc,0.18) + '"></span>'
+          +   '<span class="dr-node" style="border-color:' + cc + ';background:' + cc + '"></span>'
+          +   '<span class="dr-line" style="background:' + cc + '"></span>'
           + '</div>'
           + '<div class="dr-main">'
           +   '<div class="dr-top">'
-          +     '<div><div class="dr-t">' + esc(p.title||'') + '</div><div class="dr-l">' + esc(p.loc||'') + '</div></div>'
+          +     '<div><div class="dr-l"><b style="color:' + cc + '">Jour ' + p.n + '</b>' + (p.loc ? ' · ' + esc(p.loc) : '') + '</div><div class="dr-t">' + esc(p.title||'') + '</div></div>'
           +     wxChip(wx[0], wx[1])
           +   '</div>'
           +   (p.desc ? '<div class="dr-d">' + esc(p.desc) + '</div>' : '')
