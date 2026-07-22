@@ -9,7 +9,7 @@
 
 :root{
   /* Surfaces — blanc cassé, papier & parchemin */
-  --bg:#FAF8F3; --surface:#FCFAF3; --surface2:#EDE3D0; --surface-raised:#FCFAF3;
+  --bg:#FCFBF8; --surface:#FCFAF3; --surface2:#EDE3D0; --surface-raised:#FCFAF3;
   /* Encre — brun-noir profond, jamais pur noir */
   --ink:#221D16; --ink-soft:#5C5345; --sub:#756B58;
   /* Lignes */
