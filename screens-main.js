@@ -427,6 +427,8 @@ function voyagesView(){
   const labels = [['upcoming','À venir'],['past','Passés'],['draft','Brouillons']];
   return statusBar()
     + '<div class="px">'
+    +   '<span class="eyebrow">Vos voyages</span>'
+    +   '<hr class="hairline gold" style="margin-top:14px">'
     +   '<h1 class="voy-title">Mes <em>voyages</em></h1>'
     +   '<div class="voy-pills">' + labels.map(function(l){
           return '<button class="voy-pill' + (seg === l[0] ? ' on' : '') + '" onclick="voySeg(\'' + l[0] + '\')">' + l[1] + '</button>';
@@ -475,6 +477,8 @@ function profileView(){
 
   return statusBar()
     + '<div class="px">'
+    +   '<span class="eyebrow">Mon compte</span>'
+    +   '<hr class="hairline gold" style="margin-top:14px">'
     +   '<h1 class="voy-title" style="margin-bottom:20px">Profil</h1>'
     +   '<div class="prof-card">'
     +     '<div class="prof-id">'
