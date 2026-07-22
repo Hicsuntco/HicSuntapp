@@ -3,6 +3,21 @@
 
 /* ── 13 · Budget ────────────────────────────────────────────────────── */
 function budgetView(){
+  /* Toujours recalculer avant d'afficher : reprend le comportement de
+     l'ancien override window.budgetView (app.js), supprimé car il
+     court-circuitait silencieusement cette version (chargée après en
+     dernier script, il écrasait window.budgetView — la barre de progression,
+     les statuts réglé/à régler et les dépenses réelles ci-dessous ne
+     s'affichaient donc jamais). */
+  if(typeof deriveBudget === 'function'){
+    try{
+      deriveBudget(
+        ITINERARY.accommodations||[], ITINERARY.budgetTotal||0,
+        ITINERARY.dest||'', ITINERARY.region||'', ITINERARY.country||'',
+        ITINERARY.travelers||state.travelers||2, ITINERARY._flightInfo||null
+      );
+    }catch(e){ console.warn('deriveBudget', e); }
+  }
   const b = BUDGET || {total:0, spent:0, lines:[]};
   if(!b.total && ITINERARY.budgetTotal) b.total = ITINERARY.budgetTotal;
   /* Filet de sécurité : si un ajustement précédent (chat Cartographe) a
@@ -31,7 +46,6 @@ function budgetView(){
           + '<div class="bl-r"><div class="bl-v">' + eur(l.amount) + '</div>'
           + (isGen ? '' : '<span class="status ' + (l.paid ? 'ok' : 'prep') + '">' + (l.paid ? 'Réglé' : 'À régler') + '</span>') + '</div></div>';
       }).join('')
-    + '</div>'
     +   '<div class="section-h"><h2>Dépenses réelles</h2><span class="meta" data-expenses-total>' + eur(expTotal) + '</span></div>'
     +   '<div data-expenses-list>' + _expensesListHTML(ITINERARY.expenses||[]) + '</div>'
     +   '<button class="btn-ghost sm" style="margin-top:8px" onclick="openAddExpense()">+ Ajouter une dépense</button>'

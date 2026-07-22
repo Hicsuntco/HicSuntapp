@@ -1632,43 +1632,10 @@ document.addEventListener('DOMContentLoaded', function(){
     };
   }
 
-  /* Overrides robustes pour Budget, Activités, Pépites — résistent aux données manquantes */
-  window.budgetView = function(){
-    var it=ITINERARY;
-    var total=it.budgetTotal||0;
-    /* Toujours recalculer le budget complet avant d'afficher */
-    if(typeof deriveBudget==='function'){
-      try{
-        deriveBudget(
-          it.accommodations||[], total,
-          it.dest||'', it.region||'', it.country||'',
-          it.travelers||state.travelers||2, it._flightInfo||null
-        );
-      }catch(e){ console.warn('deriveBudget',e); }
-    }
-    var b=(typeof BUDGET!=='undefined')?BUDGET:{total:total,spent:0,lines:[]};
-    if(!b.lines||!b.lines.length){
-      b.lines=[{i:'wallet',n:'Budget estimé',sub:'tout compris',amount:total,paid:false}];
-    }
-    var displayTotal=b.total||total;
-    return statusBar()+navbar('Budget du voyage')
-      +'<div class="ov-scroll has-foot px">'
-      +'<div class="bud-card">'
-      +'<div class="bud-l">Total estimé · '+esc(it.dest||'')+'</div>'
-      +'<div class="bud-v">'+eur(displayTotal)+'</div>'
-      +'<div class="bud-s">'+travelerLabel(it)+' · '+(_days(it)||'')+' jours · estimation</div>'
-      +'</div>'
-      +'<div class="section-h"><h2>Répartition</h2><span class="meta">estimation</span></div>'
-      +b.lines.map(function(l){return '<div class="bline">'+ico(l.i,20,1.5)
-        +'<div class="bl-m"><div class="bl-n">'+esc(l.n)+'</div><div class="bl-s">'+esc(l.sub||'')+'</div></div>'
-        +'<div class="bl-r"><div class="bl-v">'+eur(l.amount)+'</div></div></div>';}).join('')
-      +'</div>'
-      +'<div class="ov-foot"><div class="foot-price">'
-      +'<div><div class="fp-v">'+eur(displayTotal)+'</div><div class="fp-l">estimation totale</div></div>'
-      +'<button class="btn" onclick="openAllBookings()">Voir les hébergements</button>'
-      +'</div></div>';
-  };
-
+  /* Overrides robustes pour Activités, Pépites — résistent aux données manquantes.
+     (L'override budgetView a été retiré : il court-circuitait silencieusement
+     la version features.js, chargée avant lui — voir le commentaire en tête
+     de budgetView() dans features.js.) */
   window.activitiesView = function(){
     var it=ITINERARY;
     var acts=[];

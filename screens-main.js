@@ -562,7 +562,7 @@ function _circleCardHTML(companions, connected){
     : companions.length + ' compagnon' + (companions.length>1?'s':'') + ' de route';
   return '<div class="cc-row">'
     + (companions.length ? '<div class="circle-avatars">' + avatars + more + '</div>' : '<div class="circle-empty-ico">' + ico('users',18,1.5) + '</div>')
-    + '<div style="flex:1;min-width:0"><div class="cc-t">Mon Cercle</div><div class="cc-s">' + esc(label) + '</div></div>'
+    + '<div style="flex:1;min-width:0"><div class="cc-t">Mon Cercle</div><div class="cc-s"' + (connected ? '' : ' style="white-space:normal;overflow:visible;text-overflow:clip;line-height:1.4"') + '>' + esc(label) + '</div></div>'
     + '</div>'
     + '<div class="cc-actions">'
     +   '<button class="cc-btn" onclick="event.stopPropagation();inviteCompanion()">Inviter</button>'
