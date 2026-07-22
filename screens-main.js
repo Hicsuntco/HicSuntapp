@@ -425,9 +425,10 @@ function savedTripCard(it){
 function voyagesView(){
   const seg = state._voySeg || 'upcoming';
   const labels = [['upcoming','À venir'],['past','Passés'],['draft','Brouillons']];
+  const today = new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'short'}).toUpperCase();
   return statusBar()
     + '<div class="px">'
-    +   '<span class="eyebrow">Vos voyages</span>'
+    +   '<div class="eyebrow-row"><span class="eyebrow">Vos voyages</span><span class="eyebrow-now">' + today + '</span></div>'
     +   '<hr class="hairline gold" style="margin-top:14px">'
     +   '<h1 class="voy-title">Mes <em>voyages</em></h1>'
     +   '<div class="voy-pills">' + labels.map(function(l){
@@ -477,7 +478,7 @@ function profileView(){
 
   return statusBar()
     + '<div class="px">'
-    +   '<span class="eyebrow">Mon compte</span>'
+    +   '<div class="eyebrow-row"><span class="eyebrow">Mon compte</span><span class="eyebrow-now">' + (hasRealAuth ? 'Connecté' : 'Invité') + '</span></div>'
     +   '<hr class="hairline gold" style="margin-top:14px">'
     +   '<h1 class="voy-title" style="margin-bottom:20px">Profil</h1>'
     +   '<div class="prof-card">'
