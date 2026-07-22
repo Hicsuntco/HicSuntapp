@@ -1,5 +1,5 @@
 /* ── HIC SUNT — core: tokens, chrome, overlays, primitives ── */
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Spline+Sans+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Hanken+Grotesk:wght@400;500;600;700&family=Spline+Sans+Mono:wght@400;500&display=swap');
 
 /* ── cartes réelles (Leaflet) — fond clair et froid, pas de vieux papier ── */
 .leaflet-container{background:#EEF0EB;font-family:'Spline Sans Mono',monospace}
@@ -18,11 +18,11 @@
   --gold:#A6824A; --gold-soft:#C9A96E; --gold-deep:#8A6526; --gold-bright:#E8C98C;
   /* Divers */
   --onink:#F4EEDF; --ph:#928768; --ok:#5d7a4e;
-  /* Typographie — Sora (unifiée titres + texte) / Spline Sans Mono */
+  /* Typographie — Sora (titres, labels, UI) / Hanken Grotesk (texte courant) / Spline Sans Mono */
   --serif:'Sora',-apple-system,'Helvetica Neue',sans-serif;
   --serif-text:'Sora',-apple-system,sans-serif;
-  --sf:'Sora',-apple-system,'Helvetica Neue',sans-serif;
-  --sans:'Sora',-apple-system,sans-serif;
+  --sf:'Hanken Grotesk',-apple-system,'Helvetica Neue',sans-serif;
+  --sans:'Hanken Grotesk',-apple-system,sans-serif;
   --mono:'Spline Sans Mono','SF Mono',monospace;
   /* Géométrie — radius généreux et cohérent */
   --card-radius:22px; --btn-radius:16px;
@@ -217,8 +217,8 @@ html.native-app .screen{
 .section-h h2{font-family:var(--serif);font-weight:600;font-size:22px;letter-spacing:-0.3px}
 .section-h .meta{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--sub)}
 .eyebrow{font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:2.4px;text-transform:uppercase;color:var(--gold)}
-.hairline{height:1px;background:var(--line);border:none}
-.hairline.gold{background:linear-gradient(to right,var(--gold-soft),rgba(179,154,100,0))}
+.hairline{height:1px;background:var(--line);border:none;position:relative}
+.hairline.gold::before{content:'';position:absolute;left:0;top:0;width:30px;height:1px;background:var(--gold)}
 
 /* ── buttons — iOS native sizing ── */
 .btn{
