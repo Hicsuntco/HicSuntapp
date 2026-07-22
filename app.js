@@ -1188,6 +1188,7 @@ async function loadSavedItinerary(id){
     if(!Array.isArray(ITINERARY.plan))          ITINERARY.plan          = [];
     if(!Array.isArray(ITINERARY.accommodations)) ITINERARY.accommodations = [];
     if(!Array.isArray(ITINERARY.gems))           ITINERARY.gems           = [];
+    if(!Array.isArray(ITINERARY.expenses))       ITINERARY.expenses       = [];
 
     /* Normaliser chaque jour du plan */
     ITINERARY.plan = ITINERARY.plan.map(function(p, i){
@@ -1223,6 +1224,18 @@ async function loadSavedItinerary(id){
         blurb:  a.blurb || '',
         i:      a.i || 'bed',
         url:    a.url || '',
+      };
+    }).filter(Boolean);
+
+    /* Normaliser les dépenses réelles */
+    ITINERARY.expenses = ITINERARY.expenses.map(function(e){
+      if(!e || typeof e !== 'object') return null;
+      return {
+        id:       e.id || ('exp-'+Math.random().toString(36).slice(2)),
+        category: e.category || 'other',
+        label:    e.label || '',
+        amount:   Number(e.amount) || 0,
+        date:     e.date || '',
       };
     }).filter(Boolean);
 

@@ -14,6 +14,7 @@ function budgetView(){
   const pct = Math.round(b.spent / b.total * 100);
   const rest = b.total - b.spent;
   const isGen = !!ITINERARY.generated;
+  const expTotal = _expensesTotal();
   return statusBar() + navbar('Budget du voyage')
     + '<div class="ov-scroll has-foot px">'
     +   '<div class="bud-card">'
@@ -31,6 +32,10 @@ function budgetView(){
           + (isGen ? '' : '<span class="status ' + (l.paid ? 'ok' : 'prep') + '">' + (l.paid ? 'Réglé' : 'À régler') + '</span>') + '</div></div>';
       }).join('')
     + '</div>'
+    +   '<div class="section-h"><h2>Dépenses réelles</h2><span class="meta" data-expenses-total>' + eur(expTotal) + '</span></div>'
+    +   '<div data-expenses-list>' + _expensesListHTML(ITINERARY.expenses||[]) + '</div>'
+    +   '<button class="btn-ghost sm" style="margin-top:8px" onclick="openAddExpense()">+ Ajouter une dépense</button>'
+    + '</div>'
     + (isGen
       ? '<div class="ov-foot"><div class="foot-price">'
         + '<div><div class="fp-v">' + eur(b.total) + '</div><div class="fp-l">estimation totale</div></div>'
@@ -40,6 +45,109 @@ function budgetView(){
         + '<div><div class="fp-v">' + eur(rest) + '</div><div class="fp-l">solde restant</div></div>'
         + '<button class="btn" onclick="toast(\'Solde réglé — merci\')">Régler le solde</button>'
         + '</div></div>');
+}
+
+/* ── 13bis · Dépenses réelles ─────────────────────────────────────────
+   Distinct de la répartition estimée ci-dessus : ce que le voyageur a
+   vraiment dépensé, saisi à la main pendant/après le voyage. C'est ce
+   suivi qui manque face à Stippl (expense tracker). Stocké dans
+   ITINERARY.expenses[], persisté via updateSavedItinerary() comme
+   companions/plan/accommodations. */
+const EXPENSE_CATEGORIES = [
+  { id:'accommodation', label:'Hébergement', i:'bed' },
+  { id:'food',           label:'Repas',       i:'fork' },
+  { id:'transport',      label:'Transport',   i:'plane' },
+  { id:'activities',     label:'Activités',   i:'ticket' },
+  { id:'shopping',       label:'Shopping',    i:'card' },
+  { id:'other',          label:'Autre',       i:'wallet' },
+];
+function _expenseCat(id){
+  return EXPENSE_CATEGORIES.find(function(c){ return c.id === id; }) || EXPENSE_CATEGORIES[EXPENSE_CATEGORIES.length-1];
+}
+function _expensesTotal(){
+  return (ITINERARY.expenses||[]).reduce(function(s,e){ return s + (Number(e.amount)||0); }, 0);
+}
+function _fmtExpenseDate(d){
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(d||'');
+  return m ? m[3]+'/'+m[2] : '';
+}
+function _expensesListHTML(list){
+  if(!list.length) return '<p style="color:var(--sub);font-size:14px;font-style:italic;padding:8px 0">Aucune dépense enregistrée pour l\'instant.</p>';
+  return list.slice().sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); }).map(function(e){
+    const cat = _expenseCat(e.category);
+    const sub = cat.label + (e.date ? ' · ' + _fmtExpenseDate(e.date) : '');
+    return '<div class="bline">' + ico(cat.i, 20, 1.5)
+      + '<div class="bl-m"><div class="bl-n">' + esc(e.label || cat.label) + '</div><div class="bl-s">' + esc(sub) + '</div></div>'
+      + '<div class="bl-r"><div class="bl-v">' + eur(e.amount) + '</div></div>'
+      + '<span class="exp-del" onclick="event.stopPropagation();_deleteExpense(\'' + e.id + '\')" aria-label="Supprimer">' + ico('close',14,1.8) + '</span>'
+      + '</div>';
+  }).join('');
+}
+function openAddExpense(){
+  window._expCatSel = 'other';
+  openOverlay('add-expense', addExpenseView(), { modal:true });
+  /* Même précaution que openAddCompanion : ne pas focus() avant la fin de
+     la transition de la feuille, sinon le clavier iOS scrolle le contenu
+     hors champ pendant l'animation. */
+  setTimeout(function(){
+    const inp = document.getElementById('expense-amount');
+    if(inp) inp.focus();
+  }, 420);
+}
+function _expenseCategoryChipsHTML(sel){
+  return EXPENSE_CATEGORIES.map(function(c){
+    return '<span class="chip' + (c.id===sel?' on':'') + '" onclick="_selectExpenseCategory(\'' + c.id + '\')">' + esc(c.label) + '</span>';
+  }).join('');
+}
+function _selectExpenseCategory(id){
+  window._expCatSel = id;
+  const wrap = document.querySelector('[data-exp-cat-chips]');
+  if(wrap) wrap.innerHTML = _expenseCategoryChipsHTML(id);
+}
+function addExpenseView(){
+  const today = new Date().toISOString().slice(0,10);
+  return '<div class="ov-scroll px" style="padding-top:28px">'
+    +   '<div class="carte-handle-wrap"><div class="carte-handle"></div></div>'
+    +   '<h1 style="font-family:var(--serif);font-weight:600;font-size:22px;margin-bottom:6px">Ajouter une dépense</h1>'
+    +   '<p style="color:var(--sub);font-size:13px;margin-bottom:16px">Suivez ce que vous dépensez vraiment sur ce voyage.</p>'
+    +   '<div class="chips" data-exp-cat-chips style="margin-bottom:16px">' + _expenseCategoryChipsHTML(window._expCatSel) + '</div>'
+    +   '<input id="expense-label" placeholder="Libellé (optionnel)" style="width:100%;padding:14px 16px;border-radius:14px;border:1px solid var(--line);background:var(--surface);font-size:15px;font-family:var(--sans);margin-bottom:10px">'
+    +   '<input id="expense-amount" type="number" inputmode="decimal" min="0" step="0.01" placeholder="Montant en €" style="width:100%;padding:14px 16px;border-radius:14px;border:1px solid var(--line);background:var(--surface);font-size:15px;font-family:var(--sans);margin-bottom:10px" onkeydown="if(event.key===\'Enter\'){event.preventDefault();window._submitExpense()}">'
+    +   '<input id="expense-date" type="date" value="' + today + '" style="width:100%;padding:14px 16px;border-radius:14px;border:1px solid var(--line);background:var(--surface);font-size:15px;font-family:var(--sans)">'
+    +   '<button class="btn" style="width:100%;margin-top:16px" onclick="window._submitExpense()">Ajouter</button>'
+    + '</div>';
+}
+window._submitExpense = async function(){
+  const amountInp = document.getElementById('expense-amount');
+  const labelInp = document.getElementById('expense-label');
+  const dateInp = document.getElementById('expense-date');
+  const amount = amountInp ? parseFloat(amountInp.value) : NaN;
+  if(!amount || amount <= 0){ toast('Indiquez un montant'); return; }
+  const cat = _expenseCat(window._expCatSel);
+  const entry = {
+    id: 'exp-' + Date.now().toString(36) + Math.random().toString(36).slice(2,6),
+    category: cat.id,
+    label: (labelInp && labelInp.value.trim()) || '',
+    amount: Math.round(amount * 100) / 100,
+    date: (dateInp && dateInp.value) || new Date().toISOString().slice(0,10),
+  };
+  ITINERARY.expenses = (ITINERARY.expenses||[]).concat([entry]);
+  closeOverlay();
+  toast('Dépense ajoutée ✓');
+  _refreshExpensesUI();
+  if(typeof updateSavedItinerary === 'function') await updateSavedItinerary();
+};
+function _deleteExpense(id){
+  ITINERARY.expenses = (ITINERARY.expenses||[]).filter(function(e){ return e.id !== id; });
+  _refreshExpensesUI();
+  toast('Dépense supprimée');
+  if(typeof updateSavedItinerary === 'function') updateSavedItinerary();
+}
+function _refreshExpensesUI(){
+  const listEl = document.querySelector('[data-expenses-list]');
+  if(listEl) listEl.innerHTML = _expensesListHTML(ITINERARY.expenses||[]);
+  const totalEl = document.querySelector('[data-expenses-total]');
+  if(totalEl) totalEl.textContent = eur(_expensesTotal());
 }
 
 /* ── 14 · Activités ─────────────────────────────────────────────────── */

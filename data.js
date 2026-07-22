@@ -176,7 +176,7 @@ const ITINERARY = {
   dest:'', tag:'', dates:'', days:0, level:'Confort',
   plan:[], accommodations:[], gems:[], theme:'mediterranean', palette:{},
   budgetTotal:0, coords:'', distance:'', season:'', region:'', country:'',
-  companions:[],
+  companions:[], expenses:[],
 };
 
 /* trips — alimenté dynamiquement depuis Supabase */

@@ -226,6 +226,8 @@
 .bline .bl-s{font-family:var(--mono);font-size:9px;letter-spacing:0.4px;text-transform:uppercase;color:var(--sub);margin-top:4px;line-height:1.4}
 .bline .bl-r{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex:none}
 .bline .bl-v{font-family:var(--serif);font-weight:600;font-size:17px;letter-spacing:-0.2px}
+.exp-del{flex:none;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--sub);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.exp-del:active{background:var(--surface2);color:var(--ink)}
 .bud-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--card-radius);box-shadow:var(--shadow-card);padding:22px;position:relative;overflow:hidden;margin-bottom:6px}
 .bud-l{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:var(--sub)}
 .bud-v{font-family:var(--serif);font-weight:600;font-size:42px;letter-spacing:-1px;margin-top:8px;line-height:1}

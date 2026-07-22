@@ -85,6 +85,8 @@
 .bline .bl-r{text-align:right;flex:none}
 .bline .bl-v{font-family:var(--serif);font-weight:600;font-size:16px}
 .bline .status{margin-top:5px}
+.exp-del{flex:none;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--sub);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.exp-del:active{background:var(--surface2);color:var(--ink)}
 
 /* ── activities ── */
 .act-day{font-size:12px;font-weight:500;letter-spacing:1.4px;text-transform:uppercase;color:var(--sub);margin:22px 0 6px}
