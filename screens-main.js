@@ -53,7 +53,7 @@ function discoverView(){
     +   '<div class="section-h"><h2>Destinations</h2><span class="meta">' + DEST_ORDER.length + ' régions</span></div>'
     +   '<div class="dest-grid" style="margin-top:0">' + DEST_ORDER.map(tileHTML).join('') + '</div>'
     +   '<div class="section-h"><h2>Mes voyages</h2><span class="meta">À venir</span></div>'
-    +   '<div data-disc-trips><div style="text-align:center;padding:24px 0"><div class="notif-load"><i></i></div></div></div>'
+    +   '<div data-disc-trips><div class="skel" style="height:190px;border-radius:22px"></div></div>'
     + '</div>';
 }
 
@@ -470,7 +470,7 @@ function profileView(){
   if(connected) rows.push(['logout','Déconnexion','', 'logout()']);
 
   const statSkeleton = ['Pays','Voyages','Jours'].map(function(l){
-    return '<div class="prof-stat"><div class="ps-v">—</div><div class="ps-l">' + l + '</div></div>';
+    return '<div class="prof-stat"><div class="skel" style="width:28px;height:24px;margin:0 auto;border-radius:6px"></div><div class="ps-l" style="margin-top:9px">' + l + '</div></div>';
   }).join('');
 
   return statusBar()
@@ -488,12 +488,14 @@ function profileView(){
     +   '</div>'
     +   '<div class="prof-stats" data-prof-stats>' + statSkeleton + '</div>'
     +   '<div class="prof-circle-card" data-prof-circle onclick="openMonCercle()" style="cursor:pointer"><div class="cc-row"><div class="circle-empty-ico">' + ico('users',18,1.5) + '</div>'
-    +     '<div style="flex:1"><div class="cc-t">Mon Cercle</div><div class="cc-s">Chargement…</div></div></div></div>'
+    +     '<div style="flex:1"><div class="cc-t">Mon Cercle</div><div class="skel on-dark" style="width:140px;height:11px;margin-top:6px;border-radius:5px"></div></div></div></div>'
     +   '<div class="section-h" style="margin-top:20px;cursor:pointer" onclick="openAtlas()">'
     +     '<h2>Carnet de voyage</h2>'
     +     '<span style="display:flex;align-items:center;gap:4px"><span class="meta" data-prof-badges-meta>…</span><span style="color:var(--sub);display:inline-flex">' + ico('chevron',14,1.6) + '</span></span>'
     +   '</div>'
-    +   '<div class="prof-badges" data-prof-badges onclick="openAtlas()" style="cursor:pointer"><div class="cv-empty">Chargement…</div></div>'
+    +   '<div class="prof-badges" data-prof-badges onclick="openAtlas()" style="cursor:pointer">'
+    +     [0,1,2,3].map(function(){ return '<div class="skel" style="aspect-ratio:1;border-radius:16px"></div>'; }).join('')
+    +   '</div>'
     +   '<div class="atlas-cta-row" onclick="openAtlas()" style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:10px;padding:12px;border-radius:14px;border:1px dashed var(--line2);cursor:pointer;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--gold)">'
     +     ico('compass',14,1.7) + '<span>Voir mon Atlas Vivant</span>'
     +   '</div>'
