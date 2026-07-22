@@ -253,16 +253,18 @@ function generationView(){
     if(d > 0) daysCount = d + ' jour' + (d > 1 ? 's' : '');
   }
   const occLabel = (typeof _occasionLabel === 'function') ? _occasionLabel(state.occasion) : '';
-  const meta = [daysCount, occLabel, state.destination || ''].filter(Boolean).join(' · ');
+  const meta = [daysCount, occLabel].filter(Boolean).join(' · ');
+  const destLabel = state.destination || 'Votre voyage';
 
   return '<div class="gen">' + statusBar()
-    + '<div class="gen-top-space"></div>'
-    + '<div class="gen-compass-wrap">' + compass + '</div>'
-    + '<div class="gen-headline">'
-    +   '<div class="gen-kicker">Le cartographe compose</div>'
-    +   '<h1 class="gen-title">Nous traçons<br>votre <em>sillage</em></h1>'
-    +   '<p class="gen-sub">' + (meta ? esc(meta) + '<br>' : '') + '<span data-gen-status>Lecture de vos envies…</span></p>'
+    + '<div class="gen2-head">'
+    +   '<div class="gen2-eyebrow-row"><span class="eyebrow">Le Cartographe</span></div>'
+    +   '<hr class="hairline gold" style="margin-top:14px">'
+    +   '<h1 class="gen2-title"><span class="gen2-flag"></span>' + esc(destLabel) + '</h1>'
+    +   '<div class="gen2-status"><span class="gen2-dot"></span><span data-gen-status>Lecture de vos envies…</span></div>'
+    +   (meta ? '<div class="gen2-meta">' + esc(meta) + '</div>' : '')
     + '</div>'
+    + '<div class="gen-compass-wrap">' + compass + '</div>'
     + '<div class="gen-checklist">' + genChecklistHTML() + '</div>'
     + '<div class="gen-progress-wrap">'
     +   '<div class="gen-progress-row"><span class="gen-progress-label">Composition</span><span class="gen-progress-pct" data-gen-pct>0%</span></div>'
