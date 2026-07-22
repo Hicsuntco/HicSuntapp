@@ -10,7 +10,7 @@ function deckQuestions(){
       return '<button class="mode-btn" onclick="deckMode(\'known\')"><span class="m-i">' + ico('pin',22,1.5) + '</span>'
         + '<span><span class="m-t">Je sais où je vais</span><br><span class="m-d">Une destination en tête — nous composons le reste.</span></span></button>'
         + '<button class="mode-btn" onclick="deckMode(\'surprise\')"><span class="m-i">' + ico('sparkle',22,1.5) + '</span>'
-        + '<span><span class="m-t">Surprenez-moi</span><br><span class="m-d">Le cartographe choisit la destination parfaite pour votre profil.</span></span></button>';
+        + '<span><span class="m-t">Surprenez-moi</span><br><span class="m-d">Nous choisissons la destination parfaite pour votre profil.</span></span></button>';
     }, noFoot:true });
 
   /* Q2 — Destination (mode connu seulement) */
@@ -303,7 +303,7 @@ function deckQuestions(){
 
   q.push({ id:'dream', surprise:surprise,
     t: dreamTitle,
-    s: 'Une phrase suffit. Le cartographe en fait l\'ADN de votre voyage.',
+    s: 'Une phrase suffit. Nous en faisons l\'ADN de votre voyage.',
     body: function(){
       return '<div class="field">'
         + '<textarea class="input" rows="5" placeholder="' + dreamPH + '" oninput="state.dream=this.value">' + esc(state.dream) + '</textarea></div>';

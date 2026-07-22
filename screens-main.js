@@ -48,7 +48,7 @@ function discoverView(){
     +       '<button class="muse-go" onclick="composeFree()" aria-label="Composer">' + ico('chevron', 20, 1.8) + '</button>'
     +     '</div>'
     +     '<div class="muse-line"></div>'
-    +     '<p class="muse-sub">Décrivez une envie — le cartographe compose l\'itinéraire.</p>'
+    +     '<p class="muse-sub">Décrivez une envie — nous composons l\'itinéraire.</p>'
     +   '</div>'
     +   '<div class="section-h"><h2>Destinations</h2><span class="meta">' + DEST_ORDER.length + ' régions</span></div>'
     +   '<div class="dest-grid" style="margin-top:0">' + DEST_ORDER.map(tileHTML).join('') + '</div>'

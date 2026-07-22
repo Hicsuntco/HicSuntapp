@@ -258,7 +258,7 @@ function generationView(){
 
   return '<div class="gen">' + statusBar()
     + '<div class="gen2-head">'
-    +   '<div class="gen2-eyebrow-row"><span class="eyebrow">Le Cartographe</span></div>'
+    +   '<div class="gen2-eyebrow-row"><span class="eyebrow">Composition du voyage</span></div>'
     +   '<hr class="hairline gold" style="margin-top:14px">'
     +   '<h1 class="gen2-title"><span class="gen2-flag"></span>' + esc(destLabel) + '</h1>'
     +   '<div class="gen2-status"><span class="gen2-dot"></span><span data-gen-status>Lecture de vos envies…</span></div>'
@@ -532,7 +532,7 @@ function itineraryView(){
     +     '<button class="ihx-btn" onclick="closeOverlay()" aria-label="Retour">' + ico('back',17,2) + '</button>'
     +     '<div style="display:flex;gap:10px">'
     +       '<button class="ihx-btn" onclick="openOverlay(\'share\', shareView())" aria-label="Partager">' + ico('share',16,1.6) + '</button>'
-    +       '<button class="ihx-btn ai" onclick="openAI()" aria-label="Cartographe">' + ico('sparkle',16,1.6) + '</button>'
+    +       '<button class="ihx-btn ai" onclick="openAI()" aria-label="Assistant d\'itinéraire">' + ico('sparkle',16,1.6) + '</button>'
     +     '</div>'
     +   '</div>'
     +   (it.coords ? '<div class="itin-hero-coords mono">' + esc(it.coords) + '</div>' : '')
@@ -589,7 +589,7 @@ function itineraryView(){
     +     ico('star',18,1.5) + '<div class="tl-t">Pépites</div><div class="tl-s">' + ((it.gems||[]).length) + ' adresses</div>'
     +   '</button>'
     +   '<button class="tool" onclick="openAI()">'
-    +     ico('sparkle',18,1.5) + '<div class="tl-t">Modifier</div><div class="tl-s">Cartographe</div>'
+    +     ico('sparkle',18,1.5) + '<div class="tl-t">Modifier</div><div class="tl-s">Assistant IA</div>'
     +   '</button>'
     + '</div>'
 

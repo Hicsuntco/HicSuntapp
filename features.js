@@ -173,7 +173,7 @@ function activitiesView(){
   const days = Object.keys(byDay).sort(function(a,b){ return a - b; });
   return statusBar() + navbar('Activités & expériences')
     + '<div class="ov-scroll px">'
-    +   '<span class="eyebrow" style="display:block;margin-top:10px">Sélection du cartographe</span>'
+    +   '<span class="eyebrow" style="display:block;margin-top:10px">Sélection sur-mesure</span>'
     +   '<h1 style="font-family:var(--serif);font-weight:600;font-size:28px;letter-spacing:-0.4px;margin-top:8px">Expériences sur-mesure</h1>'
     +   '<p class="lede" style="margin-top:10px">Des suggestions pour enrichir votre séjour — à organiser sur place ou auprès d\'un prestataire local.</p>'
     +   days.map(function(d){
@@ -197,7 +197,7 @@ function openActivityDetail(id){
     +   '<span class="eyebrow" style="display:block;margin-top:18px">' + esc(a.tag) + ' · Jour ' + a.day + '</span>'
     +   '<h1 style="font-family:var(--serif);font-weight:600;font-size:26px;letter-spacing:-0.4px;margin-top:6px">' + esc(a.n) + '</h1>'
     +   '<div class="book-meta" style="margin-top:4px">' + esc(a.loc) + ' · ' + esc(a.dur) + '</div>'
-    +   '<p class="book-desc" style="margin-top:14px">Une suggestion de votre cartographe pour s\'intégrer naturellement à votre journée à ' + esc(a.loc) + '. ' + (a.free || !a.price ? 'En accès libre, aucune réservation nécessaire.' : 'Budget indicatif ~' + eur(a.price) + ' par personne — à organiser sur place ou auprès d\'un prestataire local.') + '</p>'
+    +   '<p class="book-desc" style="margin-top:14px">Une suggestion sur-mesure pour s\'intégrer naturellement à votre journée à ' + esc(a.loc) + '. ' + (a.free || !a.price ? 'En accès libre, aucune réservation nécessaire.' : 'Budget indicatif ~' + eur(a.price) + ' par personne — à organiser sur place ou auprès d\'un prestataire local.') + '</p>'
     + '</div>';
   openOverlay('activity-detail', html);
 }
@@ -286,7 +286,7 @@ function premiumView(){
     +   '<div class="perks" style="margin-top:0">'
     +     '<div class="perk">' + ico('sparkle',19,1.5) + '<div class="p-t">Paiement à l\'itinéraire</div><div class="p-d">Chaque voyage composé se débloque séparément — pas d\'abonnement récurrent pour l\'instant.</div></div>'
     +     '<div class="perk">' + ico('star',19,1.5) + '<div class="p-t">Tarif selon la durée</div><div class="p-d">4,99€ (1-7j) · 9,99€ (8-14j) · 17,99€ (15j et plus).</div></div>'
-    +     '<div class="perk">' + ico('bell',19,1.5) + '<div class="p-t">Valable 48h</div><div class="p-d">Le temps d\'explorer et d\'ajuster votre itinéraire avec le Cartographe.</div></div>'
+    +     '<div class="perk">' + ico('bell',19,1.5) + '<div class="p-t">Valable 48h</div><div class="p-d">Le temps d\'explorer et d\'ajuster votre itinéraire.</div></div>'
     +   '</div>'
     +   '<div class="section-h"><h2>Historique</h2><span class="meta">Achats récents</span></div>'
     +   (recentPaid.length === 0
@@ -307,7 +307,7 @@ function gemsView(){
     + '<div class="ov-scroll px">'
     +   '<span class="eyebrow" style="display:block;margin-top:10px">' + esc(ITINERARY.dest) + '</span>'
     +   '<h1 style="font-family:var(--serif);font-weight:600;font-size:28px;letter-spacing:-0.4px;margin-top:8px">Adresses secrètes</h1>'
-    +   '<p class="lede" style="margin-top:10px">Sélectionnées par votre cartographe — loin des sentiers battus.</p>'
+    +   '<p class="lede" style="margin-top:10px">Sélectionnées sur-mesure — loin des sentiers battus.</p>'
     +   (gems.length === 0
         ? '<p style="color:var(--sub);font-size:14px;margin-top:24px;font-style:italic">Aucune pépite pour cette destination.</p>'
         : gems.map(function(g){

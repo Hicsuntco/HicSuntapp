@@ -1444,7 +1444,7 @@ function splashHTML(){
     +   '<div class="splash-rule"></div>'
     +   '<div class="splash-tag">Beyond the Known</div>'
     + '</div>'
-    + '<div class="splash-coords">48°51\'N · 2°21\'E — Cartographe personnel</div>'
+    + '<div class="splash-coords">48°51\'N · 2°21\'E — Voyages sur-mesure</div>'
     + '</div>';
 }
 function playSplash(next){
@@ -1652,7 +1652,7 @@ document.addEventListener('DOMContentLoaded', function(){
     var days=Object.keys(byDay).sort(function(a,b){return a-b;});
     return statusBar()+navbar('Activités & expériences')
       +'<div class="ov-scroll px">'
-      +'<span class="eyebrow" style="display:block;margin-top:10px">Sélection du cartographe</span>'
+      +'<span class="eyebrow" style="display:block;margin-top:10px">Sélection sur-mesure</span>'
       +'<h1 style="font-family:var(--serif);font-weight:600;font-size:28px;margin-top:8px">Expériences sur-mesure</h1>'
       +days.map(function(d){return '<div class="act-day">Jour '+String(d).padStart(2,'0')+'</div>'
         +byDay[d].map(function(a){return '<div class="act" onclick="toast(\''+esc(a.n)+'\')" style="cursor:pointer">'
@@ -1776,7 +1776,7 @@ document.addEventListener('DOMContentLoaded', function(){
     return '<div class="bub '+(role==='user'?'me':'them')+'">'+esc(text)+'</div>';
   };
   window.openAI = function(){
-    var intro = typeof AI_INTRO !== 'undefined' ? AI_INTRO : "Je suis votre cartographe. Décrivez un changement — j'ajuste l'itinéraire, les étapes et le budget en direct.";
+    var intro = typeof AI_INTRO !== 'undefined' ? AI_INTRO : "Décrivez un changement — j'ajuste l'itinéraire, les étapes et le budget en direct.";
     var prompts = typeof AI_PROMPTS !== 'undefined' ? AI_PROMPTS : ['Ajoute un jour','Rythme plus lent','Budget réduit','Plus de gastronomie'];
     /* Restaurer l'historique de conversation propre à cet itinéraire */
     var history = (ITINERARY.chatHistory && Array.isArray(ITINERARY.chatHistory)) ? ITINERARY.chatHistory : [];
@@ -1787,7 +1787,7 @@ document.addEventListener('DOMContentLoaded', function(){
     var chatHtml = statusBar()
       +'<div class="chat-nav"><button class="nav-btn ghost" onclick="closeOverlay()" aria-label="Retour">'+ico('back',20,1.7)+'</button>'
       +  '<div class="chat-id"><span class="chat-av">'+ico('sparkle',18,1.6)+'<span class="on-dot"></span></span>'
-      +  '<span><span class="chat-n">Le cartographe</span><br><span class="chat-st">Compose votre sillage</span></span></div>'
+      +  '<span><span class="chat-n">Assistant d\'itinéraire</span><br><span class="chat-st">Ajuste votre voyage en direct</span></span></div>'
       +  (history.length?'<button onclick="window._clearChat()" style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--sub);background:none;border:none;cursor:pointer;padding:6px;flex:none">Effacer</button>':'')
       +'</div>'
       +  (ITINERARY.dest ? '<div class="chat-context">'+esc(ITINERARY.dest)+(dayCount?' · '+dayCount+' jour'+(dayCount>1?'s':''):'')+'</div>' : '')
@@ -2052,7 +2052,7 @@ document.addEventListener('DOMContentLoaded', function(){
     var days=Object.keys(byDay).sort(function(a,b){return Number(a)-Number(b);});
     return statusBar()+navbar('Activités & expériences')
       +'<div class="ov-scroll px">'
-      +'<span class="eyebrow" style="display:block;margin-top:10px">Sélection du cartographe</span>'
+      +'<span class="eyebrow" style="display:block;margin-top:10px">Sélection sur-mesure</span>'
       +'<h1 style="font-family:var(--serif);font-weight:600;font-size:28px;margin-top:8px">Expériences sur-mesure</h1>'
       +days.map(function(d){return '<div class="act-day">Jour '+String(d).padStart(2,'0')+'</div>'
         +byDay[d].map(function(a){return '<div class="act" style="cursor:pointer">'
