@@ -343,6 +343,7 @@ textarea.input{resize:none;min-height:100px;line-height:1.55}
 
 /* ── profile ── */
 .prof-card{margin-top:10px;background:var(--surface);border:1px solid var(--line);border-radius:var(--card-radius);box-shadow:var(--shadow-card);padding:20px;position:relative;overflow:hidden}
+.prof-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(to right,transparent,var(--gold-soft),transparent);opacity:0.5}
 .prof-id{display:flex;align-items:center;gap:15px;position:relative}
 .prof-n{font-family:var(--serif-text);font-weight:600;font-size:22px;letter-spacing:-0.3px}
 .prof-m{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--sub);margin-top:4px}
