@@ -236,16 +236,13 @@ function genChecklistHTML(){
   }).join('');
 }
 function generationView(){
-  /* Anneau de calcul d'itinéraire — loader moderne (piste + arc balayant +
-     jalons qui s'allument autour d'un pin central), plus de rose des vents. */
+  /* Radar de localisation — anneaux qui pulsent depuis le pin central,
+     comme une recherche de position ("on localise votre voyage idéal"),
+     plus d'anneau tournant ni de rose des vents. */
   const compass = '<svg class="gen-loader" width="230" height="230" viewBox="0 0 230 230" style="overflow:visible">'
-    + '<circle class="gl-track" cx="115" cy="115" r="96" fill="none" stroke-width="1"/>'
-    + '<circle class="gl-arc" cx="115" cy="115" r="96" fill="none" stroke-width="2.5" stroke-linecap="round"/>'
-    + '<g class="gl-wp">'
-    +   '<circle class="gl-dot" cx="115" cy="19" r="4" style="animation-delay:0s"/>'
-    +   '<circle class="gl-dot" cx="201" cy="152" r="4" style="animation-delay:.6s"/>'
-    +   '<circle class="gl-dot" cx="63" cy="196" r="4" style="animation-delay:1.2s"/>'
-    + '</g>'
+    + '<circle class="gl-ping" cx="115" cy="115" r="30" style="animation-delay:0s"/>'
+    + '<circle class="gl-ping" cx="115" cy="115" r="30" style="animation-delay:.9s"/>'
+    + '<circle class="gl-ping" cx="115" cy="115" r="30" style="animation-delay:1.8s"/>'
     + '<g class="gl-pin">'
     +   '<path d="M115 88c-13 0-23 10-23 23 0 17 23 39 23 39s23-22 23-39c0-13-10-23-23-23z"/>'
     +   '<circle class="gl-pin-hole" cx="115" cy="111" r="7"/>'

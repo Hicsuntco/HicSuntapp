@@ -261,12 +261,18 @@
 .gen2-meta{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--sub);margin-top:9px}
 .gen-compass-wrap{position:relative;height:260px;display:flex;align-items:center;justify-content:center;flex:none}
 .gen-loader{overflow:visible}
-.gen-loader .gl-track{stroke:var(--line)}
-.gen-loader .gl-arc{
-  stroke:var(--accent,var(--gold));stroke-dasharray:150 453;
-  transform-origin:115px 115px;animation:hs-spin 2.6s linear infinite;
+/* Radar de localisation : anneaux qui grandissent et s'effacent depuis
+   le pin, en boucle décalée — façon "recherche de position" GPS. */
+.gen-loader .gl-ping{
+  fill:none;stroke:var(--accent,var(--gold));stroke-width:2;
+  transform-origin:115px 115px;opacity:0;
+  animation:genPing 2.7s cubic-bezier(.22,.68,.2,1) infinite;
 }
-.gen-loader .gl-dot{fill:var(--accent,var(--gold));animation:hs-pulse 2.4s ease-in-out infinite}
+@keyframes genPing{
+  0%{transform:scale(0.3);opacity:.9}
+  65%{opacity:.12}
+  100%{transform:scale(2.15);opacity:0}
+}
 .gen-loader .gl-pin path{fill:var(--accent,var(--ink))}
 .gen-loader .gl-pin .gl-pin-hole{fill:var(--bg)}
 .gen-checklist{
