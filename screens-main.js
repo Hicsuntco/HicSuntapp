@@ -473,26 +473,23 @@ function profileView(){
   if(connected) rows.push(['logout','Déconnexion','', 'logout()']);
 
   const statSkeleton = ['Pays','Voyages','Jours'].map(function(l){
-    return '<div class="prof-stat"><div class="skel" style="width:28px;height:24px;margin:0 auto;border-radius:6px"></div><div class="ps-l" style="margin-top:9px">' + l + '</div></div>';
+    return '<div class="prof-stat"><div class="skel" style="width:24px;height:20px;margin:0 auto;border-radius:6px"></div><div class="ps-l" style="margin-top:8px">' + l + '</div></div>';
   }).join('');
 
   return statusBar()
     + '<div class="px">'
     +   '<div class="eyebrow-row"><span class="eyebrow">Mon compte</span><span class="eyebrow-now">' + (hasRealAuth ? 'Connecté' : 'Invité') + '</span></div>'
     +   '<hr class="hairline gold" style="margin-top:14px">'
-    +   '<h1 class="voy-title" style="margin-bottom:20px">Profil</h1>'
-    +   '<div class="prof-card">'
-    +     '<div class="prof-id">'
-    +       '<span class="avatar" style="width:64px;height:64px;font-size:22px">' + (USER.initials || '✦') + '</span>'
-    +       '<div><div class="prof-n">' + esc(USER.full || USER.name || 'Voyageur') + '</div>'
-    +         (premium
-              ? '<div class="prof-badge">' + ico('sparkle',11,2) + '<span>Explorateur · Premium</span></div>'
-              : '<div class="prof-m">' + (email ? esc(email) : 'Composez votre premier itinéraire') + '</div>')
-    +       '</div>'
-    +     '</div>'
+    +   '<h1 class="voy-title" style="margin-bottom:0">Profil</h1>'
+    +   '<div class="prof-head">'
+    +     '<span class="avatar" style="width:76px;height:76px;font-size:26px">' + (USER.initials || '✦') + '</span>'
+    +     '<div class="prof-stats" data-prof-stats>' + statSkeleton + '</div>'
     +   '</div>'
-    +   '<div class="prof-stats" data-prof-stats>' + statSkeleton + '</div>'
-    +   '<div class="prof-circle-card" data-prof-circle onclick="openMonCercle()" style="cursor:pointer"><div class="cc-row"><div class="circle-empty-ico">' + ico('users',18,1.5) + '</div>'
+    +   '<div class="prof-n">' + esc(USER.full || USER.name || 'Voyageur') + '</div>'
+    +   (premium
+        ? '<div class="prof-badge">' + ico('sparkle',11,2) + '<span>Explorateur · Premium</span></div>'
+        : '<div class="prof-m">' + (email ? esc(email) : 'Composez votre premier itinéraire') + '</div>')
+    +   '<div class="prof-circle-card" data-prof-circle onclick="openMonCercle()" style="cursor:pointer;margin-top:20px"><div class="cc-row"><div class="circle-empty-ico">' + ico('users',18,1.5) + '</div>'
     +     '<div style="flex:1"><div class="cc-t">Mon Cercle</div><div class="skel on-dark" style="width:140px;height:11px;margin-top:6px;border-radius:5px"></div></div></div></div>'
     +   '<div class="section-h" style="margin-top:20px;cursor:pointer" onclick="openAtlas()">'
     +     '<h2>Carnet de voyage</h2>'

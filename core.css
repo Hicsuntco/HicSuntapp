@@ -321,8 +321,8 @@ textarea.input{height:auto;min-height:110px;padding:14px 16px;resize:none;line-h
 .seg button{flex:1;height:36px;border:none;border-radius:9px;background:transparent;font-family:var(--sf);font-size:12.5px;font-weight:500;color:var(--sub);cursor:pointer;transition:all 0.2s}
 .seg button.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(30,22,12,0.08);font-weight:600}
 
-/* ── avatar ── */
-.avatar{border-radius:50%;background:linear-gradient(155deg,var(--gold-bright),var(--gold) 55%,var(--gold-deep));color:var(--onink);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-weight:600;flex:none;box-shadow:inset 0 1px 1px rgba(255,255,255,0.35),inset 0 -2px 5px rgba(70,50,25,0.25),0 3px 10px -4px rgba(138,101,38,0.6)}
+/* ── avatar — plat, sans reflet ni bevel ── */
+.avatar{border-radius:50%;background:var(--gold-deep);color:var(--onink);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-weight:600;flex:none}
 
 /* ── cartographic decor ── */
 .grat{position:absolute;inset:0;width:100%;height:100%;opacity:0.6;pointer-events:none}
