@@ -1150,7 +1150,7 @@ async function loadVoyagesTab(){
     const email = localStorage.getItem('hs_email');
     if(!token && !email){
       host.innerHTML = '<div style="text-align:center;padding:60px 24px">'
-        + '<div style="color:var(--gold);margin-bottom:16px;display:flex;justify-content:center">' + ico('sparkle',32,1.2) + '</div>'
+        + '<div style="color:var(--sub);margin-bottom:16px;display:flex;justify-content:center">' + ico('sparkle',32,1.2) + '</div>'
         + '<p style="font-family:var(--serif);font-size:20px;font-weight:600;color:var(--ink);margin-bottom:8px">Vos voyages vous attendent</p>'
         + '<p style="color:var(--sub);font-size:14px;line-height:1.6;margin-bottom:24px">Composez votre premier itinéraire — il apparaîtra ici dès que vous l\'aurez enregistré.</p>'
         + '<button onclick="setTab(\'create\')" style="background:var(--ink);color:var(--onink);border:none;border-radius:14px;padding:14px 28px;font-family:var(--sans);font-size:15px;font-weight:500;cursor:pointer">Composer un itinéraire</button>'
@@ -2158,7 +2158,7 @@ document.addEventListener('DOMContentLoaded', function(){
         +'<div style="flex:1">'
         +'<a href="'+googleUrl+'" target="_blank" rel="noopener" style="font-family:var(--serif);font-size:16px;font-weight:600;color:var(--ink);display:inline-flex;align-items:center;gap:5px;text-decoration:none">'
           +esc(a.n||'Hébergement')
-          +'<span style="color:var(--gold);display:inline-flex;flex:none">'+ico('external',12,1.6)+'</span>'
+          +'<span style="color:var(--sub);display:inline-flex;flex:none">'+ico('external',12,1.6)+'</span>'
         +'</a>'
         +'<div style="font-family:var(--mono);font-size:9px;letter-spacing:0.8px;text-transform:uppercase;color:var(--sub);margin-top:3px">'+esc(a.type||'')+' · '+esc(a.loc||'')+'</div>'
         +'</div>'

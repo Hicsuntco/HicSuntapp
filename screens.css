@@ -72,7 +72,7 @@
 .tab-it.on .tab-inner{
   background:rgba(26,22,16,0.07);
 }
-.tab-it.on .tab-ico{ color:var(--gold); }
+.tab-it.on .tab-ico{ color:var(--sub); }
 .tab-it.on .tab-lbl{
   max-width:90px;
   opacity:1;
@@ -91,10 +91,10 @@
 .bell-btn:active{transform:scale(0.88)}
 .bell-btn:hover{border-color:var(--gold-soft)}
 .bell-btn .dot{position:absolute;top:10px;right:10px;width:7px;height:7px;border-radius:50%;background:var(--gold);border:1.5px solid var(--surface)}
-.disc-hello{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:2.4px;text-transform:uppercase;color:var(--gold);margin-top:14px}
+.disc-hello{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:2.4px;text-transform:uppercase;color:var(--sub);margin-top:14px}
 /* iOS Large Title — biggest and boldest in the hierarchy */
 .disc-hero{font-family:var(--serif);font-weight:600;font-size:44px;line-height:1.06;letter-spacing:-1px;margin-top:10px}
-.disc-hero em{font-style:italic;color:var(--gold)}
+.disc-hero em{font-style:italic;color:var(--sub)}
 
 /* ── muse card ── */
 .muse{margin-top:22px;background:var(--surface-raised);border:1px solid var(--line);border-radius:var(--card-radius);box-shadow:var(--shadow-raised);padding:20px;position:relative;overflow:hidden;touch-action:pan-y}
@@ -154,7 +154,7 @@
 .trip-card-foot{padding:13px 18px;background:var(--surface);font-size:12.5px;color:var(--sub)}
 .trip-card-foot .tcf-row{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .trip-card-foot .tcf-dates{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-.trip-card-foot .accent{font-size:14px;color:var(--gold);font-weight:600;white-space:nowrap;flex:none}
+.trip-card-foot .accent{font-size:14px;color:var(--sub);font-weight:600;white-space:nowrap;flex:none}
 .trip-card-foot .tcf-companions{margin-top:6px;font-size:10.5px;letter-spacing:.02em;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* ── trip card — brouillon ── */
@@ -167,7 +167,7 @@
 .trip-card-draftfoot{padding:14px 18px;display:flex;justify-content:space-between;align-items:baseline}
 .trip-card-draftfoot .serif{font-size:24px;color:var(--ink-soft)}
 .trip-card-draftfoot .tcd-sub{font-size:13px;color:var(--sub);margin-top:1px}
-.trip-card-draftfoot .accent{font-size:13px;color:var(--gold);font-weight:600}
+.trip-card-draftfoot .accent{font-size:13px;color:var(--sub);font-weight:600}
 
 .trip-del{position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;background:rgba(27,22,16,0.55);color:var(--onink);display:flex;align-items:center;justify-content:center;border:none;z-index:5;backdrop-filter:blur(4px)}
 .trip-del:active{background:rgba(27,22,16,0.8)}
@@ -215,7 +215,7 @@
 /* Numéro question */
 .dcard .d-num{
   font-family:var(--mono);font-size:9px;font-weight:700;
-  letter-spacing:1.8px;text-transform:uppercase;color:var(--gold);
+  letter-spacing:1.8px;text-transform:uppercase;color:var(--sub);
   margin-bottom:10px;flex:none;
 }
 /* Titre */
@@ -223,7 +223,7 @@
   font-family:var(--serif);font-weight:600;font-size:26px;
   line-height:1.18;letter-spacing:-0.4px;color:var(--ink);flex:none;
 }
-.dcard .d-q em{font-style:italic;color:var(--gold)}
+.dcard .d-q em{font-style:italic;color:var(--sub)}
 /* Sous-titre */
 .dcard .d-s{
   font-size:13px;font-weight:300;color:var(--sub);
@@ -252,7 +252,7 @@
 .mode-btn .m-i{
   width:42px;height:42px;border-radius:12px;
   background:rgba(156,124,68,0.12);
-  color:var(--gold);display:flex;align-items:center;justify-content:center;flex:none;
+  color:var(--sub);display:flex;align-items:center;justify-content:center;flex:none;
 }
 .mode-btn .m-t{font-family:var(--serif-text);font-weight:600;font-size:16px;color:var(--ink)}
 .mode-btn .m-d{font-size:12px;font-weight:300;color:var(--sub);margin-top:2px;line-height:1.4}
@@ -272,7 +272,7 @@
 .radio-it .ra-d{font-size:12px;font-weight:300;color:var(--sub);margin-top:2px}
 .radio-it.on .ra-d{color:rgba(246,240,228,0.55)}
 .radio-it .ra-dot{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--line2);flex:none;transition:background 0.18s,border-color 0.18s}
-.radio-it.on .ra-dot{border-color:var(--gold);background:var(--gold)}
+.radio-it.on .ra-dot{border-color:var(--sub);background:var(--gold)}
 
 /* ── Stepper ── */
 .stepper{display:flex;align-items:center;justify-content:center;gap:24px;padding:20px 0}
@@ -312,13 +312,13 @@
   -webkit-tap-highlight-color:transparent;
 }
 .chip:active{transform:scale(0.93)}
-.chip.on{background:var(--ink);border-color:var(--ink);color:var(--onink);font-weight:500}
+.chip.on{background:var(--surface);border-color:var(--ink);border-width:1.5px;color:var(--ink);font-weight:600}
 
 /* ── Inputs ── */
 .field{margin-bottom:14px}
 .field label{
   display:block;font-family:var(--mono);font-size:8px;font-weight:700;
-  letter-spacing:1.6px;text-transform:uppercase;color:var(--gold);margin-bottom:7px;
+  letter-spacing:1.6px;text-transform:uppercase;color:var(--sub);margin-bottom:7px;
 }
 .input{
   width:100%;box-sizing:border-box;
@@ -326,7 +326,7 @@
   padding:12px 14px;font-family:var(--sf);font-size:15px;color:var(--ink);
   outline:none;-webkit-appearance:none;transition:border-color 0.18s;
 }
-.input:focus{border-color:var(--gold)}
+.input:focus{border-color:var(--sub)}
 .input.italic{font-family:var(--serif);font-style:italic;font-size:18px}
 .input::placeholder{color:var(--ph)}
 textarea.input{resize:none;min-height:100px;line-height:1.55}
@@ -334,11 +334,11 @@ textarea.input{resize:none;min-height:100px;line-height:1.55}
 
 /* ── voyages ── */
 .voy-title{font-family:var(--serif);font-weight:600;font-size:40px;letter-spacing:-0.5px;margin-top:8px}
-.voy-title em{font-style:italic;color:var(--gold)}
+.voy-title em{font-style:italic;color:var(--sub)}
 .voy-pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;margin-bottom:20px}
 .voy-pill{padding:9px 16px;border-radius:100px;background:var(--surface);color:var(--ink-soft);font-size:13px;font-weight:500;border:1px solid var(--line);cursor:pointer;transition:transform 0.12s var(--spring)}
 .voy-pill:active{transform:scale(0.95)}
-.voy-pill.on{background:var(--ink);border-color:var(--ink);color:var(--onink);font-weight:600}
+.voy-pill.on{background:var(--surface);border-color:var(--ink);border-width:1.5px;color:var(--ink);font-weight:700}
 
 /* ── profile ── */
 .prof-card{margin-top:10px;background:var(--surface);border:1px solid var(--line);border-radius:var(--card-radius);box-shadow:0 1px 2px rgba(70,50,25,0.04);padding:20px;position:relative;overflow:hidden}
@@ -361,20 +361,21 @@ textarea.input{resize:none;min-height:100px;line-height:1.55}
 .prof-stat .ps-v{font-family:var(--serif);font-size:24px;font-weight:600;color:var(--ink);line-height:1}
 .prof-stat .ps-l{font-family:var(--mono);font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:var(--sub);margin-top:5px}
 
-/* ── Profil : Mon Cercle (compagnons de route réels) ── */
-.prof-circle-card{margin-top:14px;padding:16px 18px;border-radius:18px;background:var(--ink)}
+/* ── Profil : Mon Cercle (compagnons de route réels) — carte claire,
+   plus de fond noir plein. ── */
+.prof-circle-card{margin-top:14px;padding:16px 18px;border-radius:18px;background:var(--surface);border:1px solid var(--line)}
 .cc-row{display:flex;align-items:center;gap:14px}
 .circle-avatars{display:flex;flex:none}
-.circle-av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-weight:600;font-size:13px;color:#fff;border:2px solid var(--ink);margin-left:-10px}
+.circle-av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-weight:600;font-size:13px;color:#fff;border:2px solid var(--surface);margin-left:-10px}
 .circle-av:first-child{margin-left:0}
-.circle-av.more{background:#4A443A;color:var(--gold-bright);font-family:var(--mono);font-size:10px}
-.circle-empty-ico{width:38px;height:38px;border-radius:50%;background:rgba(246,240,228,.08);color:var(--gold-bright);display:flex;align-items:center;justify-content:center;flex:none}
-.circle-empty-ico.light{background:var(--surface);color:var(--gold-deep)}
-.cc-t{font-family:var(--serif);font-size:18px;color:var(--onink)}
-.cc-s{font-family:var(--mono);font-size:10px;color:#B8AE98;letter-spacing:.04em;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.circle-av.more{background:var(--surface2);color:var(--ink-soft);font-family:var(--mono);font-size:10px}
+.circle-empty-ico{width:38px;height:38px;border-radius:50%;background:var(--surface2);color:var(--ink-soft);display:flex;align-items:center;justify-content:center;flex:none}
+.circle-empty-ico.light{background:var(--surface2);color:var(--ink-soft)}
+.cc-t{font-family:var(--serif);font-size:18px;color:var(--ink)}
+.cc-s{font-family:var(--mono);font-size:10px;color:var(--sub);letter-spacing:.04em;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cc-actions{display:flex;gap:8px;margin-top:14px}
-.cc-btn{flex:1;padding:10px;border-radius:100px;border:1px solid #4A443A;background:transparent;color:var(--gold-bright);font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer}
-.cc-btn:not(.ghost){background:var(--gold-bright);color:var(--ink);border-color:var(--gold-bright)}
+.cc-btn{flex:1;padding:10px;border-radius:100px;border:1px solid var(--line2);background:transparent;color:var(--ink);font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer}
+.cc-btn:not(.ghost){background:var(--ink);color:var(--onink);border-color:var(--ink)}
 .cc-btn:active{transform:scale(0.96)}
 
 /* ── Profil : carnet de voyage (pays réellement visités) ── */
@@ -394,7 +395,7 @@ textarea.input{resize:none;min-height:100px;line-height:1.55}
   box-shadow:0 2px 12px rgba(26,22,16,0.06);
 }
 .tb-head{padding:16px 18px 14px}
-.tb-eyebrow{font-family:var(--mono);font-size:8.5px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:var(--gold);margin-bottom:5px}
+.tb-eyebrow{font-family:var(--mono);font-size:8.5px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:var(--sub);margin-bottom:5px}
 .tb-day{font-family:var(--mono);font-size:9px;font-weight:500;letter-spacing:0.8px;text-transform:uppercase;color:var(--sub)}
 .tb-wx{font-size:22px;display:flex;align-items:center;gap:5px}
 .tb-wx span{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--sub)}
@@ -404,7 +405,7 @@ textarea.input{resize:none;min-height:100px;line-height:1.55}
 .tb-section-label{font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--sub);margin-bottom:8px}
 .tb-moment{display:flex;align-items:flex-start;gap:12px;padding:8px 0;border-bottom:1px solid var(--line2)}
 .tb-moment:last-child{border-bottom:none}
-.tb-time{font-family:var(--mono);font-size:10px;font-weight:700;color:var(--gold);min-width:38px;padding-top:2px}
+.tb-time{font-family:var(--mono);font-size:10px;font-weight:700;color:var(--sub);min-width:38px;padding-top:2px}
 .tb-mti{font-size:13px;font-weight:500;color:var(--ink);line-height:1.3}
 .tb-mdesc{font-size:11px;font-weight:300;color:var(--sub);margin-top:2px;line-height:1.4}
 .tb-acc{display:flex;align-items:center;gap:12px;padding:8px 0}

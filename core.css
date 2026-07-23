@@ -8,12 +8,12 @@
 .leaflet-control-container{display:none}
 
 :root{
-  /* Surfaces — blanc cassé, papier & parchemin */
-  --bg:#FCFBF8; --surface:#FCFAF3; --surface2:#EDE3D0; --surface-raised:#FCFAF3;
+  /* Surfaces — blanc cassé, neutre (fini le parchemin/sable) */
+  --bg:#FCFBF8; --surface:#FCFAF3; --surface2:#F2F0EA; --surface-raised:#FCFAF3;
   /* Encre — brun-noir profond, jamais pur noir */
   --ink:#221D16; --ink-soft:#5C5345; --sub:#756B58;
   /* Lignes */
-  --line:#ECE3D0; --line2:#E5DBC8;
+  --line:#EBE8E2; --line2:#E2DFD8;
   /* Or — patiné, signature de la marque */
   --gold:#A6824A; --gold-soft:#C9A96E; --gold-deep:#8A6526; --gold-bright:#E8C98C;
   /* Divers */
@@ -30,7 +30,7 @@
   --shadow-card:0 1px 2px rgba(70,50,25,0.04),0 4px 16px rgba(70,50,25,0.06),0 20px 44px -26px rgba(70,50,25,0.4);
   --shadow-float:0 24px 64px -28px rgba(70,50,25,0.48);
   --shadow-raised:0 12px 28px -18px rgba(70,50,25,0.5);
-  --tile-bg:linear-gradient(160deg,#EDE3D0,#E4D8C2);
+  --tile-bg:linear-gradient(160deg,#F2F0EA,#E9E6DE);
   --tap-min:44px; --tap-comfortable:52px;
   --spring:cubic-bezier(0.34,1.2,0.4,1);
   --ease-out:cubic-bezier(0.22,1,0.36,1);
@@ -49,9 +49,9 @@ body{
 
 /* ── studio page chrome (desktop presentation) ── */
 .studio-head{max-width:560px;margin:0 auto;padding:54px 24px 8px;text-align:center}
-.studio-eyebrow{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:2.4px;text-transform:uppercase;color:var(--gold)}
+.studio-eyebrow{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:2.4px;text-transform:uppercase;color:var(--sub)}
 .studio-title{font-family:var(--serif);font-weight:600;font-size:38px;margin-top:10px;letter-spacing:-0.3px}
-.studio-title em{color:var(--gold);font-style:italic}
+.studio-title em{color:var(--sub);font-style:italic}
 .studio-sub{font-size:13.5px;font-weight:300;color:var(--sub);line-height:1.6;margin-top:10px}
 .stage{display:flex;justify-content:center;padding:26px 16px 70px}
 .phone{width:393px;height:852px;background:#0d0b08;border-radius:56px;padding:11px;box-shadow:var(--shadow-float),0 0 0 1px rgba(28,20,10,0.25);position:relative;flex:none}
@@ -217,7 +217,7 @@ html.native-app .screen{
 /* iOS-style Large Title for section headers */
 .section-h h2{font-family:var(--serif);font-weight:600;font-size:22px;letter-spacing:-0.3px}
 .section-h .meta{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--sub)}
-.eyebrow{font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:2.4px;text-transform:uppercase;color:var(--gold)}
+.eyebrow{font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:2.4px;text-transform:uppercase;color:var(--sub)}
 .eyebrow-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .eyebrow-now{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--gold-deep);white-space:nowrap}
 .hairline{height:1px;background:var(--line);border:none;position:relative}
@@ -309,7 +309,7 @@ textarea.input{height:auto;min-height:110px;padding:14px 16px;resize:none;line-h
 }
 .row:active{opacity:0.6}
 .row:last-child{border-bottom:none}
-.row .r-ico{color:var(--gold);flex:none;width:22px;display:flex;justify-content:center}
+.row .r-ico{color:var(--sub);flex:none;width:22px;display:flex;justify-content:center}
 .row .r-main{flex:1;min-width:0}
 /* iOS: primary text 17px, secondary 13px — clear hierarchy */
 .row .r-t{font-family:var(--serif);font-size:17px;font-weight:500;letter-spacing:-0.1px}
