@@ -614,8 +614,8 @@ function itineraryView(){
     + '<div class="ov-foot"><div class="foot-price">'
     +   '<div><div class="fp-v">' + eur(it.budgetTotal) + '</div><div class="fp-l">tout compris · ' + travelerLabel(it) + '</div></div>'
     +   '<div class="foot-actions">'
-    +     '<button class="fa-btn" onclick="saveItinerary()"><span>' + ico('bookmark',20,1.6) + '</span><i>Garder</i></button>'
-    +     '<button class="fa-btn" onclick="window.triggerPDF&&window.triggerPDF()"><span>' + ico('doc',20,1.6) + '</span><i>PDF</i></button>'
+    +     '<button class="fa-btn" onclick="saveItinerary()" aria-label="Garder ce voyage"><span>' + ico('bookmark',20,1.6) + '</span></button>'
+    +     '<button class="fa-btn" onclick="window.triggerPDF&&window.triggerPDF()" aria-label="Exporter en PDF"><span>' + ico('doc',20,1.6) + '</span></button>'
     +   '</div>'
     + '</div></div>'
   );

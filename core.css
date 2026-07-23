@@ -202,11 +202,12 @@ html.native-app .screen{
 .ov-scroll{flex:1;overflow-y:auto;overscroll-behavior:contain;padding-bottom:36px;scrollbar-width:none;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;touch-action:pan-y}
 .ov-scroll::-webkit-scrollbar{display:none}
 .ov-scroll.has-foot{padding-bottom:108px}
+/* Fondu doux plutôt qu'une ombre franche : le contenu se dissout sous la
+   barre au lieu d'être tranché net — moins de sensation de "coupure". */
 .ov-foot{
   position:absolute;bottom:0;left:0;right:0;
-  padding:12px 24px calc(10px + env(safe-area-inset-bottom,0px));
-  background:var(--bg);
-  box-shadow:0 -16px 24px -18px rgba(70,50,25,.28);
+  padding:22px 24px calc(12px + env(safe-area-inset-bottom,0px)) 24px;
+  background:linear-gradient(to bottom, transparent 0, var(--bg) 26px, var(--bg) 100%);
   z-index:10;
 }
 
