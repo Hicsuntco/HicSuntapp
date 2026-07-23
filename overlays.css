@@ -21,7 +21,8 @@
 .apple-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:var(--tap-comfortable);border:none;border-radius:var(--btn-radius);background:var(--ink);color:var(--onink);font-family:var(--sf);font-size:15px;font-weight:600;cursor:pointer;transition:transform 0.12s cubic-bezier(0.34,1.2,0.4,1)}
 .apple-btn:active{transform:scale(0.97)}
 .login-link{text-align:center;margin-top:22px;font-size:13px;color:var(--sub)}
-.login-link b{color:var(--gold);cursor:pointer;font-weight:700}
+.login-link b{color:var(--gold);cursor:pointer;font-weight:700;transition:opacity 0.1s}
+.login-link b:active{opacity:0.55}
 
 /* ── destination detail ── */
 .dest-hero{height:220px;position:relative;overflow:hidden;flex:none}

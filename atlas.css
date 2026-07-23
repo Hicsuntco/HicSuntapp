@@ -91,7 +91,9 @@
   border:1px solid var(--line); border-radius:50%;
   box-shadow:var(--shadow-card); cursor:pointer;
   -webkit-tap-highlight-color:transparent;
+  transition:transform 0.12s var(--spring),opacity 0.12s;
 }
+.atlas-zoom-reset:active{ transform:scale(0.88); opacity:0.8 }
 
 /* Légende — utilise l'espace du cadre agrandi pour rappeler ce que
    signifient les trois états, plutôt que de laisser un cadre vide. */
@@ -234,7 +236,9 @@
   flex:none; width:28px; height:28px; display:flex; align-items:center; justify-content:center;
   background:none; border:none; color:var(--sub); cursor:pointer;
   -webkit-tap-highlight-color:transparent;
+  transition:opacity 0.1s;
 }
+.atlas-info-close:active{ opacity:0.5 }
 
 /* ── Sceau de dévoilement / jalon — superposition centrée sur l'écran ─────
    position:absolute (pas fixed) scopé à .ov (inset:0 sur .screen) : sur
@@ -257,6 +261,7 @@
   max-width:78vw;
 }
 .atlas-seal.in{ opacity:1; transform:scale(1) translateY(0) }
+.atlas-seal.in:active{ transform:scale(0.97) translateY(0); opacity:0.92 }
 .atlas-seal-badge{
   width:64px; height:64px; border-radius:50%;
   display:flex; align-items:center; justify-content:center;

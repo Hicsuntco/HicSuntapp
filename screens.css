@@ -383,7 +383,8 @@ textarea.input{resize:none;min-height:100px;line-height:1.55}
 .prof-badges{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:4px}
 .cv-badge{aspect-ratio:1;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:#fff}
 .cv-badge .cv-code{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.06em}
-.cv-badge-add{aspect-ratio:1;border-radius:16px;border:1.5px dashed var(--line2);display:flex;align-items:center;justify-content:center;color:var(--sub);background:none;cursor:pointer}
+.cv-badge-add{aspect-ratio:1;border-radius:16px;border:1.5px dashed var(--line2);display:flex;align-items:center;justify-content:center;color:var(--sub);background:none;cursor:pointer;transition:transform 0.12s var(--spring),opacity 0.12s}
+.cv-badge-add:active{transform:scale(0.92);opacity:0.7}
 .cv-empty{grid-column:1/-1;color:var(--sub);font-size:13px;font-style:italic;padding:8px 0}
 
 /* ── Tableau de bord voyage en cours ─────────────────────────────── */
