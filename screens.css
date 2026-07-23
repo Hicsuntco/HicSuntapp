@@ -31,7 +31,7 @@
 .tabbar-pill{
   display:flex;align-items:center;
   width:100%;
-  background:rgba(252,250,243,0.82);
+  background:rgba(255,255,255,0.82);
   border-radius:30px;
   padding:7px;
   gap:2px;
@@ -140,7 +140,7 @@
 .tile .t-r{font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--onink);opacity:0.75}
 
 /* ── trip cards — carte postale pleine largeur ── */
-.trip-card{border-radius:22px;overflow:hidden;background:var(--surface);position:relative;box-shadow:0 12px 28px -18px rgba(70,50,25,.5);margin-bottom:16px;cursor:pointer;transition:transform 0.15s cubic-bezier(0.34,1.2,0.4,1),opacity 0.12s}
+.trip-card{border-radius:22px;overflow:hidden;background:var(--surface);position:relative;box-shadow:0 12px 28px -18px rgba(20,18,14,.5);margin-bottom:16px;cursor:pointer;transition:transform 0.15s cubic-bezier(0.34,1.2,0.4,1),opacity 0.12s}
 .trip-card:active{transform:scale(0.985);opacity:0.94}
 .trip-card-hero{position:relative;height:150px;overflow:hidden}
 .trip-card-wm{position:absolute;bottom:-6px;right:-6px;color:var(--onink);opacity:0.25}
@@ -161,7 +161,7 @@
 .trip-card.draft{background:var(--surface);border:1.5px dashed var(--line2);box-shadow:none}
 .trip-card.draft .trip-card-hero{height:118px;display:flex;align-items:center;justify-content:center}
 .trip-card.draft .trip-card-wm{opacity:0.5}
-.trip-card-draft-badge{position:relative;display:inline-flex;align-items:center;gap:7px;padding:8px 15px;border-radius:100px;background:var(--surface);border:1px solid var(--line);box-shadow:0 4px 12px -6px rgba(70,50,25,.3)}
+.trip-card-draft-badge{position:relative;display:inline-flex;align-items:center;gap:7px;padding:8px 15px;border-radius:100px;background:var(--surface);border:1px solid var(--line);box-shadow:0 4px 12px -6px rgba(20,18,14,.3)}
 .trip-card-draft-badge .dot{width:7px;height:7px;border-radius:50%;background:var(--gold);display:inline-block}
 .trip-card-draft-badge span:last-child{font-size:11.5px;font-weight:600;color:var(--ink-soft)}
 .trip-card-draftfoot{padding:14px 18px;display:flex;justify-content:space-between;align-items:baseline}

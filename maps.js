@@ -1,4 +1,4 @@
-/* ── HIC SUNT · cartes réelles — Leaflet + tuiles CartoDB (sépia), géocodage Nominatim ── */
+/* ── HIC SUNT · cartes réelles — Leaflet + tuiles CartoDB (light, neutre), géocodage Nominatim ── */
 
 function _ensureLeaflet(cb){
   if(window.L){ cb(); return; }
@@ -212,7 +212,7 @@ function _hsTileLayer(){
 }
 /* kind: 'active' (jour consulté) · 'end' (première/dernière étape) · 'mid' (étape intermédiaire) */
 function _hsMarkerIcon(kind, label){
-  const shadow = '0 1px 3px #F1E9D9, 0 0 2px #F1E9D9';
+  const shadow = '0 1px 3px #FFFFFF, 0 0 2px #FFFFFF';
   const escFn = typeof esc === 'function' ? esc : function(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); };
   const name = label ? escFn(label) : '';
   let html;
@@ -223,12 +223,12 @@ function _hsMarkerIcon(kind, label){
       + '</div>';
   } else if(kind === 'end'){
     html = '<div style="display:flex;align-items:center;gap:5px;transform:translate(-8px,-8px)">'
-      + '<span style="width:16px;height:16px;border-radius:50%;background:#FCFAF3;border:3px solid #A6824A;box-shadow:0 1px 4px rgba(0,0,0,.3)"></span>'
+      + '<span style="width:16px;height:16px;border-radius:50%;background:#FAFAF8;border:3px solid #A6824A;box-shadow:0 1px 4px rgba(0,0,0,.3)"></span>'
       + (name ? '<span style="font-family:\'Spline Sans Mono\',monospace;font-weight:600;font-size:11px;color:#3F3729;white-space:nowrap;text-shadow:' + shadow + '">' + name + '</span>' : '')
       + '</div>';
   } else {
     html = '<div style="display:flex;align-items:center;gap:5px;transform:translate(-7px,-7px)">'
-      + '<span style="width:14px;height:14px;border-radius:50%;background:#A6824A;border:2px solid #FCFAF3;box-shadow:0 1px 4px rgba(0,0,0,.3)"></span>'
+      + '<span style="width:14px;height:14px;border-radius:50%;background:#A6824A;border:2px solid #FAFAF8;box-shadow:0 1px 4px rgba(0,0,0,.3)"></span>'
       + (name ? '<span style="font-family:\'Spline Sans Mono\',monospace;font-weight:600;font-size:11px;color:#3F3729;white-space:nowrap;text-shadow:' + shadow + '">' + name + '</span>' : '')
       + '</div>';
   }

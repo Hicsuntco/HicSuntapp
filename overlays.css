@@ -61,7 +61,7 @@
 /* ── itinerary — en-tête plat, même langage que Profil/Voyages/génération ── */
 .itd-head{padding:6px 26px 0;flex:none}
 .itd-top{display:flex;justify-content:space-between;align-items:center}
-.ihx-btn{width:40px;height:40px;border-radius:12px;background:var(--surface);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;box-shadow:0 1px 2px rgba(70,50,25,0.04);color:var(--ink);cursor:pointer;transition:transform 0.12s var(--spring)}
+.ihx-btn{width:40px;height:40px;border-radius:12px;background:var(--surface);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;box-shadow:0 1px 2px rgba(20,18,14,0.04);color:var(--ink);cursor:pointer;transition:transform 0.12s var(--spring)}
 .ihx-btn:active{transform:scale(0.88)}
 /* Le déclencheur de l'assistant IA se distingue des autres actions (retour,
    partager) par un liseré doré plutôt qu'une icône identique aux autres. */
@@ -75,7 +75,7 @@
   background:var(--surface);color:var(--gold-deep);
   display:flex;align-items:center;justify-content:center;
   cursor:grab;-webkit-tap-highlight-color:transparent;
-  box-shadow:0 10px 24px -10px rgba(70,50,25,.25),0 2px 6px rgba(70,50,25,.1);
+  box-shadow:0 10px 24px -10px rgba(20,18,14,.25),0 2px 6px rgba(20,18,14,.1);
   transition:transform 0.12s var(--spring);
 }
 .ai-bubble:active{transform:scale(0.92);cursor:grabbing}
@@ -169,7 +169,7 @@
   display:flex;align-items:center;justify-content:center;
   background:var(--surface);border:1px solid var(--line);
   cursor:pointer;color:var(--gold-deep);
-  box-shadow:0 1px 2px rgba(70,50,25,0.04);
+  box-shadow:0 1px 2px rgba(20,18,14,0.04);
   transition:transform 0.12s var(--spring),border-color 0.18s,background 0.18s;
 }
 .fa-btn:active{transform:scale(0.9)}
@@ -314,8 +314,8 @@
 .gen.suggest .gen-body{gap:14px;text-align:center}
 .sugg-dest{font-family:var(--serif);font-weight:600;font-size:42px;letter-spacing:-0.5px;color:var(--onink)}
 .sugg-tag{font-family:var(--serif);font-style:italic;font-size:16px;color:var(--gold-soft);line-height:1.4}
-.sugg-teaser{font-size:14px;font-weight:300;color:rgba(246,240,228,0.7);line-height:1.6;max-width:280px}
-.sugg-coords{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(246,240,228,0.4);margin-top:4px}
+.sugg-teaser{font-size:14px;font-weight:300;color:rgba(246,246,243,0.7);line-height:1.6;max-width:280px}
+.sugg-coords{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(246,246,243,0.4);margin-top:4px}
 .sugg-acts{display:flex;flex-direction:column;gap:10px;width:100%;margin-top:18px}
 .btn-ghost.on-dark{color:var(--onink);border-color:var(--sub);background:transparent}
 
