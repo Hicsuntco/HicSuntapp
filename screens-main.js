@@ -455,15 +455,13 @@ function profileView(){
      vraie session  -  sans ce distinguo, le bouton "Se connecter" reste
      caché alors qu'aucune action Supabase ne peut réellement fonctionner. */
   const hasRealAuth = !!token;
-  const premium = (typeof _hasActivePremiumStatus === 'function') && _hasActivePremiumStatus();
-  /* Sur iOS, aucune fonctionnalité n'est jamais payante dans l'app (voir
-     _isNativeIOSApp/_checkPaymentToken, guideline 3.1.1) — un intitulé
-     évoquant un abonnement/achat ("Abonnement Premium", "débloqué à
-     l'achat") laisse penser le contraire et peut faire suspecter un achat
-     intégré manquant lors d'une revue Apple. */
-  const isNativeIOS = (typeof _isNativeIOSApp === 'function') && _isNativeIOSApp();
-  const premiumLabel = isNativeIOS ? 'Accès complet' : 'Abonnement Premium';
-  const premiumSub = isNativeIOS ? 'Toutes les fonctionnalités incluses' : (premium ? 'Actif' : 'Débloqué à l\'achat d\'un itinéraire');
+  /* L'application est gratuite pour l'instant, sur toutes les plateformes :
+     pas de palier payant actif, donc pas d'intitulé évoquant un abonnement
+     ou un achat ("Abonnement Premium", "débloqué à l'achat"). Sur iOS
+     c'est de toute façon permanent (voir _isNativeIOSApp/_checkPaymentToken,
+     guideline 3.1.1). */
+  const premiumLabel = 'Accès complet';
+  const premiumSub = 'Toutes les fonctionnalités incluses';
 
   const rows = [
     ['compass','Préférences de voyage','Styles, budget et rythme par défaut', "openOverlay('prefs', prefsView())"],

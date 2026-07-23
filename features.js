@@ -241,62 +241,24 @@ function openPremium(){
   openOverlay('premium', premiumView());
 }
 function premiumView(){
-  /* Sur iOS, le paywall Stripe est entièrement contourné (voir
-     _isNativeIOSApp/_checkPaymentToken dans generate.js — Guideline 3.1.1,
-     pas de lien de paiement externe pour du contenu numérique in-app).
-     Afficher quand même les tarifs Stripe ici donnerait l'impression d'une
-     fonctionnalité de paiement active alors qu'elle ne l'est jamais dans
-     l'app — on adapte le contenu en conséquence plutôt que de laisser un
-     écran qui ne correspond pas à ce que fait réellement l'app. */
-  const isNativeIOS = (typeof _isNativeIOSApp === 'function') && _isNativeIOSApp();
-  const email = (localStorage.getItem('hs_email')||'').toLowerCase().trim();
-  const isOwner = email === 'charlottegperret@gmail.com';
-  let paid = [];
-  try{ paid = JSON.parse(localStorage.getItem('hs_paid_tokens')||'[]'); }catch(e){}
-  const now = Date.now();
-  const recentPaid = paid.filter(function(t){ return (now - t.ts) < 48*3600*1000; })
-    .sort(function(a,b){ return b.ts - a.ts; });
-  const labels = (typeof STRIPE_LABELS !== 'undefined') ? STRIPE_LABELS : {};
-  const premium = isNativeIOS || ((typeof _hasActivePremiumStatus === 'function') && _hasActivePremiumStatus());
-
-  if(isNativeIOS){
-    return statusBar() + navbar('Accès complet')
-      + '<div class="ov-scroll px">'
-      +   '<div class="cercle-card">'
-      +     '<div class="cc-tier">Tout inclus</div>'
-      +     '<div class="cc-pts">Aucun paiement requis dans l\'application</div>'
-      +   '</div>'
-      +   '<div class="section-h"><h2>Comment ça marche</h2></div>'
-      +   '<div class="perks" style="margin-top:0">'
-      +     '<div class="perk">' + ico('sparkle',19,1.5) + '<div class="p-t">Itinéraires illimités</div><div class="p-d">Chaque voyage composé est intégralement accessible, sans restriction.</div></div>'
-      +     '<div class="perk">' + ico('star',19,1.5) + '<div class="p-t">Aucun frais</div><div class="p-d">L\'application ne propose aucun achat.</div></div>'
-      +   '</div>'
-      + '</div>';
-  }
-
-  return statusBar() + navbar('Abonnement Premium')
+  /* L'application est gratuite pour l'instant, sur toutes les plateformes —
+     pas de palier payant actif. Sur iOS, c'est de toute façon permanent
+     (voir _isNativeIOSApp/_checkPaymentToken dans generate.js — Guideline
+     3.1.1, pas de lien de paiement externe pour du contenu numérique
+     in-app) ; ailleurs, tant qu'aucune offre n'est en place, afficher des
+     tarifs ou un historique d'achats donnerait l'impression d'une
+     fonctionnalité active alors qu'elle ne l'est pas. */
+  return statusBar() + navbar('Accès complet')
     + '<div class="ov-scroll px">'
     +   '<div class="cercle-card">'
-    +     '<div class="cc-tier">' + (isOwner ? 'Accès propriétaire' : (premium ? 'Premium actif' : 'Aucun déblocage actif')) + '</div>'
-    +     '<div class="cc-pts">' + (isOwner ? 'Tous les itinéraires débloqués'
-          : recentPaid.length ? recentPaid.length + ' voyage' + (recentPaid.length>1?'s':'') + ' débloqué' + (recentPaid.length>1?'s':'') + ' (48h)'
-          : 'Débloqué à la composition d\'un voyage') + '</div>'
+    +     '<div class="cc-tier">Tout inclus</div>'
+    +     '<div class="cc-pts">Aucun paiement requis dans l\'application</div>'
     +   '</div>'
     +   '<div class="section-h"><h2>Comment ça marche</h2></div>'
     +   '<div class="perks" style="margin-top:0">'
-    +     '<div class="perk">' + ico('sparkle',19,1.5) + '<div class="p-t">Paiement à l\'itinéraire</div><div class="p-d">Chaque voyage composé se débloque séparément — pas d\'abonnement récurrent pour l\'instant.</div></div>'
-    +     '<div class="perk">' + ico('star',19,1.5) + '<div class="p-t">Tarif selon la durée</div><div class="p-d">4,99€ (1-7j) · 9,99€ (8-14j) · 17,99€ (15j et plus).</div></div>'
-    +     '<div class="perk">' + ico('bell',19,1.5) + '<div class="p-t">Valable 48h</div><div class="p-d">Le temps d\'explorer et d\'ajuster votre itinéraire.</div></div>'
+    +     '<div class="perk">' + ico('sparkle',19,1.5) + '<div class="p-t">Itinéraires illimités</div><div class="p-d">Chaque voyage composé est intégralement accessible, sans restriction.</div></div>'
+    +     '<div class="perk">' + ico('star',19,1.5) + '<div class="p-t">Aucun frais</div><div class="p-d">L\'application ne propose aucun achat pour le moment.</div></div>'
     +   '</div>'
-    +   '<div class="section-h"><h2>Historique</h2><span class="meta">Achats récents</span></div>'
-    +   (recentPaid.length === 0
-        ? '<p style="color:var(--sub);font-size:14px;margin-top:4px;font-style:italic">Composez votre premier voyage pour débloquer l\'itinéraire complet.</p>'
-        : recentPaid.map(function(t){
-            const label = labels[t.palier] || t.palier || '';
-            const when = new Date(t.ts).toLocaleDateString('fr-FR', {day:'numeric', month:'long'});
-            return '<div class="hist"><div><div class="hi-n">' + esc(t.dest || label) + '</div><div class="hi-w">' + esc(when) + '</div></div><span class="hi-p">' + esc(label) + '</span></div>';
-          }).join(''))
-    +   (premium ? '' : '<button class="btn" style="width:100%;margin-top:20px" onclick="closeOverlay();setTab(\'create\')">Composer un voyage</button>')
     + '</div>';
 }
 
