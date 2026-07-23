@@ -59,27 +59,22 @@
 .season .m.best span{color:var(--gold-deep);font-weight:700}
 .season-note{font-size:13px;font-weight:300;color:var(--sub);line-height:1.55;margin-top:12px}
 
-/* ── itinerary — en-tête plat, même langage que Profil/Voyages/génération ── */
-.itd-head{padding:6px 26px 0;flex:none}
-.itd-top{display:flex;justify-content:space-between;align-items:center}
+/* ── itinerary — hero plein cadre façon carte postale ── */
+.itin-hero-panel{position:relative;min-height:300px;flex:none;overflow:hidden;padding-top:env(safe-area-inset-top,0px);display:flex;flex-direction:column}
+.itin-hero-waves{position:absolute;inset:0;width:100%;height:100%}
+.itin-hero-wm{position:absolute;top:110px;right:-10px;color:var(--onink);opacity:0.16;pointer-events:none;z-index:1}
+.itin-hero-top{display:flex;justify-content:space-between;align-items:center;padding:6px 18px 0;position:relative;z-index:2;flex:none}
 .ihx-btn{width:40px;height:40px;border-radius:12px;background:var(--surface);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;box-shadow:0 1px 2px rgba(20,18,14,0.04);color:var(--ink);cursor:pointer;transition:transform 0.12s var(--spring)}
 .ihx-btn:active{transform:scale(0.88)}
 /* Le déclencheur de l'assistant IA se distingue des autres actions (retour,
    partager) par un liseré doré plutôt qu'une icône identique aux autres. */
 .ihx-btn.ai{border:1.5px solid var(--gold);color:var(--gold-deep)}
-
-/* ── bulle IA flottante, déplaçable (voir _enableBubbleDrag, app.js) —
-   claire avec liseré doré fin, comme .ihx-btn.ai, plutôt qu'un disque noir plein. ── */
-.ai-bubble{
-  position:absolute;right:18px;bottom:126px;z-index:15;
-  width:56px;height:56px;border-radius:50%;border:none;
-  background:var(--accent,var(--gold-deep));color:#FFFFFF;
-  display:flex;align-items:center;justify-content:center;
-  cursor:grab;-webkit-tap-highlight-color:transparent;
-  box-shadow:0 10px 24px -10px var(--accent-shadow,rgba(20,18,14,.35)),0 2px 6px rgba(20,18,14,.1);
-  transition:transform 0.12s var(--spring);
-}
-.ai-bubble:active{transform:scale(0.92);cursor:grabbing}
+.itin-hero-coords{position:relative;padding:8px 20px 0;font-size:12px;color:var(--onink);opacity:0.8;letter-spacing:.1em;z-index:2;line-height:1.4}
+.itin-hero-cap{position:relative;margin-top:auto;padding:0 20px 18px;z-index:2}
+.itin-hero-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border-radius:100px;background:var(--ink);margin-bottom:12px;color:var(--gold-bright)}
+.itin-hero-badge .mono{font-size:10px;color:var(--onink);letter-spacing:.14em}
+.itin-hero-cap h1{font-family:var(--serif);font-weight:600;font-size:44px;line-height:.92;color:var(--onink);margin:0}
+.itin-hero-tag{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--gold-bright);margin-top:4px}
 
 .itin-stat{flex:1;padding:14px 15px;border-radius:16px;background:var(--surface);border:1px solid var(--line)}
 .itin-stat .mono{font-size:9px;color:var(--gold);letter-spacing:.14em;margin-bottom:6px}
@@ -128,7 +123,7 @@
 }
 .dayrow:active{opacity:0.7}
 .dayrow .dr-rail{display:flex;flex-direction:column;align-items:center;flex:none;width:28px;padding-top:5px}
-.dayrow .dr-node{width:12px;height:12px;border-radius:50%;border:2.4px solid;flex:none}
+.dayrow .dr-pin{width:28px;height:28px;border-radius:50%;border:1.5px solid;flex:none;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;font-weight:700;color:#FFFFFF}
 .dayrow .dr-line{flex:1;width:2px;opacity:0.3;margin-top:6px;border-radius:2px}
 .dayrow:last-child .dr-line{display:none}
 .dayrow .dr-main{flex:1;min-width:0}
@@ -162,20 +157,9 @@
 .foot-price{display:flex;align-items:center;justify-content:space-between;gap:14px}
 .foot-price .fp-v{font-family:var(--serif);font-weight:600;font-size:24px;letter-spacing:-0.3px}
 .foot-price .fp-l{font-family:var(--mono);font-size:8.5px;letter-spacing:1px;text-transform:uppercase;color:var(--sub);margin-top:2px}
-/* Actions : Garder · PDF — boutons ronds, même langage que .ihx-btn en tête
-   d'écran, plus modernes que les cases à libellé. */
-.foot-actions{display:flex;gap:10px;flex:none}
-.fa-btn{
-  width:46px;height:46px;border-radius:50%;flex:none;
-  display:flex;align-items:center;justify-content:center;
-  background:var(--surface);border:1px solid var(--line);
-  cursor:pointer;color:var(--gold-deep);
-  box-shadow:0 1px 2px rgba(20,18,14,0.04);
-  transition:transform 0.12s var(--spring),border-color 0.18s,background 0.18s;
-}
-.fa-btn:active{transform:scale(0.9)}
-.fa-btn:hover{border-color:var(--gold-soft);background:var(--surface-raised)}
-.fa-btn span{display:flex}
+/* Actions : Garder (texte discret) · Modifier (bulle ronde) — voir da.css
+   §22 pour .fa-txt/.fa-chat, une seule action principale. */
+.foot-actions{display:flex;align-items:center;gap:8px;flex:none}
 .foot-price .btn{width:auto;flex:1;max-width:220px}
 
 /* ── day detail — moments with iOS minimum tap height ── */

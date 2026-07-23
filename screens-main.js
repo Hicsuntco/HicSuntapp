@@ -473,43 +473,72 @@ function profileView(){
   if(connected) rows.push(['logout','Déconnexion','', 'logout()']);
 
   const statSkeleton = ['Pays','Voyages','Jours'].map(function(l){
-    return '<div class="prof-stat"><div class="skel" style="width:24px;height:20px;margin:0 auto;border-radius:6px"></div><div class="ps-l" style="margin-top:8px">' + l + '</div></div>';
+    return '<div class="prof-stat"><div class="ps-v">—</div><div class="ps-l">' + l + '</div></div>';
+  }).join('');
+
+  /* Documents de voyage — état réel de chaque pièce. */
+  const docRows = (typeof DOCUMENTS !== 'undefined' ? DOCUMENTS : []).map(function(d){
+    const st = d.st || ['draft',''];
+    return '<div class="pf-doc">'
+      + '<span class="pf-doc-ico">' + ico(d.i || 'doc', 18, 1.5) + '</span>'
+      + '<div class="pf-doc-m"><div class="pf-doc-t">' + esc(d.n) + '</div>'
+      + (d.s ? '<div class="pf-doc-s">' + esc(d.s) + '</div>' : '') + '</div>'
+      + '<span class="pf-doc-st ' + esc(st[0]) + '">' + esc(st[1]) + '</span></div>';
   }).join('');
 
   return statusBar()
-    + '<div class="px">'
-    +   '<div class="eyebrow-row"><span class="eyebrow">Mon compte</span><span class="eyebrow-now">' + (hasRealAuth ? 'Connecté' : 'Invité') + '</span></div>'
-    +   '<hr class="hairline gold" style="margin-top:14px">'
-    +   '<h1 class="voy-title" style="margin-bottom:0">Profil</h1>'
-    +   '<div class="prof-head">'
-    +     '<span class="avatar" style="width:76px;height:76px;font-size:26px">' + (USER.initials || '✦') + '</span>'
-    +     '<div class="prof-stats" data-prof-stats>' + statSkeleton + '</div>'
+    + '<div class="px pf">'
+
+    /* ── En-tête : identité, sans carte ── */
+    +   '<div class="pf-eyebrow">Votre compte</div>'
+    +   '<div class="rule"></div>'
+    +   '<div class="pf-id">'
+    +     '<span class="pf-av">' + (USER.initials || '✦') + '</span>'
+    +     '<div class="pf-idm">'
+    +       '<h1 class="pf-name">' + esc(USER.full || USER.name || 'Voyageur') + '</h1>'
+    +       '<div class="pf-mail">' + (email ? esc(email) : 'Composez votre premier itinéraire') + '</div>'
+    +     '</div>'
     +   '</div>'
-    +   '<div class="prof-n">' + esc(USER.full || USER.name || 'Voyageur') + '</div>'
-    +   (premium
-        ? '<div class="prof-badge">' + ico('sparkle',11,2) + '<span>Explorateur · Premium</span></div>'
-        : '<div class="prof-m">' + (email ? esc(email) : 'Composez votre premier itinéraire') + '</div>')
-    +   '<div class="prof-circle-card" data-prof-circle onclick="openMonCercle()" style="cursor:pointer;margin-top:20px"><div class="cc-row"><div class="circle-empty-ico">' + ico('users',18,1.5) + '</div>'
-    +     '<div style="flex:1"><div class="cc-t">Mon Cercle</div><div class="skel on-dark" style="width:140px;height:11px;margin-top:6px;border-radius:5px"></div></div></div></div>'
-    +   '<div class="section-h" style="margin-top:20px;cursor:pointer" onclick="openAtlas()">'
-    +     '<h2>Carnet de voyage</h2>'
-    +     '<span style="display:flex;align-items:center;gap:4px"><span class="meta" data-prof-badges-meta>…</span><span style="color:var(--sub);display:inline-flex">' + ico('chevron',14,1.6) + '</span></span>'
+
+    /* ── Chiffres, en ligne (plus de carte) ── */
+    +   '<div class="prof-stats pf-stats" data-prof-stats>' + statSkeleton + '</div>'
+
+    /* ── Documents ── */
+    +   '<div class="pf-sec">Vos documents</div>'
+    +   '<div class="pf-docs">' + docRows + '</div>'
+
+    /* ── Votre monde ── */
+    +   '<div class="pf-sec pf-sec-row" onclick="openAtlas()">'
+    +     '<span>Votre monde</span>'
+    +     '<span class="pf-sec-meta" data-prof-badges-meta>…</span>'
     +   '</div>'
     +   '<div class="prof-badges" data-prof-badges onclick="openAtlas()" style="cursor:pointer">'
     +     [0,1,2,3].map(function(){ return '<div class="skel" style="aspect-ratio:1;border-radius:16px"></div>'; }).join('')
     +   '</div>'
-    +   '<div class="atlas-cta-row" onclick="openAtlas()" style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:10px;padding:12px;border-radius:14px;border:1px dashed var(--line2);cursor:pointer;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--gold)">'
-    +     ico('compass',14,1.7) + '<span>Voir mon Atlas Vivant</span>'
-    +   '</div>'
-    +   '<div class="prof-list" style="margin-top:20px">' + rows.map(function(r){
-          return '<div class="row" onclick="' + r[3] + '">'
-            + '<span class="r-ico">' + ico(r[0], 20, 1.5) + '</span>'
-            + '<div class="r-main"><div class="r-t">' + r[1] + '</div>' + (r[2] ? '<div class="r-s">' + r[2] + '</div>' : '') + '</div>'
-            + '<span class="r-chev">' + ico('chevron', 17, 1.6) + '</span></div>';
+
+    /* ── Votre Cercle — uniquement si le voyageur est connecté : hors
+       connexion, la section n'affichait qu'un état vide avec des boutons
+       sans effet, ce qui donnait l'app pour cassée. ── */
+    +   (hasRealAuth
+          ? '<div class="pf-sec">Votre Cercle</div>'
+            + '<div class="pf-circle" data-prof-circle onclick="openMonCercle()" style="cursor:pointer">'
+            + '<div class="cc-row"><div style="flex:1"><div class="cc-t">Mon Cercle</div><div class="cc-s">Chargement…</div></div></div>'
+            + '</div>'
+          : '')
+
+    /* ── Réglages, en lignes fines ── */
+    +   '<div class="pf-sec">Réglages</div>'
+    +   '<div class="pf-rows">' + rows.map(function(r){
+          return '<div class="pf-row" onclick="' + r[3] + '">'
+            + '<span class="pf-row-ico">' + ico(r[0], 19, 1.5) + '</span>'
+            + '<div class="pf-row-m"><div class="pf-row-t">' + r[1] + '</div>'
+            + (r[2] ? '<div class="pf-row-s">' + r[2] + '</div>' : '') + '</div>'
+            + '<span class="pf-row-ch">' + ico('chevron', 16, 1.6) + '</span></div>';
         }).join('') + '</div>'
-    +   (hasRealAuth ? '' : '<button class="btn" style="width:100%;margin-top:20px" onclick="openOverlay(\'login\', loginView(), {modal:true})">Se connecter</button>')
-    +   (hasRealAuth ? '<button onclick="_promptDeleteAccount()" style="display:block;width:100%;background:none;border:none;padding:16px 0 0;font-family:var(--sans);font-size:13px;color:var(--sub);text-align:center;cursor:pointer">Supprimer mon compte</button>' : '')
-    +   '<p style="text-align:center;font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub);margin-top:32px">Hic Sunt · Beyond the Known</p>'
+
+    +   (hasRealAuth ? '' : '<button class="btn" style="width:100%;margin-top:22px" onclick="openOverlay(\'login\', loginView(), {modal:true})">Se connecter</button>')
+    +   (hasRealAuth ? '<button onclick="_promptDeleteAccount()" class="pf-del">Supprimer mon compte</button>' : '')
+    +   '<p class="pf-foot">Hic Sunt · Beyond the Known</p>'
     + '</div>';
 }
 /* Remplit les blocs asynchrones du profil (stats, Cercle, carnet de voyage)
@@ -547,10 +576,18 @@ async function loadProfileTab(){
   const badgesMeta = scope.querySelector('[data-prof-badges-meta]');
   if(badgesMeta) badgesMeta.textContent = stats.countries.length + ' / ' + WORLD_COUNTRIES_COUNT + ' régions';
   if(badgesEl){
-    badgesEl.innerHTML = stats.countries.map(function(c){
+    /* Plafonné : au-delà de 6 pays, on résume par un compteur plutôt que
+       de dérouler une grille interminable au fil des voyages. */
+    const MAX_BADGES = 6;
+    const shown = stats.countries.slice(0, MAX_BADGES);
+    const reste = stats.countries.length - shown.length;
+    badgesEl.innerHTML = shown.map(function(c){
       return '<div class="cv-badge" style="background:' + _countryBadgeBg(c.key, c.label) + '">'
         + ico(destIcon(c.label), 22, 1.4) + '<span class="cv-code">' + c.code + '</span></div>';
-    }).join('') + '<div class="cv-badge-add" onclick="setTab(\'discover\')">' + ico('plus', 20, 1.6) + '</div>';
+    }).join('')
+      + (reste > 0
+          ? '<div class="cv-badge cv-badge-more">+' + reste + '</div>'
+          : '<div class="cv-badge-add" onclick="setTab(\'discover\')">' + ico('plus', 20, 1.6) + '</div>');
   }
 }
 function _circleCardHTML(companions, connected){

@@ -510,30 +510,48 @@ function itineraryView(){
     andean:'Andes', urban_asia:'Asie', urban:'Métropole',
     savanna:'Savane', caribbean:'Caraïbes',
   };
-  const ac = ACCENT[theme] || '#9c7c44';
+  /* La couleur d'accent vient désormais de l'ADN de la destination
+     (--accent, posé par da-accent.js). La table par thème ne sert plus que
+     de repli si la variable n'est pas encore disponible. */
+  const _cssAc = (typeof getComputedStyle === 'function')
+    ? getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()
+    : '';
+  const ac = _cssAc || ACCENT[theme] || '#9c7c44';
   const c1 = (palette && palette.beach) || (palette && palette.culture) || ac;
   const themeLabel = THEME_LABEL[theme] || 'Sur-mesure';
   const minimapBg = 'linear-gradient(135deg,' + hexA(ac,0.06) + ' 0%,var(--surface) 100%)';
 
+  /* ── Hero plein cadre — photo destination (ou dégradé de secours), façon carte postale ── */
+  const heroBgStyle = (typeof destBgStyle === 'function') ? destBgStyle(it.dest) : 'background:' + ac;
+  const heroIcon = (typeof destIcon === 'function') ? destIcon(it.dest) : 'compass';
   const occId = state.occasion || it.occasion || '';
   const occInfo = (typeof OCCASIONS !== 'undefined') ? OCCASIONS.find(function(o){ return o.id === occId; }) : null;
 
-  return statusBar() + (
-    '<div class="itd-head">'
-    +   '<div class="itd-top">'
+  return (
+    '<div class="itin-hero-panel" style="' + heroBgStyle + '">'
+    /* Photo réelle trouvée par recherche web (_fetchRealDestPhoto), en plus
+       des 17 destinations pré-illustrées localement (destPhoto) — la
+       plupart des destinations générées (villes/régions précises) n'ont
+       pas de photo locale. Filet de sécurité au rendu : si l'URL ne charge
+       pas vraiment, elle se retire et laisse voir la photo locale ou le
+       dégradé déjà en place derrière. */
+    +   (it.heroPhoto ? '<img src="' + esc(it.heroPhoto) + '" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" onerror="this.remove()">' : '')
+    +   '<div class="hero-veil"></div>'
+    +   '<svg class="itin-hero-waves" viewBox="0 0 390 300" fill="none"><g stroke="rgba(244,238,223,.28)" stroke-width="1.2"><path d="M-40 190 Q 120 150 280 190 T 600 190"/><path d="M-40 225 Q 120 185 280 225 T 600 225"/><path d="M-40 260 Q 120 220 280 260 T 600 260"/></g></svg>'
+    +   '<span class="itin-hero-wm">' + ico(heroIcon, 96, 1.1) + '</span>'
+    +   '<div class="itin-hero-top">'
     +     '<button class="ihx-btn" onclick="closeOverlay()" aria-label="Retour">' + ico('back',17,2) + '</button>'
     +     '<div style="display:flex;gap:10px">'
     +       '<button class="ihx-btn" onclick="openOverlay(\'share\', shareView())" aria-label="Partager">' + ico('share',16,1.6) + '</button>'
-    +       '<button class="ihx-btn ai" onclick="openAI()" aria-label="Assistant d\'itinéraire">' + ico('sparkle',16,1.6) + '</button>'
+    +       '<button class="ihx-btn" onclick="window.triggerPDF&&window.triggerPDF()" aria-label="Enregistrer en PDF">' + ico('doc',16,1.6) + '</button>'
     +     '</div>'
     +   '</div>'
-    +   '<div class="eyebrow-row" style="margin-top:20px">'
-    +     '<span class="eyebrow">' + esc(occInfo ? occInfo.label : themeLabel) + '</span>'
-    +     (it.coords ? '<span class="eyebrow-now">' + esc(it.coords) + '</span>' : '')
+    +   (it.coords ? '<div class="itin-hero-coords mono">' + esc(it.coords) + '</div>' : '')
+    +   '<div class="itin-hero-cap">'
+    +     (occInfo ? '<div class="itin-hero-badge"><span>' + ico(occInfo.ic,12,1.7) + '</span><span class="mono">' + esc(occInfo.label) + '</span></div>' : '')
+    +     '<h1>' + esc(it.dest) + '</h1>'
+    +     (it.tag ? '<div class="itin-hero-tag">' + esc(it.tag) + '</div>' : '')
     +   '</div>'
-    +   '<hr class="hairline gold" style="margin-top:14px">'
-    +   '<h1 class="gen2-title" style="margin-top:20px"><span class="gen2-flag" style="background:' + ac + '"></span>' + esc(it.dest) + '</h1>'
-    +   (it.tag ? '<div class="gen2-status">' + esc(it.tag) + '</div>' : '')
     + '</div>'
 
     /* ── Contenu scrollable ── */
@@ -569,14 +587,21 @@ function itineraryView(){
     +   '<span class="minimap-cta">Voir la carte ' + ico('chevron',13,2.2) + '</span>'
     + '</div>'
 
-    /* Actions — liste compacte plutôt que 4 grandes tuiles carrées : même
-       contenu (Budget/Activités/Pépites), moins de place à l'écran.
-       "Modifier" quitte cette liste pour la bulle IA flottante ci-dessous. */
+    /* Actions */
     + '<div class="mono" style="font-size:10px;color:var(--gold);letter-spacing:.2em;margin:20px 0 12px">EXPLORER L\'ITINÉRAIRE</div>'
-    + '<div class="prof-list">'
-    +   '<div class="row" onclick="openOverlay(\'budget\', budgetView())"><span class="r-ico">' + ico('wallet',20,1.5) + '</span><div class="r-main"><div class="r-t">Budget</div><div class="r-s">' + eur(it.budgetTotal) + '</div></div><span class="r-chev">' + ico('chevron',17,1.6) + '</span></div>'
-    +   '<div class="row" onclick="openActivities()"><span class="r-ico">' + ico('ticket',20,1.5) + '</span><div class="r-main"><div class="r-t">Activités</div><div class="r-s">' + ACTIVITIES.length + ' expérience' + (ACTIVITIES.length>1?'s':'') + '</div></div><span class="r-chev">' + ico('chevron',17,1.6) + '</span></div>'
-    +   '<div class="row" onclick="openOverlay(\'gems\', gemsView())"><span class="r-ico">' + ico('star',20,1.5) + '</span><div class="r-main"><div class="r-t">Pépites</div><div class="r-s">' + ((it.gems||[]).length) + ' adresse' + ((it.gems||[]).length>1?'s':'') + '</div></div><span class="r-chev">' + ico('chevron',17,1.6) + '</span></div>'
+    + '<div class="tools">'
+    +   '<button class="tool" onclick="openOverlay(\'budget\', budgetView())">'
+    +     ico('wallet',20,1.5) + '<div class="tl-t">Budget</div><div class="tl-s">' + eur(it.budgetTotal) + '</div>'
+    +   '</button>'
+    +   '<button class="tool" onclick="openActivities()">'
+    +     ico('ticket',20,1.5) + '<div class="tl-t">Activités</div><div class="tl-s">' + ACTIVITIES.length + ' exp.</div>'
+    +   '</button>'
+    +   '<button class="tool dark" onclick="openOverlay(\'gems\', gemsView())">'
+    +     ico('star',18,1.5) + '<div class="tl-t">Pépites</div><div class="tl-s">' + ((it.gems||[]).length) + ' adresses</div>'
+    +   '</button>'
+    +   '<button class="tool" onclick="openAI()">'
+    +     ico('sparkle',18,1.5) + '<div class="tl-t">Modifier</div><div class="tl-s">Ajuster</div>'
+    +   '</button>'
     + '</div>'
 
     /* Jours */
@@ -588,12 +613,12 @@ function itineraryView(){
         const wx = Array.isArray(p.wx) ? p.wx : ['sun','—'];
         return '<div class="dayrow" onclick="openDay(' + i + ')">'
           + '<div class="dr-rail">'
-          +   '<span class="dr-node" style="border-color:' + cc + ';background:' + cc + '"></span>'
-          +   '<span class="dr-line" style="background:' + cc + '"></span>'
+          +   '<span class="dr-pin" style="background:' + cc + ';border-color:' + cc + '">' + p.n + '</span>'
+          +   '<span class="dr-line" style="background:' + hexA(cc,0.18) + '"></span>'
           + '</div>'
           + '<div class="dr-main">'
           +   '<div class="dr-top">'
-          +     '<div><div class="dr-l"><b style="color:' + cc + '">Jour ' + p.n + '</b>' + (p.loc ? ' · ' + esc(p.loc) : '') + '</div><div class="dr-t">' + esc(p.title||'') + '</div></div>'
+          +     '<div><div class="dr-t">' + esc(p.title||'') + '</div><div class="dr-l">' + esc(p.loc||'') + '</div></div>'
           +     wxChip(wx[0], wx[1])
           +   '</div>'
           +   (p.desc ? '<div class="dr-d">' + esc(p.desc) + '</div>' : '')
@@ -608,17 +633,14 @@ function itineraryView(){
     + it.accommodations.map(accCard).join('')
     + '</div>'
 
-    /* Bulle IA flottante — remplace la tuile "Modifier" de la grille
-       d'actions. Déplaçable (voir _enableBubbleDrag dans app.js) pour ne
-       jamais rester bloquée au-dessus d'un contenu qu'on veut lire. */
-    + '<button class="ai-bubble" data-ai-bubble onclick="if(!window._aiBubbleDragged){openAI()}" aria-label="Assistant d\'itinéraire">' + ico('sparkle',22,1.6) + '</button>'
-
     /* Footer */
     + '<div class="ov-foot"><div class="foot-price">'
     +   '<div><div class="fp-v">' + eur(it.budgetTotal) + '</div><div class="fp-l">tout compris · ' + travelerLabel(it) + '</div></div>'
     +   '<div class="foot-actions">'
-    +     '<button class="fa-btn" onclick="saveItinerary()" aria-label="Garder ce voyage"><span>' + ico('bookmark',20,1.6) + '</span></button>'
-    +     '<button class="fa-btn" onclick="window.triggerPDF&&window.triggerPDF()" aria-label="Exporter en PDF"><span>' + ico('doc',20,1.6) + '</span></button>'
+    +     '<button class="fa-txt" onclick="saveItinerary()">Garder</button>'
+    +     '<button class="fa-chat" onclick="openAI()" aria-label="Modifier le voyage" title="Modifier le voyage">'
+    +       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'
+    +       '<path d="M20.5 11.7a7.7 7.7 0 0 1-11.2 6.9L4 20l1.5-4.2A7.7 7.7 0 1 1 20.5 11.7z"/></svg></button>'
     +   '</div>'
     + '</div></div>'
   );

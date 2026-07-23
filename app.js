@@ -297,7 +297,6 @@ function openItinerary(){
   requestAnimationFrame(function(){ requestAnimationFrame(function(){ revealOnScroll(el); }); });
   if(typeof renderHicSuntMap === 'function') renderHicSuntMap('hs-map-mini', { dest: ITINERARY.dest, plan: ITINERARY.plan });
   if(typeof _atlasSyncVisitedCTA === 'function') _atlasSyncVisitedCTA();
-  _enableBubbleDrag(el);
 }
 /* Ferme le chat et rafraîchit la vue itinéraire sous-jacente (ou l'ouvre) */
 function _returnToUpdatedItinerary(){
@@ -314,54 +313,10 @@ function _returnToUpdatedItinerary(){
       requestAnimationFrame(function(){ requestAnimationFrame(function(){ revealOnScroll(existing); }); });
       if(typeof renderHicSuntMap === 'function') renderHicSuntMap('hs-map-mini', { dest: ITINERARY.dest, plan: ITINERARY.plan });
       if(typeof _atlasSyncVisitedCTA === 'function') _atlasSyncVisitedCTA();
-      _enableBubbleDrag(existing);
     } else {
       openItinerary();
     }
   }, 220);
-}
-/* Bulle IA flottante (écran voyage) — glisser librement en 2D dans les
-   limites de l'écran ; un tap sans mouvement ouvre l'assistant, un tap
-   après un glissement ne rouvre rien (window._aiBubbleDragged). */
-function _enableBubbleDrag(container){
-  const bubble = container && container.querySelector('[data-ai-bubble]');
-  if(!bubble || bubble.dataset.dragReady) return;
-  bubble.dataset.dragReady = '1';
-  bubble.style.touchAction = 'none';
-  let startX=0, startY=0, baseX=0, baseY=0, dragging=false, moved=false;
-  bubble.addEventListener('pointerdown', function(e){
-    dragging = true; moved = false;
-    startX = e.clientX; startY = e.clientY;
-    const rect = bubble.getBoundingClientRect();
-    baseX = rect.left; baseY = rect.top;
-    bubble.setPointerCapture(e.pointerId);
-    bubble.style.transition = 'none';
-  });
-  bubble.addEventListener('pointermove', function(e){
-    if(!dragging) return;
-    const dx = e.clientX - startX, dy = e.clientY - startY;
-    if(Math.abs(dx) > 4 || Math.abs(dy) > 4) moved = true;
-    if(!moved) return;
-    const parentRect = container.getBoundingClientRect();
-    const bw = bubble.offsetWidth, bh = bubble.offsetHeight;
-    let nx = Math.max(8, Math.min(parentRect.width - bw - 8, baseX + dx - parentRect.left));
-    let ny = Math.max(8, Math.min(parentRect.height - bh - 8, baseY + dy - parentRect.top));
-    bubble.style.left = nx + 'px';
-    bubble.style.top = ny + 'px';
-    bubble.style.right = 'auto';
-    bubble.style.bottom = 'auto';
-  });
-  function endDrag(){
-    if(!dragging) return;
-    dragging = false;
-    bubble.style.transition = '';
-    if(moved){
-      window._aiBubbleDragged = true;
-      setTimeout(function(){ window._aiBubbleDragged = false; }, 80);
-    }
-  }
-  bubble.addEventListener('pointerup', endDrag);
-  bubble.addEventListener('pointercancel', endDrag);
 }
 function revealOnScroll(container){
   const rows = container.querySelectorAll('.dayrow');
