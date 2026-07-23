@@ -275,17 +275,15 @@
 .gen2-dot{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--gold);margin-right:8px;vertical-align:middle;animation:hs-pulse 1.1s ease-in-out infinite}
 .gen2-meta{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--sub);margin-top:9px}
 .gen-compass-wrap{position:relative;height:260px;display:flex;align-items:center;justify-content:center;flex:none}
-.gen-compass{overflow:visible}
-.gen-compass .gc-r1{stroke:#D8C9AC;transform-origin:125px 125px;animation:hs-spin 80s linear infinite}
-.gen-compass .gc-r2{stroke:#CDBC9B}
-.gen-compass .gc-r3{stroke:#E0D3B7}
-.gen-compass .gc-ticks{stroke:var(--gold)}
-.gen-compass .gc-labels{fill:var(--gold)}
-.gen-compass .gc-needle{transform-origin:125px 125px;animation:hs-spin 11s linear infinite}
-.gen-compass .gc-needle-a{fill:var(--gold)}
-.gen-compass .gc-needle-b{fill:#D8C9AC}
-.gen-compass .gc-hub{fill:var(--surface);stroke:var(--gold);stroke-width:1.6}
-.gen-compass .gc-sparks path{fill:var(--gold);animation:hs-pulse 2.4s ease-in-out infinite}
+.gen-loader{overflow:visible}
+.gen-loader .gl-track{stroke:var(--line)}
+.gen-loader .gl-arc{
+  stroke:var(--gold);stroke-dasharray:150 453;
+  transform-origin:115px 115px;animation:hs-spin 2.6s linear infinite;
+}
+.gen-loader .gl-dot{fill:var(--gold);animation:hs-pulse 2.4s ease-in-out infinite}
+.gen-loader .gl-pin path{fill:var(--ink)}
+.gen-loader .gl-pin .gl-pin-hole{fill:var(--bg)}
 .gen-checklist{
   margin:22px 24px 0;background:var(--surface);border:1px solid var(--line);border-radius:22px;
   padding:18px 20px;box-shadow:var(--shadow-card);

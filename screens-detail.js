@@ -236,15 +236,20 @@ function genChecklistHTML(){
   }).join('');
 }
 function generationView(){
-  /* Rose des vents — même identité que la direction visuelle Hic Sunt */
-  const compass = '<svg class="gen-compass" width="250" height="250" viewBox="0 0 250 250" style="overflow:visible">'
-    + '<circle class="gc-r1" cx="125" cy="125" r="116" fill="none" stroke-width="1" stroke-dasharray="2 9"/>'
-    + '<circle cx="125" cy="125" r="92" fill="none" stroke-width="1" class="gc-r2"/>'
-    + '<circle cx="125" cy="125" r="78" fill="none" stroke-width="1" class="gc-r3"/>'
-    + '<g class="gc-ticks" stroke-width="1.4"><line x1="125" y1="33" x2="125" y2="46"/><line x1="217" y1="125" x2="204" y2="125"/><line x1="125" y1="217" x2="125" y2="204"/><line x1="33" y1="125" x2="46" y2="125"/></g>'
-    + '<g class="mono gc-labels" font-size="13" text-anchor="middle"><text x="125" y="26">N</text><text x="231" y="130">E</text><text x="125" y="234">S</text><text x="19" y="130">O</text></g>'
-    + '<g class="gc-needle"><polygon points="125,52 132,125 118,125" class="gc-needle-a"/><polygon points="125,198 132,125 118,125" class="gc-needle-b"/><circle cx="125" cy="125" r="6" class="gc-hub"/></g>'
-    + '<g class="gc-sparks"><path d="M196 56C196.3 58.4 198.6 60.7 201 61C198.6 61.3 196.3 63.6 196 66C195.7 63.6 193.4 61.3 191 61C193.4 60.7 195.7 58.4 196 56Z" style="animation-delay:0s"/><path d="M54 176C54.3 178 56 179.7 58 180C56 180.3 54.3 182 54 184C53.7 182 52 180.3 50 180C52 179.7 53.7 178 54 176Z" style="animation-delay:.8s"/><path d="M206 178C206.2 179.6 207.4 180.8 209 181C207.4 181.2 206.2 182.4 206 184C205.8 182.4 204.6 181.2 203 181C204.6 180.8 205.8 179.6 206 178Z" style="animation-delay:1.5s"/></g>'
+  /* Anneau de calcul d'itinéraire — loader moderne (piste + arc balayant +
+     jalons qui s'allument autour d'un pin central), plus de rose des vents. */
+  const compass = '<svg class="gen-loader" width="230" height="230" viewBox="0 0 230 230" style="overflow:visible">'
+    + '<circle class="gl-track" cx="115" cy="115" r="96" fill="none" stroke-width="1"/>'
+    + '<circle class="gl-arc" cx="115" cy="115" r="96" fill="none" stroke-width="2.5" stroke-linecap="round"/>'
+    + '<g class="gl-wp">'
+    +   '<circle class="gl-dot" cx="115" cy="19" r="4" style="animation-delay:0s"/>'
+    +   '<circle class="gl-dot" cx="201" cy="152" r="4" style="animation-delay:.6s"/>'
+    +   '<circle class="gl-dot" cx="63" cy="196" r="4" style="animation-delay:1.2s"/>'
+    + '</g>'
+    + '<g class="gl-pin">'
+    +   '<path d="M115 88c-13 0-23 10-23 23 0 17 23 39 23 39s23-22 23-39c0-13-10-23-23-23z"/>'
+    +   '<circle class="gl-pin-hole" cx="115" cy="111" r="7"/>'
+    + '</g>'
     + '</svg>';
 
   let daysCount = '';
