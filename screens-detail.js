@@ -564,21 +564,14 @@ function itineraryView(){
     +   '<span class="minimap-cta">Voir la carte ' + ico('chevron',13,2.2) + '</span>'
     + '</div>'
 
-    /* Actions */
+    /* Actions — liste compacte plutôt que 4 grandes tuiles carrées : même
+       contenu (Budget/Activités/Pépites), moins de place à l'écran.
+       "Modifier" quitte cette liste pour la bulle IA flottante ci-dessous. */
     + '<div class="mono" style="font-size:10px;color:var(--gold);letter-spacing:.2em;margin:20px 0 12px">EXPLORER L\'ITINÉRAIRE</div>'
-    + '<div class="tools">'
-    +   '<button class="tool" onclick="openOverlay(\'budget\', budgetView())">'
-    +     ico('wallet',20,1.5) + '<div class="tl-t">Budget</div><div class="tl-s">' + eur(it.budgetTotal) + '</div>'
-    +   '</button>'
-    +   '<button class="tool" onclick="openActivities()">'
-    +     ico('ticket',20,1.5) + '<div class="tl-t">Activités</div><div class="tl-s">' + ACTIVITIES.length + ' exp.</div>'
-    +   '</button>'
-    +   '<button class="tool dark" onclick="openOverlay(\'gems\', gemsView())">'
-    +     ico('star',18,1.5) + '<div class="tl-t">Pépites</div><div class="tl-s">' + ((it.gems||[]).length) + ' adresses</div>'
-    +   '</button>'
-    +   '<button class="tool" onclick="openAI()">'
-    +     ico('sparkle',18,1.5) + '<div class="tl-t">Modifier</div><div class="tl-s">Assistant IA</div>'
-    +   '</button>'
+    + '<div class="prof-list">'
+    +   '<div class="row" onclick="openOverlay(\'budget\', budgetView())"><span class="r-ico">' + ico('wallet',20,1.5) + '</span><div class="r-main"><div class="r-t">Budget</div><div class="r-s">' + eur(it.budgetTotal) + '</div></div><span class="r-chev">' + ico('chevron',17,1.6) + '</span></div>'
+    +   '<div class="row" onclick="openActivities()"><span class="r-ico">' + ico('ticket',20,1.5) + '</span><div class="r-main"><div class="r-t">Activités</div><div class="r-s">' + ACTIVITIES.length + ' expérience' + (ACTIVITIES.length>1?'s':'') + '</div></div><span class="r-chev">' + ico('chevron',17,1.6) + '</span></div>'
+    +   '<div class="row" onclick="openOverlay(\'gems\', gemsView())"><span class="r-ico">' + ico('star',20,1.5) + '</span><div class="r-main"><div class="r-t">Pépites</div><div class="r-s">' + ((it.gems||[]).length) + ' adresse' + ((it.gems||[]).length>1?'s':'') + '</div></div><span class="r-chev">' + ico('chevron',17,1.6) + '</span></div>'
     + '</div>'
 
     /* Jours */
@@ -609,6 +602,11 @@ function itineraryView(){
     + '<div class="section-h" style="margin-top:8px"><h2>Hébergements</h2><span class="meta">' + it.accommodations.length + ' sélections</span></div>'
     + it.accommodations.map(accCard).join('')
     + '</div>'
+
+    /* Bulle IA flottante — remplace la tuile "Modifier" de la grille
+       d'actions. Déplaçable (voir _enableBubbleDrag dans app.js) pour ne
+       jamais rester bloquée au-dessus d'un contenu qu'on veut lire. */
+    + '<button class="ai-bubble" data-ai-bubble onclick="if(!window._aiBubbleDragged){openAI()}" aria-label="Assistant d\'itinéraire">' + ico('sparkle',22,1.6) + '</button>'
 
     /* Footer */
     + '<div class="ov-foot"><div class="foot-price">'

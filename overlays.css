@@ -67,6 +67,18 @@
    partager) par un liseré doré plutôt qu'une icône identique aux autres. */
 .ihx-btn.ai{border:1.5px solid var(--gold);color:var(--gold-deep)}
 
+/* ── bulle IA flottante, déplaçable (voir _enableBubbleDrag, app.js) ── */
+.ai-bubble{
+  position:absolute;right:18px;bottom:126px;z-index:15;
+  width:56px;height:56px;border-radius:50%;border:none;
+  background:var(--ink);color:var(--gold-bright);
+  display:flex;align-items:center;justify-content:center;
+  cursor:grab;-webkit-tap-highlight-color:transparent;
+  box-shadow:0 10px 24px -10px rgba(20,15,8,.5),0 2px 6px rgba(20,15,8,.25);
+  transition:transform 0.12s var(--spring);
+}
+.ai-bubble:active{transform:scale(0.92);cursor:grabbing}
+
 .itin-stat{flex:1;padding:14px 15px;border-radius:16px;background:var(--surface);border:1px solid var(--line)}
 .itin-stat .mono{font-size:9px;color:var(--gold);letter-spacing:.14em;margin-bottom:6px}
 .itin-stat .serif{font-size:22px}
