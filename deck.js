@@ -277,30 +277,30 @@ function deckQuestions(){
 
   /* Q14 — La phrase qui change tout (adaptée à l'occasion) */
   const occFinal = state.occasion;
-  const dreamTitle = occFinal === 'lune-de-miel' ? 'Décrivez votre idée du voyage <em>parfait</em> à deux.'
-    : occFinal === 'evjf' ? 'Ce que vous voulez que cette EVJF <em>reste dans les mémoires</em>.'
-    : occFinal === 'evg'  ? 'Ce que vous voulez que cet EVG <em>reste dans les mémoires</em>.'
-    : occFinal === 'famille' ? 'Ce que vous voulez que vos enfants <em>n\'oublient jamais</em>.'
-    : occFinal === 'anniversaire' ? 'Quel doit être le <em>moment clé</em> de ce voyage ?'
-    : occFinal === 'bien-etre' ? 'De quoi avez-vous besoin de <em>vous déconnecter</em> ?'
-    : surprise ? 'Y a-t-il quelque chose à <em>éviter absolument</em> ?'
-    : 'Quelle est la chose que vous voulez qu\'on <em>ne puisse pas faire</em> sans cet itinéraire ?';
+  const dreamTitle = occFinal === 'lune-de-miel' ? 'Votre <em>voyage parfait</em> à deux ?'
+    : occFinal === 'evjf' ? 'Le souvenir que cette <em>EVJF</em> doit laisser ?'
+    : occFinal === 'evg'  ? 'Le souvenir que cet <em>EVG</em> doit laisser ?'
+    : occFinal === 'famille' ? 'Le souvenir que vos enfants <em>garderont</em> ?'
+    : occFinal === 'anniversaire' ? 'Le <em>moment clé</em> de ce voyage ?'
+    : occFinal === 'bien-etre' ? 'De quoi voulez-vous <em>vous déconnecter</em> ?'
+    : surprise ? 'Quelque chose à <em>éviter absolument</em> ?'
+    : 'Le moment que ce voyage doit <em>absolument</em> vous offrir ?';
 
   const dreamPH = occFinal === 'lune-de-miel'
-    ? 'ex : on rêve de se réveiller face à la mer, dîner les pieds dans le sable, trouver un endroit où on est vraiment seuls au monde…'
+    ? 'ex : se réveiller face à la mer, dîner les pieds dans le sable…'
     : occFinal === 'evjf'
-    ? 'ex : une nuit qu\'on n\'oubliera pas, un endroit tellement beau qu\'on ne pouvait pas y aller sans ça, une chose qu\'aucune de nous n\'a jamais faite…'
+    ? 'ex : une nuit qu\'on n\'oubliera pas, un endroit à couper le souffle…'
     : occFinal === 'evg'
-    ? 'ex : une activité physiquement dingue, une soirée mémorable, un endroit dont on n\'aurait jamais entendu parler sans vous…'
+    ? 'ex : une activité physiquement dingue, une soirée mémorable…'
     : occFinal === 'famille'
-    ? 'ex : qu\'ils voient des animaux sauvages pour la première fois, qu\'on mange comme des locaux, qu\'ils rentrent en disant c\'était le meilleur voyage de leur vie…'
+    ? 'ex : voir des animaux sauvages, manger comme des locaux…'
     : occFinal === 'anniversaire'
-    ? 'ex : une surprise au dîner, un lieu accessible uniquement à pied, un moment où on réalise qu\'on ne pouvait pas faire ça sans vous…'
+    ? 'ex : une surprise au dîner, un lieu accessible à pied…'
     : occFinal === 'bien-etre'
-    ? 'ex : du bruit des notifications, du rythme effréné, on veut réapprendre à ne rien faire, à dormir sans alarme…'
+    ? 'ex : du bruit des notifications, du rythme effréné…'
     : surprise
-    ? 'ex : pas d\'Asie du Sud-Est, éviter juillet-août, on déteste les hôtels de chaîne…'
-    : 'ex : on veut se lever avant tout le monde pour avoir les sites pour nous, manger dans des endroits que les touristes ne trouvent pas, trouver au moins une heure seuls face à quelque chose de beau…';
+    ? 'ex : pas d\'Asie du Sud-Est, éviter juillet-août…'
+    : 'ex : se lever tôt pour avoir les sites pour nous, une heure seuls face à quelque chose de beau…';
 
   q.push({ id:'dream', surprise:surprise,
     t: dreamTitle,
