@@ -501,7 +501,7 @@ function profileView(){
     +   '<div class="prof-badges" data-prof-badges onclick="openAtlas()" style="cursor:pointer">'
     +     [0,1,2,3].map(function(){ return '<div class="skel" style="aspect-ratio:1;border-radius:16px"></div>'; }).join('')
     +   '</div>'
-    +   '<div class="atlas-cta-row" onclick="openAtlas()" style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:10px;padding:12px;border-radius:14px;border:1px dashed var(--line2);cursor:pointer;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink)">'
+    +   '<div class="atlas-cta-row" onclick="openAtlas()" style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:10px;padding:12px;border-radius:14px;border:1px dashed var(--line2);cursor:pointer;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--gold)">'
     +     ico('compass',14,1.7) + '<span>Voir mon Atlas Vivant</span>'
     +   '</div>'
     +   '<div class="prof-list" style="margin-top:20px">' + rows.map(function(r){

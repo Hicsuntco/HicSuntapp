@@ -542,7 +542,7 @@ function itineraryView(){
     + '</div>'
 
     /* Dates */
-    +   (it.dates ? '<div class="mono" style="font-size:10px;color:var(--sub);letter-spacing:.14em;margin-top:20px">' + esc(it.dates).toUpperCase() + '</div>' : '')
+    +   (it.dates ? '<div class="mono" style="font-size:10px;color:var(--gold);letter-spacing:.14em;margin-top:20px">' + esc(it.dates).toUpperCase() + '</div>' : '')
 
     /* Compagnons de route rattachés à ce voyage — piochés dans Mon Cercle,
        pour donner enfin un usage concret à cette liste (voir
@@ -567,7 +567,7 @@ function itineraryView(){
     /* Actions — liste compacte plutôt que 4 grandes tuiles carrées : même
        contenu (Budget/Activités/Pépites), moins de place à l'écran.
        "Modifier" quitte cette liste pour la bulle IA flottante ci-dessous. */
-    + '<div class="mono" style="font-size:10px;color:var(--sub);letter-spacing:.2em;margin:20px 0 12px">EXPLORER L\'ITINÉRAIRE</div>'
+    + '<div class="mono" style="font-size:10px;color:var(--gold);letter-spacing:.2em;margin:20px 0 12px">EXPLORER L\'ITINÉRAIRE</div>'
     + '<div class="prof-list">'
     +   '<div class="row" onclick="openOverlay(\'budget\', budgetView())"><span class="r-ico">' + ico('wallet',20,1.5) + '</span><div class="r-main"><div class="r-t">Budget</div><div class="r-s">' + eur(it.budgetTotal) + '</div></div><span class="r-chev">' + ico('chevron',17,1.6) + '</span></div>'
     +   '<div class="row" onclick="openActivities()"><span class="r-ico">' + ico('ticket',20,1.5) + '</span><div class="r-main"><div class="r-t">Activités</div><div class="r-s">' + ACTIVITIES.length + ' expérience' + (ACTIVITIES.length>1?'s':'') + '</div></div><span class="r-chev">' + ico('chevron',17,1.6) + '</span></div>'
@@ -754,7 +754,7 @@ function bookingView(accId){
     + '</div>'
     + '<div class="ov-scroll has-foot px">'
     +   '<span class="eyebrow" style="display:block;margin-top:16px">' + esc(a.tag) + '</span>'
-    +   '<div class="book-h"><a href="https://www.google.com/search?q='+encodeURIComponent(dispName+' '+(a.loc||''))+'" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:6px">' + esc(dispName) + '<span style="color:var(--sub);display:inline-flex;flex:none">'+ico('external',15,1.6)+'</span></a><span class="a-rate" style="font-family:var(--mono);font-size:11px;display:inline-flex;align-items:center;gap:4px">' + ico('star',12) + a.rate + '</span></div>'
+    +   '<div class="book-h"><a href="https://www.google.com/search?q='+encodeURIComponent(dispName+' '+(a.loc||''))+'" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:6px">' + esc(dispName) + '<span style="color:var(--gold);display:inline-flex;flex:none">'+ico('external',15,1.6)+'</span></a><span class="a-rate" style="font-family:var(--mono);font-size:11px;display:inline-flex;align-items:center;gap:4px">' + ico('star',12) + a.rate + '</span></div>'
     +   '<div class="book-meta">' + esc(a.type) + ' · ' + esc(a.loc) + '</div>'
     +   '<p class="book-desc">' + esc(a.blurb) + '</p>'
     +   '<div class="chips" style="margin-top:16px">' + a.am.map(function(k){

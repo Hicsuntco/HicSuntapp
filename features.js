@@ -193,7 +193,7 @@ function openActivityDetail(id){
   if (!a) return;
   const html = statusBar() + navbar('Activité')
     + '<div class="ov-scroll px">'
-    +   '<div style="display:flex;align-items:center;justify-content:center;height:140px;background:var(--tile-bg);border-radius:14px;margin-top:14px;color:var(--ink)">' + ico(a.i, 48, 1.2) + '</div>'
+    +   '<div style="display:flex;align-items:center;justify-content:center;height:140px;background:var(--tile-bg);border-radius:14px;margin-top:14px;color:var(--gold)">' + ico(a.i, 48, 1.2) + '</div>'
     +   '<span class="eyebrow" style="display:block;margin-top:18px">' + esc(a.tag) + ' · Jour ' + a.day + '</span>'
     +   '<h1 style="font-family:var(--serif);font-weight:600;font-size:26px;letter-spacing:-0.4px;margin-top:6px">' + esc(a.n) + '</h1>'
     +   '<div class="book-meta" style="margin-top:4px">' + esc(a.loc) + ' · ' + esc(a.dur) + '</div>'
@@ -314,7 +314,7 @@ function gemsView(){
             return '<div class="review"><div class="rv-top"><div><div class="rv-n">' + esc(g.name) + '</div><div class="rv-d">' + esc(g.loc||'') + '</div></div></div>'
               + '<p>' + esc(g.desc||'') + '</p>'
               + (g.review ? '<p style="font-style:italic;color:var(--sub);font-size:13px;margin-top:8px;padding-left:10px;border-left:2px solid var(--line)">« ' + esc(g.review) + ' »' + (g.source ? '<span style="display:block;font-style:normal;font-size:11px;color:var(--sub);margin-top:2px;opacity:0.75">— ' + esc(g.source) + '</span>' : '') + '</p>' : '')
-              + (g.tip ? '<p style="color:var(--sub);font-size:13px;margin-top:8px;font-style:italic">' + esc(g.tip) + '</p>' : '')
+              + (g.tip ? '<p style="color:var(--gold);font-size:13px;margin-top:8px;font-style:italic">' + esc(g.tip) + '</p>' : '')
               + '</div>';
           }).join(''))
     + '</div>';

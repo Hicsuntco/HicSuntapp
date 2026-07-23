@@ -238,7 +238,7 @@ function _atlasVisitedCtaHTML(kind){
     return '<div style="display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;border-radius:14px;background:'+hexA('#A6824A',0.12)+';font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--gold-deep)">'
       + ico('checkbig',14,1.8) + '<span>Pays visité</span></div>';
   }
-  return '<button onclick="_atlasMarkVisitedClick()" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:12px;border-radius:14px;border:1px dashed var(--line2);background:none;cursor:pointer;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink)">'
+  return '<button onclick="_atlasMarkVisitedClick()" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:12px;border-radius:14px;border:1px dashed var(--line2);background:none;cursor:pointer;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--gold)">'
     + ico('checkbig',14,1.8) + '<span>J\'y suis allé(e)</span></button>';
 }
 /* État courant retenu pour le clic (évite de re-résoudre l'ISO à chaque
