@@ -266,11 +266,11 @@
   width:64px; height:64px; border-radius:50%;
   display:flex; align-items:center; justify-content:center;
   color:var(--onink);
-  background:radial-gradient(120% 120% at 30% 25%, var(--gold-bright) 0%, var(--gold) 55%, var(--gold-deep) 100%);
+  background:var(--accent,radial-gradient(120% 120% at 30% 25%, var(--gold-bright) 0%, var(--gold) 55%, var(--gold-deep) 100%));
   box-shadow:0 6px 18px -6px rgba(138,101,38,0.6), inset 0 0 0 2px rgba(255,255,255,0.25);
 }
 .atlas-milestone-badge{
-  background:radial-gradient(120% 120% at 30% 25%, var(--gold-bright) 0%, var(--gold-deep) 100%);
+  background:var(--accent,radial-gradient(120% 120% at 30% 25%, var(--gold-bright) 0%, var(--gold-deep) 100%));
 }
 .atlas-seal-name{
   font-family:var(--serif); font-weight:600; font-size:22px;

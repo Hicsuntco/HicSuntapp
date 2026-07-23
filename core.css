@@ -322,8 +322,8 @@ textarea.input{height:auto;min-height:110px;padding:14px 16px;resize:none;line-h
 .seg button.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(30,22,12,0.08);font-weight:600}
 .seg button:active{transform:scale(0.94);opacity:0.7}
 
-/* ── avatar — plat, sans reflet ni bevel ── */
-.avatar{border-radius:50%;background:var(--gold-deep);color:var(--onink);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-weight:600;flex:none}
+/* ── avatar — plat, sans reflet ni bevel, couleur de la destination ── */
+.avatar{border-radius:50%;background:var(--accent,var(--gold-deep));color:var(--onink);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-weight:600;flex:none}
 
 /* ── cartographic decor ── */
 .grat{position:absolute;inset:0;width:100%;height:100%;opacity:0.6;pointer-events:none}

@@ -152,7 +152,7 @@
 .trip-card-badge .mono{font-size:9px;color:var(--onink);letter-spacing:.1em}
 .trip-card-cap{position:absolute;left:18px;bottom:14px}
 .trip-card-cap .serif{font-size:28px;color:var(--onink);line-height:.95}
-.trip-card-rule{width:30px;height:2px;background:var(--gold);margin:7px 0 5px}
+.trip-card-rule{width:30px;height:2px;background:var(--accent,var(--gold-bright));margin:7px 0 5px}
 .trip-card-cap .mono{font-size:9px;color:var(--onink);opacity:0.75;letter-spacing:.12em}
 .trip-card-foot{padding:13px 18px;background:var(--surface);font-size:12.5px;color:var(--sub)}
 .trip-card-foot .tcf-row{display:flex;justify-content:space-between;align-items:center;gap:10px}
@@ -189,7 +189,7 @@
 .deck-back:active{transform:scale(0.88)}
 .deck-back[disabled]{opacity:0.28;pointer-events:none}
 .deck-bar{flex:1;height:1.5px;background:var(--line);border-radius:2px;overflow:hidden}
-.deck-bar i{display:block;height:100%;background:var(--gold);transition:width 0.5s ease}
+.deck-bar i{display:block;height:100%;background:var(--accent,var(--gold));transition:width 0.5s ease}
 .deck-count{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:1px;color:var(--sub);flex:none}
 
 /* Pile de cards — hauteur fixe, overflow caché */

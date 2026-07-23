@@ -23,9 +23,10 @@ function deckQuestions(){
   /* Q3 — Dates + départ */
   q.push({ id:'dates', t:'Quand <em>partez</em>-vous ?', s:'Les dates précisent la saison, les disponibilités et la durée.',
     body: function(){
-      return '<div class="field"><label>Date de départ</label><input class="input" type="date" value="' + esc(state.dateFrom) + '" onchange="state.dateFrom=this.value"></div>'
-        + '<div class="field"><label>Date de retour</label><input class="input" type="date" value="' + esc(state.dateTo) + '" onchange="state.dateTo=this.value"></div>'
-        + '<div class="field"><label>Ville de départ</label><input class="input" placeholder="Paris, Lyon, Bordeaux…" value="' + esc(state.origin) + '" oninput="state.origin=this.value"></div>';
+      /* Calendrier maison (da-calendar.js) — remplace les champs date natifs,
+         qui ouvraient le sélecteur du système, hors de la charte. */
+      return (typeof hsCalHTML === 'function' ? hsCalHTML() : '')
+        + '<div class="field" style="margin-top:14px"><label>Ville de départ</label><input class="input" placeholder="Paris, Lyon, Bordeaux…" value="' + esc(state.origin) + '" oninput="state.origin=this.value"></div>';
     }});
 
   /* Q4 — Voyageurs */
