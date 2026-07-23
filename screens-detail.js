@@ -461,9 +461,9 @@ function accCard(a){
     +   '</div>'
     + '</div>'
     /* Footer CTA — handler explicite pour fiabilité */
-    + '<div onclick="event.stopPropagation();openBooking(\'' + a.id + '\')" style="margin:0 16px 14px;background:var(--gold-deep);border-radius:12px;padding:11px 16px;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer">'
-    +   '<span style="font-family:var(--sans);font-size:13px;font-weight:600;color:var(--onink)">Voir les disponibilités</span>'
-    +   '<span style="color:var(--onink);opacity:0.7">' + ico('chevron',12,1.5) + '</span>'
+    + '<div onclick="event.stopPropagation();openBooking(\'' + a.id + '\')" style="margin:0 16px 14px;background:transparent;border:1.5px solid var(--ink);border-radius:12px;padding:11px 16px;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer">'
+    +   '<span style="font-family:var(--sans);font-size:13px;font-weight:700;color:var(--ink)">Voir les disponibilités</span>'
+    +   '<span style="color:var(--ink);opacity:0.7">' + ico('chevron',12,1.5) + '</span>'
     + '</div>'
     + '</div>';
 }

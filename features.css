@@ -179,5 +179,5 @@
 @keyframes spin{to{transform:rotate(360deg)}}
 
 /* ── fab ── */
-.fab{position:absolute;right:22px;bottom:36px;width:54px;height:54px;border-radius:50%;border:none;background:var(--gold-deep);color:var(--onink);display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-float);cursor:pointer;z-index:20;transition:transform 0.15s}
+.fab{position:absolute;right:22px;bottom:36px;width:54px;height:54px;border-radius:50%;border:1.5px solid var(--ink);background:var(--bg);color:var(--ink);display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-float);cursor:pointer;z-index:20;transition:transform 0.15s}
 .fab:active{transform:scale(0.92)}

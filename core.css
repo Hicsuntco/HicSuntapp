@@ -227,19 +227,18 @@ html.native-app .screen{
 .btn{
   display:flex;align-items:center;justify-content:center;gap:9px;
   width:100%;height:var(--tap-comfortable);
-  border:none;border-radius:var(--btn-radius);
-  background:var(--gold-deep);color:var(--onink);
-  font-family:var(--sf);font-size:16px;font-weight:600;letter-spacing:-0.1px;
+  border:1.5px solid var(--ink);border-radius:var(--btn-radius);
+  background:transparent;color:var(--ink);
+  font-family:var(--sf);font-size:16px;font-weight:700;letter-spacing:-0.1px;
   cursor:pointer;
-  transition:transform 0.12s var(--spring),opacity 0.12s;
+  transition:transform 0.12s var(--spring),opacity 0.12s,background 0.12s;
   -webkit-user-select:none;user-select:none;
 }
 .btn em{font-family:var(--serif);font-style:italic;font-weight:500}
-/* iOS tap feedback: fast spring + slight opacity */
-.btn:active{transform:scale(0.96);opacity:0.85}
-.btn.gold{background:var(--gold)}
-.btn.dark{background:var(--ink)}
-.btn.gold:active{background:var(--gold-deep)}
+/* iOS tap feedback: fast spring + slight opacity, pas de remplissage */
+.btn:active{transform:scale(0.96);opacity:0.6}
+.btn.gold{border-color:var(--gold-deep);color:var(--gold-deep)}
+.btn.gold:active{background:rgba(184,146,66,0.08)}
 .btn-ghost{
   display:flex;align-items:center;justify-content:center;gap:9px;
   width:100%;height:var(--tap-comfortable);
