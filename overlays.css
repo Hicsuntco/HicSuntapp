@@ -92,7 +92,7 @@
 .minimap-real{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none}
 .minimap .wx-chip{position:absolute;top:12px;right:12px;z-index:3}
 .minimap .mm-cap{position:absolute;left:14px;bottom:12px;font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--sub);z-index:3}
-.minimap-cta{position:absolute;bottom:12px;right:12px;z-index:3;display:inline-flex;align-items:center;gap:7px;padding:9px 15px;border-radius:100px;background:var(--ink);color:var(--onink);font-size:13px;font-weight:600;box-shadow:0 6px 16px -8px rgba(0,0,0,.5)}
+.minimap-cta{position:absolute;bottom:12px;right:12px;z-index:3;display:inline-flex;align-items:center;gap:7px;padding:9px 15px;border-radius:100px;background:var(--gold-deep);color:var(--onink);font-size:13px;font-weight:600;box-shadow:0 6px 16px -8px rgba(70,50,25,.4)}
 
 /* ── tool grid — more generous spacing ── */
 .tools{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -305,7 +305,7 @@
 .gen-progress-label{font-family:var(--mono);font-size:10px;color:var(--sub);letter-spacing:.16em;text-transform:uppercase}
 .gen-progress-pct{font-family:var(--mono);font-size:11px;color:var(--gold)}
 .gen-progress-track{height:5px;border-radius:3px;background:var(--line2);overflow:hidden}
-.gen-progress-fill{height:100%;border-radius:3px;background:var(--ink);transition:width 0.3s linear}
+.gen-progress-fill{height:100%;border-radius:3px;background:var(--gold-deep);transition:width 0.3s linear}
 /* Bloquer animations sur SVG carte géo */
 .map-svg path,.map-svg circle,.map-svg g,.minimap svg path,.minimap svg circle,.bigmap svg path,.bigmap svg circle{animation:none !important;stroke-dashoffset:unset !important}
 
@@ -367,7 +367,7 @@
   padding:12px 14px;border-radius:16px;
   background:var(--surface);border:1px solid var(--line);
 }
-.ccc-ico{width:34px;height:34px;border-radius:10px;background:var(--ink);color:var(--gold-bright);display:flex;align-items:center;justify-content:center;flex:none}
+.ccc-ico{width:34px;height:34px;border-radius:10px;background:var(--surface2);color:var(--gold-deep);display:flex;align-items:center;justify-content:center;flex:none}
 .ccc-t{font-family:var(--serif-text);font-weight:600;font-size:14px;color:var(--ink);line-height:1.3}
 .ccc-s{font-family:var(--mono);font-size:9.5px;letter-spacing:.5px;color:var(--gold-deep);text-transform:uppercase;margin-top:3px}
 /* mise en avant d'un repère de jour dans une réponse ("Jour 5 — flâner") */
@@ -437,10 +437,10 @@
 }
 .send-btn{
   width:38px;height:38px;border-radius:13px;
-  background:var(--ink);color:var(--onink);
+  background:var(--gold-deep);color:var(--onink);
   border:none;display:flex;align-items:center;justify-content:center;
   flex:none;cursor:pointer;
-  box-shadow:0 3px 8px -3px rgba(34,29,22,.5);
+  box-shadow:0 3px 8px -3px rgba(70,50,25,.5);
   transition:transform 0.12s cubic-bezier(0.34,1.2,0.4,1);
   -webkit-tap-highlight-color:transparent;
 }

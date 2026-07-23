@@ -822,7 +822,7 @@ function _promptSaveModified(){
   ov.innerHTML = '<div style="background:var(--surface-raised);border-radius:24px 24px 0 0;padding:28px 22px calc(28px + env(safe-area-inset-bottom,0px));width:100%;max-width:520px">'
     + '<div style="font-family:var(--serif);font-size:22px;font-weight:600;color:var(--ink);margin-bottom:6px">Enregistrer les changements</div>'
     + '<div style="font-family:var(--sans);font-size:14px;color:var(--sub);line-height:1.5;margin-bottom:22px">Cet itinéraire est déjà enregistré. Que souhaitez-vous faire ?</div>'
-    + '<button onclick="_doSaveModified(\'replace\')" style="width:100%;background:var(--ink);color:var(--bg);border:none;border-radius:14px;padding:15px;font-family:var(--sans);font-size:15px;font-weight:500;cursor:pointer;margin-bottom:10px">Remplacer l\'ancienne version</button>'
+    + '<button onclick="_doSaveModified(\'replace\')" style="width:100%;background:var(--gold-deep);color:var(--onink);border:none;border-radius:14px;padding:15px;font-family:var(--sans);font-size:15px;font-weight:500;cursor:pointer;margin-bottom:10px">Remplacer l\'ancienne version</button>'
     + '<button onclick="_doSaveModified(\'both\')" style="width:100%;background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:15px;font-family:var(--sans);font-size:15px;font-weight:500;cursor:pointer;margin-bottom:10px">Garder les deux versions</button>'
     + '<button onclick="_closeSaveChoice()" style="width:100%;background:transparent;color:var(--sub);border:none;padding:12px;font-family:var(--sans);font-size:14px;cursor:pointer">Annuler</button>'
     + '</div>';
@@ -1153,7 +1153,7 @@ async function loadVoyagesTab(){
         + '<div style="color:var(--gold);margin-bottom:16px;display:flex;justify-content:center">' + ico('sparkle',32,1.2) + '</div>'
         + '<p style="font-family:var(--serif);font-size:20px;font-weight:600;color:var(--ink);margin-bottom:8px">Vos voyages vous attendent</p>'
         + '<p style="color:var(--sub);font-size:14px;line-height:1.6;margin-bottom:24px">Composez votre premier itinéraire — il apparaîtra ici dès que vous l\'aurez enregistré.</p>'
-        + '<button onclick="setTab(\'create\')" style="background:var(--ink);color:var(--onink);border:none;border-radius:14px;padding:14px 28px;font-family:var(--sans);font-size:15px;font-weight:500;cursor:pointer">Composer un itinéraire</button>'
+        + '<button onclick="setTab(\'create\')" style="background:var(--gold-deep);color:var(--onink);border:none;border-radius:14px;padding:14px 28px;font-family:var(--sans);font-size:15px;font-weight:500;cursor:pointer">Composer un itinéraire</button>'
         + '</div>';
     } else {
       host.innerHTML = '<p style="text-align:center;padding:40px 0;color:var(--sub);font-size:14px;font-style:italic">Aucun voyage enregistré pour le moment.</p>';
@@ -2039,7 +2039,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
         /* Bloc d'actions : voir + enregistrer (avec choix remplacer/garder les deux) */
         var actionsHTML = '<div style="margin:10px 0 4px 40px;display:flex;flex-direction:column;gap:8px;align-items:flex-start">'
-          + '<button onclick="_returnToUpdatedItinerary()" style="background:var(--ink);color:var(--bg);border:none;border-radius:12px;padding:10px 16px;font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer">Voir l\'itinéraire mis à jour →</button>'
+          + '<button onclick="_returnToUpdatedItinerary()" style="background:var(--gold-deep);color:var(--onink);border:none;border-radius:12px;padding:10px 16px;font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer">Voir l\'itinéraire mis à jour →</button>'
           + '<button onclick="_promptSaveModified()" style="background:transparent;color:var(--gold-deep);border:1px solid var(--gold-soft);border-radius:12px;padding:9px 16px;font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer">Enregistrer les changements</button>'
           + '</div>';
         chat.innerHTML += actionsHTML;

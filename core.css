@@ -9,7 +9,7 @@
 
 :root{
   /* Surfaces — blanc cassé, neutre (fini le parchemin/sable) */
-  --bg:#FCFBF8; --surface:#FCFAF3; --surface2:#F2F0EA; --surface-raised:#FCFAF3;
+  --bg:#FFFFFF; --surface:#FCFAF3; --surface2:#F2F0EA; --surface-raised:#FCFAF3;
   /* Encre — brun-noir profond, jamais pur noir */
   --ink:#221D16; --ink-soft:#5C5345; --sub:#756B58;
   /* Lignes */
@@ -228,7 +228,7 @@ html.native-app .screen{
   display:flex;align-items:center;justify-content:center;gap:9px;
   width:100%;height:var(--tap-comfortable);
   border:none;border-radius:var(--btn-radius);
-  background:var(--ink);color:var(--onink);
+  background:var(--gold-deep);color:var(--onink);
   font-family:var(--sf);font-size:16px;font-weight:600;letter-spacing:-0.1px;
   cursor:pointer;
   transition:transform 0.12s var(--spring),opacity 0.12s;
@@ -238,6 +238,7 @@ html.native-app .screen{
 /* iOS tap feedback: fast spring + slight opacity */
 .btn:active{transform:scale(0.96);opacity:0.85}
 .btn.gold{background:var(--gold)}
+.btn.dark{background:var(--ink)}
 .btn.gold:active{background:var(--gold-deep)}
 .btn-ghost{
   display:flex;align-items:center;justify-content:center;gap:9px;
@@ -292,7 +293,7 @@ textarea.input{height:auto;min-height:110px;padding:14px 16px;resize:none;line-h
   min-height:var(--tap-min);
 }
 .chip:active{transform:scale(0.94)}
-.chip.on{background:var(--ink);border-color:var(--ink);color:var(--onink)}
+.chip.on{background:var(--surface);border-color:var(--ink);border-width:1.5px;color:var(--ink);font-weight:700}
 
 /* ── status badges ── */
 .status{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:8.5px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;padding:5px 9px;border-radius:7px}
