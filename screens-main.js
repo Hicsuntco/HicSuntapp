@@ -260,6 +260,31 @@ function destBgStyle(name){
 }
 function destIcon(name){ const k=_stripAccents(name); if(/japon|tokyo|kyoto/.test(k)) return 'arch'; if(/maroc|marrakech/.test(k)) return 'compass'; if(/islande/.test(k)) return 'peaks'; if(/safari|kenya|afrique/.test(k)) return 'leaf'; if(/bali|indonesie|philippines|thailande|vietnam/.test(k)) return 'leaf'; if(/perou|andes/.test(k)) return 'peaks'; return 'compass'; }
 
+/* ── eSIM (lien d'affiliation Airalo) ─────────────────────────────────
+   Hic Sunt ne revend pas ses propres forfaits eSIM (pas de partenariat
+   opérateur) : on redirige vers Airalo, avec la destination du voyage
+   pré-remplie quand on la reconnaît. AIRALO_AFFILIATE_ID est vide tant
+   qu'aucun compte partenaire n'est rattaché — le lien fonctionne déjà
+   (sans commission) et il suffit de coller l'identifiant ici une fois
+   inscrit au programme d'affiliation. */
+const AIRALO_AFFILIATE_ID = '';
+const AIRALO_SLUG_MAP = {
+  'japon':'japan', 'maroc':'morocco', 'sri lanka':'sri-lanka', 'portugal':'portugal',
+  'islande':'iceland', 'perou':'peru', 'thailande':'thailand', 'kenya':'kenya',
+  'indonesie':'indonesia', 'bali':'indonesia', 'vietnam':'vietnam', 'italie':'italy',
+  'sicile':'italy', 'sardaigne':'italy', 'grece':'greece', 'espagne':'spain',
+  'croatie':'croatia', 'philippines':'philippines', 'mexique':'mexico',
+  'egypte':'egypt', 'turquie':'turkey', 'jordanie':'jordan', 'australie':'australia',
+  'costa rica':'costa-rica', 'maldives':'maldives', 'cuba':'cuba',
+};
+function esimUrl(dest){
+  const k = _stripAccents(dest || '');
+  let slug = '';
+  for(const pat in AIRALO_SLUG_MAP){ if(k.includes(_stripAccents(pat))){ slug = AIRALO_SLUG_MAP[pat]; break; } }
+  const base = slug ? 'https://www.airalo.com/' + slug + '-esim' : 'https://www.airalo.com';
+  return AIRALO_AFFILIATE_ID ? base + '?ref=' + encodeURIComponent(AIRALO_AFFILIATE_ID) : base;
+}
+
 /* ── Profil · statistiques réelles ("carnet de voyage") ──────────────────
    Regroupe les clés régionales de _geoShapeSD (ex. sardaigne, sicile, corse,
    majorque, eoliennes) sous leur pays réel, pour que "pays visités" compte
@@ -484,7 +509,14 @@ function profileView(){
       + '<div class="pf-doc-m"><div class="pf-doc-t">' + esc(d.n) + '</div>'
       + (d.s ? '<div class="pf-doc-s">' + esc(d.s) + '</div>' : '') + '</div>'
       + '<span class="pf-doc-st ' + esc(st[0]) + '">' + esc(st[1]) + '</span></div>';
-  }).join('');
+  }).join('')
+  /* eSIM — renvoie vers Airalo (voir esimUrl()), pré-rempli sur la
+     destination du dernier voyage consulté quand elle est reconnue. */
+  + '<a class="pf-doc" href="' + esimUrl(typeof ITINERARY !== 'undefined' ? ITINERARY.dest : '') + '" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">'
+  +   '<span class="pf-doc-ico">' + ico('wifi', 18, 1.5) + '</span>'
+  +   '<div class="pf-doc-m"><div class="pf-doc-t">eSIM data voyage</div>'
+  +   '<div class="pf-doc-s">Forfaits data via Airalo</div></div>'
+  +   '<span class="pf-doc-st">' + ico('external', 14, 1.7) + '</span></a>';
 
   return statusBar()
     + '<div class="px pf">'
