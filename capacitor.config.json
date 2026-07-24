@@ -2,9 +2,9 @@
   "appId": "com.hicsunt.app",
   "appName": "Hic Sunt",
   "webDir": "www",
-  "backgroundColor": "#F1E9D9",
+  "backgroundColor": "#FFFFFF",
   "ios": {
     "contentInset": "never",
-    "backgroundColor": "#F1E9D9"
+    "backgroundColor": "#FFFFFF"
   }
 }

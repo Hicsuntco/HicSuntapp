@@ -3,6 +3,21 @@
 
 /* ── 13 · Budget ────────────────────────────────────────────────────── */
 function budgetView(){
+  /* Toujours recalculer avant d'afficher : reprend le comportement de
+     l'ancien override window.budgetView (app.js), supprimé car il
+     court-circuitait silencieusement cette version (chargée après en
+     dernier script, il écrasait window.budgetView — la barre de progression,
+     les statuts réglé/à régler et les dépenses réelles ci-dessous ne
+     s'affichaient donc jamais). */
+  if(typeof deriveBudget === 'function'){
+    try{
+      deriveBudget(
+        ITINERARY.accommodations||[], ITINERARY.budgetTotal||0,
+        ITINERARY.dest||'', ITINERARY.region||'', ITINERARY.country||'',
+        ITINERARY.travelers||state.travelers||2, ITINERARY._flightInfo||null
+      );
+    }catch(e){ console.warn('deriveBudget', e); }
+  }
   const b = BUDGET || {total:0, spent:0, lines:[]};
   if(!b.total && ITINERARY.budgetTotal) b.total = ITINERARY.budgetTotal;
   /* Filet de sécurité : si un ajustement précédent (chat Cartographe) a
@@ -14,6 +29,7 @@ function budgetView(){
   const pct = Math.round(b.spent / b.total * 100);
   const rest = b.total - b.spent;
   const isGen = !!ITINERARY.generated;
+  const expTotal = _expensesTotal();
   return statusBar() + navbar('Budget du voyage')
     + '<div class="ov-scroll has-foot px">'
     +   '<div class="bud-card">'
@@ -30,6 +46,9 @@ function budgetView(){
           + '<div class="bl-r"><div class="bl-v">' + eur(l.amount) + '</div>'
           + (isGen ? '' : '<span class="status ' + (l.paid ? 'ok' : 'prep') + '">' + (l.paid ? 'Réglé' : 'À régler') + '</span>') + '</div></div>';
       }).join('')
+    +   '<div class="section-h"><h2>Dépenses réelles</h2><span class="meta" data-expenses-total>' + eur(expTotal) + '</span></div>'
+    +   '<div data-expenses-list>' + _expensesListHTML(ITINERARY.expenses||[]) + '</div>'
+    +   '<button class="btn-ghost sm" style="margin-top:8px" onclick="openAddExpense()">+ Ajouter une dépense</button>'
     + '</div>'
     + (isGen
       ? '<div class="ov-foot"><div class="foot-price">'
@@ -42,6 +61,109 @@ function budgetView(){
         + '</div></div>');
 }
 
+/* ── 13bis · Dépenses réelles ─────────────────────────────────────────
+   Distinct de la répartition estimée ci-dessus : ce que le voyageur a
+   vraiment dépensé, saisi à la main pendant/après le voyage. C'est ce
+   suivi qui manque face à Stippl (expense tracker). Stocké dans
+   ITINERARY.expenses[], persisté via updateSavedItinerary() comme
+   companions/plan/accommodations. */
+const EXPENSE_CATEGORIES = [
+  { id:'accommodation', label:'Hébergement', i:'bed' },
+  { id:'food',           label:'Repas',       i:'fork' },
+  { id:'transport',      label:'Transport',   i:'plane' },
+  { id:'activities',     label:'Activités',   i:'ticket' },
+  { id:'shopping',       label:'Shopping',    i:'card' },
+  { id:'other',          label:'Autre',       i:'wallet' },
+];
+function _expenseCat(id){
+  return EXPENSE_CATEGORIES.find(function(c){ return c.id === id; }) || EXPENSE_CATEGORIES[EXPENSE_CATEGORIES.length-1];
+}
+function _expensesTotal(){
+  return (ITINERARY.expenses||[]).reduce(function(s,e){ return s + (Number(e.amount)||0); }, 0);
+}
+function _fmtExpenseDate(d){
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(d||'');
+  return m ? m[3]+'/'+m[2] : '';
+}
+function _expensesListHTML(list){
+  if(!list.length) return '<p style="color:var(--sub);font-size:14px;font-style:italic;padding:8px 0">Aucune dépense enregistrée pour l\'instant.</p>';
+  return list.slice().sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); }).map(function(e){
+    const cat = _expenseCat(e.category);
+    const sub = cat.label + (e.date ? ' · ' + _fmtExpenseDate(e.date) : '');
+    return '<div class="bline">' + ico(cat.i, 20, 1.5)
+      + '<div class="bl-m"><div class="bl-n">' + esc(e.label || cat.label) + '</div><div class="bl-s">' + esc(sub) + '</div></div>'
+      + '<div class="bl-r"><div class="bl-v">' + eur(e.amount) + '</div></div>'
+      + '<span class="exp-del" onclick="event.stopPropagation();_deleteExpense(\'' + e.id + '\')" aria-label="Supprimer">' + ico('close',14,1.8) + '</span>'
+      + '</div>';
+  }).join('');
+}
+function openAddExpense(){
+  window._expCatSel = 'other';
+  openOverlay('add-expense', addExpenseView(), { modal:true });
+  /* Même précaution que openAddCompanion : ne pas focus() avant la fin de
+     la transition de la feuille, sinon le clavier iOS scrolle le contenu
+     hors champ pendant l'animation. */
+  setTimeout(function(){
+    const inp = document.getElementById('expense-amount');
+    if(inp) inp.focus();
+  }, 420);
+}
+function _expenseCategoryChipsHTML(sel){
+  return EXPENSE_CATEGORIES.map(function(c){
+    return '<span class="chip' + (c.id===sel?' on':'') + '" onclick="_selectExpenseCategory(\'' + c.id + '\')">' + esc(c.label) + '</span>';
+  }).join('');
+}
+function _selectExpenseCategory(id){
+  window._expCatSel = id;
+  const wrap = document.querySelector('[data-exp-cat-chips]');
+  if(wrap) wrap.innerHTML = _expenseCategoryChipsHTML(id);
+}
+function addExpenseView(){
+  const today = new Date().toISOString().slice(0,10);
+  return '<div class="ov-scroll px" style="padding-top:28px">'
+    +   '<div class="carte-handle-wrap"><div class="carte-handle"></div></div>'
+    +   '<h1 style="font-family:var(--serif);font-weight:600;font-size:22px;margin-bottom:6px">Ajouter une dépense</h1>'
+    +   '<p style="color:var(--sub);font-size:13px;margin-bottom:16px">Suivez ce que vous dépensez vraiment sur ce voyage.</p>'
+    +   '<div class="chips" data-exp-cat-chips style="margin-bottom:16px">' + _expenseCategoryChipsHTML(window._expCatSel) + '</div>'
+    +   '<input id="expense-label" placeholder="Libellé (optionnel)" style="width:100%;padding:14px 16px;border-radius:14px;border:1px solid var(--line);background:var(--surface);font-size:15px;font-family:var(--sans);margin-bottom:10px">'
+    +   '<input id="expense-amount" type="number" inputmode="decimal" min="0" step="0.01" placeholder="Montant en €" style="width:100%;padding:14px 16px;border-radius:14px;border:1px solid var(--line);background:var(--surface);font-size:15px;font-family:var(--sans);margin-bottom:10px" onkeydown="if(event.key===\'Enter\'){event.preventDefault();window._submitExpense()}">'
+    +   '<input id="expense-date" type="date" value="' + today + '" style="width:100%;padding:14px 16px;border-radius:14px;border:1px solid var(--line);background:var(--surface);font-size:15px;font-family:var(--sans)">'
+    +   '<button class="btn" style="width:100%;margin-top:16px" onclick="window._submitExpense()">Ajouter</button>'
+    + '</div>';
+}
+window._submitExpense = async function(){
+  const amountInp = document.getElementById('expense-amount');
+  const labelInp = document.getElementById('expense-label');
+  const dateInp = document.getElementById('expense-date');
+  const amount = amountInp ? parseFloat(amountInp.value) : NaN;
+  if(!amount || amount <= 0){ toast('Indiquez un montant'); return; }
+  const cat = _expenseCat(window._expCatSel);
+  const entry = {
+    id: 'exp-' + Date.now().toString(36) + Math.random().toString(36).slice(2,6),
+    category: cat.id,
+    label: (labelInp && labelInp.value.trim()) || '',
+    amount: Math.round(amount * 100) / 100,
+    date: (dateInp && dateInp.value) || new Date().toISOString().slice(0,10),
+  };
+  ITINERARY.expenses = (ITINERARY.expenses||[]).concat([entry]);
+  closeOverlay();
+  toast('Dépense ajoutée ✓');
+  _refreshExpensesUI();
+  if(typeof updateSavedItinerary === 'function') await updateSavedItinerary();
+};
+function _deleteExpense(id){
+  ITINERARY.expenses = (ITINERARY.expenses||[]).filter(function(e){ return e.id !== id; });
+  _refreshExpensesUI();
+  toast('Dépense supprimée');
+  if(typeof updateSavedItinerary === 'function') updateSavedItinerary();
+}
+function _refreshExpensesUI(){
+  const listEl = document.querySelector('[data-expenses-list]');
+  if(listEl) listEl.innerHTML = _expensesListHTML(ITINERARY.expenses||[]);
+  const totalEl = document.querySelector('[data-expenses-total]');
+  if(totalEl) totalEl.textContent = eur(_expensesTotal());
+}
+
 /* ── 14 · Activités ─────────────────────────────────────────────────── */
 const actSel = {};
 function openActivities(){ openOverlay('activities', activitiesView()); }
@@ -51,7 +173,7 @@ function activitiesView(){
   const days = Object.keys(byDay).sort(function(a,b){ return a - b; });
   return statusBar() + navbar('Activités & expériences')
     + '<div class="ov-scroll px">'
-    +   '<span class="eyebrow" style="display:block;margin-top:10px">Sélection du cartographe</span>'
+    +   '<span class="eyebrow" style="display:block;margin-top:10px">Sélection sur-mesure</span>'
     +   '<h1 style="font-family:var(--serif);font-weight:600;font-size:28px;letter-spacing:-0.4px;margin-top:8px">Expériences sur-mesure</h1>'
     +   '<p class="lede" style="margin-top:10px">Des suggestions pour enrichir votre séjour — à organiser sur place ou auprès d\'un prestataire local.</p>'
     +   days.map(function(d){
@@ -75,7 +197,7 @@ function openActivityDetail(id){
     +   '<span class="eyebrow" style="display:block;margin-top:18px">' + esc(a.tag) + ' · Jour ' + a.day + '</span>'
     +   '<h1 style="font-family:var(--serif);font-weight:600;font-size:26px;letter-spacing:-0.4px;margin-top:6px">' + esc(a.n) + '</h1>'
     +   '<div class="book-meta" style="margin-top:4px">' + esc(a.loc) + ' · ' + esc(a.dur) + '</div>'
-    +   '<p class="book-desc" style="margin-top:14px">Une suggestion de votre cartographe pour s\'intégrer naturellement à votre journée à ' + esc(a.loc) + '. ' + (a.free || !a.price ? 'En accès libre, aucune réservation nécessaire.' : 'Budget indicatif ~' + eur(a.price) + ' par personne — à organiser sur place ou auprès d\'un prestataire local.') + '</p>'
+    +   '<p class="book-desc" style="margin-top:14px">Une suggestion sur-mesure pour s\'intégrer naturellement à votre journée à ' + esc(a.loc) + '. ' + (a.free || !a.price ? 'En accès libre, aucune réservation nécessaire.' : 'Budget indicatif ~' + eur(a.price) + ' par personne — à organiser sur place ou auprès d\'un prestataire local.') + '</p>'
     + '</div>';
   openOverlay('activity-detail', html);
 }
@@ -119,62 +241,24 @@ function openPremium(){
   openOverlay('premium', premiumView());
 }
 function premiumView(){
-  /* Sur iOS, le paywall Stripe est entièrement contourné (voir
-     _isNativeIOSApp/_checkPaymentToken dans generate.js — Guideline 3.1.1,
-     pas de lien de paiement externe pour du contenu numérique in-app).
-     Afficher quand même les tarifs Stripe ici donnerait l'impression d'une
-     fonctionnalité de paiement active alors qu'elle ne l'est jamais dans
-     l'app — on adapte le contenu en conséquence plutôt que de laisser un
-     écran qui ne correspond pas à ce que fait réellement l'app. */
-  const isNativeIOS = (typeof _isNativeIOSApp === 'function') && _isNativeIOSApp();
-  const email = (localStorage.getItem('hs_email')||'').toLowerCase().trim();
-  const isOwner = email === 'charlottegperret@gmail.com';
-  let paid = [];
-  try{ paid = JSON.parse(localStorage.getItem('hs_paid_tokens')||'[]'); }catch(e){}
-  const now = Date.now();
-  const recentPaid = paid.filter(function(t){ return (now - t.ts) < 48*3600*1000; })
-    .sort(function(a,b){ return b.ts - a.ts; });
-  const labels = (typeof STRIPE_LABELS !== 'undefined') ? STRIPE_LABELS : {};
-  const premium = isNativeIOS || ((typeof _hasActivePremiumStatus === 'function') && _hasActivePremiumStatus());
-
-  if(isNativeIOS){
-    return statusBar() + navbar('Accès complet')
-      + '<div class="ov-scroll px">'
-      +   '<div class="cercle-card">'
-      +     '<div class="cc-tier">Tout inclus</div>'
-      +     '<div class="cc-pts">Aucun paiement requis dans l\'application</div>'
-      +   '</div>'
-      +   '<div class="section-h"><h2>Comment ça marche</h2></div>'
-      +   '<div class="perks" style="margin-top:0">'
-      +     '<div class="perk">' + ico('sparkle',19,1.5) + '<div class="p-t">Itinéraires illimités</div><div class="p-d">Chaque voyage composé est intégralement accessible, sans restriction.</div></div>'
-      +     '<div class="perk">' + ico('star',19,1.5) + '<div class="p-t">Aucun frais</div><div class="p-d">L\'application ne propose aucun achat.</div></div>'
-      +   '</div>'
-      + '</div>';
-  }
-
-  return statusBar() + navbar('Abonnement Premium')
+  /* L'application est gratuite pour l'instant, sur toutes les plateformes —
+     pas de palier payant actif. Sur iOS, c'est de toute façon permanent
+     (voir _isNativeIOSApp/_checkPaymentToken dans generate.js — Guideline
+     3.1.1, pas de lien de paiement externe pour du contenu numérique
+     in-app) ; ailleurs, tant qu'aucune offre n'est en place, afficher des
+     tarifs ou un historique d'achats donnerait l'impression d'une
+     fonctionnalité active alors qu'elle ne l'est pas. */
+  return statusBar() + navbar('Accès complet')
     + '<div class="ov-scroll px">'
     +   '<div class="cercle-card">'
-    +     '<div class="cc-tier">' + (isOwner ? 'Accès propriétaire' : (premium ? 'Premium actif' : 'Aucun déblocage actif')) + '</div>'
-    +     '<div class="cc-pts">' + (isOwner ? 'Tous les itinéraires débloqués'
-          : recentPaid.length ? recentPaid.length + ' voyage' + (recentPaid.length>1?'s':'') + ' débloqué' + (recentPaid.length>1?'s':'') + ' (48h)'
-          : 'Débloqué à la composition d\'un voyage') + '</div>'
+    +     '<div class="cc-tier">Tout inclus</div>'
+    +     '<div class="cc-pts">Aucun paiement requis dans l\'application</div>'
     +   '</div>'
     +   '<div class="section-h"><h2>Comment ça marche</h2></div>'
     +   '<div class="perks" style="margin-top:0">'
-    +     '<div class="perk">' + ico('sparkle',19,1.5) + '<div class="p-t">Paiement à l\'itinéraire</div><div class="p-d">Chaque voyage composé se débloque séparément — pas d\'abonnement récurrent pour l\'instant.</div></div>'
-    +     '<div class="perk">' + ico('star',19,1.5) + '<div class="p-t">Tarif selon la durée</div><div class="p-d">4,99€ (1-7j) · 9,99€ (8-14j) · 17,99€ (15j et plus).</div></div>'
-    +     '<div class="perk">' + ico('bell',19,1.5) + '<div class="p-t">Valable 48h</div><div class="p-d">Le temps d\'explorer et d\'ajuster votre itinéraire avec le Cartographe.</div></div>'
+    +     '<div class="perk">' + ico('sparkle',19,1.5) + '<div class="p-t">Itinéraires illimités</div><div class="p-d">Chaque voyage composé est intégralement accessible, sans restriction.</div></div>'
+    +     '<div class="perk">' + ico('star',19,1.5) + '<div class="p-t">Aucun frais</div><div class="p-d">L\'application ne propose aucun achat pour le moment.</div></div>'
     +   '</div>'
-    +   '<div class="section-h"><h2>Historique</h2><span class="meta">Achats récents</span></div>'
-    +   (recentPaid.length === 0
-        ? '<p style="color:var(--sub);font-size:14px;margin-top:4px;font-style:italic">Composez votre premier voyage pour débloquer l\'itinéraire complet.</p>'
-        : recentPaid.map(function(t){
-            const label = labels[t.palier] || t.palier || '';
-            const when = new Date(t.ts).toLocaleDateString('fr-FR', {day:'numeric', month:'long'});
-            return '<div class="hist"><div><div class="hi-n">' + esc(t.dest || label) + '</div><div class="hi-w">' + esc(when) + '</div></div><span class="hi-p">' + esc(label) + '</span></div>';
-          }).join(''))
-    +   (premium ? '' : '<button class="btn" style="width:100%;margin-top:20px" onclick="closeOverlay();setTab(\'create\')">Composer un voyage</button>')
     + '</div>';
 }
 
@@ -185,7 +269,7 @@ function gemsView(){
     + '<div class="ov-scroll px">'
     +   '<span class="eyebrow" style="display:block;margin-top:10px">' + esc(ITINERARY.dest) + '</span>'
     +   '<h1 style="font-family:var(--serif);font-weight:600;font-size:28px;letter-spacing:-0.4px;margin-top:8px">Adresses secrètes</h1>'
-    +   '<p class="lede" style="margin-top:10px">Sélectionnées par votre cartographe — loin des sentiers battus.</p>'
+    +   '<p class="lede" style="margin-top:10px">Sélectionnées sur-mesure — loin des sentiers battus.</p>'
     +   (gems.length === 0
         ? '<p style="color:var(--sub);font-size:14px;margin-top:24px;font-style:italic">Aucune pépite pour cette destination.</p>'
         : gems.map(function(g){

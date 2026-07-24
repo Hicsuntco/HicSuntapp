@@ -236,15 +236,17 @@ function genChecklistHTML(){
   }).join('');
 }
 function generationView(){
-  /* Rose des vents — même identité que la direction visuelle Hic Sunt */
-  const compass = '<svg class="gen-compass" width="250" height="250" viewBox="0 0 250 250" style="overflow:visible">'
-    + '<circle class="gc-r1" cx="125" cy="125" r="116" fill="none" stroke-width="1" stroke-dasharray="2 9"/>'
-    + '<circle cx="125" cy="125" r="92" fill="none" stroke-width="1" class="gc-r2"/>'
-    + '<circle cx="125" cy="125" r="78" fill="none" stroke-width="1" class="gc-r3"/>'
-    + '<g class="gc-ticks" stroke-width="1.4"><line x1="125" y1="33" x2="125" y2="46"/><line x1="217" y1="125" x2="204" y2="125"/><line x1="125" y1="217" x2="125" y2="204"/><line x1="33" y1="125" x2="46" y2="125"/></g>'
-    + '<g class="mono gc-labels" font-size="13" text-anchor="middle"><text x="125" y="26">N</text><text x="231" y="130">E</text><text x="125" y="234">S</text><text x="19" y="130">O</text></g>'
-    + '<g class="gc-needle"><polygon points="125,52 132,125 118,125" class="gc-needle-a"/><polygon points="125,198 132,125 118,125" class="gc-needle-b"/><circle cx="125" cy="125" r="6" class="gc-hub"/></g>'
-    + '<g class="gc-sparks"><path d="M196 56C196.3 58.4 198.6 60.7 201 61C198.6 61.3 196.3 63.6 196 66C195.7 63.6 193.4 61.3 191 61C193.4 60.7 195.7 58.4 196 56Z" style="animation-delay:0s"/><path d="M54 176C54.3 178 56 179.7 58 180C56 180.3 54.3 182 54 184C53.7 182 52 180.3 50 180C52 179.7 53.7 178 54 176Z" style="animation-delay:.8s"/><path d="M206 178C206.2 179.6 207.4 180.8 209 181C207.4 181.2 206.2 182.4 206 184C205.8 182.4 204.6 181.2 203 181C204.6 180.8 205.8 179.6 206 178Z" style="animation-delay:1.5s"/></g>'
+  /* Radar de localisation — anneaux qui pulsent depuis le pin central,
+     comme une recherche de position ("on localise votre voyage idéal"),
+     plus d'anneau tournant ni de rose des vents. */
+  const compass = '<svg class="gen-loader" width="230" height="230" viewBox="0 0 230 230" style="overflow:visible">'
+    + '<circle class="gl-ping" cx="115" cy="115" r="30" style="animation-delay:0s"/>'
+    + '<circle class="gl-ping" cx="115" cy="115" r="30" style="animation-delay:.9s"/>'
+    + '<circle class="gl-ping" cx="115" cy="115" r="30" style="animation-delay:1.8s"/>'
+    + '<g class="gl-pin">'
+    +   '<path d="M115 88c-13 0-23 10-23 23 0 17 23 39 23 39s23-22 23-39c0-13-10-23-23-23z"/>'
+    +   '<circle class="gl-pin-hole" cx="115" cy="111" r="7"/>'
+    + '</g>'
     + '</svg>';
 
   let daysCount = '';
@@ -253,16 +255,18 @@ function generationView(){
     if(d > 0) daysCount = d + ' jour' + (d > 1 ? 's' : '');
   }
   const occLabel = (typeof _occasionLabel === 'function') ? _occasionLabel(state.occasion) : '';
-  const meta = [daysCount, occLabel, state.destination || ''].filter(Boolean).join(' · ');
+  const meta = [daysCount, occLabel].filter(Boolean).join(' · ');
+  const destLabel = state.destination || 'Votre voyage';
 
   return '<div class="gen">' + statusBar()
-    + '<div class="gen-top-space"></div>'
-    + '<div class="gen-compass-wrap">' + compass + '</div>'
-    + '<div class="gen-headline">'
-    +   '<div class="gen-kicker">Le cartographe compose</div>'
-    +   '<h1 class="gen-title">Nous traçons<br>votre <em>sillage</em></h1>'
-    +   '<p class="gen-sub">' + (meta ? esc(meta) + '<br>' : '') + '<span data-gen-status>Lecture de vos envies…</span></p>'
+    + '<div class="gen2-head">'
+    +   '<div class="gen2-eyebrow-row"><span class="eyebrow">Composition du voyage</span></div>'
+    +   '<hr class="hairline gold" style="margin-top:14px">'
+    +   '<h1 class="gen2-title"><span class="gen2-flag"></span>' + esc(destLabel) + '</h1>'
+    +   '<div class="gen2-status"><span class="gen2-dot"></span><span data-gen-status>Lecture de vos envies…</span></div>'
+    +   (meta ? '<div class="gen2-meta">' + esc(meta) + '</div>' : '')
     + '</div>'
+    + '<div class="gen-compass-wrap">' + compass + '</div>'
     + '<div class="gen-checklist">' + genChecklistHTML() + '</div>'
     + '<div class="gen-progress-wrap">'
     +   '<div class="gen-progress-row"><span class="gen-progress-label">Composition</span><span class="gen-progress-pct" data-gen-pct>0%</span></div>'
@@ -304,11 +308,33 @@ function accGradient(a, it){
 }
 
 /* ── liens d'affiliation ──────────────────────────────────────────────
-   Pas de réservation directe : l'utilisateur est redirigé vers le
-   partenaire (Booking.com ou Airbnb) avec le nom + ville pré-remplis.
-   Remplacer AFFILIATE_TAGS par les vrais identifiants d'affiliation
-   une fois les programmes Booking.com / Airbnb actifs. ── */
-const AFFILIATE_TAGS = { booking:'', airbnb:'' };
+   Par défaut, redirection vers une recherche partenaire (Booking.com,
+   Airbnb, Hotels.com, Expedia) avec le nom + ville + dates pré-remplis.
+   Quand la recherche web anti-hallucination de la génération a trouvé
+   l'URL EXACTE de la fiche de réservation (a.url, vue littéralement dans
+   les résultats — jamais construite), on l'utilise directement à la
+   place : c'est ça, un lien "qui mène directement à l'hébergement".
+   Remplacer AFFILIATE_TAGS par les vrais identifiants d'affiliation une
+   fois les programmes Booking.com / Airbnb / Hotels.com / Expedia actifs. ── */
+const AFFILIATE_TAGS = { booking:'', airbnb:'', hotels:'', expedia:'' };
+/* Registre unique des partenaires de réservation — ajouter un partenaire
+   ici (nouvel id, libellé, couleur, + son URL dans affiliateLink()) suffit
+   à le faire apparaître partout (fiche hébergement, comparateur). Le
+   comparateur bascule automatiquement en menu déroulant à partir de 5
+   partenaires pour ne pas surcharger visuellement l'écran. */
+const BOOKING_PARTNERS = [
+  { id:'booking', label:'Booking.com', color:'#003580' },
+  { id:'airbnb',  label:'Airbnb',      color:'#FF5A5F' },
+  { id:'hotels',  label:'Hotels.com',  color:'#CC0000' },
+  { id:'expedia', label:'Expedia',     color:'#00355F' },
+];
+/* Lien Google Maps fiable vers un lieu précis (fiche + itinéraire), à
+   utiliser à la place d'une recherche web générique qui peut atterrir sur
+   une page de résultats non pertinente plutôt que sur l'établissement. */
+function _googleMapsPlaceUrl(name, loc){
+  const q = [name, loc].filter(Boolean).join(' ');
+  return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q);
+}
 /* Date d'arrivée/de départ RÉELLES pour CET hébergement précis, pas les
    dates globales du séjour  -  sans ça, la recherche Booking/Airbnb pour
    le 2e ou 3e hébergement du voyage proposait toujours les dates de tout
@@ -328,8 +354,40 @@ function _stayDateRange(a){
   const fmt = function(d){ return d.toISOString().slice(0,10); };
   return { checkin: fmt(checkinD), checkout: fmt(checkoutD) };
 }
+/* Enrichit une URL directe de fiche (a.url) avec les dates réelles du
+   séjour, le nombre de voyageurs et l'identifiant d'affiliation — les
+   pages établissement Booking.com et les annonces Airbnb acceptent ces
+   paramètres : le client atterrit alors sur SA recherche, pré-remplie
+   pour SES dates, pas sur la fiche à l'état neutre. On n'ajoute jamais
+   un paramètre déjà présent dans l'URL vue en ligne. */
+function _enrichDirectUrl(url, a){
+  try{
+    const r = _stayDateRange(a);
+    const guests = ITINERARY.travelers || (typeof state !== 'undefined' && state.travelers) || 2;
+    const sep = function(u){ return u.indexOf('?') >= 0 ? '&' : '?'; };
+    let u = String(url);
+    if(/^https:\/\/([a-z0-9-]+\.)?booking\.com\//i.test(u)){
+      if(r.checkin && r.checkout && u.indexOf('checkin=') < 0) u += sep(u) + 'checkin=' + r.checkin + '&checkout=' + r.checkout;
+      if(u.indexOf('group_adults=') < 0) u += sep(u) + 'group_adults=' + guests + '&no_rooms=1';
+      if(AFFILIATE_TAGS.booking && u.indexOf('aid=') < 0) u += sep(u) + 'aid=' + AFFILIATE_TAGS.booking;
+    } else if(/^https:\/\/([a-z0-9-]+\.)?airbnb\.[a-z.]{2,}\/rooms\//i.test(u)){
+      if(r.checkin && r.checkout && u.indexOf('check_in=') < 0) u += sep(u) + 'check_in=' + r.checkin + '&check_out=' + r.checkout;
+      if(u.indexOf('adults=') < 0) u += sep(u) + 'adults=' + guests;
+    }
+    return u;
+  }catch(e){ return url; }
+}
 function affiliateLink(a, platform){
   const it = ITINERARY;
+  /* Priorité absolue : URL de réservation vérifiée par la recherche web à
+     la génération (a.url — voir buildStaySearchPrompt), qui mène DIRECTEMENT
+     à la fiche de cet hébergement précis plutôt qu'à une page de résultats.
+     On ne l'utilise que si aucune plateforme précise n'est demandée, ou si
+     la plateforme demandée est bien celle où cette URL a été vérifiée
+     (a.source) — sinon on construit la recherche pour la plateforme voulue. */
+  const verifiedSrc = a.source ? String(a.source).toLowerCase() : '';
+  if (a.url && (!platform || platform === verifiedSrc)) return _enrichDirectUrl(a.url, a);
+
   /* Nom de l'hébergement — encodé pour une recherche précise */
   const nameRaw  = a.n || '';
   const cityRaw  = a.loc || it.dest || '';
@@ -373,8 +431,16 @@ function affiliateLink(a, platform){
     + (checkin  ? '&q-check-in='  + checkin  : '')
     + (checkout ? '&q-check-out=' + checkout : '');
 
-  if (platform === 'airbnb' || isAirbnb) return airbnbUrl;
+  /* Expedia — recherche hôtel par destination + dates + voyageurs */
+  const expediaUrl = 'https://www.expedia.fr/Hotel-Search'
+    + '?destination=' + fullQ
+    + (checkin  ? '&startDate=' + checkin  : '')
+    + (checkout ? '&endDate='   + checkout : '')
+    + '&adults=' + guests;
+
+  if (platform === 'expedia') return expediaUrl;
   if (platform === 'hotels') return hotelsUrl;
+  if (platform === 'airbnb' || (!platform && isAirbnb)) return airbnbUrl;
   return bookingUrl;
 }
 function openAffiliate(accId){
@@ -459,9 +525,9 @@ function accCard(a){
     +   '</div>'
     + '</div>'
     /* Footer CTA — handler explicite pour fiabilité */
-    + '<div onclick="event.stopPropagation();openBooking(\'' + a.id + '\')" style="margin:0 16px 14px;background:var(--ink);border-radius:12px;padding:11px 16px;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer">'
-    +   '<span style="font-family:var(--sans);font-size:13px;font-weight:600;color:var(--bg)">Voir les disponibilités</span>'
-    +   '<span style="color:var(--bg);opacity:0.7">' + ico('chevron',12,1.5) + '</span>'
+    + '<div onclick="event.stopPropagation();openBooking(\'' + a.id + '\')" style="margin:0 16px 14px;background:transparent;border:1.5px solid var(--accent,var(--ink));border-radius:12px;padding:11px 16px;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer">'
+    +   '<span style="font-family:var(--sans);font-size:13px;font-weight:700;color:var(--accent,var(--ink))">Voir les disponibilités</span>'
+    +   '<span style="color:var(--accent,var(--ink));opacity:0.7">' + ico('chevron',12,1.5) + '</span>'
     + '</div>'
     + '</div>';
 }
@@ -503,7 +569,13 @@ function itineraryView(){
     andean:'Andes', urban_asia:'Asie', urban:'Métropole',
     savanna:'Savane', caribbean:'Caraïbes',
   };
-  const ac = ACCENT[theme] || '#9c7c44';
+  /* La couleur d'accent vient désormais de l'ADN de la destination
+     (--accent, posé par da-accent.js). La table par thème ne sert plus que
+     de repli si la variable n'est pas encore disponible. */
+  const _cssAc = (typeof getComputedStyle === 'function')
+    ? getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()
+    : '';
+  const ac = _cssAc || ACCENT[theme] || '#9c7c44';
   const c1 = (palette && palette.beach) || (palette && palette.culture) || ac;
   const themeLabel = THEME_LABEL[theme] || 'Sur-mesure';
   const minimapBg = 'linear-gradient(135deg,' + hexA(ac,0.06) + ' 0%,var(--surface) 100%)';
@@ -530,7 +602,7 @@ function itineraryView(){
     +     '<button class="ihx-btn" onclick="closeOverlay()" aria-label="Retour">' + ico('back',17,2) + '</button>'
     +     '<div style="display:flex;gap:10px">'
     +       '<button class="ihx-btn" onclick="openOverlay(\'share\', shareView())" aria-label="Partager">' + ico('share',16,1.6) + '</button>'
-    +       '<button class="ihx-btn ai" onclick="openAI()" aria-label="Cartographe">' + ico('sparkle',16,1.6) + '</button>'
+    +       '<button class="ihx-btn" onclick="window.triggerPDF&&window.triggerPDF()" aria-label="Enregistrer en PDF">' + ico('doc',16,1.6) + '</button>'
     +     '</div>'
     +   '</div>'
     +   (it.coords ? '<div class="itin-hero-coords mono">' + esc(it.coords) + '</div>' : '')
@@ -587,7 +659,7 @@ function itineraryView(){
     +     ico('star',18,1.5) + '<div class="tl-t">Pépites</div><div class="tl-s">' + ((it.gems||[]).length) + ' adresses</div>'
     +   '</button>'
     +   '<button class="tool" onclick="openAI()">'
-    +     ico('sparkle',18,1.5) + '<div class="tl-t">Modifier</div><div class="tl-s">Cartographe</div>'
+    +     ico('sparkle',18,1.5) + '<div class="tl-t">Modifier</div><div class="tl-s">Ajuster</div>'
     +   '</button>'
     + '</div>'
 
@@ -624,8 +696,10 @@ function itineraryView(){
     + '<div class="ov-foot"><div class="foot-price">'
     +   '<div><div class="fp-v">' + eur(it.budgetTotal) + '</div><div class="fp-l">tout compris · ' + travelerLabel(it) + '</div></div>'
     +   '<div class="foot-actions">'
-    +     '<button class="fa-btn" onclick="saveItinerary()"><span>' + ico('bookmark',20,1.6) + '</span><i>Garder</i></button>'
-    +     '<button class="fa-btn" onclick="window.triggerPDF&&window.triggerPDF()"><span>' + ico('doc',20,1.6) + '</span><i>PDF</i></button>'
+    +     '<button class="fa-txt" onclick="saveItinerary()">Garder</button>'
+    +     '<button class="fa-chat" onclick="openAI()" aria-label="Modifier le voyage" title="Modifier le voyage">'
+    +       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'
+    +       '<path d="M20.5 11.7a7.7 7.7 0 0 1-11.2 6.9L4 20l1.5-4.2A7.7 7.7 0 1 1 20.5 11.7z"/></svg></button>'
     +   '</div>'
     + '</div></div>'
   );
@@ -674,7 +748,7 @@ function dayDetailView(idx){
 
   const restaurantHTML = p.restaurant ? '<div class="section-h"><h2>À table</h2></div>'
     + '<div class="row" style="cursor:default;align-items:flex-start"><span class="r-ico" style="color:'+catColor+'">' + ico('fork',19,1.5) + '</span>'
-    + '<div class="r-main"><div class="r-t"><a href="https://www.google.com/search?q='+encodeURIComponent((p.restaurant.name||'')+' '+(p.loc||ITINERARY.dest||'')+' restaurant')+'" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:5px">' + esc(p.restaurant.name||'') + '<span style="color:'+catColor+';display:inline-flex;flex:none">'+ico('external',11,1.6)+'</span></a>' + (p.restaurant.rating?' <span style="font-size:11px;font-weight:400;color:'+catColor+'">'+esc(p.restaurant.rating)+'</span>':'') + '</div>'
+    + '<div class="r-main"><div class="r-t"><a href="'+esc(p.restaurant.mapsUrl || _googleMapsPlaceUrl(p.restaurant.name||'', p.loc||ITINERARY.dest||''))+'" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:5px">' + esc(p.restaurant.name||'') + '<span style="color:'+catColor+';display:inline-flex;flex:none">'+ico('external',11,1.6)+'</span></a>' + (p.restaurant.rating?' <span style="font-size:11px;font-weight:400;color:'+catColor+'">'+esc(p.restaurant.rating)+'</span>':'') + '</div>'
     + '<div class="r-s">' + esc(p.restaurant.type||'') + (p.restaurant.price?' · '+esc(p.restaurant.price):'') + '</div>'
     + (p.restaurant.note?'<div class="r-s" style="margin-top:2px;font-style:italic">'+esc(p.restaurant.note)+'</div>':'')
     + (p.restaurant.review?'<div class="r-s" style="margin-top:4px;color:var(--sub);font-size:11px">"'+esc(p.restaurant.review)+'"</div>':'')
@@ -757,6 +831,8 @@ function bookingView(accId){
   const total = a.price * a.nights;
   const accent = accThemeAccent(a, ITINERARY);
   const isAirbnb = /villa|appartement|apparthotel|maison|airbnb|guesthouse|gîte|loft/.test((a.type||'').toLowerCase());
+  const PLATFORM_LABEL = { booking:'Booking.com', airbnb:'Airbnb', hotels:'Hotels.com', expedia:'Expedia' };
+  const platformLabel = PLATFORM_LABEL[String(a.source||'').toLowerCase()] || (isAirbnb ? 'Airbnb' : 'Booking.com');
   const dispName = accDisplayName(a);
   return '<div class="book-hero" style="position:relative;overflow:hidden;height:245px;background:radial-gradient(120% 100% at 15% 0%,'+hexA(accent,0.28)+',transparent 60%),linear-gradient(155deg,#1c1812,#0d0b08 55%,#000)">'
     +   '<span style="position:absolute;bottom:20px;right:24px;z-index:1;color:'+hexA(accent,0.9)+';display:flex;opacity:0.95">' + ico(a.i, 32, 1.3) + '</span>'
@@ -766,7 +842,7 @@ function bookingView(accId){
     + '</div>'
     + '<div class="ov-scroll has-foot px">'
     +   '<span class="eyebrow" style="display:block;margin-top:16px">' + esc(a.tag) + '</span>'
-    +   '<div class="book-h"><a href="https://www.google.com/search?q='+encodeURIComponent(dispName+' '+(a.loc||''))+'" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:6px">' + esc(dispName) + '<span style="color:var(--gold);display:inline-flex;flex:none">'+ico('external',15,1.6)+'</span></a><span class="a-rate" style="font-family:var(--mono);font-size:11px;display:inline-flex;align-items:center;gap:4px">' + ico('star',12) + a.rate + '</span></div>'
+    +   '<div class="book-h"><a href="'+esc(a.url ? affiliateLink(a) : _googleMapsPlaceUrl(dispName, a.loc||''))+'" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:6px">' + esc(dispName) + '<span style="color:var(--gold);display:inline-flex;flex:none">'+ico('external',15,1.6)+'</span></a><span class="a-rate" style="font-family:var(--mono);font-size:11px;display:inline-flex;align-items:center;gap:4px">' + ico('star',12) + a.rate + '</span></div>'
     +   '<div class="book-meta">' + esc(a.type) + ' · ' + esc(a.loc) + '</div>'
     +   '<p class="book-desc">' + esc(a.blurb) + '</p>'
     +   '<div class="chips" style="margin-top:16px">' + a.am.map(function(k){
@@ -777,11 +853,11 @@ function bookingView(accId){
     +   '<div class="stay-row">' + ico('users',18,1.5) + '<span class="sr-l">Voyageurs</span><span class="sr-v">' + travelerLabel(ITINERARY) + '</span></div>'
     +   '<div class="section-h"><h2>Estimation</h2></div>'
     +   '<div class="price-l"><span>' + eur(a.price) + ' × ' + a.nights + ' nuit' + (a.nights>1?'s':'') + '</span><span>' + eur(total) + '</span></div>'
-    +   '<p class="book-desc" style="margin-top:8px;color:var(--sub)">Prix indicatif. La disponibilité et le tarif définitif sont confirmés sur ' + (isAirbnb?'Airbnb':'Booking.com') + '.</p>'
+    +   '<p class="book-desc" style="margin-top:8px;color:var(--sub)">Prix indicatif. La disponibilité et le tarif définitif sont confirmés sur ' + platformLabel + '.</p>'
     + '</div>'
     + '<div class="ov-foot"><div class="foot-price">'
     +   '<div><div class="fp-v">' + eur(total) + '</div><div class="fp-l">' + a.nights + ' nuit' + (a.nights>1?'s':'') + ' · estimation</div></div>'
-    +   '<button class="btn" onclick="openAffiliate(\'' + a.id + '\')">Voir sur ' + (isAirbnb?'Airbnb':'Booking.com') + '</button>'
+    +   '<button class="btn" onclick="openAffiliate(\'' + a.id + '\')">Voir sur ' + platformLabel + '</button>'
     + '</div></div>';
 }
 

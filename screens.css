@@ -13,7 +13,11 @@
 .tabview::-webkit-scrollbar{display:none}
 .tabview.active{opacity:1;pointer-events:auto}
 
-/* ── tab bar — pilule flottante en verre dépoli ── */
+/* ── tab bar — pilule flottante, légèrement transparente (pas de
+   backdrop-filter/blur : sur certains WebKit ça laissait un dégradé net
+   des photos de destination bleeder à travers quel que soit le réglage —
+   un vrai bug de rendu. Une simple couleur semi-opaque évite le souci
+   tout en gardant un peu de transparence). ── */
 .tabbar{
   position:absolute;
   bottom:calc(8px + env(safe-area-inset-bottom,0px));
@@ -27,12 +31,7 @@
 .tabbar-pill{
   display:flex;align-items:center;
   width:100%;
-  /* Fond totalement opaque, sans backdrop-filter : sur ce WebKit, le flou
-     laissait passer un dégradé net des photos de destination juste en
-     dessous quel que soit le réglage d'opacité/saturation essayé — un vrai
-     bug de rendu sur ce contenu photo, pas un simple réglage à affiner.
-     On sacrifie l'effet "verre dépoli" pour un rendu fiable partout. */
-  background:#ECE7DA;
+  background:rgba(255,255,255,0.82);
   border-radius:30px;
   padding:7px;
   gap:2px;
@@ -43,7 +42,7 @@
 .tab-it{
   flex:1;display:flex;align-items:center;justify-content:center;
   border:none;background:transparent;cursor:pointer;
-  border-radius:22px;
+  border-radius:26px;
   padding:0;
   transition:transform 0.15s cubic-bezier(0.34,1.4,0.4,1);
   -webkit-tap-highlight-color:transparent;
@@ -54,7 +53,7 @@
   display:flex;align-items:center;justify-content:center;gap:8px;
   padding:14px 10px;
   width:100%;
-  border-radius:22px;
+  border-radius:26px;
   transition:background 0.2s ease;
 }
 .tab-ico{
@@ -107,8 +106,8 @@
 .muse-input::placeholder{color:var(--ph)}
 /* iOS: minimum 44×44 tap target */
 .muse-go{
-  width:44px;height:44px;border-radius:14px;border:none;
-  background:var(--ink);color:var(--onink);
+  width:44px;height:44px;border-radius:14px;border:1.5px solid var(--ink);
+  background:transparent;color:var(--ink);
   display:flex;align-items:center;justify-content:center;
   cursor:pointer;flex:none;
   transition:transform 0.12s cubic-bezier(0.34,1.2,0.4,1),opacity 0.12s;
@@ -128,8 +127,11 @@
 
 .tile:active{transform:scale(0.96)}
 .tile:hover{box-shadow:var(--shadow-raised)}
-.tile .wash{position:absolute;inset:0}
-.tile .wash::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(20,15,8,0.55),rgba(20,15,8,0.02) 55%)}
+/* Photo "vivante" façon éditorial voyage — zoom lent et continu, jamais
+   perceptible comme une animation mais donne un effet premium (Ken Burns). */
+.tile .wash{position:absolute;inset:0;background-size:cover;background-position:center;animation:washKenBurns 16s ease-in-out infinite alternate}
+.tile .wash::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(20,15,8,0.5),rgba(20,15,8,0.02) 50%)}
+@keyframes washKenBurns{from{transform:scale(1)}to{transform:scale(1.08)}}
 /* Voile sombre réutilisable par-dessus une photo de destination, pour garder
    le texte (nom, badges…) lisible quelle que soit la photo. */
 .hero-veil{position:absolute;inset:0;background:linear-gradient(to top,rgba(20,15,8,0.62),rgba(20,15,8,0.08) 55%,rgba(20,15,8,0.16));pointer-events:none}
@@ -141,16 +143,16 @@
 .tile .t-r{font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--onink);opacity:0.75}
 
 /* ── trip cards — carte postale pleine largeur ── */
-.trip-card{border-radius:22px;overflow:hidden;background:var(--surface);position:relative;box-shadow:0 12px 28px -18px rgba(70,50,25,.5);margin-bottom:16px;cursor:pointer;transition:transform 0.15s cubic-bezier(0.34,1.2,0.4,1),opacity 0.12s}
+.trip-card{border-radius:22px;overflow:hidden;background:var(--surface);position:relative;box-shadow:0 12px 28px -18px rgba(20,18,14,.5);margin-bottom:16px;cursor:pointer;transition:transform 0.15s cubic-bezier(0.34,1.2,0.4,1),opacity 0.12s}
 .trip-card:active{transform:scale(0.985);opacity:0.94}
-.trip-card-hero{position:relative;height:150px;overflow:hidden}
+.trip-card-hero{position:relative;height:150px;overflow:hidden;animation:washKenBurns 16s ease-in-out infinite alternate}
 .trip-card-wm{position:absolute;bottom:-6px;right:-6px;color:var(--onink);opacity:0.25}
 .trip-card-coords{position:absolute;top:16px;left:18px;font-size:11px;color:var(--onink);opacity:0.85;letter-spacing:.08em}
 .trip-card-badge{position:absolute;top:14px;right:44px;display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:100px;background:var(--ink);color:var(--gold-bright);max-width:calc(100% - 60px)}
 .trip-card-badge .mono{font-size:9px;color:var(--onink);letter-spacing:.1em}
 .trip-card-cap{position:absolute;left:18px;bottom:14px}
 .trip-card-cap .serif{font-size:28px;color:var(--onink);line-height:.95}
-.trip-card-rule{width:30px;height:2px;background:var(--gold);margin:7px 0 5px}
+.trip-card-rule{width:30px;height:2px;background:var(--accent,var(--gold-bright));margin:7px 0 5px}
 .trip-card-cap .mono{font-size:9px;color:var(--onink);opacity:0.75;letter-spacing:.12em}
 .trip-card-foot{padding:13px 18px;background:var(--surface);font-size:12.5px;color:var(--sub)}
 .trip-card-foot .tcf-row{display:flex;justify-content:space-between;align-items:center;gap:10px}
@@ -162,7 +164,7 @@
 .trip-card.draft{background:var(--surface);border:1.5px dashed var(--line2);box-shadow:none}
 .trip-card.draft .trip-card-hero{height:118px;display:flex;align-items:center;justify-content:center}
 .trip-card.draft .trip-card-wm{opacity:0.5}
-.trip-card-draft-badge{position:relative;display:inline-flex;align-items:center;gap:7px;padding:8px 15px;border-radius:100px;background:var(--surface);border:1px solid var(--line);box-shadow:0 4px 12px -6px rgba(70,50,25,.3)}
+.trip-card-draft-badge{position:relative;display:inline-flex;align-items:center;gap:7px;padding:8px 15px;border-radius:100px;background:var(--surface);border:1px solid var(--line);box-shadow:0 4px 12px -6px rgba(20,18,14,.3)}
 .trip-card-draft-badge .dot{width:7px;height:7px;border-radius:50%;background:var(--gold);display:inline-block}
 .trip-card-draft-badge span:last-child{font-size:11.5px;font-weight:600;color:var(--ink-soft)}
 .trip-card-draftfoot{padding:14px 18px;display:flex;justify-content:space-between;align-items:baseline}
@@ -187,7 +189,7 @@
 .deck-back:active{transform:scale(0.88)}
 .deck-back[disabled]{opacity:0.28;pointer-events:none}
 .deck-bar{flex:1;height:1.5px;background:var(--line);border-radius:2px;overflow:hidden}
-.deck-bar i{display:block;height:100%;background:var(--gold);transition:width 0.5s ease}
+.deck-bar i{display:block;height:100%;background:var(--accent,var(--gold));transition:width 0.5s ease}
 .deck-count{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:1px;color:var(--sub);flex:none}
 
 /* Pile de cards — hauteur fixe, overflow caché */
@@ -268,10 +270,10 @@
   -webkit-tap-highlight-color:transparent;
 }
 .radio-it:active{transform:scale(0.97)}
-.radio-it.on{border-color:var(--ink);background:var(--ink);color:var(--onink)}
+.radio-it.on{border-color:var(--ink);border-width:1.5px;background:var(--surface);color:var(--ink)}
 .radio-it .ra-t{font-family:var(--serif-text);font-weight:600;font-size:16px;color:inherit}
 .radio-it .ra-d{font-size:12px;font-weight:300;color:var(--sub);margin-top:2px}
-.radio-it.on .ra-d{color:rgba(246,240,228,0.55)}
+.radio-it.on .ra-d{color:var(--sub)}
 .radio-it .ra-dot{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--line2);flex:none;transition:background 0.18s,border-color 0.18s}
 .radio-it.on .ra-dot{border-color:var(--gold);background:var(--gold)}
 
@@ -297,10 +299,10 @@
   -webkit-tap-highlight-color:transparent;
 }
 .occ:active{transform:scale(0.95)}
-.occ.on{border-color:var(--ink);background:var(--ink);color:var(--onink)}
+.occ.on{border-color:var(--ink);border-width:1.5px;background:var(--surface);color:var(--ink)}
 .occ .o-t{font-family:var(--serif-text);font-weight:600;font-size:14px;color:inherit;line-height:1.2}
 .occ .o-d{font-size:10px;font-weight:300;color:var(--sub);margin-top:3px;line-height:1.4}
-.occ.on .o-d{color:rgba(246,240,228,0.55)}
+.occ.on .o-d{color:var(--sub)}
 
 /* ── Chips ── */
 .chips{display:flex;flex-wrap:wrap;gap:7px;padding:2px 0}
@@ -313,7 +315,7 @@
   -webkit-tap-highlight-color:transparent;
 }
 .chip:active{transform:scale(0.93)}
-.chip.on{background:var(--ink);border-color:var(--ink);color:var(--onink);font-weight:500}
+.chip.on{background:var(--surface);border-color:var(--ink);border-width:1.5px;color:var(--ink);font-weight:600}
 
 /* ── Inputs ── */
 .field{margin-bottom:14px}
@@ -339,12 +341,11 @@ textarea.input{resize:none;min-height:100px;line-height:1.55}
 .voy-pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;margin-bottom:20px}
 .voy-pill{padding:9px 16px;border-radius:100px;background:var(--surface);color:var(--ink-soft);font-size:13px;font-weight:500;border:1px solid var(--line);cursor:pointer;transition:transform 0.12s var(--spring)}
 .voy-pill:active{transform:scale(0.95)}
-.voy-pill.on{background:var(--ink);border-color:var(--ink);color:var(--onink);font-weight:600}
+.voy-pill.on{background:var(--surface);border-color:var(--ink);border-width:1.5px;color:var(--ink);font-weight:700}
 
-/* ── profile ── */
-.prof-card{margin-top:10px;background:var(--surface);border:1px solid var(--line);border-radius:var(--card-radius);box-shadow:var(--shadow-card);padding:20px;position:relative;overflow:hidden}
-.prof-id{display:flex;align-items:center;gap:15px;position:relative}
-.prof-n{font-family:var(--serif-text);font-weight:600;font-size:22px;letter-spacing:-0.3px}
+/* ── profile — header à plat, façon Instagram : avatar + stats en ligne ── */
+.prof-head{margin-top:14px;display:flex;align-items:center;gap:22px}
+.prof-n{font-family:var(--serif-text);font-weight:600;font-size:22px;letter-spacing:-0.3px;margin-top:16px}
 .prof-m{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--sub);margin-top:4px}
 .prof-cercle-card{margin-top:14px;padding:16px 18px;border-radius:18px;background:var(--ink);display:flex;align-items:center;gap:14px;cursor:pointer;transition:transform 0.12s var(--spring)}
 .prof-cercle-card:active{transform:scale(0.98)}
@@ -353,35 +354,37 @@ textarea.input{resize:none;min-height:100px;line-height:1.55}
 .prof-cercle-card .pcc-s{font-family:var(--mono);font-size:10px;color:#B8AE98;letter-spacing:.06em;margin-top:2px}
 .prof-cercle-card .pcc-cta{padding:8px 14px;border-radius:100px;border:1px solid #4A443A;color:var(--gold-bright);font-size:12px;font-weight:600;flex:none}
 .prof-list{margin-top:14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--card-radius);padding:4px 18px}
-.prof-badge{display:inline-flex;align-items:center;gap:5px;margin-top:6px;padding:4px 11px;border-radius:100px;background:var(--ink);color:var(--gold-bright);font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase}
+.prof-badge{display:inline-flex;align-items:center;gap:5px;margin-top:6px;padding:2px 0;color:var(--gold-deep);font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
 
-/* ── Profil : stats réelles ── */
-.prof-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
-.prof-stat{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 8px;text-align:center}
-.prof-stat .ps-v{font-family:var(--serif);font-size:24px;font-weight:600;color:var(--ink);line-height:1}
-.prof-stat .ps-l{font-family:var(--mono);font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:var(--sub);margin-top:5px}
+/* ── Profil : stats réelles — ligne à plat, sans cards ── */
+.prof-stats{display:flex;flex:1}
+.prof-stat{flex:1;text-align:center}
+.prof-stat .ps-v{font-family:var(--serif);font-size:22px;font-weight:700;color:var(--ink);line-height:1}
+.prof-stat .ps-l{font-family:var(--mono);font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:var(--sub);margin-top:6px}
 
-/* ── Profil : Mon Cercle (compagnons de route réels) ── */
-.prof-circle-card{margin-top:14px;padding:16px 18px;border-radius:18px;background:var(--ink)}
+/* ── Profil : Mon Cercle (compagnons de route réels) — carte claire,
+   plus de fond noir plein. ── */
+.prof-circle-card{margin-top:14px;padding:16px 18px;border-radius:18px;background:var(--surface);border:1px solid var(--line)}
 .cc-row{display:flex;align-items:center;gap:14px}
 .circle-avatars{display:flex;flex:none}
-.circle-av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-weight:600;font-size:13px;color:#fff;border:2px solid var(--ink);margin-left:-10px}
+.circle-av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-weight:600;font-size:13px;color:#fff;border:2px solid var(--surface);margin-left:-10px}
 .circle-av:first-child{margin-left:0}
-.circle-av.more{background:#4A443A;color:var(--gold-bright);font-family:var(--mono);font-size:10px}
-.circle-empty-ico{width:38px;height:38px;border-radius:50%;background:rgba(246,240,228,.08);color:var(--gold-bright);display:flex;align-items:center;justify-content:center;flex:none}
-.circle-empty-ico.light{background:var(--surface);color:var(--gold-deep)}
-.cc-t{font-family:var(--serif);font-size:18px;color:var(--onink)}
-.cc-s{font-family:var(--mono);font-size:10px;color:#B8AE98;letter-spacing:.04em;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.circle-av.more{background:var(--surface2);color:var(--ink-soft);font-family:var(--mono);font-size:10px}
+.circle-empty-ico{width:38px;height:38px;border-radius:50%;background:var(--surface2);color:var(--ink-soft);display:flex;align-items:center;justify-content:center;flex:none}
+.circle-empty-ico.light{background:var(--surface2);color:var(--ink-soft)}
+.cc-t{font-family:var(--serif);font-size:18px;color:var(--ink)}
+.cc-s{font-family:var(--mono);font-size:10px;color:var(--sub);letter-spacing:.04em;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cc-actions{display:flex;gap:8px;margin-top:14px}
-.cc-btn{flex:1;padding:10px;border-radius:100px;border:1px solid #4A443A;background:transparent;color:var(--gold-bright);font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer}
-.cc-btn:not(.ghost){background:var(--gold-bright);color:var(--ink);border-color:var(--gold-bright)}
+.cc-btn{flex:1;padding:10px;border-radius:100px;border:1px solid var(--line2);background:transparent;color:var(--ink);font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer}
+.cc-btn:not(.ghost){background:transparent;color:var(--ink);border:1.5px solid var(--ink);font-weight:700}
 .cc-btn:active{transform:scale(0.96)}
 
 /* ── Profil : carnet de voyage (pays réellement visités) ── */
 .prof-badges{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:4px}
 .cv-badge{aspect-ratio:1;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:#fff}
 .cv-badge .cv-code{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.06em}
-.cv-badge-add{aspect-ratio:1;border-radius:16px;border:1.5px dashed var(--line2);display:flex;align-items:center;justify-content:center;color:var(--sub);background:none;cursor:pointer}
+.cv-badge-add{aspect-ratio:1;border-radius:16px;border:1.5px dashed var(--line2);display:flex;align-items:center;justify-content:center;color:var(--sub);background:none;cursor:pointer;transition:transform 0.12s var(--spring),opacity 0.12s}
+.cv-badge-add:active{transform:scale(0.92);opacity:0.7}
 .cv-empty{grid-column:1/-1;color:var(--sub);font-size:13px;font-style:italic;padding:8px 0}
 
 /* ── Tableau de bord voyage en cours ─────────────────────────────── */

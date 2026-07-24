@@ -1,0 +1,651 @@
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Hanken+Grotesk:wght@300;400;500;600;700&display=swap');
+
+/* ══════════════════════════════════════════════════════════════════════════
+   HIC SUNT — IDENTITÉ VISUELLE (refonte complète)
+   Chargée en dernier, après core / screens / overlays / features / atlas.
+   Le squelette de l'app (HTML, JS, navigation) reste intact : cette couche
+   ne fait que remplacer l'habillage.
+
+   Principes :
+     · fond blanc chaud, aéré, hyper moderne
+     · AUCUN aplat noir : ni carte noire, ni bouton noir
+     · l'or #A6824A = la maison — actions, sélections, chrome
+     · Sora (titres + labels) · Hanken Grotesk (texte) — ni serif ni mono
+     · filets fins, ombres douces et précises, rayons cohérents
+     · plus de parchemin, plus de sable, plus de coordonnées
+   ══════════════════════════════════════════════════════════════════════════ */
+
+
+/* ══ 1. JETONS ═══════════════════════════════════════════════════════════
+   L'app appelle ses couleurs et polices par variables : les redéfinir
+   ici rhabille tous les écrans d'un seul coup. */
+:root{
+  /* Surfaces */
+  --bg:#FCFBFA;
+  --surface:#FFFFFF;
+  --surface2:#F4F2EE;
+  --surface-raised:#FFFFFF;
+
+  /* Encre */
+  --ink:#1F1A14;
+  --ink-soft:#79726A;
+  --sub:#79726A;
+
+  /* Filets */
+  --line:#E9E4DB;
+  --line2:#E4DED4;
+
+  /* Maison — encre neutre (l'or a été retiré : la seule couleur de
+     l'interface est désormais l'ADN de la destination) */
+  --gold:#1F1A14;
+  --gold-soft:#4A4640;
+  --gold-deep:#000000;
+  --gold-bright:#79726A;
+
+  /* Divers */
+  --onink:#FFFFFF;
+  --ph:#ABA498;
+  --ok:#129A8B;
+
+  /* Typographie */
+  --serif:'Sora',-apple-system,'Helvetica Neue',sans-serif;
+  --serif-text:'Hanken Grotesk',-apple-system,'Helvetica Neue',sans-serif;
+  --sf:'Hanken Grotesk',-apple-system,'Helvetica Neue',sans-serif;
+  --sans:'Hanken Grotesk',-apple-system,'Helvetica Neue',sans-serif;
+  --mono:'Sora',-apple-system,'Helvetica Neue',sans-serif;
+
+  /* Géométrie */
+  --card-radius:18px;
+  --btn-radius:22px;
+
+  /* Ombres — neutres, douces, précises */
+  --shadow-card:0 1px 2px rgba(31,26,20,0.03),0 4px 14px rgba(31,26,20,0.05),0 18px 40px -26px rgba(31,26,20,0.28);
+  --shadow-float:0 30px 70px -28px rgba(31,26,20,0.40);
+  --shadow-raised:0 10px 26px -18px rgba(31,26,20,0.34);
+
+  /* Vignettes — aplat doux, plus de dégradé sable */
+  --tile-bg:#F1EFEA;
+
+  /* Jetons ajoutés */
+  --paper:#FCFBFA;
+  --fog:#DBD6CE;
+  --fog-soft:#EDEAE4;
+  --ink-faint:#ABA498;
+  --gold-tint:#F4F2EE;
+
+  /* ADN de la destination — posé par da-accent.js selon le pays affiché.
+     C'est la seule couleur de l'interface, et elle change à chaque voyage. */
+  --accent:#2F7DE1;
+  --accent-tint:#2F7DE116;
+  --accent-soft:#2F7DE12A;
+  --accent-shadow:#2F7DE1b0;
+}
+
+
+/* ══ 2. FONDS ════════════════════════════════════════════════════════════ */
+html,body{background:#D8D3CA}
+body{font-family:var(--sans);color:var(--ink)}
+.screen{background:var(--bg)}
+::selection{background:rgba(166,130,74,0.16)}
+
+
+/* ══ 3. TYPOGRAPHIE ══════════════════════════════════════════════════════ */
+
+/* 3.1 — Aucun italique : Sora n'a pas de vrai italique, l'oblique
+   synthétique casse le rendu premium. L'accent se fait par l'or. */
+em,
+.studio-title em,
+.btn em,
+.input.italic,
+.carte-daytitle .serif em,
+.act .ac-tag,
+.onb-h em,
+.itin-hero-tag,
+.gen-title em,
+.sugg-tag,
+.muse-input,
+.disc-hero em{font-style:normal}
+.btn em{font-family:var(--serif);font-weight:600}
+.gen-title em,
+.disc-hero em{color:var(--gold)}
+
+/* 3.2 — Titres display : Sora, chasse serrée */
+.disc-hero,.voy-title,.gen-title,.onb-h,.studio-title,
+.stepper .st-n,.cc-tier,.pcc-t,
+h1,h2,h3{letter-spacing:-0.025em;font-weight:600}
+
+/* 3.3 — Labels : Sora capitales espacées (ex-mono) */
+.eyebrow,.section-h .meta,.tile .code,.gen-kicker{
+  font-family:var(--serif);font-weight:600;letter-spacing:0.18em;text-transform:uppercase;
+}
+
+/* 3.4 — Chiffres alignés */
+.deck-count,.prof-m,.stepper .st-l,.bud-amt,.cc-pts{font-feature-settings:"tnum" 1}
+
+
+/* ══ 4. FILET D'OR DE LA MAISON ══════════════════════════════════════════ */
+.hs-rule,.rule{position:relative;height:1px;background:var(--line)}
+.hs-rule::before,.rule::before{
+  content:"";position:absolute;left:0;top:0;height:1px;width:30px;background:var(--gold);
+}
+.hairline.gold{background:linear-gradient(to right,var(--gold-soft),rgba(166,130,74,0))}
+
+
+/* ══ 5. BOUTONS — plus aucun noir ════════════════════════════════════════
+   L'action principale passe en or : c'est la couleur de la maison. */
+.btn{background:var(--gold);color:#FFFFFF;box-shadow:0 6px 18px -10px rgba(166,130,74,0.75)}
+.btn:active{background:var(--gold-deep)}
+.btn.gold{background:var(--gold)}
+.btn.gold:active{background:var(--gold-deep)}
+
+.btn-ghost{border:1px solid var(--line);background:transparent;color:var(--ink)}
+.btn-ghost:active{border-color:var(--gold);color:var(--gold)}
+
+/* Connexion Apple : variante claire (autorisée par Apple) au lieu du noir. */
+.apple-btn{background:#FFFFFF;color:var(--ink);border:1px solid var(--line)}
+
+/* Boutons ronds / d'envoi */
+.muse-go,.send-btn,.fab{background:var(--gold);color:#FFFFFF}
+.fab{box-shadow:0 10px 26px -12px rgba(166,130,74,0.8)}
+
+
+/* ══ 6. SÉLECTIONS — teinte d'or, jamais de pastille noire ═══════════════ */
+.chip.on,
+.map-chip.on,
+.radio-it.on,
+.occ.on,
+.voy-pill.on,
+.act-add.on{
+  background:var(--gold-tint);
+  border-color:var(--gold);
+  color:var(--gold);
+}
+.act-add.on{color:var(--gold)}
+
+
+/* ══ 7. CARTES — blanches, filet fin, plus aucune carte noire ═══════════ */
+.card,.tile,.act,.tool{border-radius:var(--card-radius)}
+
+/* 7.1 — Le Cercle (fidélité) : ex-carte noire → blanche, accents or */
+.cercle-card,
+.prof-cercle-card,
+.prof-circle-card{
+  background:var(--surface);
+  color:var(--ink);
+  border:1px solid var(--line);
+  box-shadow:var(--shadow-card);
+}
+.cercle-card .contour{stroke:var(--gold);opacity:0.10}
+.cc-tier,.pcc-t{color:var(--ink)}
+.cc-pts,.cc-s,.pcc-s{color:var(--ink-faint)}
+.cc-prog{background:var(--fog-soft)}
+.cc-prog i{background:var(--gold)}
+
+/* 7.2 — Tuiles d'outils : plus de variante sombre */
+.tool.dark{background:var(--surface);border-color:var(--gold)}
+.tool.dark .ico{color:var(--gold)}
+.tool.dark .tl-t{color:var(--ink)}
+.tool.dark .tl-s{color:var(--ink-faint)}
+
+/* 7.3 — Statistiques d'itinéraire */
+.itin-stat.dark{background:var(--gold-tint);border-color:var(--gold);color:var(--ink)}
+
+/* 7.4 — Superposition « ajustement » : fond blanc, plus de plein écran noir */
+.ov.carto{background:var(--bg);color:var(--ink)}
+
+
+/* ══ 8. BADGES ET PASTILLES ══════════════════════════════════════════════ */
+.itin-hero-badge,
+.trip-card-badge,
+.prof-badge,
+.minimap-cta{
+  background:var(--gold-tint);
+  color:var(--gold);
+  border:1px solid var(--gold);
+}
+.dayrow .dr-pin,
+.dr-pin,
+.conf .c-badge,
+.ccc-ico{background:var(--gold);color:#FFFFFF}
+.gen-progress-fill{background:var(--gold)}
+
+
+/* ══ 9. CONVERSATION D'AJUSTEMENT ════════════════════════════════════════
+   Bulles du voyageur en brume douce (plus de bulle noire). */
+.bub.me,.bub.us{background:var(--fog-soft);color:var(--ink)}
+
+
+/* ══ 10. NOTIFICATION ════════════════════════════════════════════════════ */
+.toast{
+  background:#FFFFFF;color:var(--ink);
+  border:1px solid var(--line);
+  box-shadow:0 16px 40px -18px rgba(31,26,20,0.42);
+}
+
+
+/* ══ 11. BARRE D'ONGLETS ═════════════════════════════════════════════════ */
+.tabbar-pill{
+  background:#FFFFFF;
+  border:1px solid var(--line);
+  box-shadow:0 4px 20px rgba(31,26,20,0.08),0 1px 3px rgba(31,26,20,0.05);
+}
+
+
+/* ══ 12. CHAMPS ══════════════════════════════════════════════════════════ */
+.muse{background:#FFFFFF;border:1px solid var(--line);box-shadow:var(--shadow-card)}
+.input:focus,.muse-input:focus,textarea:focus,input:focus,select:focus{
+  outline:none;border-color:var(--gold);
+}
+input::placeholder,textarea::placeholder{color:var(--ph)}
+progress::-webkit-progress-value{background:var(--gold)}
+progress::-moz-progress-bar{background:var(--gold)}
+
+
+/* ══ 13. TUILES DESTINATION ══════════════════════════════════════════════
+   Le petit label en haut à gauche porte désormais la saison idéale
+   (l'ancien code de coordonnées a été retiré du contenu). */
+.tile .code{
+  font-family:var(--serif);font-size:8.5px;font-weight:600;letter-spacing:0.14em;
+}
+/* Coordonnées résiduelles sur les cartes de voyage : masquées. */
+.trip-card-coords{display:none}
+
+
+/* ══ 14. CARTOGRAPHIE ════════════════════════════════════════════════════ */
+.leaflet-container{background:var(--fog-soft);font-family:var(--sans)}
+
+/* Anneaux de l'écran de composition : brume, plus de sable */
+.gen-compass .gc-r1,.gen-compass .gc-r2{stroke:var(--fog)}
+.gen-compass .gc-r3{stroke:var(--fog-soft)}
+.gen-compass .gc-needle-b{fill:var(--fog)}
+
+
+/* ══ 15. DÉTAILS ═════════════════════════════════════════════════════════ */
+.on-dot{background:var(--ok);border-color:var(--bg)}
+
+/* Voiles sur photos : adoucis et neutralisés */
+.hero-veil{background:linear-gradient(to top,rgba(24,20,16,0.56),rgba(24,20,16,0.05) 55%,rgba(24,20,16,0.12))}
+.tile .wash::after{background:linear-gradient(to top,rgba(24,20,16,0.50),rgba(24,20,16,0.02) 55%)}
+
+/* Studio (présentation desktop) */
+.studio-eyebrow{font-family:var(--serif);font-weight:600;letter-spacing:0.2em;color:var(--gold)}
+.studio-title{font-family:var(--serif)}
+.studio-sub{font-family:var(--sans);color:var(--sub)}
+
+
+/* ══ 16. PRÉFÉRENCES D'ANIMATION ═════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{
+    animation-duration:.001ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.001ms !important;
+  }
+}
+
+
+/* ══ 17. ÉCRAN PROFIL (refonte : moins de cartes, plus de contenu) ═══════ */
+.pf{padding-top:6px}
+.pf-eyebrow{font-family:var(--serif);font-size:10px;font-weight:600;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--ink-soft)}
+.pf .rule{margin-top:14px}
+
+.pf-id{display:flex;align-items:center;gap:15px;margin-top:20px}
+.pf-av{width:56px;height:56px;flex:none;border-radius:50%;background:var(--gold-tint);
+  color:var(--gold);display:flex;align-items:center;justify-content:center;
+  font-family:var(--serif);font-weight:600;font-size:19px}
+.pf-name{font-family:var(--serif);font-weight:600;font-size:27px;letter-spacing:-.025em;line-height:1.05;margin:0}
+.pf-mail{font-size:13px;color:var(--ink-soft);margin-top:4px}
+.pf-tier{display:inline-flex;align-items:center;gap:6px;margin-top:14px;padding:5px 12px;
+  border-radius:100px;background:var(--gold-tint);color:var(--gold);border:1px solid var(--gold);
+  font-family:var(--serif);font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase}
+
+/* Chiffres en ligne, séparés par des filets — plus de carte */
+.pf-stats{display:flex;margin-top:24px;padding:16px 0;border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line);background:none;box-shadow:none;border-radius:0}
+.pf-stats .prof-stat{flex:1;text-align:center;position:relative;background:none;border:none;padding:0}
+.pf-stats .prof-stat + .prof-stat::before{content:"";position:absolute;left:0;top:12%;height:76%;
+  width:1px;background:var(--line)}
+.pf-stats .ps-v{font-family:var(--serif);font-weight:600;font-size:21px;letter-spacing:-.02em;color:var(--ink)}
+.pf-stats .ps-l{font-family:var(--serif);font-size:9px;font-weight:600;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--ink-faint);margin-top:5px}
+
+/* Intertitres */
+.pf-sec{font-family:var(--serif);font-size:10px;font-weight:600;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--ink-faint);margin:26px 0 12px}
+.pf-sec-row{display:flex;align-items:baseline;justify-content:space-between;cursor:pointer}
+.pf-sec-meta{color:var(--gold);letter-spacing:.06em}
+
+/* Documents — lignes fines */
+.pf-docs{border-top:1px solid var(--line)}
+.pf-doc{display:flex;align-items:center;gap:13px;padding:13px 0;border-bottom:1px solid var(--line)}
+.pf-doc-ico{color:var(--gold);display:inline-flex;flex:none}
+.pf-doc-m{flex:1;min-width:0}
+.pf-doc-t{font-family:var(--serif);font-weight:600;font-size:14px;letter-spacing:-.01em}
+.pf-doc-s{font-size:12px;color:var(--ink-soft);margin-top:2px}
+.pf-doc-st{font-family:var(--serif);font-size:9px;font-weight:600;letter-spacing:.08em;
+  text-transform:uppercase;white-space:nowrap;color:var(--ink-faint)}
+.pf-doc-st.ok{color:var(--ok)}
+.pf-doc-st.soon{color:var(--gold)}
+
+/* « Votre monde » : la vignette de dépassement (+N) */
+.cv-badge-more{background:var(--fog-soft);color:var(--ink-soft);
+  font-family:var(--serif);font-weight:600;font-size:15px;
+  display:flex;align-items:center;justify-content:center}
+
+/* Accès — une ligne, honnête */
+.pf-access{display:flex;align-items:center;gap:12px;padding:14px 0;cursor:pointer;
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.pf-access-m{flex:1;min-width:0}
+.pf-access-t{font-family:var(--serif);font-weight:600;font-size:14.5px;letter-spacing:-.01em}
+.pf-access-s{font-size:12px;color:var(--ink-soft);margin-top:2px}
+.pf-access-st{font-family:var(--serif);font-size:9px;font-weight:600;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--gold);white-space:nowrap}
+
+/* Cercle — une ligne, plus une carte noire */
+.pf-circle{padding:14px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.pf-circle .cc-t{font-family:var(--serif);font-weight:600;font-size:14.5px;color:var(--ink)}
+.pf-circle .cc-s{font-size:12px;color:var(--ink-soft);margin-top:2px}
+
+/* Réglages — lignes fines */
+.pf-rows{border-top:1px solid var(--line)}
+.pf-row{display:flex;align-items:center;gap:14px;padding:15px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.pf-row-ico{color:var(--gold);display:inline-flex;flex:none}
+.pf-row-m{flex:1;min-width:0}
+.pf-row-t{font-family:var(--serif);font-weight:600;font-size:14.5px;letter-spacing:-.01em}
+.pf-row-s{font-size:12px;color:var(--ink-soft);margin-top:2px}
+.pf-row-ch{color:var(--ink-faint);display:inline-flex;flex:none}
+
+.pf-del{display:block;width:100%;background:none;border:none;margin-top:18px;padding:12px;
+  font-family:var(--sans);font-size:13px;color:var(--ink-faint);cursor:pointer}
+.pf-foot{text-align:center;font-family:var(--serif);font-size:9px;font-weight:600;
+  letter-spacing:.2em;text-transform:uppercase;color:var(--ink-faint);margin:22px 0 8px}
+
+
+/* ══ 18. RETRAIT DU VOCABULAIRE « VIEILLE CARTE » ════════════════════════
+   Ce n'était pas une question de couleur mais d'ornements : vagues de carte
+   marine, emblèmes en filigrane, filets dégradés. La DA les proscrit. */
+
+/* Vagues façon carte marine + grand emblème filigrane sur le héros */
+.itin-hero-waves{display:none}
+.itin-hero-wm{display:none}
+
+/* Emblèmes en filigrane sur les tuiles et les héros de destination */
+.tile .wm,
+.dest-hero .wm{display:none}
+
+/* Courbes de niveau et quadrillage cartographique (héritage) */
+.contour,
+.grat{display:none}
+
+/* Filet dégradé doré → filet plat de 30 px, comme partout ailleurs */
+.hairline.gold{background:var(--line);position:relative;overflow:visible}
+.hairline.gold::before{content:"";position:absolute;left:0;top:0;height:1px;width:30px;background:var(--gold)}
+
+/* Petit trait sous les noms de tuile : or plein, plus discret */
+.tile .t-rule{width:24px;height:1px;background:var(--gold)}
+
+/* Titre d'accueil : chasse serrée, jamais d'italique */
+.disc-hero{font-family:var(--serif);letter-spacing:-.03em;line-height:1.04}
+.disc-hero em{font-style:normal;color:var(--gold)}
+
+
+/* ══ 19. RETRAIT DE L'OR — l'ADN destination devient le seul accent ══════
+   Validé : plus de couleur maison. Les filets, labels et petits accents
+   passent en encre ; les boutons ronds passent en blanc à filet fin.
+   Seule la couleur du pays reste colorée à l'écran. */
+
+/* 19.1 — Filets et traits */
+.hs-rule::before,
+.rule::before{background:var(--ink)}
+.hairline.gold::before{background:var(--ink)}
+.tile .t-rule{background:var(--ink)}
+
+/* 19.2 — Boutons ronds : blanc, filet fin, symbole en encre
+   (jamais d'aplat noir, jamais d'or) */
+.muse-go,
+.send-btn,
+.fab{
+  background:#FFFFFF;
+  color:var(--ink);
+  border:1px solid var(--line);
+  box-shadow:0 6px 18px -10px rgba(31,26,20,.45);
+}
+.fab{border-radius:50%}
+.muse-go svg,
+.send-btn svg,
+.fab svg{stroke:var(--ink)}
+
+/* 19.3 — Sélections : contour en encre, fond très doux */
+.chip.on,
+.map-chip.on,
+.radio-it.on,
+.occ.on,
+.voy-pill.on,
+.act-add.on{
+  background:var(--fog-soft);
+  border-color:var(--ink);
+  color:var(--ink);
+}
+
+/* 19.4 — Badges et pastilles */
+.itin-hero-badge,
+.trip-card-badge,
+.prof-badge,
+.minimap-cta{
+  background:var(--fog-soft);
+  color:var(--ink);
+  border:1px solid var(--line);
+}
+.dayrow .dr-pin,
+.dr-pin,
+.conf .c-badge,
+.ccc-ico{background:var(--ink);color:#FFFFFF}
+.gen-progress-fill{background:var(--ink)}
+
+/* 19.5 — Petits accents jadis dorés */
+.eyebrow,
+.pf-sec-meta,
+.pf-row-ico,
+.pf-doc-ico,
+.login-link b{color:var(--ink-soft)}
+.pf-av{background:var(--fog-soft);color:var(--ink)}
+.pf-doc-st.soon{color:var(--ink-soft)}
+.tool.dark{border-color:var(--line)}
+.tool.dark .ico{color:var(--ink)}
+
+/* 19.6 — Champs : le focus passe en encre */
+.input:focus,
+.muse-input:focus,
+textarea:focus,
+input:focus,
+select:focus{border-color:var(--ink)}
+progress::-webkit-progress-value{background:var(--ink)}
+progress::-moz-progress-bar{background:var(--ink)}
+
+/* 19.7 — Le seul accent coloré restant est celui de la destination :
+   badge « vérifié », progression du budget, tracé de la route. */
+
+/* 19.8 — Derniers accents dorés relevés à l'écran : mots mis en valeur,
+   pastilles de notification, onglet actif, puces de progression. */
+em,
+.disc-hero em,
+.gen-title em,
+.onb-h em,
+.onb-kw,
+.disc-hello,
+.studio-title em{color:var(--ink)}
+
+.dot,
+.tab-it.on .tab-ico,
+.tab-it.on .tab-lbl,
+.tab-it.on svg{color:var(--ink)}
+.bell-btn .dot,
+.trip-card-draft-badge .dot{background:var(--ink)}
+
+.onb-dots i.on,
+.dots i.on{background:var(--ink)}
+
+
+/* ══ 19. RETRAIT DE L'OR — la maison passe en encre ══════════════════════
+   Les jetons ci-dessus rendent automatiquement en encre tout ce qui était
+   doré en texte ou en filet. Restent les APLATS : sans correction ils
+   deviendraient noirs, ce qui est proscrit. On les repasse en blanc ou en
+   brume, avec le contenu en encre. */
+
+/* Bouton principal : blanc, texte encre, filet fin */
+.btn{background:#FFFFFF;color:var(--ink);border:1px solid var(--line);
+  box-shadow:0 4px 14px -9px rgba(31,26,20,.4)}
+.btn:active{background:var(--fog-soft)}
+.btn.gold{background:#FFFFFF;color:var(--ink)}
+.btn.gold:active{background:var(--fog-soft)}
+
+/* Boutons ronds (envoi, composition, action flottante) : blancs, icône encre */
+.muse-go,.send-btn,.fab{background:#FFFFFF;color:var(--ink);
+  border:1px solid var(--line);box-shadow:0 4px 14px -9px rgba(31,26,20,.42)}
+.fab{box-shadow:0 10px 26px -14px rgba(31,26,20,.5)}
+
+/* Sélections : contour encre sur fond très clair (plus de teinte dorée) */
+.chip.on,.map-chip.on,.radio-it.on,.occ.on,.voy-pill.on,.act-add.on{
+  background:var(--fog-soft);border-color:var(--ink);color:var(--ink)}
+
+/* Badges et pastilles : contour fin, jamais d'aplat sombre */
+.itin-hero-badge,.trip-card-badge,.prof-badge,.minimap-cta{
+  background:#FFFFFF;color:var(--ink);border:1px solid var(--line)}
+.dayrow .dr-pin,.dr-pin,.conf .c-badge,.ccc-ico{
+  background:var(--fog-soft);color:var(--ink)}
+.gen-progress-fill{background:var(--ink)}
+
+/* Profil */
+.pf-av{background:var(--fog-soft);color:var(--ink)}
+.pf-row-ico,.pf-doc-ico{color:var(--ink-soft)}
+.pf-doc-st.soon,.pf-sec-meta{color:var(--ink-soft)}
+
+/* Fidélité */
+.cercle-card .contour{stroke:var(--ink);opacity:0.07}
+.cc-prog i,.tier .bar>i{background:var(--ink)}
+
+/* Filets : le trait de 30 px passe en encre */
+.rule::before,.hs-rule::before,.hairline.gold::before{background:var(--ink)}
+.hairline.gold{background:var(--line)}
+.tile .t-rule{background:var(--ink)}
+
+/* Tuiles d'outils : contour encre au lieu du doré */
+.tool.dark{border-color:var(--ink)}
+.tool.dark .ico{color:var(--ink)}
+
+
+/* ══ 20. VIVACITÉ — l'ADN de la destination occupe de vraies surfaces ═════
+   L'interface était juste : elle était fade. La couleur du pays passe des
+   filets de 3 px aux aplats — boutons, onglet actif, étiquettes, chiffres.
+   Aucune couleur nouvelle : ce sont les ADN déjà définis. */
+
+/* Actions principales : aplat de la destination */
+.btn{background:var(--accent);color:#FFFFFF;border:none;
+  box-shadow:0 8px 20px -10px var(--accent-shadow)}
+.btn:active{background:var(--accent);opacity:.88}
+.btn.gold{background:var(--accent);color:#FFFFFF}
+
+/* Boutons ronds : pleins, icône blanche */
+.muse-go,.send-btn,.fab{background:var(--accent);color:#FFFFFF;border:none;
+  box-shadow:0 8px 18px -9px var(--accent-shadow)}
+.muse-go svg,.send-btn svg,.fab svg{stroke:#FFFFFF}
+.fab{box-shadow:0 12px 26px -12px var(--accent-shadow)}
+
+/* États actifs : aplat plutôt que teinte pâle */
+.chip.on,.map-chip.on,.radio-it.on,.occ.on,.voy-pill.on,.act-add.on{
+  background:var(--accent);border-color:var(--accent);color:#FFFFFF}
+
+/* Onglet actif de la barre basse */
+.tab-it.on .tab-ico{color:var(--accent)}
+.tab-it.on .tab-lbl{color:var(--accent)}
+
+/* Étiquettes et badges : pleins */
+.itin-hero-badge,.trip-card-badge,.prof-badge{
+  background:var(--accent);color:#FFFFFF;border:1px solid var(--accent)}
+.minimap-cta{background:var(--accent);color:#FFFFFF;border:1px solid var(--accent)}
+.mini-tag{color:#FFFFFF !important;background:var(--accent) !important;border-color:var(--accent) !important}
+
+/* Repères de jour et pastilles */
+.dayrow .dr-pin,.dr-pin,.conf .c-badge,.ccc-ico{background:var(--accent);color:#FFFFFF}
+.dayrow .dr-pin{box-shadow:0 0 0 4px var(--accent-tint)}
+.gen-progress-fill{background:var(--accent)}
+
+/* Filets et colonnes : la destination reprend la main */
+.rule::before,.hs-rule::before,.hairline.gold::before{background:var(--accent);width:34px}
+.tile .t-rule{background:var(--accent);width:26px}
+.cc-prog i,.tier .bar>i{background:var(--accent)}
+.pf-stats .ps-v{color:var(--accent)}
+
+/* Liens et repères secondaires */
+.pf-sec-meta,.pf-row-ico,.pf-doc-ico{color:var(--accent)}
+.login-link b{color:var(--accent)}
+.verif,.pf-doc-st.ok{color:var(--accent)}
+
+/* Profil : la pastille d'initiales prend la couleur du voyage */
+.pf-av{background:var(--accent);color:#FFFFFF}
+
+/* Champs : focus à la couleur de la destination */
+.input:focus,.muse-input:focus,textarea:focus,input:focus,select:focus{border-color:var(--accent)}
+
+
+/* ══ 21. CALENDRIER DU QUESTIONNAIRE ═════════════════════════════════════
+   Un mois à la fois, sélection d'une plage. Remplace les champs date
+   natifs, qui ouvraient le sélecteur du système hors de la charte. */
+.hscal{margin-top:4px}
+.hscal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.hscal-t{font-family:var(--serif);font-weight:600;font-size:15.5px;letter-spacing:-.02em;text-transform:capitalize}
+.hscal-b{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:#fff;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none;padding:0}
+.hscal-b svg{width:13px;height:13px;stroke:var(--ink);fill:none;stroke-width:2}
+.hscal-b.off{opacity:.3;pointer-events:none}
+.hscal-wk{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:2px}
+.hscal-wk span{text-align:center;font-family:var(--serif);font-size:9px;font-weight:600;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint)}
+.hscal-g{display:grid;grid-template-columns:repeat(7,1fr);row-gap:1px}
+.hscal-c{position:relative;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.hscal-c.vide{cursor:default}
+.hscal-n{position:relative;z-index:2;width:31px;height:31px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--serif);font-weight:500;font-size:13px;font-feature-settings:"tnum" 1;
+  transition:background .16s ease,color .16s ease}
+.hscal-c.passe{pointer-events:none}
+.hscal-c.passe .hscal-n{color:var(--ink-faint);opacity:.45}
+.hscal-band{position:absolute;top:3px;bottom:3px;left:0;right:0;display:none;
+  background:var(--accent-tint)}
+.hscal-c.dans .hscal-band{display:block}
+.hscal-c.deb .hscal-band{display:block;left:50%}
+.hscal-c.fin .hscal-band{display:block;right:50%}
+.hscal-c.deb.fin .hscal-band{display:none}
+.hscal-c.deb .hscal-n,.hscal-c.fin .hscal-n{background:var(--accent);color:#fff;font-weight:600}
+.hscal-auj{position:absolute;bottom:0;left:0;right:0;text-align:center;z-index:2;
+  font-family:var(--serif);font-size:8px;font-weight:600;letter-spacing:.05em;color:var(--ink-soft)}
+.hscal-c.deb .hscal-auj,.hscal-c.fin .hscal-auj{color:var(--accent)}
+.hscal-r{margin-top:12px;padding-top:11px;border-top:1px solid var(--line);
+  font-size:13px;color:var(--ink-soft)}
+.hscal-r b{font-family:var(--serif);font-weight:600;color:var(--ink)}
+
+
+/* ══ 22. PIED DE L'ITINÉRAIRE ════════════════════════════════════════════
+   Une seule action principale : le bouton rond « Modifier », qui ouvre la
+   conversation. « Garder » reste accessible, en texte discret. */
+.foot-actions{display:flex;align-items:center;gap:12px}
+.fa-txt{background:none;border:none;cursor:pointer;padding:8px 4px;
+  font-family:var(--serif);font-weight:600;font-size:13px;color:var(--ink-soft)}
+.fa-txt:active{color:var(--ink)}
+.fa-chat{width:48px;height:48px;flex:none;border:none;border-radius:50%;
+  background:var(--accent);color:#FFFFFF;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;padding:0;
+  box-shadow:0 8px 20px -9px var(--accent-shadow);transition:transform .15s ease}
+.fa-chat:active{transform:scale(.94)}
+.fa-chat svg{width:21px;height:21px}
+
+
+/* ══ 23. CARTE EN POINTILLÉ ══════════════════════════════════════════════
+   La vraie géographie, rendue en points, avec le tracé à la couleur de la
+   destination. Remplace Leaflet sur l'aperçu de l'itinéraire. */
+.hsdm{width:100%;height:100%;display:block;background:var(--surface)}
+.hsdm-d{fill:var(--fog)}
+.hsdm-seg{fill:none;stroke:var(--accent);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.hsdm-halo{fill:var(--accent-tint);transition:opacity .45s ease}
+.hsdm-n{fill:var(--accent);stroke:var(--surface);stroke-width:2.2;transition:opacity .4s ease}
+.hsdm-num{font-family:var(--serif);font-weight:600;font-size:9px;fill:#fff;transition:opacity .4s ease}

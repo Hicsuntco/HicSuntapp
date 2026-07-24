@@ -80,4 +80,4 @@ const AI_PROMPTS = [
   'Trouve une option plus économique',
   'Plus de gastronomie locale',
 ];
-const AI_INTRO = 'Je suis votre cartographe. Décrivez un changement — j\'ajuste l\'itinéraire, les étapes et le budget en direct.';
+const AI_INTRO = 'Décrivez un changement — j\'ajuste l\'itinéraire, les étapes et le budget en direct.';

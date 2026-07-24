@@ -176,7 +176,7 @@ const ITINERARY = {
   dest:'', tag:'', dates:'', days:0, level:'Confort',
   plan:[], accommodations:[], gems:[], theme:'mediterranean', palette:{},
   budgetTotal:0, coords:'', distance:'', season:'', region:'', country:'',
-  companions:[],
+  companions:[], expenses:[],
 };
 
 /* trips — alimenté dynamiquement depuis Supabase */
@@ -195,8 +195,6 @@ const PREFS = {
 /* documents */
 const DOCUMENTS = [
   { i:'doc', n:'Passeport', s:'', st:['draft','À vérifier'] },
-  { i:'card', n:'Assurance voyage', s:'Cercle Hic Sunt · incluse', st:['ok','Active'] },
-  { i:'plane', n:'Billets d\'avion', s:'Non renseignés', st:['draft','Manquant'] },
 ];
 
 /* concierge thread */

@@ -777,7 +777,7 @@ function _promptSaveModified(){
   ov.innerHTML = '<div style="background:var(--surface-raised);border-radius:24px 24px 0 0;padding:28px 22px calc(28px + env(safe-area-inset-bottom,0px));width:100%;max-width:520px">'
     + '<div style="font-family:var(--serif);font-size:22px;font-weight:600;color:var(--ink);margin-bottom:6px">Enregistrer les changements</div>'
     + '<div style="font-family:var(--sans);font-size:14px;color:var(--sub);line-height:1.5;margin-bottom:22px">Cet itinéraire est déjà enregistré. Que souhaitez-vous faire ?</div>'
-    + '<button onclick="_doSaveModified(\'replace\')" style="width:100%;background:var(--ink);color:var(--bg);border:none;border-radius:14px;padding:15px;font-family:var(--sans);font-size:15px;font-weight:500;cursor:pointer;margin-bottom:10px">Remplacer l\'ancienne version</button>'
+    + '<button class="btn" onclick="_doSaveModified(\'replace\')" style="margin-bottom:10px">Remplacer l\'ancienne version</button>'
     + '<button onclick="_doSaveModified(\'both\')" style="width:100%;background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:15px;font-family:var(--sans);font-size:15px;font-weight:500;cursor:pointer;margin-bottom:10px">Garder les deux versions</button>'
     + '<button onclick="_closeSaveChoice()" style="width:100%;background:transparent;color:var(--sub);border:none;padding:12px;font-family:var(--sans);font-size:14px;cursor:pointer">Annuler</button>'
     + '</div>';
@@ -1108,7 +1108,7 @@ async function loadVoyagesTab(){
         + '<div style="color:var(--gold);margin-bottom:16px;display:flex;justify-content:center">' + ico('sparkle',32,1.2) + '</div>'
         + '<p style="font-family:var(--serif);font-size:20px;font-weight:600;color:var(--ink);margin-bottom:8px">Vos voyages vous attendent</p>'
         + '<p style="color:var(--sub);font-size:14px;line-height:1.6;margin-bottom:24px">Composez votre premier itinéraire — il apparaîtra ici dès que vous l\'aurez enregistré.</p>'
-        + '<button onclick="setTab(\'create\')" style="background:var(--ink);color:var(--onink);border:none;border-radius:14px;padding:14px 28px;font-family:var(--sans);font-size:15px;font-weight:500;cursor:pointer">Composer un itinéraire</button>'
+        + '<button class="btn" onclick="setTab(\'create\')" style="display:inline-flex;width:auto;margin:0 auto;padding-left:28px;padding-right:28px">Composer un itinéraire</button>'
         + '</div>';
     } else {
       host.innerHTML = '<p style="text-align:center;padding:40px 0;color:var(--sub);font-size:14px;font-style:italic">Aucun voyage enregistré pour le moment.</p>';
@@ -1188,6 +1188,7 @@ async function loadSavedItinerary(id){
     if(!Array.isArray(ITINERARY.plan))          ITINERARY.plan          = [];
     if(!Array.isArray(ITINERARY.accommodations)) ITINERARY.accommodations = [];
     if(!Array.isArray(ITINERARY.gems))           ITINERARY.gems           = [];
+    if(!Array.isArray(ITINERARY.expenses))       ITINERARY.expenses       = [];
 
     /* Normaliser chaque jour du plan */
     ITINERARY.plan = ITINERARY.plan.map(function(p, i){
@@ -1223,6 +1224,23 @@ async function loadSavedItinerary(id){
         blurb:  a.blurb || '',
         i:      a.i || 'bed',
         url:    a.url || '',
+        photo:     a.photo || '',
+        photoPage: a.photoPage || '',
+        source:    a.source || '',
+        rating:    a.rating || '',
+        verified:  a.verified !== false,
+      };
+    }).filter(Boolean);
+
+    /* Normaliser les dépenses réelles */
+    ITINERARY.expenses = ITINERARY.expenses.map(function(e){
+      if(!e || typeof e !== 'object') return null;
+      return {
+        id:       e.id || ('exp-'+Math.random().toString(36).slice(2)),
+        category: e.category || 'other',
+        label:    e.label || '',
+        amount:   Number(e.amount) || 0,
+        date:     e.date || '',
       };
     }).filter(Boolean);
 
@@ -1431,7 +1449,7 @@ function splashHTML(){
     +   '<div class="splash-rule"></div>'
     +   '<div class="splash-tag">Beyond the Known</div>'
     + '</div>'
-    + '<div class="splash-coords">48°51\'N · 2°21\'E — Cartographe personnel</div>'
+    + '<div class="splash-coords">48°51\'N · 2°21\'E — Voyages sur-mesure</div>'
     + '</div>';
 }
 function playSplash(next){
@@ -1619,43 +1637,10 @@ document.addEventListener('DOMContentLoaded', function(){
     };
   }
 
-  /* Overrides robustes pour Budget, Activités, Pépites — résistent aux données manquantes */
-  window.budgetView = function(){
-    var it=ITINERARY;
-    var total=it.budgetTotal||0;
-    /* Toujours recalculer le budget complet avant d'afficher */
-    if(typeof deriveBudget==='function'){
-      try{
-        deriveBudget(
-          it.accommodations||[], total,
-          it.dest||'', it.region||'', it.country||'',
-          it.travelers||state.travelers||2, it._flightInfo||null
-        );
-      }catch(e){ console.warn('deriveBudget',e); }
-    }
-    var b=(typeof BUDGET!=='undefined')?BUDGET:{total:total,spent:0,lines:[]};
-    if(!b.lines||!b.lines.length){
-      b.lines=[{i:'wallet',n:'Budget estimé',sub:'tout compris',amount:total,paid:false}];
-    }
-    var displayTotal=b.total||total;
-    return statusBar()+navbar('Budget du voyage')
-      +'<div class="ov-scroll has-foot px">'
-      +'<div class="bud-card">'
-      +'<div class="bud-l">Total estimé · '+esc(it.dest||'')+'</div>'
-      +'<div class="bud-v">'+eur(displayTotal)+'</div>'
-      +'<div class="bud-s">'+travelerLabel(it)+' · '+(_days(it)||'')+' jours · estimation</div>'
-      +'</div>'
-      +'<div class="section-h"><h2>Répartition</h2><span class="meta">estimation</span></div>'
-      +b.lines.map(function(l){return '<div class="bline">'+ico(l.i,20,1.5)
-        +'<div class="bl-m"><div class="bl-n">'+esc(l.n)+'</div><div class="bl-s">'+esc(l.sub||'')+'</div></div>'
-        +'<div class="bl-r"><div class="bl-v">'+eur(l.amount)+'</div></div></div>';}).join('')
-      +'</div>'
-      +'<div class="ov-foot"><div class="foot-price">'
-      +'<div><div class="fp-v">'+eur(displayTotal)+'</div><div class="fp-l">estimation totale</div></div>'
-      +'<button class="btn" onclick="openAllBookings()">Voir les hébergements</button>'
-      +'</div></div>';
-  };
-
+  /* Overrides robustes pour Activités, Pépites — résistent aux données manquantes.
+     (L'override budgetView a été retiré : il court-circuitait silencieusement
+     la version features.js, chargée avant lui — voir le commentaire en tête
+     de budgetView() dans features.js.) */
   window.activitiesView = function(){
     var it=ITINERARY;
     var acts=[];
@@ -1672,7 +1657,7 @@ document.addEventListener('DOMContentLoaded', function(){
     var days=Object.keys(byDay).sort(function(a,b){return a-b;});
     return statusBar()+navbar('Activités & expériences')
       +'<div class="ov-scroll px">'
-      +'<span class="eyebrow" style="display:block;margin-top:10px">Sélection du cartographe</span>'
+      +'<span class="eyebrow" style="display:block;margin-top:10px">Sélection sur-mesure</span>'
       +'<h1 style="font-family:var(--serif);font-weight:600;font-size:28px;margin-top:8px">Expériences sur-mesure</h1>'
       +days.map(function(d){return '<div class="act-day">Jour '+String(d).padStart(2,'0')+'</div>'
         +byDay[d].map(function(a){return '<div class="act" onclick="toast(\''+esc(a.n)+'\')" style="cursor:pointer">'
@@ -1716,24 +1701,6 @@ document.addEventListener('DOMContentLoaded', function(){
     var _r0=(typeof _stayDateRange==='function')?_stayDateRange(a):{checkin:it.dateFrom||'',checkout:it.dateTo||''};
     var checkin=_r0.checkin;
     var checkout=_r0.checkout;
-    var name=String(a.n||'').trim();
-    var loc=(a.loc||it.dest||'').trim();
-    var searchLoc=_searchLoc(loc);
-    var nameQ=encodeURIComponent(name);
-    var cityQ=encodeURIComponent(searchLoc);
-    var fullQ=encodeURIComponent(name+(searchLoc?', '+searchLoc:''));
-    var nameLoc=encodeURIComponent(name+(searchLoc?' '+searchLoc:''));
-
-    /* Liens recherche pré-remplie nom + ville + dates */
-    var bookingUrl='https://www.booking.com/searchresults.html?ss='+fullQ+'&ssne='+cityQ+'&ssne_untouched='+cityQ
-      +'&dest_type=hotel&lang=fr&group_adults='+guests+'&no_rooms=1&sb_travel_purpose=leisure'
-      +(checkin?'&checkin='+checkin:'')+(checkout?'&checkout='+checkout:'')
-      +(typeof AFFILIATE_TAGS!=='undefined'&&AFFILIATE_TAGS.booking?'&aid='+AFFILIATE_TAGS.booking:'');
-    var airbnbUrl='https://www.airbnb.fr/s/'+_airbnbPathSlug(loc)+'/homes?query='+nameLoc+'&adults='+guests+'&search_type=autocomplete_click'
-      +(checkin?'&checkin='+checkin:'')+(checkout?'&checkout='+checkout:'');
-    var hotelsUrl='https://fr.hotels.com/search.do?q-destination='+fullQ+'&q-rooms=1&q-room-0-adults='+guests
-      +(checkin?'&q-check-in='+checkin:'')+(checkout?'&q-check-out='+checkout:'');
-
     function platformRow(url, logo, color, title, subtitle, found){
       return '<a href="'+url+'" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:14px;padding:16px;background:var(--surface);border:1px solid '+(found?accent:'var(--line)')+';border-radius:14px;margin-bottom:10px;text-decoration:none;cursor:pointer">'
         +'<div style="width:42px;height:42px;border-radius:12px;background:'+color+';display:flex;align-items:center;justify-content:center;flex:none">'+logo+'</div>'
@@ -1742,21 +1709,53 @@ document.addEventListener('DOMContentLoaded', function(){
     }
     /* "source" = plateforme où la recherche web a confirmé que cet hébergement
        précis existe (voir _fetchRealStays) — on la met en avant plutôt que de
-       présenter 3 recherches génériques à égalité, dont 2 ne concernent pas
-       forcément ce logement. */
+       présenter des recherches génériques à égalité, dont certaines ne
+       concernent pas forcément ce logement. Les URLs viennent maintenant du
+       registre partagé BOOKING_PARTNERS + affiliateLink() (même logique que
+       le comparateur et la fiche hébergement compacte) : priorité au lien
+       direct vérifié (a.url) quand la plateforme correspond. */
     var src=(a.source||'').toLowerCase();
-    var platformDefs=[
-      {id:'booking', url:bookingUrl, logo:'<span style="color:white;font-weight:900;font-size:13px;font-family:sans-serif">B.</span>', color:'#003580', title:'Booking.com', sub:'Hôtels · remboursement gratuit'},
-      {id:'airbnb', url:airbnbUrl, logo:'<span style="color:white;font-size:18px">✦</span>', color:'#FF5A5F', title:'Airbnb', sub:'Maisons · appartements · villas'},
-      {id:'hotels', url:hotelsUrl, logo:'<span style="color:white;font-size:9px;font-weight:700;font-family:sans-serif;text-align:center;line-height:1.2">HOTELS<br>.COM</span>', color:'#CC0000', title:'Hotels.com', sub:'Prix exclusifs membres'},
-    ];
-    if(src==='booking'||src==='airbnb'||src==='hotels'){
+    var LOGO_BY_ID={
+      booking:'<span style="color:white;font-weight:900;font-size:13px;font-family:sans-serif">B.</span>',
+      airbnb:'<span style="color:white;font-size:18px">✦</span>',
+      hotels:'<span style="color:white;font-size:9px;font-weight:700;font-family:sans-serif;text-align:center;line-height:1.2">HOTELS<br>.COM</span>',
+      expedia:'<span style="color:white;font-weight:900;font-size:12px;font-family:sans-serif">Ex</span>',
+    };
+    var SUB_BY_ID={
+      booking:'Hôtels · remboursement gratuit',
+      airbnb:'Maisons · appartements · villas',
+      hotels:'Prix exclusifs membres',
+      expedia:'Hôtels · vols + hôtel',
+    };
+    var platformDefs=(typeof BOOKING_PARTNERS!=='undefined'?BOOKING_PARTNERS:[
+      {id:'booking',label:'Booking.com',color:'#003580'},
+      {id:'airbnb',label:'Airbnb',color:'#FF5A5F'},
+      {id:'hotels',label:'Hotels.com',color:'#CC0000'},
+    ]).map(function(p){
+      return { id:p.id, url:(typeof affiliateLink==='function')?affiliateLink(a,p.id):'#', logo:LOGO_BY_ID[p.id]||'<span style="color:white;font-size:12px">●</span>', color:p.color, title:p.label, sub:SUB_BY_ID[p.id]||'' };
+    });
+    if(platformDefs.some(function(p){ return p.id===src; })){
       platformDefs.sort(function(p,q){ return (p.id===src?-1:0)-(q.id===src?-1:0); });
     }
-    var platformsHtml=platformDefs.map(function(p){
-      var isFound=(p.id===src);
-      return platformRow(p.url, p.logo, p.color, p.title, isFound?'Confirmé disponible sur cette plateforme':p.sub, isFound);
-    }).join('');
+    /* Le badge "Vérifié ici" suffit à signaler la plateforme confirmée —
+       remplacer aussi le sous-titre par "Confirmé disponible..." disait
+       deux fois la même chose sur la même ligne. */
+    var platformsHtml;
+    if(platformDefs.length<5){
+      platformsHtml=platformDefs.map(function(p){
+        return platformRow(p.url, p.logo, p.color, p.title, p.sub, p.id===src);
+      }).join('');
+    } else {
+      /* 5+ partenaires : le premier (vérifié ou par défaut) reste visible,
+         les autres passent dans un menu déroulant natif pour ne pas
+         surcharger visuellement l'écran. */
+      var primary=platformDefs[0], rest=platformDefs.slice(1);
+      platformsHtml=platformRow(primary.url, primary.logo, primary.color, primary.title, primary.sub, primary.id===src)
+        +'<details style="margin-top:2px">'
+        +'<summary style="cursor:pointer;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;color:var(--sub);padding:8px 0;list-style:none">Voir '+rest.length+' autres plateformes ▾</summary>'
+        +rest.map(function(p){ return platformRow(p.url, p.logo, p.color, p.title, p.sub, p.id===src); }).join('')
+        +'</details>';
+    }
 
     /* Photo réelle trouvée par recherche web (_fetchRealStays) si disponible.
        Fallback natif si l'URL ne charge pas réellement (lien mort, hotlink
@@ -1796,7 +1795,7 @@ document.addEventListener('DOMContentLoaded', function(){
     return '<div class="bub '+(role==='user'?'me':'them')+'">'+esc(text)+'</div>';
   };
   window.openAI = function(){
-    var intro = typeof AI_INTRO !== 'undefined' ? AI_INTRO : "Je suis votre cartographe. Décrivez un changement — j'ajuste l'itinéraire, les étapes et le budget en direct.";
+    var intro = typeof AI_INTRO !== 'undefined' ? AI_INTRO : "Décrivez un changement — j'ajuste l'itinéraire, les étapes et le budget en direct.";
     var prompts = typeof AI_PROMPTS !== 'undefined' ? AI_PROMPTS : ['Ajoute un jour','Rythme plus lent','Budget réduit','Plus de gastronomie'];
     /* Restaurer l'historique de conversation propre à cet itinéraire */
     var history = (ITINERARY.chatHistory && Array.isArray(ITINERARY.chatHistory)) ? ITINERARY.chatHistory : [];
@@ -1807,7 +1806,7 @@ document.addEventListener('DOMContentLoaded', function(){
     var chatHtml = statusBar()
       +'<div class="chat-nav"><button class="nav-btn ghost" onclick="closeOverlay()" aria-label="Retour">'+ico('back',20,1.7)+'</button>'
       +  '<div class="chat-id"><span class="chat-av">'+ico('sparkle',18,1.6)+'<span class="on-dot"></span></span>'
-      +  '<span><span class="chat-n">Le cartographe</span><br><span class="chat-st">Compose votre sillage</span></span></div>'
+      +  '<span><span class="chat-n">Assistant d\'itinéraire</span><br><span class="chat-st">Ajuste votre voyage en direct</span></span></div>'
       +  (history.length?'<button onclick="window._clearChat()" style="font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--sub);background:none;border:none;cursor:pointer;padding:6px;flex:none">Effacer</button>':'')
       +'</div>'
       +  (ITINERARY.dest ? '<div class="chat-context">'+esc(ITINERARY.dest)+(dayCount?' · '+dayCount+' jour'+(dayCount>1?'s':''):'')+'</div>' : '')
@@ -2014,7 +2013,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
         /* Bloc d'actions : voir + enregistrer (avec choix remplacer/garder les deux) */
         var actionsHTML = '<div style="margin:10px 0 4px 40px;display:flex;flex-direction:column;gap:8px;align-items:flex-start">'
-          + '<button onclick="_returnToUpdatedItinerary()" style="background:var(--ink);color:var(--bg);border:none;border-radius:12px;padding:10px 16px;font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer">Voir l\'itinéraire mis à jour →</button>'
+          + '<button onclick="_returnToUpdatedItinerary()" style="background:transparent;color:var(--accent,var(--ink));border:1.5px solid var(--accent,var(--ink));border-radius:12px;padding:10px 16px;font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer">Voir l\'itinéraire mis à jour →</button>'
           + '<button onclick="_promptSaveModified()" style="background:transparent;color:var(--gold-deep);border:1px solid var(--gold-soft);border-radius:12px;padding:9px 16px;font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer">Enregistrer les changements</button>'
           + '</div>';
         chat.innerHTML += actionsHTML;
@@ -2072,7 +2071,7 @@ document.addEventListener('DOMContentLoaded', function(){
     var days=Object.keys(byDay).sort(function(a,b){return Number(a)-Number(b);});
     return statusBar()+navbar('Activités & expériences')
       +'<div class="ov-scroll px">'
-      +'<span class="eyebrow" style="display:block;margin-top:10px">Sélection du cartographe</span>'
+      +'<span class="eyebrow" style="display:block;margin-top:10px">Sélection sur-mesure</span>'
       +'<h1 style="font-family:var(--serif);font-weight:600;font-size:28px;margin-top:8px">Expériences sur-mesure</h1>'
       +days.map(function(d){return '<div class="act-day">Jour '+String(d).padStart(2,'0')+'</div>'
         +byDay[d].map(function(a){return '<div class="act" style="cursor:pointer">'
@@ -2090,8 +2089,12 @@ document.addEventListener('DOMContentLoaded', function(){
     var guests=it.travelers||(state&&state.travelers)||2;
     var accent=(it.palette&&(it.palette.culture||it.palette.beach))||'#C9A96E';
 
+    /* white-space:nowrap : sans ça, le "✓ " du bouton vérifié passe seul à
+       la ligne au-dessus du nom quand les 4 boutons se partagent la largeur
+       — on préfère qu'un bouton entier bascule à la ligne (flex-wrap du
+       conteneur) plutôt qu'un retour à la ligne au milieu de son libellé. */
     function platformBtn(url, label, color, found){
-      return '<a href="'+url+'" target="_blank" rel="noopener" style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:10px 8px;border-radius:10px;background:'+color+';color:white;font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:0.5px;text-decoration:none;text-align:center'+(found?';box-shadow:0 0 0 2px '+accent+' inset':'')+'">'+(found?'✓ ':'')+label+'</a>';
+      return '<a href="'+url+'" target="_blank" rel="noopener" style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:10px 8px;border-radius:10px;background:'+color+';color:white;font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:0.5px;text-decoration:none;text-align:center;white-space:nowrap'+(found?';box-shadow:0 0 0 2px '+accent+' inset':'')+'">'+(found?'✓ ':'')+label+'</a>';
     }
 
     var html = statusBar()+navbar('Hébergements du voyage')
@@ -2100,38 +2103,16 @@ document.addEventListener('DOMContentLoaded', function(){
 
     accs.forEach(function(a){
       var price=Number(a.price)||0, nights=Number(a.nights)||1;
-      var name=String(a.n||'').trim();
-      var loc=(a.loc||it.dest||'').trim();
-      var searchLoc=_searchLoc(loc);
-      var fullQ=encodeURIComponent(name+(searchLoc?', '+searchLoc:''));
-      var nameLoc=encodeURIComponent(name+(searchLoc?' '+searchLoc:''));
-      var cityQ=encodeURIComponent(searchLoc);
-      var _r1=(typeof _stayDateRange==='function')?_stayDateRange(a):{checkin:it.dateFrom||'',checkout:it.dateTo||''};
-      var checkin=_r1.checkin;
-      var checkout=_r1.checkout;
-
-      /* Booking : ss = nom + ville, dest_type=hotel pour cibler l'établissement,
-         ac_click_type pousse la résolution directe vers la fiche si elle existe */
-      var bookingUrl='https://www.booking.com/searchresults.html?ss='+fullQ+'&ssne='+cityQ+'&ssne_untouched='+cityQ
-        +'&dest_type=hotel&lang=fr&group_adults='+guests+'&no_rooms=1&sb_travel_purpose=leisure'
-        +(checkin?'&checkin='+checkin:'')+(checkout?'&checkout='+checkout:'')
-        +(typeof AFFILIATE_TAGS!=='undefined'&&AFFILIATE_TAGS.booking?'&aid='+AFFILIATE_TAGS.booking:'');
-      /* Airbnb : recherche nom + ville dans la query pour cibler le bon logement */
-      var airbnbUrl='https://www.airbnb.fr/s/'+_airbnbPathSlug(loc)+'/homes?query='+nameLoc+'&adults='+guests+'&search_type=autocomplete_click'
-        +(checkin?'&checkin='+checkin:'')+(checkout?'&checkout='+checkout:'');
-      /* Hotels.com : destination = nom + ville */
-      var hotelsUrl='https://fr.hotels.com/search.do?q-destination='+fullQ+'&q-rooms=1&q-room-0-adults='+guests
-        +(checkin?'&q-check-in='+checkin:'')+(checkout?'&q-check-out='+checkout:'');
-
-      var googleQ=encodeURIComponent((a.n||'')+' '+(a.loc||it.dest||''));
-      var googleUrl='https://www.google.com/search?q='+googleQ;
+      var dispName=(typeof accDisplayName==='function')?accDisplayName(a):(a.n||'Hébergement');
+      var titleUrl=(a.url && typeof affiliateLink==='function') ? affiliateLink(a)
+        : ((typeof _googleMapsPlaceUrl==='function') ? _googleMapsPlaceUrl(dispName, a.loc||it.dest||'') : ('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(dispName+' '+(a.loc||it.dest||''))));
 
       html += '<div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px">'
         /* En-tête hébergement */
         +'<div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:12px">'
         +'<div style="width:38px;height:38px;border-radius:10px;background:'+hexA(accent,0.12)+';display:flex;align-items:center;justify-content:center;flex:none;color:'+accent+'">'+ico(a.i||'bed',20,1.3)+'</div>'
         +'<div style="flex:1">'
-        +'<a href="'+googleUrl+'" target="_blank" rel="noopener" style="font-family:var(--serif);font-size:16px;font-weight:600;color:var(--ink);display:inline-flex;align-items:center;gap:5px;text-decoration:none">'
+        +'<a href="'+titleUrl+'" target="_blank" rel="noopener" style="font-family:var(--serif);font-size:16px;font-weight:600;color:var(--ink);display:inline-flex;align-items:center;gap:5px;text-decoration:none">'
           +esc(a.n||'Hébergement')
           +'<span style="color:var(--gold);display:inline-flex;flex:none">'+ico('external',12,1.6)+'</span>'
         +'</a>'
@@ -2143,17 +2124,30 @@ document.addEventListener('DOMContentLoaded', function(){
         +'</div>'
         +'</div>'
         +(a.blurb?'<p style="font-size:13px;color:var(--ink-soft);margin-bottom:12px;line-height:1.5">'+esc(a.blurb)+'</p>':'')
-        /* 3 boutons plateformes — celle où l'hébergement a été confirmé par la
-           recherche web (a.source) passe en tête avec une coche. */
+        /* Boutons plateformes, construits via le registre partagé BOOKING_PARTNERS
+           et affiliateLink() (même logique que la fiche hébergement, priorité au
+           lien vérifié a.url) — celle confirmée par la recherche web (a.source)
+           passe en tête avec une coche. Au-delà de 4 partenaires, bascule en
+           menu déroulant natif <details> pour ne pas surcharger visuellement. */
         +(function(){
           var src=(a.source||'').toLowerCase();
-          var defs=[
-            {id:'booking', url:bookingUrl, label:'Booking.com', color:'#003580'},
-            {id:'airbnb', url:airbnbUrl, label:'Airbnb', color:'#FF5A5F'},
-            {id:'hotels', url:hotelsUrl, label:'Hotels.com', color:'#CC0000'},
-          ];
-          if(src==='booking'||src==='airbnb'||src==='hotels') defs.sort(function(p,q){ return (p.id===src?-1:0)-(q.id===src?-1:0); });
-          return '<div style="display:flex;gap:8px">'+defs.map(function(d){ return platformBtn(d.url,d.label,d.color,d.id===src); }).join('')+'</div>';
+          var defs=(typeof BOOKING_PARTNERS!=='undefined'?BOOKING_PARTNERS:[
+            {id:'booking',label:'Booking.com',color:'#003580'},
+            {id:'airbnb',label:'Airbnb',color:'#FF5A5F'},
+            {id:'hotels',label:'Hotels.com',color:'#CC0000'},
+          ]).map(function(p){
+            return { id:p.id, label:p.label, color:p.color, url:(typeof affiliateLink==='function')?affiliateLink(a,p.id):'#' };
+          });
+          defs.sort(function(p,q){ return (p.id===src?-1:0)-(q.id===src?-1:0); });
+          if(defs.length<5){
+            return '<div style="display:flex;gap:8px;flex-wrap:wrap">'+defs.map(function(d){ return platformBtn(d.url,d.label,d.color,d.id===src); }).join('')+'</div>';
+          }
+          var primary=defs[0], rest=defs.slice(1);
+          return '<div style="display:flex;gap:8px">'+platformBtn(primary.url,primary.label,primary.color,primary.id===src)+'</div>'
+            +'<details style="margin-top:10px">'
+            +'<summary style="cursor:pointer;font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;color:var(--sub);padding:4px 0;list-style:none">Voir '+rest.length+' autre'+(rest.length>1?'s':'')+' plateforme'+(rest.length>1?'s':'')+' ▾</summary>'
+            +'<div style="display:flex;flex-direction:column;gap:6px;margin-top:8px">'+rest.map(function(d){ return platformBtn(d.url,d.label,d.color,d.id===src); }).join('')+'</div>'
+            +'</details>';
         })()
         +'</div>';
     });

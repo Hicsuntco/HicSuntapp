@@ -651,7 +651,8 @@ function buildDaysPrompt(state:any, skel:any, planSteps:any[], offset:number){
     'RÈGLES:',
     '* Géo stricte: chaque lieu dans la zone de l\'étape (<15km). Sur île: sur cette île uniquement.',
     '* desc: 2 phrases évocatrices max 40 mots (sensations, lumière, atmosphère).',
-    '* moments: '+nMoments+' items réels  -  {t:"HH:MM",k:"['+GEN_KINDS.slice(0,8).join('|')+']",ti:"NOM RÉEL",d:"détail 6 mots",free:true|false}',
+    '* moments: '+nMoments+' items réels  -  {t:"HH:MM",k:"['+GEN_KINDS.slice(0,8).join('|')+']",ti:"NOM RÉEL",d:"détail pratique 8-12 mots",free:true|false}',
+    '* d (détail du moment) : 8-12 mots PRATIQUES et actionnables, pas juste une description — glisser, quand c\'est pertinent, la durée sur place, le prix d\'entrée (ou "gratuit"), si une réservation est nécessaire, ou le meilleur créneau pour y aller (éviter la foule, lumière...). Objectif : le voyageur sait exactement à quoi s\'attendre sur place, sans avoir à chercher ailleurs.',
     '* free: true si l\'activité est en accès libre et non réservable (plage publique, point de vue, photo, balade, marché à parcourir, coucher de soleil, rue/place, église) — false si elle a un coût réel (visite guidée, musée/site payant, spa, excursion, activité nautique encadrée, cours, location).',
     '* tip: conseil initié ultra-spécifique (heure, jour, lieu exact).',
     '* restaurant: {name,type,price:"€/€€/€€€",note,rating:"4,x⭐",review}',
@@ -875,6 +876,27 @@ function _validPhotoPage(url:any){
   if(/\[|\]|example\.com|placeholder/i.test(u)) return '';
   return u;
 }
+/* Lien de réservation DIRECT vers la fiche de l'établissement (Booking,
+   Airbnb, Hotels.com, Expedia, site officiel) — même règle que la photo :
+   uniquement une URL vue littéralement dans les résultats de recherche,
+   jamais construite, pour ne jamais renvoyer vers une page cassée. */
+function _validBookingUrl(url:any){
+  if(typeof url!=='string') return '';
+  const u=url.trim();
+  if(!/^https:\/\/[a-z0-9.-]+\.[a-z]{2,}\//i.test(u)) return '';
+  if(/\[|\]|example\.com|placeholder/i.test(u)) return '';
+  return u;
+}
+/* Lien direct vers la fiche Google Maps d'un restaurant — vue littéralement
+   dans les résultats, jamais reconstruite à partir du nom (sinon on retombe
+   sur le même problème de "page Google cassée" qu'on cherche à éliminer). */
+function _validMapsUrl(url:any){
+  if(typeof url!=='string') return '';
+  const u=url.trim();
+  if(!/^https:\/\/(www\.)?(google\.[a-z.]{2,}\/maps|maps\.app\.goo\.gl|goo\.gl\/maps)\//i.test(u)) return '';
+  if(/\[|\]|example\.com|placeholder/i.test(u)) return '';
+  return u;
+}
 
 function applyGenerated(state:any, skel:any, daysDetail:any, hilites:any, flightInfo:any, heroPhoto:string){
   const dest=skel.dest||state.destination||'Votre voyage';
@@ -915,7 +937,8 @@ function applyGenerated(state:any, skel:any, daysDetail:any, hilites:any, flight
       am:['bed','wifi',i%2?'fork':'pool'], blurb:s.blurb||'Une adresse d\'exception.',
       photo: _validStayPhoto(s.photo),
       photoPage: _validPhotoPage(s.photoPage),
-      source: /^(booking|airbnb|hotels|officiel)$/i.test(String(s.source||'').trim()) ? String(s.source).trim().toLowerCase() : '',
+      url: _validBookingUrl(s.url),
+      source: /^(booking|airbnb|hotels|expedia|officiel)$/i.test(String(s.source||'').trim()) ? String(s.source).trim().toLowerCase() : '',
       verified: s.verified !== false,
     };
   });
@@ -1113,7 +1136,8 @@ function _mergeRealStays(origList:any[], zonesList:any[], realStays:any[]|null){
         blurb: (real.blurb && real.blurb.length>5) ? real.blurb : orig.blurb,
         photo: _validStayPhoto(real.photo),
         photoPage: _validPhotoPage(real.photo_page),
-        source: /^(booking|airbnb|hotels|officiel)$/i.test(String(real.source||'').trim()) ? String(real.source).trim().toLowerCase() : '',
+        url: _validBookingUrl(real.url),
+        source: /^(booking|airbnb|hotels|expedia|officiel)$/i.test(String(real.source||'').trim()) ? String(real.source).trim().toLowerCase() : '',
         rating: real.rating || orig.rating,
         verified: true,
       };
@@ -1153,14 +1177,15 @@ function buildStaySearchPrompt(dest:string, zones:string[], level:string, dateRa
     hasDates
       ? '- Prix : cherche le tarif RÉEL actuellement affiché (Booking, site officiel) pour CES dates précises indiquées ci-dessus, pas une moyenne générique — c\'est ce prix qui sert de base au budget affiché au client. Si le tarif exact pour ces dates n\'est pas trouvable (dates lointaines, pas encore ouvertes à la réservation...), donne la fourchette actuelle la plus réaliste pour ce type d\'établissement à cette période de l\'année — un prix estimé reste bien plus utile qu\'un champ vide.'
       : '- Prix indicatif par nuit réaliste en euros pour 2 personnes.',
-    '- "source" : indique sur quelle plateforme tu as vérifié l\'existence de cet établissement dans tes résultats de recherche : "booking", "airbnb", "hotels" ou "officiel" (site propre à l\'établissement). Laisse vide si tu n\'es pas sûr.',
+    '- "source" : indique sur quelle plateforme tu as vérifié l\'existence de cet établissement dans tes résultats de recherche : "booking", "airbnb", "hotels", "expedia" ou "officiel" (site propre à l\'établissement). Laisse vide si tu n\'es pas sûr.',
     '- "photo" : cherche activement une vraie photo de cet établissement précis (page Booking/Airbnb, fiche TripAdvisor, fiche Google Maps/Business) et regarde si l\'URL complète de l\'image apparaît littéralement dans tes résultats de recherche — c\'est fréquent, ne t\'en prive pas si elle y est. La seule règle est de ne JAMAIS inventer ou reconstruire une URL à partir d\'un pattern connu (ex: "q-xx.bstatic.com/...", des identifiants entre crochets) : uniquement une URL que tu as VUE mot pour mot, telle quelle, dans un extrait/snippet de recherche. Si tu ne l\'as pas vue ainsi, laisse "photo" VIDE plutôt que de risquer une URL fictive qui cassera l\'affichage.',
     '- "photo_page" (différent de "photo") : si tu as trouvé une PAGE web réelle qui contient des photos de cet établissement (fiche TripAdvisor, fiche Google Maps, page galerie du site officiel) sans pouvoir en extraire l\'URL d\'image directe, indique l\'URL de cette page ici — l\'utilisateur pourra cliquer pour voir les photos lui-même. Cette URL doit aussi avoir été VUE littéralement dans tes résultats, jamais construite.',
+    '- "url" (CRUCIAL — c\'est ce lien que le client touchera pour réserver) : si l\'URL de la fiche de réservation de CET établissement précis apparaît littéralement dans tes résultats de recherche (page Booking.com, Airbnb, Hotels.com ou Expedia qui mène DIRECTEMENT à cette fiche — jamais une page de résultats de recherche générique), indique-la ici telle que VUE mot pour mot dans un extrait/snippet. Ne l\'invente et ne la reconstruis JAMAIS à partir du nom de l\'établissement ou d\'un pattern d\'URL connu : une URL fabriquée mène très souvent vers une page d\'erreur, ce qui est pire que de n\'en fournir aucune. Si tu ne l\'as pas vue ainsi, laisse "url" VIDE — un lien de recherche construit proprement côté application vaut mieux qu\'un lien direct inventé qui casse.',
     '- "rating" : la note ACTUELLE de cet établissement (Google Maps ou Booking, ex: "4.6"), telle que vue dans tes résultats de recherche — jamais estimée ni inventée.',
     '- EXIGENCE DE QUALITÉ : n\'accepte que des établissements avec une note réelle d\'au moins '+ratingFloor+'/5. Si le meilleur hébergement que tu trouves pour cette zone est en dessous de ce seuil, cherche-en un autre pour cette même zone plutôt que de te contenter d\'une adresse moyenne — ne mets "name":"" pour ce motif que si vraiment aucun établissement à '+ratingFloor+'+ n\'existe dans cette zone précise.',
     '',
     'Réponds UNIQUEMENT en JSON compact valide, sans texte autour :',
-    '{"stays":[{"zone":"nom de la zone","name":"nom exact reel","type":"type/standing","price":0,"photo":"","photo_page":"","source":"","rating":"","blurb":"description courte basee sur des infos reelles"}]}',
+    '{"stays":[{"zone":"nom de la zone","name":"nom exact reel","type":"type/standing","price":0,"photo":"","photo_page":"","url":"","source":"","rating":"","blurb":"description courte basee sur des infos reelles"}]}',
   ].join('\n');
 }
 async function _fetchRealStays(dest:string, zones:string[], level:string, dateRanges:any[]){
@@ -1205,10 +1230,11 @@ function buildRestoSearchPrompt(dest:string, places:string[], level:string){
     '- Si tu n es pas certain pour un lieu, ou si le statut d\'ouverture actuel est incertain, mets "name":"" pour ce lieu plutôt que de risquer une adresse fermée.',
     '- Indique une spécialité réelle et une fourchette de prix (€, €€, €€€).',
     '- "rating" : la note ACTUELLE de ce restaurant (Google Maps ou TripAdvisor, ex: "4.7"), telle que vue dans tes résultats de recherche — jamais estimée ni inventée.',
+    '- "maps_url" (CRUCIAL — c\'est le lien que le client touchera pour trouver le restaurant) : si l\'URL de la fiche Google Maps de CE restaurant précis apparaît littéralement dans tes résultats de recherche (ex: une URL commençant par "https://www.google.com/maps/place/..." ou "https://maps.app.goo.gl/..."), indique-la ici telle que VUE mot pour mot. Ne l\'invente et ne la reconstruis JAMAIS à partir du nom du restaurant : une URL fabriquée mène très souvent vers une page cassée ou le mauvais établissement. Si tu ne l\'as pas vue ainsi, laisse "maps_url" VIDE — l\'application construira alors elle-même un lien de recherche Maps fiable à partir du nom.',
     '- EXIGENCE DE QUALITÉ : n\'accepte qu\'un restaurant avec une note réelle d\'au moins 4,5/5. Si la meilleure table que tu trouves pour ce lieu est en dessous de ce seuil, cherche-en une autre pour ce même lieu plutôt que de te contenter d\'une adresse moyenne — ne mets "name":"" pour ce motif que si vraiment aucune adresse à 4,5+ n\'existe pour ce lieu précis.',
     '',
     'Réponds UNIQUEMENT en JSON compact valide, sans texte autour :',
-    '{"restos":[{"place":"nom du lieu","name":"nom exact reel","type":"specialite/cuisine","price":"€€","note":"detail reel court","rating":"","review":"ce qui rend ce lieu special"}]}',
+    '{"restos":[{"place":"nom du lieu","name":"nom exact reel","type":"specialite/cuisine","price":"€€","note":"detail reel court","rating":"","maps_url":"","review":"ce qui rend ce lieu special"}]}',
   ].join('\n');
 }
 async function _fetchRealRestos(dest:string, places:string[], level:string){
@@ -1504,6 +1530,8 @@ async function callCartographe(state:any, onProgress:ProgressFn){
             if(real.note && real.note.length>4) r.note = real.note;
             if(real.review && real.review.length>4) r.review = real.review;
             if(real.rating) r.rating = real.rating;
+            const validMaps = _validMapsUrl(real.maps_url);
+            if(validMaps) r.mapsUrl = validMaps;
           }
         });
       }

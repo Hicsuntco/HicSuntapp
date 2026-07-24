@@ -48,12 +48,12 @@ function discoverView(){
     +       '<button class="muse-go" onclick="composeFree()" aria-label="Composer">' + ico('chevron', 20, 1.8) + '</button>'
     +     '</div>'
     +     '<div class="muse-line"></div>'
-    +     '<p class="muse-sub">Décrivez une envie — le cartographe compose l\'itinéraire.</p>'
+    +     '<p class="muse-sub">Décrivez une envie — nous composons l\'itinéraire.</p>'
     +   '</div>'
     +   '<div class="section-h"><h2>Destinations</h2><span class="meta">' + DEST_ORDER.length + ' régions</span></div>'
     +   '<div class="dest-grid" style="margin-top:0">' + DEST_ORDER.map(tileHTML).join('') + '</div>'
     +   '<div class="section-h"><h2>Mes voyages</h2><span class="meta">À venir</span></div>'
-    +   '<div data-disc-trips><div style="text-align:center;padding:24px 0"><div class="notif-load"><i></i></div></div></div>'
+    +   '<div data-disc-trips><div class="skel" style="height:190px;border-radius:22px"></div></div>'
     + '</div>';
 }
 
@@ -425,8 +425,11 @@ function savedTripCard(it){
 function voyagesView(){
   const seg = state._voySeg || 'upcoming';
   const labels = [['upcoming','À venir'],['past','Passés'],['draft','Brouillons']];
+  const today = new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'short'}).toUpperCase();
   return statusBar()
     + '<div class="px">'
+    +   '<div class="eyebrow-row"><span class="eyebrow">Vos voyages</span><span class="eyebrow-now">' + today + '</span></div>'
+    +   '<hr class="hairline gold" style="margin-top:14px">'
     +   '<h1 class="voy-title">Mes <em>voyages</em></h1>'
     +   '<div class="voy-pills">' + labels.map(function(l){
           return '<button class="voy-pill' + (seg === l[0] ? ' on' : '') + '" onclick="voySeg(\'' + l[0] + '\')">' + l[1] + '</button>';
@@ -452,15 +455,13 @@ function profileView(){
      vraie session  -  sans ce distinguo, le bouton "Se connecter" reste
      caché alors qu'aucune action Supabase ne peut réellement fonctionner. */
   const hasRealAuth = !!token;
-  const premium = (typeof _hasActivePremiumStatus === 'function') && _hasActivePremiumStatus();
-  /* Sur iOS, aucune fonctionnalité n'est jamais payante dans l'app (voir
-     _isNativeIOSApp/_checkPaymentToken, guideline 3.1.1) — un intitulé
-     évoquant un abonnement/achat ("Abonnement Premium", "débloqué à
-     l'achat") laisse penser le contraire et peut faire suspecter un achat
-     intégré manquant lors d'une revue Apple. */
-  const isNativeIOS = (typeof _isNativeIOSApp === 'function') && _isNativeIOSApp();
-  const premiumLabel = isNativeIOS ? 'Accès complet' : 'Abonnement Premium';
-  const premiumSub = isNativeIOS ? 'Toutes les fonctionnalités incluses' : (premium ? 'Actif' : 'Débloqué à l\'achat d\'un itinéraire');
+  /* L'application est gratuite pour l'instant, sur toutes les plateformes :
+     pas de palier payant actif, donc pas d'intitulé évoquant un abonnement
+     ou un achat ("Abonnement Premium", "débloqué à l'achat"). Sur iOS
+     c'est de toute façon permanent (voir _isNativeIOSApp/_checkPaymentToken,
+     guideline 3.1.1). */
+  const premiumLabel = 'Accès complet';
+  const premiumSub = 'Toutes les fonctionnalités incluses';
 
   const rows = [
     ['compass','Préférences de voyage','Styles, budget et rythme par défaut', "openOverlay('prefs', prefsView())"],
@@ -473,39 +474,69 @@ function profileView(){
     return '<div class="prof-stat"><div class="ps-v">—</div><div class="ps-l">' + l + '</div></div>';
   }).join('');
 
+  /* Documents de voyage — état réel de chaque pièce. */
+  const docRows = (typeof DOCUMENTS !== 'undefined' ? DOCUMENTS : []).map(function(d){
+    const st = d.st || ['draft',''];
+    return '<div class="pf-doc">'
+      + '<span class="pf-doc-ico">' + ico(d.i || 'doc', 18, 1.5) + '</span>'
+      + '<div class="pf-doc-m"><div class="pf-doc-t">' + esc(d.n) + '</div>'
+      + (d.s ? '<div class="pf-doc-s">' + esc(d.s) + '</div>' : '') + '</div>'
+      + '<span class="pf-doc-st ' + esc(st[0]) + '">' + esc(st[1]) + '</span></div>';
+  }).join('');
+
   return statusBar()
-    + '<div class="px">'
-    +   '<h1 class="voy-title" style="margin-bottom:20px">Profil</h1>'
-    +   '<div class="prof-card">'
-    +     '<div class="prof-id">'
-    +       '<span class="avatar" style="width:64px;height:64px;font-size:22px">' + (USER.initials || '✦') + '</span>'
-    +       '<div><div class="prof-n">' + esc(USER.full || USER.name || 'Voyageur') + '</div>'
-    +         (premium
-              ? '<div class="prof-badge">' + ico('sparkle',11,2) + '<span>Explorateur · Premium</span></div>'
-              : '<div class="prof-m">' + (email ? esc(email) : 'Composez votre premier itinéraire') + '</div>')
-    +       '</div>'
+    + '<div class="px pf">'
+
+    /* ── En-tête : identité, sans carte ── */
+    +   '<div class="pf-eyebrow">Votre compte</div>'
+    +   '<div class="rule"></div>'
+    +   '<div class="pf-id">'
+    +     '<span class="pf-av">' + (USER.initials || '✦') + '</span>'
+    +     '<div class="pf-idm">'
+    +       '<h1 class="pf-name">' + esc(USER.full || USER.name || 'Voyageur') + '</h1>'
+    +       '<div class="pf-mail">' + (email ? esc(email) : 'Composez votre premier itinéraire') + '</div>'
     +     '</div>'
     +   '</div>'
-    +   '<div class="prof-stats" data-prof-stats>' + statSkeleton + '</div>'
-    +   '<div class="prof-circle-card" data-prof-circle onclick="openMonCercle()" style="cursor:pointer"><div class="cc-row"><div class="circle-empty-ico">' + ico('users',18,1.5) + '</div>'
-    +     '<div style="flex:1"><div class="cc-t">Mon Cercle</div><div class="cc-s">Chargement…</div></div></div></div>'
-    +   '<div class="section-h" style="margin-top:20px;cursor:pointer" onclick="openAtlas()">'
-    +     '<h2>Carnet de voyage</h2>'
-    +     '<span style="display:flex;align-items:center;gap:4px"><span class="meta" data-prof-badges-meta>…</span><span style="color:var(--sub);display:inline-flex">' + ico('chevron',14,1.6) + '</span></span>'
+
+    /* ── Chiffres, en ligne (plus de carte) ── */
+    +   '<div class="prof-stats pf-stats" data-prof-stats>' + statSkeleton + '</div>'
+
+    /* ── Documents ── */
+    +   '<div class="pf-sec">Vos documents</div>'
+    +   '<div class="pf-docs">' + docRows + '</div>'
+
+    /* ── Votre monde ── */
+    +   '<div class="pf-sec pf-sec-row" onclick="openAtlas()">'
+    +     '<span>Votre monde</span>'
+    +     '<span class="pf-sec-meta" data-prof-badges-meta>…</span>'
     +   '</div>'
-    +   '<div class="prof-badges" data-prof-badges onclick="openAtlas()" style="cursor:pointer"><div class="cv-empty">Chargement…</div></div>'
-    +   '<div class="atlas-cta-row" onclick="openAtlas()" style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:10px;padding:12px;border-radius:14px;border:1px dashed var(--line2);cursor:pointer;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--gold)">'
-    +     ico('compass',14,1.7) + '<span>Voir mon Atlas Vivant</span>'
+    +   '<div class="prof-badges" data-prof-badges onclick="openAtlas()" style="cursor:pointer">'
+    +     [0,1,2,3].map(function(){ return '<div class="skel" style="aspect-ratio:1;border-radius:16px"></div>'; }).join('')
     +   '</div>'
-    +   '<div class="prof-list" style="margin-top:20px">' + rows.map(function(r){
-          return '<div class="row" onclick="' + r[3] + '">'
-            + '<span class="r-ico">' + ico(r[0], 20, 1.5) + '</span>'
-            + '<div class="r-main"><div class="r-t">' + r[1] + '</div>' + (r[2] ? '<div class="r-s">' + r[2] + '</div>' : '') + '</div>'
-            + '<span class="r-chev">' + ico('chevron', 17, 1.6) + '</span></div>';
+
+    /* ── Votre Cercle — uniquement si le voyageur est connecté : hors
+       connexion, la section n'affichait qu'un état vide avec des boutons
+       sans effet, ce qui donnait l'app pour cassée. ── */
+    +   (hasRealAuth
+          ? '<div class="pf-sec">Votre Cercle</div>'
+            + '<div class="pf-circle" data-prof-circle onclick="openMonCercle()" style="cursor:pointer">'
+            + '<div class="cc-row"><div style="flex:1"><div class="cc-t">Mon Cercle</div><div class="cc-s">Chargement…</div></div></div>'
+            + '</div>'
+          : '')
+
+    /* ── Réglages, en lignes fines ── */
+    +   '<div class="pf-sec">Réglages</div>'
+    +   '<div class="pf-rows">' + rows.map(function(r){
+          return '<div class="pf-row" onclick="' + r[3] + '">'
+            + '<span class="pf-row-ico">' + ico(r[0], 19, 1.5) + '</span>'
+            + '<div class="pf-row-m"><div class="pf-row-t">' + r[1] + '</div>'
+            + (r[2] ? '<div class="pf-row-s">' + r[2] + '</div>' : '') + '</div>'
+            + '<span class="pf-row-ch">' + ico('chevron', 16, 1.6) + '</span></div>';
         }).join('') + '</div>'
-    +   (hasRealAuth ? '' : '<button class="btn" style="width:100%;margin-top:20px" onclick="openOverlay(\'login\', loginView(), {modal:true})">Se connecter</button>')
-    +   (hasRealAuth ? '<button onclick="_promptDeleteAccount()" style="display:block;width:100%;background:none;border:none;padding:16px 0 0;font-family:var(--sans);font-size:13px;color:var(--sub);text-align:center;cursor:pointer">Supprimer mon compte</button>' : '')
-    +   '<p style="text-align:center;font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub);margin-top:32px">Hic Sunt · Beyond the Known</p>'
+
+    +   (hasRealAuth ? '' : '<button class="btn" style="width:100%;margin-top:22px" onclick="openOverlay(\'login\', loginView(), {modal:true})">Se connecter</button>')
+    +   (hasRealAuth ? '<button onclick="_promptDeleteAccount()" class="pf-del">Supprimer mon compte</button>' : '')
+    +   '<p class="pf-foot">Hic Sunt · Beyond the Known</p>'
     + '</div>';
 }
 /* Remplit les blocs asynchrones du profil (stats, Cercle, carnet de voyage)
@@ -543,10 +574,18 @@ async function loadProfileTab(){
   const badgesMeta = scope.querySelector('[data-prof-badges-meta]');
   if(badgesMeta) badgesMeta.textContent = stats.countries.length + ' / ' + WORLD_COUNTRIES_COUNT + ' régions';
   if(badgesEl){
-    badgesEl.innerHTML = stats.countries.map(function(c){
+    /* Plafonné : au-delà de 6 pays, on résume par un compteur plutôt que
+       de dérouler une grille interminable au fil des voyages. */
+    const MAX_BADGES = 6;
+    const shown = stats.countries.slice(0, MAX_BADGES);
+    const reste = stats.countries.length - shown.length;
+    badgesEl.innerHTML = shown.map(function(c){
       return '<div class="cv-badge" style="background:' + _countryBadgeBg(c.key, c.label) + '">'
         + ico(destIcon(c.label), 22, 1.4) + '<span class="cv-code">' + c.code + '</span></div>';
-    }).join('') + '<div class="cv-badge-add" onclick="setTab(\'discover\')">' + ico('plus', 20, 1.6) + '</div>';
+    }).join('')
+      + (reste > 0
+          ? '<div class="cv-badge cv-badge-more">+' + reste + '</div>'
+          : '<div class="cv-badge-add" onclick="setTab(\'discover\')">' + ico('plus', 20, 1.6) + '</div>');
   }
 }
 function _circleCardHTML(companions, connected){
@@ -562,7 +601,7 @@ function _circleCardHTML(companions, connected){
     : companions.length + ' compagnon' + (companions.length>1?'s':'') + ' de route';
   return '<div class="cc-row">'
     + (companions.length ? '<div class="circle-avatars">' + avatars + more + '</div>' : '<div class="circle-empty-ico">' + ico('users',18,1.5) + '</div>')
-    + '<div style="flex:1;min-width:0"><div class="cc-t">Mon Cercle</div><div class="cc-s">' + esc(label) + '</div></div>'
+    + '<div style="flex:1;min-width:0"><div class="cc-t">Mon Cercle</div><div class="cc-s"' + (connected ? '' : ' style="white-space:normal;overflow:visible;text-overflow:clip;line-height:1.4"') + '>' + esc(label) + '</div></div>'
     + '</div>'
     + '<div class="cc-actions">'
     +   '<button class="cc-btn" onclick="event.stopPropagation();inviteCompanion()">Inviter</button>'
