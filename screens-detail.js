@@ -308,11 +308,33 @@ function accGradient(a, it){
 }
 
 /* ── liens d'affiliation ──────────────────────────────────────────────
-   Pas de réservation directe : l'utilisateur est redirigé vers le
-   partenaire (Booking.com ou Airbnb) avec le nom + ville pré-remplis.
-   Remplacer AFFILIATE_TAGS par les vrais identifiants d'affiliation
-   une fois les programmes Booking.com / Airbnb actifs. ── */
-const AFFILIATE_TAGS = { booking:'', airbnb:'' };
+   Par défaut, redirection vers une recherche partenaire (Booking.com,
+   Airbnb, Hotels.com, Expedia) avec le nom + ville + dates pré-remplis.
+   Quand la recherche web anti-hallucination de la génération a trouvé
+   l'URL EXACTE de la fiche de réservation (a.url, vue littéralement dans
+   les résultats — jamais construite), on l'utilise directement à la
+   place : c'est ça, un lien "qui mène directement à l'hébergement".
+   Remplacer AFFILIATE_TAGS par les vrais identifiants d'affiliation une
+   fois les programmes Booking.com / Airbnb / Hotels.com / Expedia actifs. ── */
+const AFFILIATE_TAGS = { booking:'', airbnb:'', hotels:'', expedia:'' };
+/* Registre unique des partenaires de réservation — ajouter un partenaire
+   ici (nouvel id, libellé, couleur, + son URL dans affiliateLink()) suffit
+   à le faire apparaître partout (fiche hébergement, comparateur). Le
+   comparateur bascule automatiquement en menu déroulant à partir de 5
+   partenaires pour ne pas surcharger visuellement l'écran. */
+const BOOKING_PARTNERS = [
+  { id:'booking', label:'Booking.com', color:'#003580' },
+  { id:'airbnb',  label:'Airbnb',      color:'#FF5A5F' },
+  { id:'hotels',  label:'Hotels.com',  color:'#CC0000' },
+  { id:'expedia', label:'Expedia',     color:'#00355F' },
+];
+/* Lien Google Maps fiable vers un lieu précis (fiche + itinéraire), à
+   utiliser à la place d'une recherche web générique qui peut atterrir sur
+   une page de résultats non pertinente plutôt que sur l'établissement. */
+function _googleMapsPlaceUrl(name, loc){
+  const q = [name, loc].filter(Boolean).join(' ');
+  return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q);
+}
 /* Date d'arrivée/de départ RÉELLES pour CET hébergement précis, pas les
    dates globales du séjour  -  sans ça, la recherche Booking/Airbnb pour
    le 2e ou 3e hébergement du voyage proposait toujours les dates de tout
@@ -334,6 +356,15 @@ function _stayDateRange(a){
 }
 function affiliateLink(a, platform){
   const it = ITINERARY;
+  /* Priorité absolue : URL de réservation vérifiée par la recherche web à
+     la génération (a.url — voir buildStaySearchPrompt), qui mène DIRECTEMENT
+     à la fiche de cet hébergement précis plutôt qu'à une page de résultats.
+     On ne l'utilise que si aucune plateforme précise n'est demandée, ou si
+     la plateforme demandée est bien celle où cette URL a été vérifiée
+     (a.source) — sinon on construit la recherche pour la plateforme voulue. */
+  const verifiedSrc = a.source ? String(a.source).toLowerCase() : '';
+  if (a.url && (!platform || platform === verifiedSrc)) return a.url;
+
   /* Nom de l'hébergement — encodé pour une recherche précise */
   const nameRaw  = a.n || '';
   const cityRaw  = a.loc || it.dest || '';
@@ -377,8 +408,16 @@ function affiliateLink(a, platform){
     + (checkin  ? '&q-check-in='  + checkin  : '')
     + (checkout ? '&q-check-out=' + checkout : '');
 
-  if (platform === 'airbnb' || isAirbnb) return airbnbUrl;
+  /* Expedia — recherche hôtel par destination + dates + voyageurs */
+  const expediaUrl = 'https://www.expedia.fr/Hotel-Search'
+    + '?destination=' + fullQ
+    + (checkin  ? '&startDate=' + checkin  : '')
+    + (checkout ? '&endDate='   + checkout : '')
+    + '&adults=' + guests;
+
+  if (platform === 'expedia') return expediaUrl;
   if (platform === 'hotels') return hotelsUrl;
+  if (platform === 'airbnb' || (!platform && isAirbnb)) return airbnbUrl;
   return bookingUrl;
 }
 function openAffiliate(accId){
@@ -686,7 +725,7 @@ function dayDetailView(idx){
 
   const restaurantHTML = p.restaurant ? '<div class="section-h"><h2>À table</h2></div>'
     + '<div class="row" style="cursor:default;align-items:flex-start"><span class="r-ico" style="color:'+catColor+'">' + ico('fork',19,1.5) + '</span>'
-    + '<div class="r-main"><div class="r-t"><a href="https://www.google.com/search?q='+encodeURIComponent((p.restaurant.name||'')+' '+(p.loc||ITINERARY.dest||'')+' restaurant')+'" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:5px">' + esc(p.restaurant.name||'') + '<span style="color:'+catColor+';display:inline-flex;flex:none">'+ico('external',11,1.6)+'</span></a>' + (p.restaurant.rating?' <span style="font-size:11px;font-weight:400;color:'+catColor+'">'+esc(p.restaurant.rating)+'</span>':'') + '</div>'
+    + '<div class="r-main"><div class="r-t"><a href="'+esc(p.restaurant.mapsUrl || _googleMapsPlaceUrl(p.restaurant.name||'', p.loc||ITINERARY.dest||''))+'" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:5px">' + esc(p.restaurant.name||'') + '<span style="color:'+catColor+';display:inline-flex;flex:none">'+ico('external',11,1.6)+'</span></a>' + (p.restaurant.rating?' <span style="font-size:11px;font-weight:400;color:'+catColor+'">'+esc(p.restaurant.rating)+'</span>':'') + '</div>'
     + '<div class="r-s">' + esc(p.restaurant.type||'') + (p.restaurant.price?' · '+esc(p.restaurant.price):'') + '</div>'
     + (p.restaurant.note?'<div class="r-s" style="margin-top:2px;font-style:italic">'+esc(p.restaurant.note)+'</div>':'')
     + (p.restaurant.review?'<div class="r-s" style="margin-top:4px;color:var(--sub);font-size:11px">"'+esc(p.restaurant.review)+'"</div>':'')
@@ -769,6 +808,8 @@ function bookingView(accId){
   const total = a.price * a.nights;
   const accent = accThemeAccent(a, ITINERARY);
   const isAirbnb = /villa|appartement|apparthotel|maison|airbnb|guesthouse|gîte|loft/.test((a.type||'').toLowerCase());
+  const PLATFORM_LABEL = { booking:'Booking.com', airbnb:'Airbnb', hotels:'Hotels.com', expedia:'Expedia' };
+  const platformLabel = PLATFORM_LABEL[String(a.source||'').toLowerCase()] || (isAirbnb ? 'Airbnb' : 'Booking.com');
   const dispName = accDisplayName(a);
   return '<div class="book-hero" style="position:relative;overflow:hidden;height:245px;background:radial-gradient(120% 100% at 15% 0%,'+hexA(accent,0.28)+',transparent 60%),linear-gradient(155deg,#1c1812,#0d0b08 55%,#000)">'
     +   '<span style="position:absolute;bottom:20px;right:24px;z-index:1;color:'+hexA(accent,0.9)+';display:flex;opacity:0.95">' + ico(a.i, 32, 1.3) + '</span>'
@@ -778,7 +819,7 @@ function bookingView(accId){
     + '</div>'
     + '<div class="ov-scroll has-foot px">'
     +   '<span class="eyebrow" style="display:block;margin-top:16px">' + esc(a.tag) + '</span>'
-    +   '<div class="book-h"><a href="https://www.google.com/search?q='+encodeURIComponent(dispName+' '+(a.loc||''))+'" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:6px">' + esc(dispName) + '<span style="color:var(--gold);display:inline-flex;flex:none">'+ico('external',15,1.6)+'</span></a><span class="a-rate" style="font-family:var(--mono);font-size:11px;display:inline-flex;align-items:center;gap:4px">' + ico('star',12) + a.rate + '</span></div>'
+    +   '<div class="book-h"><a href="'+esc(a.url || _googleMapsPlaceUrl(dispName, a.loc||''))+'" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:6px">' + esc(dispName) + '<span style="color:var(--gold);display:inline-flex;flex:none">'+ico('external',15,1.6)+'</span></a><span class="a-rate" style="font-family:var(--mono);font-size:11px;display:inline-flex;align-items:center;gap:4px">' + ico('star',12) + a.rate + '</span></div>'
     +   '<div class="book-meta">' + esc(a.type) + ' · ' + esc(a.loc) + '</div>'
     +   '<p class="book-desc">' + esc(a.blurb) + '</p>'
     +   '<div class="chips" style="margin-top:16px">' + a.am.map(function(k){
@@ -789,11 +830,11 @@ function bookingView(accId){
     +   '<div class="stay-row">' + ico('users',18,1.5) + '<span class="sr-l">Voyageurs</span><span class="sr-v">' + travelerLabel(ITINERARY) + '</span></div>'
     +   '<div class="section-h"><h2>Estimation</h2></div>'
     +   '<div class="price-l"><span>' + eur(a.price) + ' × ' + a.nights + ' nuit' + (a.nights>1?'s':'') + '</span><span>' + eur(total) + '</span></div>'
-    +   '<p class="book-desc" style="margin-top:8px;color:var(--sub)">Prix indicatif. La disponibilité et le tarif définitif sont confirmés sur ' + (isAirbnb?'Airbnb':'Booking.com') + '.</p>'
+    +   '<p class="book-desc" style="margin-top:8px;color:var(--sub)">Prix indicatif. La disponibilité et le tarif définitif sont confirmés sur ' + platformLabel + '.</p>'
     + '</div>'
     + '<div class="ov-foot"><div class="foot-price">'
     +   '<div><div class="fp-v">' + eur(total) + '</div><div class="fp-l">' + a.nights + ' nuit' + (a.nights>1?'s':'') + ' · estimation</div></div>'
-    +   '<button class="btn" onclick="openAffiliate(\'' + a.id + '\')">Voir sur ' + (isAirbnb?'Airbnb':'Booking.com') + '</button>'
+    +   '<button class="btn" onclick="openAffiliate(\'' + a.id + '\')">Voir sur ' + platformLabel + '</button>'
     + '</div></div>';
 }
 
