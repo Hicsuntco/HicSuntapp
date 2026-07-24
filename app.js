@@ -2099,7 +2099,8 @@ document.addEventListener('DOMContentLoaded', function(){
     accs.forEach(function(a){
       var price=Number(a.price)||0, nights=Number(a.nights)||1;
       var dispName=(typeof accDisplayName==='function')?accDisplayName(a):(a.n||'Hébergement');
-      var titleUrl=a.url || ((typeof _googleMapsPlaceUrl==='function') ? _googleMapsPlaceUrl(dispName, a.loc||it.dest||'') : ('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(dispName+' '+(a.loc||it.dest||''))));
+      var titleUrl=(a.url && typeof affiliateLink==='function') ? affiliateLink(a)
+        : ((typeof _googleMapsPlaceUrl==='function') ? _googleMapsPlaceUrl(dispName, a.loc||it.dest||'') : ('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(dispName+' '+(a.loc||it.dest||''))));
 
       html += '<div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px">'
         /* En-tête hébergement */

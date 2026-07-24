@@ -354,6 +354,29 @@ function _stayDateRange(a){
   const fmt = function(d){ return d.toISOString().slice(0,10); };
   return { checkin: fmt(checkinD), checkout: fmt(checkoutD) };
 }
+/* Enrichit une URL directe de fiche (a.url) avec les dates réelles du
+   séjour, le nombre de voyageurs et l'identifiant d'affiliation — les
+   pages établissement Booking.com et les annonces Airbnb acceptent ces
+   paramètres : le client atterrit alors sur SA recherche, pré-remplie
+   pour SES dates, pas sur la fiche à l'état neutre. On n'ajoute jamais
+   un paramètre déjà présent dans l'URL vue en ligne. */
+function _enrichDirectUrl(url, a){
+  try{
+    const r = _stayDateRange(a);
+    const guests = ITINERARY.travelers || (typeof state !== 'undefined' && state.travelers) || 2;
+    const sep = function(u){ return u.indexOf('?') >= 0 ? '&' : '?'; };
+    let u = String(url);
+    if(/^https:\/\/([a-z0-9-]+\.)?booking\.com\//i.test(u)){
+      if(r.checkin && r.checkout && u.indexOf('checkin=') < 0) u += sep(u) + 'checkin=' + r.checkin + '&checkout=' + r.checkout;
+      if(u.indexOf('group_adults=') < 0) u += sep(u) + 'group_adults=' + guests + '&no_rooms=1';
+      if(AFFILIATE_TAGS.booking && u.indexOf('aid=') < 0) u += sep(u) + 'aid=' + AFFILIATE_TAGS.booking;
+    } else if(/^https:\/\/([a-z0-9-]+\.)?airbnb\.[a-z.]{2,}\/rooms\//i.test(u)){
+      if(r.checkin && r.checkout && u.indexOf('check_in=') < 0) u += sep(u) + 'check_in=' + r.checkin + '&check_out=' + r.checkout;
+      if(u.indexOf('adults=') < 0) u += sep(u) + 'adults=' + guests;
+    }
+    return u;
+  }catch(e){ return url; }
+}
 function affiliateLink(a, platform){
   const it = ITINERARY;
   /* Priorité absolue : URL de réservation vérifiée par la recherche web à
@@ -363,7 +386,7 @@ function affiliateLink(a, platform){
      la plateforme demandée est bien celle où cette URL a été vérifiée
      (a.source) — sinon on construit la recherche pour la plateforme voulue. */
   const verifiedSrc = a.source ? String(a.source).toLowerCase() : '';
-  if (a.url && (!platform || platform === verifiedSrc)) return a.url;
+  if (a.url && (!platform || platform === verifiedSrc)) return _enrichDirectUrl(a.url, a);
 
   /* Nom de l'hébergement — encodé pour une recherche précise */
   const nameRaw  = a.n || '';
@@ -819,7 +842,7 @@ function bookingView(accId){
     + '</div>'
     + '<div class="ov-scroll has-foot px">'
     +   '<span class="eyebrow" style="display:block;margin-top:16px">' + esc(a.tag) + '</span>'
-    +   '<div class="book-h"><a href="'+esc(a.url || _googleMapsPlaceUrl(dispName, a.loc||''))+'" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:6px">' + esc(dispName) + '<span style="color:var(--gold);display:inline-flex;flex:none">'+ico('external',15,1.6)+'</span></a><span class="a-rate" style="font-family:var(--mono);font-size:11px;display:inline-flex;align-items:center;gap:4px">' + ico('star',12) + a.rate + '</span></div>'
+    +   '<div class="book-h"><a href="'+esc(a.url ? affiliateLink(a) : _googleMapsPlaceUrl(dispName, a.loc||''))+'" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:6px">' + esc(dispName) + '<span style="color:var(--gold);display:inline-flex;flex:none">'+ico('external',15,1.6)+'</span></a><span class="a-rate" style="font-family:var(--mono);font-size:11px;display:inline-flex;align-items:center;gap:4px">' + ico('star',12) + a.rate + '</span></div>'
     +   '<div class="book-meta">' + esc(a.type) + ' · ' + esc(a.loc) + '</div>'
     +   '<p class="book-desc">' + esc(a.blurb) + '</p>'
     +   '<div class="chips" style="margin-top:16px">' + a.am.map(function(k){
