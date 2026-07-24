@@ -1737,22 +1737,23 @@ document.addEventListener('DOMContentLoaded', function(){
     if(platformDefs.some(function(p){ return p.id===src; })){
       platformDefs.sort(function(p,q){ return (p.id===src?-1:0)-(q.id===src?-1:0); });
     }
+    /* Le badge "Vérifié ici" suffit à signaler la plateforme confirmée —
+       remplacer aussi le sous-titre par "Confirmé disponible..." disait
+       deux fois la même chose sur la même ligne. */
     var platformsHtml;
     if(platformDefs.length<5){
       platformsHtml=platformDefs.map(function(p){
-        var isFound=(p.id===src);
-        return platformRow(p.url, p.logo, p.color, p.title, isFound?'Confirmé disponible sur cette plateforme':p.sub, isFound);
+        return platformRow(p.url, p.logo, p.color, p.title, p.sub, p.id===src);
       }).join('');
     } else {
       /* 5+ partenaires : le premier (vérifié ou par défaut) reste visible,
          les autres passent dans un menu déroulant natif pour ne pas
          surcharger visuellement l'écran. */
       var primary=platformDefs[0], rest=platformDefs.slice(1);
-      var mainFound=(primary.id===src);
-      platformsHtml=platformRow(primary.url, primary.logo, primary.color, primary.title, mainFound?'Confirmé disponible sur cette plateforme':primary.sub, mainFound)
+      platformsHtml=platformRow(primary.url, primary.logo, primary.color, primary.title, primary.sub, primary.id===src)
         +'<details style="margin-top:2px">'
         +'<summary style="cursor:pointer;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;color:var(--sub);padding:8px 0;list-style:none">Voir '+rest.length+' autres plateformes ▾</summary>'
-        +rest.map(function(p){ var f=(p.id===src); return platformRow(p.url, p.logo, p.color, p.title, f?'Confirmé disponible sur cette plateforme':p.sub, f); }).join('')
+        +rest.map(function(p){ return platformRow(p.url, p.logo, p.color, p.title, p.sub, p.id===src); }).join('')
         +'</details>';
     }
 
@@ -2088,8 +2089,12 @@ document.addEventListener('DOMContentLoaded', function(){
     var guests=it.travelers||(state&&state.travelers)||2;
     var accent=(it.palette&&(it.palette.culture||it.palette.beach))||'#C9A96E';
 
+    /* white-space:nowrap : sans ça, le "✓ " du bouton vérifié passe seul à
+       la ligne au-dessus du nom quand les 4 boutons se partagent la largeur
+       — on préfère qu'un bouton entier bascule à la ligne (flex-wrap du
+       conteneur) plutôt qu'un retour à la ligne au milieu de son libellé. */
     function platformBtn(url, label, color, found){
-      return '<a href="'+url+'" target="_blank" rel="noopener" style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:10px 8px;border-radius:10px;background:'+color+';color:white;font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:0.5px;text-decoration:none;text-align:center'+(found?';box-shadow:0 0 0 2px '+accent+' inset':'')+'">'+(found?'✓ ':'')+label+'</a>';
+      return '<a href="'+url+'" target="_blank" rel="noopener" style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:10px 8px;border-radius:10px;background:'+color+';color:white;font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:0.5px;text-decoration:none;text-align:center;white-space:nowrap'+(found?';box-shadow:0 0 0 2px '+accent+' inset':'')+'">'+(found?'✓ ':'')+label+'</a>';
     }
 
     var html = statusBar()+navbar('Hébergements du voyage')
